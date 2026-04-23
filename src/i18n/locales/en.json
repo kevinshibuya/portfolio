@@ -1,0 +1,122 @@
+{
+  "nav": {
+    "about": "about",
+    "work": "work",
+    "skills": "skills",
+    "projects": "projects",
+    "embeds": "interactives",
+    "contact": "contact",
+    "available": "available for projects"
+  },
+  "lang": "PT",
+  "hero": {
+    "eyebrow": "— portfolio '26",
+    "name1": "kevin",
+    "name2": "shibuya.",
+    "rolePrefix": "i am an",
+    "roles": [
+      "interactive storyteller",
+      "fullstack developer",
+      "system architect",
+      "data journalist"
+    ],
+    "description": "full-stack developer specializing in interactive journalism and digital experiences — transforming data and narratives into engaging visual stories.",
+    "cta": {
+      "collaborate": "collaborate",
+      "resume": "resume"
+    },
+    "scrollIndicator": "scroll to explore",
+    "stats": {
+      "years": "years of experience",
+      "embeds": "interactives published",
+      "projects": "featured projects"
+    }
+  },
+  "sections": {
+    "about": {
+      "marquee": "about",
+      "index": "00",
+      "label": "about",
+      "title": "who i am.",
+      "portraitCaption": "— based in porto alegre, br",
+      "lede": "i'm a developer who lives at the intersection of <em>code</em> and <em>storytelling.</em>",
+      "bio1": "at grupo rbs, i build interactive experiences that help millions of readers understand complex stories — from flood recovery dashboards to real-time election trackers.",
+      "bio2": "my work blends frontend engineering with data journalism, creating tools that make information accessible and engaging. i believe the best digital experiences are the ones that disappear — leaving only understanding behind.",
+      "tags": [
+        "interactive journalism",
+        "data viz",
+        "editorial engineering"
+      ]
+    },
+    "work": {
+      "index": "01",
+      "label": "experience",
+      "title": "work <em>history.</em>",
+      "description": "seven years across newsrooms, agencies, and product teams — building interactive experiences for millions.",
+      "marquee": "experience",
+      "present": "present",
+      "award": "★ award"
+    },
+    "skills": {
+      "index": "02",
+      "label": "expertise",
+      "title": "skills &amp; tools.",
+      "description": "a toolkit built around building fast, building right, and building with care.",
+      "marquee": "skills",
+      "frontend": "frontend",
+      "backend": "backend & tools",
+      "expertise": "expertise"
+    },
+    "projects": {
+      "index": "03",
+      "label": "featured",
+      "title": "selected <em>work.</em>",
+      "description": "asymmetric grid of my most important recent projects.",
+      "marquee": "portfolio",
+      "caseStudy": "case study",
+      "viewProject": "view project",
+      "liveDemo": "live demo",
+      "sourceCode": "source code"
+    },
+    "embeds": {
+      "index": "04",
+      "label": "interactives",
+      "title": "editorial <em>embeds.</em>",
+      "description": "250+ published interactives — simulators, quizzes, maps, infographics.",
+      "marquee": "interactives",
+      "all": "all",
+      "filterByType": "filter by type",
+      "filterByEditorial": "filter by editorial",
+      "showMore": "show more",
+      "count": "{{count}} interactives",
+      "countLabel": "interactives",
+      "readArticle": "read article"
+    },
+    "contact": {
+      "index": "05",
+      "label": "get in touch",
+      "title": "let's <em>build.</em>",
+      "subtitle": "have a project in mind or just want to say hi? i'd love to hear from you.",
+      "links": {
+        "email": "send mail",
+        "linkedin": "linkedin",
+        "github": "github",
+        "resume": "download cv"
+      }
+    }
+  },
+  "footer": {
+    "copyright": "© {{year}} kevin shibuya — all rights reserved",
+    "builtWith": "built with react, typescript & care",
+    "bigText": "kevin shibuya"
+  },
+  "projectDetail": {
+    "back": "back to projects",
+    "year": "year",
+    "stack": "tech stack",
+    "liveDemo": "live demo",
+    "sourceCode": "source code",
+    "notFound": "project not found",
+    "notFoundDescription": "the project you're looking for doesn't exist."
+  }
+}

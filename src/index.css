@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/PlusJakartaSans-VariableFont_wght.ttf') format('truetype-variations'),
+       url('/fonts/PlusJakartaSans-VariableFont_wght.ttf') format('truetype');
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/PlusJakartaSans-Italic-VariableFont_wght.ttf') format('truetype-variations'),
+       url('/fonts/PlusJakartaSans-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 200 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme {
+  /* neutrals */
+  --color-bg:           #FAFAF8;
+  --color-bg-elevated:  #FAFAF8;
+  --color-bg-sand:      #F5EDE4;
+  --color-bg-mist:      #EDE0D6;
+  --color-bg-dark:      #1A1512;
+
+  /* text */
+  --color-text:         #1A1512;
+  --color-text-muted:   #6B4F3E;
+  --color-text-faded:   #B09080;
+  --color-text-light:   #FAFAF8;
+  --color-text-light-muted: rgba(250, 250, 248, 0.6);
+
+  /* terracotta scale */
+  --color-terra-50:     #FEF3EE;
+  --color-terra-100:    #FCDECF;
+  --color-terra-200:    #F8C5AE;
+  --color-terra-300:    #F0A582;
+  --color-terra-400:    #E07A56;
+  --color-terra-500:    #C45C3C;
+  --color-accent:       #E07A56;
+
+  /* sage */
+  --color-sage-100:     #D6E8CC;
+  --color-sage-200:     #A8C899;
+  --color-sage-300:     #7AAA6A;
+
+  /* borders */
+  --color-border:       #EDE0D6;
+  --color-border-light: rgba(250, 250, 248, 0.12);
+
+  /* type */
+  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-body:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, SF Mono, Menlo, monospace;
+
+  /* easing */
+  --ease-smooth:  cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft:    cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background-color: var(--color-terra-300);
+  color: var(--color-bg);
+}
+
+@keyframes pulseDot {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(122, 170, 106, 0.2); }
+  50%      { box-shadow: 0 0 0 8px rgba(122, 170, 106, 0.05); }
+}
+
+@keyframes scrollLine {
+  0%, 100% { transform: scaleY(1); transform-origin: top; opacity: 0.7; }
+  50%      { transform: scaleY(0.4); transform-origin: top; opacity: 1; }
+}
+
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Italic accent inside heading em tags (SectionHeading, Hero, Contact). */
+.section-title-heading em,
+.contact-title-heading em,
+.hero-bio-lede em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--color-terra-400);
+}
+
+.contact-title-heading em {
+  color: var(--color-terra-300);
+}
+
+/* Ghost outlined text (hero second name line, footer big text). */
+.ghost-outline {
+  color: var(--color-bg-mist);
+  -webkit-text-stroke: 1px var(--color-terra-300);
+}
+
+.ghost-outline--dark {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(250, 250, 248, 0.25);
+}
+
+/* Hero background subtle grid mask. */
+.hero-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(176, 144, 128, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(176, 144, 128, 0.07) 1px, transparent 1px);
+  background-size: 64px 64px;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse at center, black 0%, transparent 85%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 85%);
+}
+
+/* Availability dot (header). */
+.avail-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-sage-300);
+  box-shadow: 0 0 0 4px rgba(122, 170, 106, 0.2);
+  animation: pulseDot 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Vertical scroll line (hero). */
+.scroll-line {
+  width: 1px;
+  height: 28px;
+  background: var(--color-text-faded);
+  animation: scrollLine 2s ease-in-out infinite;
+}
+
+/* Nav link animated underline. */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: 2px;
+  height: 1px;
+  background: var(--color-terra-400);
+  transition: right 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.nav-link:hover::after {
+  right: 0;
+}
