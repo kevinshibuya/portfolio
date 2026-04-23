@@ -1,16 +1,14 @@
 {
   "nav": {
-    "about": "sobre",
-    "work": "experiência",
-    "skills": "habilidades",
-    "projects": "projetos",
+    "work": "trabalhos",
     "embeds": "interativos",
+    "experience": "experiência",
+    "skills": "habilidades",
     "contact": "contato",
     "available": "disponível para projetos"
   },
   "lang": "EN",
   "hero": {
-    "eyebrow": "— portfólio '26",
     "name1": "kevin",
     "name2": "shibuya.",
     "rolePrefix": "sou um",
@@ -25,7 +23,6 @@
       "collaborate": "colaborar",
       "resume": "currículo"
     },
-    "scrollIndicator": "role para explorar",
     "stats": {
       "years": "anos de experiência",
       "embeds": "interativos publicados",
@@ -33,64 +30,39 @@
     }
   },
   "sections": {
-    "about": {
-      "marquee": "sobre",
-      "index": "00",
-      "label": "sobre",
-      "title": "quem sou eu.",
-      "portraitCaption": "— baseado em porto alegre, br",
-      "lede": "sou um desenvolvedor que vive na intersecção entre <em>código</em> e <em>narrativa.</em>",
-      "bio1": "no grupo rbs, construo experiências interativas que ajudam milhões de leitores a entender histórias complexas — de dashboards de reconstrução a rastreadores eleitorais em tempo real.",
-      "bio2": "meu trabalho combina engenharia frontend com jornalismo de dados, criando ferramentas que tornam a informação acessível e envolvente. acredito que as melhores experiências digitais são aquelas que desaparecem — deixando apenas compreensão.",
-      "tags": [
-        "jornalismo interativo",
-        "visualização de dados",
-        "engenharia editorial"
-      ]
-    },
-    "work": {
-      "index": "01",
-      "label": "experiência",
-      "title": "experiência <em>profissional.</em>",
-      "description": "sete anos entre redações, agências e equipes de produto — construindo experiências interativas para milhões.",
-      "marquee": "experiência",
-      "present": "atual",
-      "award": "★ prêmio"
-    },
-    "skills": {
-      "index": "02",
-      "label": "conhecimentos",
-      "title": "habilidades &amp; ferramentas.",
-      "description": "um kit construído em torno de construir rápido, construir certo e construir com cuidado.",
-      "marquee": "habilidades",
-      "frontend": "frontend",
-      "backend": "backend & ferramentas",
-      "expertise": "especialidades"
-    },
     "projects": {
-      "index": "03",
-      "label": "destaques",
+      "index": "01 · destaques",
+      "label": "",
       "title": "trabalhos <em>selecionados.</em>",
       "description": "grade assimétrica dos meus projetos recentes mais importantes.",
-      "marquee": "portfólio",
-      "caseStudy": "estudo de caso",
-      "viewProject": "ver projeto",
-      "liveDemo": "demo ao vivo",
-      "sourceCode": "código fonte"
+      "caseStudy": "estudo de caso"
     },
     "embeds": {
-      "index": "04",
-      "label": "interativos",
+      "index": "02 · interativos",
+      "label": "",
       "title": "interativos <em>editoriais.</em>",
       "description": "250+ interativos publicados — simuladores, quizzes, mapas, infográficos.",
-      "marquee": "interativos",
       "all": "todos",
       "filterByType": "filtrar por tipo",
       "filterByEditorial": "filtrar por editoria",
       "showMore": "mostrar mais",
-      "count": "{{count}} interativos",
-      "countLabel": "interativos",
-      "readArticle": "ler matéria"
+      "countLabel": "interativos"
+    },
+    "work": {
+      "index": "03 · experiência",
+      "label": "",
+      "title": "experiência <em>profissional.</em>",
+      "description": "sete anos entre redações, agências e equipes de produto — construindo experiências interativas para milhões.",
+      "award": "★ prêmio"
+    },
+    "skills": {
+      "index": "04 · conhecimentos",
+      "label": "",
+      "title": "habilidades &amp; ferramentas.",
+      "description": "um kit construído em torno de construir rápido, construir certo e construir com cuidado.",
+      "frontend": "frontend",
+      "backend": "backend & ferramentas",
+      "expertise": "especialidades"
     },
     "contact": {
       "index": "05",

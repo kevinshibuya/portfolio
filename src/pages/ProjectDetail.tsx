@@ -1,112 +1,134 @@
-import { useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Tag } from '../components/ui/Tag'
-import { useScrollReveal } from '../hooks/useScrollReveal'
 import { projects } from '../data/projects'
 
 export function ProjectDetail() {
   const { slug } = useParams<{ slug: string }>()
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'en' | 'pt'
-  const contentRef = useRef<HTMLDivElement>(null)
-
-  useScrollReveal(contentRef)
 
   const project = projects.find((p) => p.slug === slug)
 
   if (!project) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center px-6">
-        <h1 className="font-display text-4xl md:text-6xl font-bold text-text mb-4">
+      <main
+        className="section"
+        style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+      >
+        <h1 className="section-title" style={{ marginBottom: '16px' }}>
           {t('projectDetail.notFound')}
         </h1>
-        <p className="font-body text-text-muted mb-8">
+        <p className="section-desc" style={{ marginBottom: '32px' }}>
           {t('projectDetail.notFoundDescription')}
         </p>
-        <Link
-          to="/"
-          data-cursor-hover
-          className="font-body text-sm text-accent hover:text-text transition-colors duration-200"
-        >
-          &larr; {t('projectDetail.back')}
+        <Link to="/" className="btn btn--ghost" style={{ alignSelf: 'flex-start' }}>
+          ← {t('projectDetail.back')}
         </Link>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen pt-32 pb-24 px-6 md:px-12 lg:px-24">
-      <div ref={contentRef} className="max-w-4xl">
-        {/* Back link */}
-        <Link
-          to="/"
-          data-cursor-hover
-          className="inline-flex items-center gap-2 font-body text-sm text-text-muted hover:text-text transition-colors duration-200 mb-12"
+    <main className="section" style={{ paddingTop: '160px' }}>
+      <Link
+        to="/"
+        className="btn btn--ghost"
+        style={{ marginBottom: '48px' }}
+      >
+        ← {t('projectDetail.back')}
+      </Link>
+
+      <div
+        style={{
+          background: project.gradient ?? 'linear-gradient(145deg, #EDE0D6, #B09080)',
+          borderRadius: '18px',
+          aspectRatio: '16 / 9',
+          marginBottom: '40px',
+          display: 'grid',
+          placeItems: 'center',
+          color: 'rgba(26, 21, 18, 0.2)',
+          fontFamily: 'var(--font-sans)',
+          fontWeight: 700,
+          textTransform: 'lowercase',
+          fontSize: 'clamp(32px, 4vw, 56px)',
+        }}
+      >
+        {project.title[lang]}
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          gap: '12px',
+          marginBottom: '24px',
+        }}
+      >
+        <h1 className="section-title" style={{ margin: 0 }}>
+          {project.title[lang]}
+        </h1>
+        <span
+          style={{
+            fontSize: '13px',
+            color: 'var(--bark)',
+            textTransform: 'lowercase',
+            letterSpacing: '0.08em',
+          }}
         >
-          <span>&larr;</span>
-          {t('projectDetail.back')}
-        </Link>
+          {t('projectDetail.year')}: {project.year}
+        </span>
+      </div>
 
-        {/* Cover placeholder */}
-        <div className="bg-bg-elevated rounded-2xl aspect-video mb-10 flex items-center justify-center">
-          <span className="font-display text-3xl md:text-4xl text-text-muted/20 font-bold">
-            {project.title[lang]}
-          </span>
+      <p className="section-desc" style={{ marginBottom: '32px' }}>
+        {project.description[lang]}
+      </p>
+
+      <div style={{ marginBottom: '32px' }}>
+        <h2
+          style={{
+            fontSize: '11px',
+            fontWeight: 600,
+            color: 'var(--terra-400)',
+            textTransform: 'lowercase',
+            letterSpacing: '0.15em',
+            marginBottom: '12px',
+          }}
+        >
+          {t('projectDetail.stack')}
+        </h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {project.techStack.map((tech) => (
+            <Tag key={tech} label={tech.toLowerCase()} variant="pill" />
+          ))}
         </div>
+      </div>
 
-        {/* Title + year */}
-        <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-2 mb-6">
-          <h1 className="font-display text-4xl md:text-6xl font-bold text-text">
-            {project.title[lang]}
-          </h1>
-          <span className="font-body text-sm text-text-muted">
-            {t('projectDetail.year')}: {project.year}
-          </span>
-        </div>
-
-        {/* Description */}
-        <p className="font-body text-base text-text-muted leading-relaxed max-w-2xl mb-8">
-          {project.description[lang]}
-        </p>
-
-        {/* Tech stack */}
-        <div className="mb-8">
-          <h2 className="font-body text-xs tracking-[0.3em] uppercase text-text-muted mb-3">
-            {t('projectDetail.stack')}
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {project.techStack.map((tech) => (
-              <Tag key={tech} label={tech} variant="muted" />
-            ))}
-          </div>
-        </div>
-
-        {/* Links */}
-        <div className="flex items-center gap-6">
-          {project.liveUrl && (
-            <a
-              href={project.liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-cursor-hover
-              className="font-body text-sm text-accent hover:text-text transition-colors duration-200"
-            >
-              {t('projectDetail.liveDemo')} &rarr;
-            </a>
-          )}
-          {project.githubUrl && (
-            <a
-              href={project.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-cursor-hover
-              className="font-body text-sm text-text-muted hover:text-text transition-colors duration-200"
-            >
-              {t('projectDetail.sourceCode')} &rarr;
-            </a>
-          )}
-        </div>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        {project.liveUrl && (
+          <a
+            href={project.liveUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn--primary"
+          >
+            {t('projectDetail.liveDemo')}
+            <span className="btn-arrow">→</span>
+          </a>
+        )}
+        {project.githubUrl && (
+          <a
+            href={project.githubUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn--ghost"
+          >
+            {t('projectDetail.sourceCode')}
+            <span className="btn-arrow">→</span>
+          </a>
+        )}
       </div>
     </main>
   )

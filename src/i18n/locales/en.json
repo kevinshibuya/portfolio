@@ -1,16 +1,14 @@
 {
   "nav": {
-    "about": "about",
     "work": "work",
-    "skills": "skills",
-    "projects": "projects",
     "embeds": "interactives",
+    "experience": "experience",
+    "skills": "skills",
     "contact": "contact",
     "available": "available for projects"
   },
   "lang": "PT",
   "hero": {
-    "eyebrow": "— portfolio '26",
     "name1": "kevin",
     "name2": "shibuya.",
     "rolePrefix": "i am an",
@@ -25,7 +23,6 @@
       "collaborate": "collaborate",
       "resume": "resume"
     },
-    "scrollIndicator": "scroll to explore",
     "stats": {
       "years": "years of experience",
       "embeds": "interactives published",
@@ -33,64 +30,39 @@
     }
   },
   "sections": {
-    "about": {
-      "marquee": "about",
-      "index": "00",
-      "label": "about",
-      "title": "who i am.",
-      "portraitCaption": "— based in porto alegre, br",
-      "lede": "i'm a developer who lives at the intersection of <em>code</em> and <em>storytelling.</em>",
-      "bio1": "at grupo rbs, i build interactive experiences that help millions of readers understand complex stories — from flood recovery dashboards to real-time election trackers.",
-      "bio2": "my work blends frontend engineering with data journalism, creating tools that make information accessible and engaging. i believe the best digital experiences are the ones that disappear — leaving only understanding behind.",
-      "tags": [
-        "interactive journalism",
-        "data viz",
-        "editorial engineering"
-      ]
-    },
-    "work": {
-      "index": "01",
-      "label": "experience",
-      "title": "work <em>history.</em>",
-      "description": "seven years across newsrooms, agencies, and product teams — building interactive experiences for millions.",
-      "marquee": "experience",
-      "present": "present",
-      "award": "★ award"
-    },
-    "skills": {
-      "index": "02",
-      "label": "expertise",
-      "title": "skills &amp; tools.",
-      "description": "a toolkit built around building fast, building right, and building with care.",
-      "marquee": "skills",
-      "frontend": "frontend",
-      "backend": "backend & tools",
-      "expertise": "expertise"
-    },
     "projects": {
-      "index": "03",
-      "label": "featured",
+      "index": "01 · featured",
+      "label": "",
       "title": "selected <em>work.</em>",
       "description": "asymmetric grid of my most important recent projects.",
-      "marquee": "portfolio",
-      "caseStudy": "case study",
-      "viewProject": "view project",
-      "liveDemo": "live demo",
-      "sourceCode": "source code"
+      "caseStudy": "case study"
     },
     "embeds": {
-      "index": "04",
-      "label": "interactives",
+      "index": "02 · interactives",
+      "label": "",
       "title": "editorial <em>embeds.</em>",
       "description": "250+ published interactives — simulators, quizzes, maps, infographics.",
-      "marquee": "interactives",
       "all": "all",
       "filterByType": "filter by type",
       "filterByEditorial": "filter by editorial",
       "showMore": "show more",
-      "count": "{{count}} interactives",
-      "countLabel": "interactives",
-      "readArticle": "read article"
+      "countLabel": "interactives"
+    },
+    "work": {
+      "index": "03 · experience",
+      "label": "",
+      "title": "work <em>history.</em>",
+      "description": "seven years across newsrooms, agencies, and product teams — building interactive experiences for millions.",
+      "award": "★ award"
+    },
+    "skills": {
+      "index": "04 · expertise",
+      "label": "",
+      "title": "skills &amp; tools.",
+      "description": "a toolkit built around building fast, building right, and building with care.",
+      "frontend": "frontend",
+      "backend": "backend & tools",
+      "expertise": "expertise"
     },
     "contact": {
       "index": "05",
