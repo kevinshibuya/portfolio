@@ -23,7 +23,7 @@ export const projects: Project[] = [
     images: [],
     featured: true,
     size: 'lg',
-    gradient: 'linear-gradient(145deg, #F8C5AE, #E07A56)',
+    gradient: 'linear-gradient(145deg, #A2D2FF, #3A96E8)',
   },
   {
     id: 'poll-system',
@@ -46,7 +46,7 @@ export const projects: Project[] = [
     images: [],
     featured: true,
     size: 'sm',
-    gradient: 'linear-gradient(145deg, #D6E8CC, #A8C899)',
+    gradient: 'linear-gradient(145deg, #C8D8F0, #8AAADA)',
   },
   {
     id: 'interactive-embeds',
@@ -70,7 +70,7 @@ export const projects: Project[] = [
     images: [],
     featured: true,
     size: 'sm',
-    gradient: 'linear-gradient(145deg, #EDE0D6, #B09080)',
+    gradient: 'linear-gradient(145deg, #D4E5F2, #6A8CAA)',
   },
   {
     id: 'editorial-cms',
@@ -93,7 +93,7 @@ export const projects: Project[] = [
     images: [],
     featured: true,
     size: 'md',
-    gradient: 'linear-gradient(145deg, #1A1512, #6B4F3E)',
+    gradient: 'linear-gradient(145deg, #111822, #2A4060)',
     dark: true,
   },
 ]

@@ -1,7 +1,7 @@
 interface SectionHeadingProps {
   index: string
   label?: string
-  /** Title accepts HTML with <em> for terra-accent italic (e.g. "selected <em>work.</em>") */
+  /** Title accepts HTML with <em> for blue-accent italic (e.g. "selected <em>work.</em>") */
   title: string
   description?: string
 }

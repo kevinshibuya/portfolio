@@ -15,30 +15,30 @@ The MVP exists in `src/App.tsx` — the revamp will decompose it into proper com
 - **Package manager**: npm
 
 ## Design Direction
-Earthy pastel editorial. Lowercase, playful, and confident — warm terracotta on cream, with sage accents for balance. Dark ink section (Contact + Footer) for contrast. Defined in `.claude/portfolio-handoff/` (page) and `.claude/design-system-handoff/` (variations).
+Soft blue pastel editorial. Lowercase, playful, and confident — sky blue on cool cream, with periwinkle accents for balance. Dark ink section (Contact + Footer) for contrast. Defined in `.claude/portfolio-handoff/` (page) and `.claude/design-system-handoff/` (variations).
 
 - **Colors**:
-  - Neutrals: cream `#FAFAF8` (bg), sand `#F5EDE4` (tonal section), mist `#EDE0D6` (borders/ghost).
-  - Terracotta scale: `#FEF3EE → #FCDECF → #F8C5AE → #F0A582 → #E07A56 → #C45C3C`. Accent = terra-400 `#E07A56`.
-  - Sage accents: `#D6E8CC → #A8C899 → #7AAA6A` (availability dot, ambient).
-  - Text: ink `#1A1512` (text), bark `#6B4F3E` (text-muted), dust `#B09080` (text-faded), cream `#FAFAF8` on dark.
-  - Dark section bg = ink `#1A1512` (not pure black).
-- **Typography**: Plus Jakarta Sans (variable 200–800, local TTF at `/public/fonts/`). Used for both display and body. Massive lowercase hero title `clamp(72px, 13vw, 220px)`. Italic `<em>` spans in titles render in terra-400 for in-line accent ("selected <em>work.</em>").
+  - Neutrals: cream `#F6F9FC` (bg), sand `#EAF2F8` (tonal section), mist `#D4E5F2` (borders/ghost).
+  - Blue scale (soft sky): `#F4F8FE → #DCF0FF → #A2D2FF → #6DB8FF → #3A96E8 → #1C6EC4`. Accent = blue-400 `#3A96E8`.
+  - Periwinkle accents: `#C8D8F0 → #8AAADA → #5078B8` (availability dot, ambient).
+  - Text: ink `#111822` (text), bark `#2A4060` (text-muted), dust `#6A8CAA` (text-faded), cream `#F6F9FC` on dark.
+  - Dark section bg = ink `#111822` (not pure black).
+- **Typography**: Plus Jakarta Sans (variable 200–800, local TTF at `/public/fonts/`). Used for both display and body. Massive lowercase hero title `clamp(72px, 13vw, 220px)`. Italic `<em>` spans in titles render in blue-400 for in-line accent ("selected <em>work.</em>").
 - **Shapes**: Rounded-[18px] cards and lists, rounded-[14px] inner preview blocks, rounded-full pills/chips/buttons, rounded-[24px] portrait frame. No sharp edges.
 - **Gradients**: Reserved for imagery (project bento covers, embed type previews, about portrait). Never on primary backgrounds.
 - **Animations**: Smooth cubic-bezier(0.22, 1, 0.36, 1) ease throughout. Character-split reveals on titles, fade-up on descriptions, cycling role text in hero, accordion expand on work rows, scale-on-hover previews and translate-on-hover titles on embed rows, parallax-reactive R3F hero canvas. Respect `prefers-reduced-motion`.
 - **Layout**: Max-width 1440 containers, 80px side padding on desktop. Hero = 4-row grid (eyebrow/name/stats/scroll). Projects = 4-col bento. Embeds = numbered table rows. Work = accordion. Skills = 3-col numbered columns.
-- **Section dividers**: MarqueeDivider components (kept from MVP) with ghost text, restyled to mist/dust/terra palette.
+- **Section dividers**: MarqueeDivider components (kept from MVP) with ghost text, restyled to mist/dust/blue palette.
 - **Tonal sections**: Skills + Embeds use `bg-bg-sand`. Contact + Footer use `bg-bg-dark` (ink) with `text-light`.
 - **Featured work cards (bento v04)**: `Projects.tsx` — 4-col grid with sizes `lg` (2×2), `md` (2×1), `sm` (1×1). Gradient backgrounds per card, `dark: true` variant for ink/bark gradient. Top tagline + bottom title + "↗ case study" link.
 - **Editorial embeds (numbered rows v02)**: `EmbedsGallery.tsx` — bordered rounded container, grid rows with num · 56×40 gradient preview · uppercase title · type · editorial · arrow. Hover = sand bg + preview scale 1.08 + title translate-x + arrow opacity 1.
-- **Hero**: Ghost duo name (`kevin` ink + `shibuya.` with terra-300 stroke outline on mist fill), cycling role text, CTAs, stats row.
-- **About**: 380px portrait (terra gradient + "ks" mark) + bio with terra-400 italic highlights + pills.
-- **Nav (split variation)**: Logo mark + brand text left, links center with terra underline on hover, availability pill (sage pulsing dot) + EN/PT toggle right.
+- **Hero**: Ghost duo name (`kevin` ink + `shibuya.` with blue-300 stroke outline on mist fill), cycling role text, CTAs, stats row.
+- **About**: 380px portrait (blue gradient + "ks" mark) + bio with blue-400 italic highlights + pills.
+- **Nav (split variation)**: Logo mark + brand text left, links center with blue underline on hover, availability pill (periwinkle pulsing dot) + EN/PT toggle right.
 - **Footer**: Viewport-wide outlined `kevin shibuya` text (transparent fill, 1px cream stroke) over ink bg + bottom meta row.
 - **UI Components**: Tag (chip style), SectionHeading (em-accent), MarqueeDivider, StatCounter, SocialLinks, Cursor.
 - **Section flow**: Hero → About → WorkExperience (accordion) → Skills → Projects (bento v04) → EmbedsGallery (numbered rows v02) → Contact → Footer.
-- **NO**: Blue/purple gradients, generic drop shadows, rainbow accents, amber `#D4A020` (retired), Outfit/Inter (retired), spinning loaders.
+- **NO**: Purple gradients, generic drop shadows, rainbow accents, amber `#D4A020` (retired), terracotta `#E07A56` / sage `#A8C899` (retired), Outfit/Inter (retired), spinning loaders.
 
 ## Animation Library Usage Rules
 **NEVER mix these libraries for the same animation. Each has a lane:**

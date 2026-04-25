@@ -53,7 +53,7 @@ function BentoCard({ project, lang, caseStudy }: BentoCardProps) {
       className={`bento-card ${sizeClass}${darkClass}`}
       style={{
         background:
-          project.gradient ?? 'linear-gradient(145deg, #EDE0D6, #B09080)',
+          project.gradient ?? 'linear-gradient(145deg, #D4E5F2, #6A8CAA)',
       }}
     >
       {project.tagline && (

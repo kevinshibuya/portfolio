@@ -61,11 +61,11 @@ export const editorialCategories: string[] = [
 ].sort()
 
 export const typeGradients: Record<EmbedType, string> = {
-  'SIMULADOR':       'linear-gradient(135deg, #F8C5AE, #E07A56)',
-  'MAPA INTERATIVO': 'linear-gradient(135deg, #D6E8CC, #A8C899)',
-  'QUIZ':            'linear-gradient(135deg, #FCDECF, #F0A582)',
-  'CALCULADORA':     'linear-gradient(135deg, #EDE0D6, #B09080)',
-  'INFOGRAFICO':     'linear-gradient(135deg, #1A1512, #6B4F3E)',
-  'BUSCADOR':        'linear-gradient(135deg, #F0A582, #C45C3C)',
-  'GALERIA':         'linear-gradient(135deg, #A8C899, #7AAA6A)',
+  'SIMULADOR':       'linear-gradient(135deg, #A2D2FF, #3A96E8)',
+  'MAPA INTERATIVO': 'linear-gradient(135deg, #C8D8F0, #8AAADA)',
+  'QUIZ':            'linear-gradient(135deg, #DCF0FF, #6DB8FF)',
+  'CALCULADORA':     'linear-gradient(135deg, #D4E5F2, #6A8CAA)',
+  'INFOGRAFICO':     'linear-gradient(135deg, #111822, #2A4060)',
+  'BUSCADOR':        'linear-gradient(135deg, #6DB8FF, #1C6EC4)',
+  'GALERIA':         'linear-gradient(135deg, #8AAADA, #5078B8)',
 }

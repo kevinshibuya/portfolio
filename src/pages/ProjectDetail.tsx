@@ -41,7 +41,7 @@ export function ProjectDetail() {
 
       <div
         style={{
-          background: project.gradient ?? 'linear-gradient(145deg, #EDE0D6, #B09080)',
+          background: project.gradient ?? 'linear-gradient(145deg, #D4E5F2, #6A8CAA)',
           borderRadius: '18px',
           aspectRatio: '16 / 9',
           marginBottom: '40px',
@@ -91,7 +91,7 @@ export function ProjectDetail() {
           style={{
             fontSize: '11px',
             fontWeight: 600,
-            color: 'var(--terra-400)',
+            color: 'var(--blue-400)',
             textTransform: 'lowercase',
             letterSpacing: '0.15em',
             marginBottom: '12px',
