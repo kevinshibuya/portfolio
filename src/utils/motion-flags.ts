@@ -1,0 +1,4 @@
+export const ENABLE_R3F_ACCENT = true
+export const MOBILE_BREAKPOINT_PX = 768
+export const LOADER_MIN_DURATION_MS = 700
+export const LOADER_REDUCED_MOTION_MAX_MS = 200
