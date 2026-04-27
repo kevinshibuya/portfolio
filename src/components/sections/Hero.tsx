@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { heroStats } from '../../data/stats'
 import { useMotion } from '../../context/MotionContext'
+import { HeroDataFragments } from '../canvas/HeroDataFragments'
 
 const ROLE_DURATION_MS = 2800
 
@@ -118,6 +119,8 @@ export function Hero() {
           </div>
         ))}
       </div>
+
+      <HeroDataFragments />
     </section>
   )
 }

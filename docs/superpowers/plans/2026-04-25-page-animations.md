@@ -646,7 +646,7 @@ Maps to spec TODO: *"Hero right-side editorial data-fragment composition (6 frag
 - Create: `src/components/canvas/HeroDataFragments.tsx`, `src/components/canvas/HeroAccentSilhouette.tsx`, `src/components/canvas/HeroAccent3D.tsx` (lazy chunk)
 - Modify: `src/components/sections/Hero.tsx`, `src/index.css`
 
-- [ ] **Step 1: Write failing acceptance test**
+- [x] **Step 1: Write failing acceptance test**
 
 Create `tests/e2e/hero-fragments.spec.ts`:
 
@@ -677,16 +677,16 @@ test('entry timeline does NOT start before loaderDone', async ({ page }) => {
 })
 ```
 
-- [ ] **Step 2: Run — expect failure**
+- [x] **Step 2: Run — expect failure**
 
 ```bash
 npm run test:e2e -- hero-fragments
 ```
 Expected: FAIL — `[data-fragment]` not found.
 
-- [ ] **Step 3: Invoke `frontend-design:frontend-design`** to shape the SVG composition (visual specifics in the spec).
+- [x] **Step 3: Invoke `frontend-design:frontend-design`** to shape the SVG composition (visual specifics in the spec).
 
-- [ ] **Step 4: Create `HeroAccentSilhouette.tsx`** (static fallback for the R3F)
+- [x] **Step 4: Create `HeroAccentSilhouette.tsx`** (static fallback for the R3F)
 
 ```tsx
 // 280×280 SVG silhouette of an icosahedron — kept outside R3F so removing
@@ -705,7 +705,7 @@ export function HeroAccentSilhouette() {
 }
 ```
 
-- [ ] **Step 5: Create `HeroAccent3D.tsx`** (lazy default export — in its own chunk)
+- [x] **Step 5: Create `HeroAccent3D.tsx`** (lazy default export — in its own chunk)
 
 ```tsx
 import { Canvas, useFrame } from '@react-three/fiber'
@@ -738,7 +738,7 @@ export default function HeroAccent3D() {
 }
 ```
 
-- [ ] **Step 6: Create `HeroDataFragments.tsx`**
+- [x] **Step 6: Create `HeroDataFragments.tsx`**
 
 ```tsx
 import { Suspense, lazy, useRef } from 'react'
@@ -849,7 +849,7 @@ export function HeroDataFragments() {
 }
 ```
 
-- [ ] **Step 7: Add fragments grid styles to `src/index.css`**
+- [x] **Step 7: Add fragments grid styles to `src/index.css`**
 
 Append:
 
@@ -885,7 +885,7 @@ Append:
 }
 ```
 
-- [ ] **Step 8: Render fragments in `Hero.tsx`**
+- [x] **Step 8: Render fragments in `Hero.tsx`**
 
 Add inside the hero `<section>` (alongside `.hero-main`, before or after):
 
@@ -898,21 +898,21 @@ import { HeroDataFragments } from '../canvas/HeroDataFragments'
 
 Ensure `.hero` is `position: relative` so the absolute fragments anchor correctly.
 
-- [ ] **Step 9: Run the acceptance test — expect pass**
+- [x] **Step 9: Run the acceptance test — expect pass**
 
 ```bash
 npm run test:e2e -- hero-fragments
 ```
 Expected: PASS.
 
-- [ ] **Step 10: Manual verification**
+- [x] **Step 10: Manual verification**
 
 ```bash
 npm run dev
 ```
 Reload, watch fragments enter post-loader. Toggle reduced motion — fragments should appear at final state immediately. Resize below 768px — composition is hidden.
 
-- [ ] **Step 11: Tick spec checkbox** for TODO #2 in the spec file.
+- [x] **Step 11: Tick spec checkbox** for TODO #2 in the spec file.
 
 - [ ] **Step 12: Commit**
 
