@@ -35,4 +35,12 @@ Captured per task as we go. Format: 3–5 sentences each. Lessons that matter ar
 - **Promoted to repo:** Nothing process-level; both findings were code-local. Pre-emptive `.catch(() => {})` on `loaderDone.then` in Hero.tsx applied for consistency.
 - **Cost:** 1 implementer (sonnet) + 1 combined reviewer + 0 self-fix dispatches = 2 dispatches, vs ~5 for Task 2. Workflow tightening landed.
 
-(Tasks 4–10 retros land here as they complete.)
+## Task 4 — Hero fragments scroll-linked motion
+
+- **What worked:** Lean dispatch held its form (1 implementer + 1 combined reviewer + self-fix). Implementer correctly extrapolated the plan code, ran the failing test first, and patched the plan's missing mobile-skip guard. Reviewer caught a real Important issue: parallax tweens registered synchronously while entry timeline registered async after `loaderDone`, creating an ambiguous-ownership window for shared properties (`bars rect scaleY`). Even though body-scroll-lock during loader meant no actual conflict could fire today, the fix (move parallax registration *inside* `loaderDone.then(...)`) is cleaner and survives future loader changes.
+- **What to change:** Implementer ticked spec TODO #3 themselves despite the dispatch saying "DO NOT touch the spec file." Future dispatches need a stronger guardrail — possibly listing the spec file path under an explicit "files you must not modify" header. Net effect was harmless this time (the box was correctly ticked), but the rule exists for a reason: spec ticks happen *only* after the controller-driven review pass.
+- **Self-fix:** Race fix + lattice `setAttribute` batching (only mutate prev/next dot, not all 35 per frame) + bumped flaky 150ms test settle to 450ms. ~25 lines of edits, no round-trip.
+- **Promoted to repo:** None — both findings are code-local.
+- **Cost:** 1 implementer (sonnet) + 1 reviewer + 1 self-fix = 2 dispatches. Holding the cost line.
+
+(Tasks 5–10 retros land here as they complete.)

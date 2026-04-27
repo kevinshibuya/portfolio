@@ -34,64 +34,76 @@ export function HeroDataFragments() {
             .to('[data-fragment="numeric"]',         { opacity: 1, y: 0, duration: 0.6, ease: projectEaseGsap }, 0.35)
             .fromTo('[data-fragment="numeric"]',     { scale: 0.92 }, { scale: 1, duration: 0.6, ease: projectEaseGsap }, 0.35)
             .to('[data-fragment="accent"]',          { opacity: 1, duration: 0.7, ease: projectEaseGsap }, 0.5)
-        })
-        .catch(() => {})
 
-      // Scroll-linked parallax — fragments drift at independent speeds as hero scrolls out
-      const speeds: Record<string, number> = {
-        bars: 0.18,
-        line: 0.10,
-        annotation: 0.30,
-        lattice: 0.14,
-        numeric: 0.22,
-        accent: 0.28,
-      }
-      const isMobile = window.innerWidth < 768
-      const cap = isMobile ? 40 : 80
+          // Parallax + bar-extend + lattice-walk register only AFTER the
+          // entry timeline is in flight — keeps property ownership unambiguous
+          // (entry owns y/scale/opacity transitions, parallax takes over from
+          // the settled state). Body scroll is locked while loader is up so
+          // there's no missed-scroll concern.
+          const speeds: Record<string, number> = {
+            bars: 0.18,
+            line: 0.10,
+            annotation: 0.30,
+            lattice: 0.14,
+            numeric: 0.22,
+            accent: 0.28,
+          }
+          const isMobile = window.innerWidth < 768
+          const cap = isMobile ? 40 : 80
 
-      Object.entries(speeds).forEach(([id, speed]) => {
-        gsap.to(`[data-fragment="${id}"]`, {
-          y: -cap * speed,
-          ease: 'none',
-          scrollTrigger: {
+          Object.entries(speeds).forEach(([id, speed]) => {
+            gsap.to(`[data-fragment="${id}"]`, {
+              y: -cap * speed,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: '.hero',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: 1,
+                fastScrollEnd: true,
+              },
+            })
+          })
+
+          gsap.to('[data-fragment="bars"] rect', {
+            scaleY: 1.12,
+            transformOrigin: 'bottom',
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.hero',
+              start: 'top top',
+              end: 'bottom top',
+              scrub: 1,
+            },
+          })
+
+          const dots = gsap.utils.toArray<SVGCircleElement>(
+            '[data-fragment="lattice"] circle'
+          )
+          let lastIdx = -1
+          ScrollTrigger.create({
             trigger: '.hero',
             start: 'top top',
             end: 'bottom top',
             scrub: 1,
-            fastScrollEnd: true,
-          },
-        })
-      })
-
-      // Bar height extension up to 1.12x as hero scrolls
-      gsap.to('[data-fragment="bars"] rect', {
-        scaleY: 1.12,
-        transformOrigin: 'bottom',
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '.hero',
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 1,
-        },
-      })
-
-      // Lattice highlight advances across dots based on scroll progress
-      const dots = gsap.utils.toArray<SVGCircleElement>('[data-fragment="lattice"] circle')
-      ScrollTrigger.create({
-        trigger: '.hero',
-        start: 'top top',
-        end: 'bottom top',
-        scrub: 1,
-        onUpdate: (self) => {
-          const idx = Math.floor(self.progress * (dots.length - 1))
-          dots.forEach((d, i) => {
-            const isHi = i === idx
-            d.setAttribute('fill', isHi ? '#3A96E8' : '#D4E5F2')
-            d.setAttribute('r', isHi ? '4' : '2.5')
+            onUpdate: (self) => {
+              const idx = Math.floor(self.progress * (dots.length - 1))
+              if (idx === lastIdx) return
+              const prev = lastIdx >= 0 ? dots[lastIdx] : null
+              const next = dots[idx]
+              if (prev) {
+                prev.setAttribute('fill', '#D4E5F2')
+                prev.setAttribute('r', '2.5')
+              }
+              if (next) {
+                next.setAttribute('fill', '#3A96E8')
+                next.setAttribute('r', '4')
+              }
+              lastIdx = idx
+            },
           })
-        },
-      })
+        })
+        .catch(() => {})
 
       return () => { cancelled = true }
     },

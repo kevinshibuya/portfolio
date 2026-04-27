@@ -8,7 +8,9 @@ test('fragments translate by their per-element distance on scroll', async ({ pag
 
   const before = await page.locator('[data-fragment="bars"]').boundingBox()
   await page.evaluate(() => window.scrollTo({ top: window.innerHeight * 0.8, behavior: 'instant' as ScrollBehavior }))
-  await page.waitForTimeout(150)
+  // scrub: 1 introduces a ~1s ease lag — wait long enough for a clear delta
+  // to land, hardening this assertion against CI scheduling jitter.
+  await page.waitForTimeout(450)
   const after = await page.locator('[data-fragment="bars"]').boundingBox()
 
   expect(before).not.toBeNull()
