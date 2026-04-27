@@ -914,7 +914,7 @@ Reload, watch fragments enter post-loader. Toggle reduced motion — fragments s
 
 - [x] **Step 11: Tick spec checkbox** for TODO #2 in the spec file.
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 
 ```bash
 git add -A
