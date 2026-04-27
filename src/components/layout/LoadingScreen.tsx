@@ -13,28 +13,34 @@ export function LoadingScreen() {
   const [done, setDone] = useState(false)
 
   // Runtime measurement: align loader words to exact hero word positions.
-  // This is the "runtime measurement tween" pivot from the plan — CSS-only
-  // centering can't reliably replicate the hero's align-self:center grid cell.
+  // CSS-only centering can't reliably replicate the hero's align-self:center
+  // grid cell, so we measure both elements and apply a GSAP offset.
+  // Wait for `document.fonts.ready` first — measuring before Plus Jakarta Sans
+  // has decoded gives fallback-font metrics, and the bbox would shift on swap.
   useLayoutEffect(() => {
-    if (!wordsRef.current) return
+    let cancelled = false
+    void document.fonts.ready.then(() => {
+      if (cancelled || !wordsRef.current) return
 
-    const loaderKevin = wordsRef.current.querySelector<HTMLElement>(
-      '[data-loader-word="kevin"]'
-    )
-    const heroKevin = document.querySelector<HTMLElement>(
-      '[data-hero-word="kevin"]'
-    )
+      const loaderKevin = wordsRef.current.querySelector<HTMLElement>(
+        '[data-loader-word="kevin"]'
+      )
+      const heroKevin = document.querySelector<HTMLElement>(
+        '[data-hero-word="kevin"]'
+      )
+      if (!loaderKevin || !heroKevin) return
 
-    if (!loaderKevin || !heroKevin) return
+      const lb = loaderKevin.getBoundingClientRect()
+      const hb = heroKevin.getBoundingClientRect()
+      const dy = hb.top - lb.top
+      const dx = hb.left - lb.left
 
-    const lb = loaderKevin.getBoundingClientRect()
-    const hb = heroKevin.getBoundingClientRect()
-
-    const dy = hb.top - lb.top
-    const dx = hb.left - lb.left
-
-    if (Math.abs(dy) > 0.5 || Math.abs(dx) > 0.5) {
-      gsap.set(wordsRef.current, { x: dx, y: dy })
+      if (Math.abs(dy) > 0.5 || Math.abs(dx) > 0.5) {
+        gsap.set(wordsRef.current, { x: dx, y: dy })
+      }
+    })
+    return () => {
+      cancelled = true
     }
   }, [])
 
@@ -68,7 +74,11 @@ export function LoadingScreen() {
     }
   }, [prefersReducedMotion])
 
-  // Handoff timeline — triggers once progress reaches 1
+  // Handoff timeline — triggers once progress reaches 1.
+  // NOTE: `scope: root` confines GSAP selector strings to the loader's subtree.
+  // Any future selector targeting elements outside `root` (e.g. hero nodes)
+  // would silently match nothing — use a direct ref or move the tween outside
+  // this hook in that case.
   useGSAP(
     () => {
       if (progress < 1) return
