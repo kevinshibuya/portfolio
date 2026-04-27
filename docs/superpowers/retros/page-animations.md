@@ -27,4 +27,12 @@ Captured per task as we go. Format: 3–5 sentences each. Lessons that matter ar
 - **Promoted to repo:** Plan now carries an explicit "implementation note" documenting the clip-path → measurement deviation so future readers don't get confused.
 - **Cost:** ~3 implementer dispatches (one stalled, one continuation, plus the pre-fix work) + 1 combined reviewer + 0 self-fixes for Important issues (did directly). End state: 4/4 Playwright tests green on desktop + mobile.
 
-(Tasks 3–10 retros land here as they complete.)
+## Task 3 — Hero data-fragments composition entry
+
+- **What worked:** Lean dispatch (plan-path reference + ≤250-word report cap + explicit "use frontend-design output to build files in this same task" guardrail) produced one clean implementer pass with zero round-trips. Combined spec+quality review caught two real Important issues — duplicate `numeric` scale tween (would have caused a one-frame snap) and missing rejection handler on `loaderDone.then` (cosmetic but worth aligning) — plus a useful nit (5-row CSS comment).
+- **What to change:** Plan had an off-by-one on `grid-template-rows` (`repeat(4, 1fr)` couldn't fit bars span-3 + line span-2). Implementer correctly extrapolated to `repeat(5, 1fr)` without escalating, but I should sanity-check span-arithmetic when writing future grid layouts in plans. Also: scratch a hardcoded `waitForTimeout(1400)` lives in the e2e test — flagged for Task 9 perf pass to replace with a deterministic "timeline complete" signal.
+- **Self-fix path:** Both Important issues were ≤2-line edits + a CSS comment — handled directly instead of round-tripping. Saved one full implementer dispatch (~the lean-token win we wanted).
+- **Promoted to repo:** Nothing process-level; both findings were code-local. Pre-emptive `.catch(() => {})` on `loaderDone.then` in Hero.tsx applied for consistency.
+- **Cost:** 1 implementer (sonnet) + 1 combined reviewer + 0 self-fix dispatches = 2 dispatches, vs ~5 for Task 2. Workflow tightening landed.
+
+(Tasks 4–10 retros land here as they complete.)

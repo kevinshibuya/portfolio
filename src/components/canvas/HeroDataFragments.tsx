@@ -19,20 +19,22 @@ export function HeroDataFragments() {
       }
       gsap.set('[data-fragment]', { opacity: 0, y: 12 })
       let cancelled = false
-      loaderDone.then(() => {
-        if (cancelled) return
-        const tl = gsap.timeline()
-        tl.to('[data-fragment="bars"] rect',      { scaleY: 1, transformOrigin: 'bottom', duration: 0.7, stagger: 0.06, ease: projectEaseGsap }, 0)
-          .to('[data-fragment="bars"]',            { opacity: 1, y: 0, duration: 0.5, ease: projectEaseGsap }, 0)
-          .to('[data-fragment="line"] path',       { strokeDashoffset: 0, duration: 0.9, ease: projectEaseGsap }, 0.1)
-          .to('[data-fragment="line"]',            { opacity: 1, y: 0, duration: 0.5, ease: projectEaseGsap }, 0.1)
-          .to('[data-fragment="annotation"]',      { opacity: 1, y: 0, duration: 0.4, ease: projectEaseGsap }, 0.3)
-          .to('[data-fragment="lattice"] circle',  { opacity: 1, duration: 0.5, stagger: { amount: 0.4, from: 'random' }, ease: projectEaseGsap }, 0.2)
-          .to('[data-fragment="lattice"]',         { opacity: 1, y: 0, duration: 0.4, ease: projectEaseGsap }, 0.2)
-          .to('[data-fragment="numeric"]',         { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: projectEaseGsap }, 0.35)
-          .fromTo('[data-fragment="numeric"]',     { scale: 0.92 }, { scale: 1, duration: 0.6, ease: projectEaseGsap }, 0.35)
-          .to('[data-fragment="accent"]',          { opacity: 1, duration: 0.7, ease: projectEaseGsap }, 0.5)
-      })
+      loaderDone
+        .then(() => {
+          if (cancelled) return
+          const tl = gsap.timeline()
+          tl.to('[data-fragment="bars"] rect',      { scaleY: 1, transformOrigin: 'bottom', duration: 0.7, stagger: 0.06, ease: projectEaseGsap }, 0)
+            .to('[data-fragment="bars"]',            { opacity: 1, y: 0, duration: 0.5, ease: projectEaseGsap }, 0)
+            .to('[data-fragment="line"] path',       { strokeDashoffset: 0, duration: 0.9, ease: projectEaseGsap }, 0.1)
+            .to('[data-fragment="line"]',            { opacity: 1, y: 0, duration: 0.5, ease: projectEaseGsap }, 0.1)
+            .to('[data-fragment="annotation"]',      { opacity: 1, y: 0, duration: 0.4, ease: projectEaseGsap }, 0.3)
+            .to('[data-fragment="lattice"] circle',  { opacity: 1, duration: 0.5, stagger: { amount: 0.4, from: 'random' }, ease: projectEaseGsap }, 0.2)
+            .to('[data-fragment="lattice"]',         { opacity: 1, y: 0, duration: 0.4, ease: projectEaseGsap }, 0.2)
+            .to('[data-fragment="numeric"]',         { opacity: 1, y: 0, duration: 0.6, ease: projectEaseGsap }, 0.35)
+            .fromTo('[data-fragment="numeric"]',     { scale: 0.92 }, { scale: 1, duration: 0.6, ease: projectEaseGsap }, 0.35)
+            .to('[data-fragment="accent"]',          { opacity: 1, duration: 0.7, ease: projectEaseGsap }, 0.5)
+        })
+        .catch(() => {})
       return () => { cancelled = true }
     },
     { dependencies: [prefersReducedMotion], scope: root }

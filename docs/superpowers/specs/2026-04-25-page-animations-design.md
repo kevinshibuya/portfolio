@@ -5,7 +5,7 @@ A polished, restrained motion layer across the portfolio: a fluid loading-to-her
 ## TODO
 
 - [x] Loading screen renders, fills its progress underline as assets resolve, and hands the `kevin` / `shibuya.` words off to their final hero positions without remount or visible discontinuity (bounding-box continuity verified at frame boundaries).
-- [ ] Hero right-side editorial data-fragment composition (6 fragments: bars, line chart, annotation, dot lattice, numeric callout, optional R3F accent) renders at final positions after a sequenced GSAP entry timeline triggered post-loader.
+- [x] Hero right-side editorial data-fragment composition (6 fragments: bars, line chart, annotation, dot lattice, numeric callout, optional R3F accent) renders at final positions after a sequenced GSAP entry timeline triggered post-loader.
 - [ ] Hero data-fragments respond to scroll progress via ScrollTrigger scrub (per-fragment parallax up to 80px, bar height +12% max, dot-lattice highlight advances), with R3F accent removable via `motion-flags.ts` without shifting other fragments.
 - [ ] Hovering or focusing the `shibuya.` lettering triggers a 600ms soft character scramble (latin + katakana glyph pool) with 30ms per-character stagger that always settles to the exact glyphs `shibuya.`, and re-hovering within 800ms does not retrigger.
 - [ ] Each section's heading and content enter via Framer Motion `whileInView` (fade-up or stagger-children) when the section's top crosses the viewport −10% margin, plays once, and is complete within 800ms.

@@ -32,10 +32,12 @@ export function Hero() {
   // Reveal supplementary content after loader resolves
   useEffect(() => {
     let cancelled = false
-    loaderDone.then(() => {
-      if (cancelled) return
-      suppRef.current?.classList.add('is-revealed')
-    })
+    loaderDone
+      .then(() => {
+        if (cancelled) return
+        suppRef.current?.classList.add('is-revealed')
+      })
+      .catch(() => {})
     return () => {
       cancelled = true
     }

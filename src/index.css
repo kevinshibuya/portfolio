@@ -992,6 +992,9 @@ body[data-loader-state="loading"] {
   width: 50%;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  /* 5 rows so the left column accommodates bars (span 3) stacked over
+     line (span 2), while the right column keeps the annotation/numeric/
+     accent stack at row heights tight enough for the 47 numeric to read. */
   grid-template-rows: repeat(5, 1fr);
   gap: 16px;
   padding: 40px 80px 40px 0;
