@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { heroStats } from '../../data/stats'
 import { useMotion } from '../../context/MotionContext'
 import { HeroDataFragments } from '../canvas/HeroDataFragments'
+import { ScrambleText } from '../ui/ScrambleText'
 
 const ROLE_DURATION_MS = 2800
 
@@ -63,7 +64,7 @@ export function Hero() {
             className="hero-name-line hero-name-line--ghost"
             data-hero-word="shibuya"
           >
-            {t('hero.name2')}
+            <ScrambleText>{t('hero.name2') as string}</ScrambleText>
           </span>
         </h1>
 

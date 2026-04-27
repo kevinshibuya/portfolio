@@ -1084,7 +1084,7 @@ Maps to spec TODO: *"Hovering or focusing the `shibuya.` lettering triggers a 60
 - Create: `src/hooks/useScramble.ts`, `src/components/ui/ScrambleText.tsx`, `tests/unit/useScramble.test.ts`, `tests/e2e/shibuya-scramble.spec.ts`
 - Modify: `src/components/sections/Hero.tsx`
 
-- [ ] **Step 1: Write failing unit tests**
+- [x] **Step 1: Write failing unit tests**
 
 Create `tests/unit/useScramble.test.ts`:
 
@@ -1120,14 +1120,14 @@ describe('useScramble', () => {
 })
 ```
 
-- [ ] **Step 2: Run — expect failure**
+- [x] **Step 2: Run — expect failure**
 
 ```bash
 npm run test:unit -- useScramble
 ```
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement `useScramble`**
+- [x] **Step 3: Implement `useScramble`**
 
 Create `src/hooks/useScramble.ts`:
 
@@ -1190,14 +1190,14 @@ export function useScramble({ target, duration = 600, perCharStagger = 30, coold
 }
 ```
 
-- [ ] **Step 4: Adjust unit test if needed and re-run**
+- [x] **Step 4: Adjust unit test if needed and re-run**
 
 ```bash
 npm run test:unit -- useScramble
 ```
 Expected: PASS. (If the cooldown test relies on `performance.now` mocking, switch to `vi.spyOn(performance, 'now')` and advance manually.)
 
-- [ ] **Step 5: Create `ScrambleText.tsx`**
+- [x] **Step 5: Create `ScrambleText.tsx`**
 
 ```tsx
 import { useScramble } from '../../hooks/useScramble'
@@ -1226,7 +1226,7 @@ export function ScrambleText({ children }: { children: string }) {
 }
 ```
 
-- [ ] **Step 6: Wire into `Hero.tsx`**
+- [x] **Step 6: Wire into `Hero.tsx`**
 
 Wrap `name2` in `ScrambleText`:
 
@@ -1240,7 +1240,7 @@ import { ScrambleText } from '../ui/ScrambleText'
 
 If `hero.name2` includes the trailing `.`, leave it as part of the string — the hook leaves `.` static.
 
-- [ ] **Step 7: Add e2e test**
+- [x] **Step 7: Add e2e test**
 
 Create `tests/e2e/shibuya-scramble.spec.ts`:
 
@@ -1272,17 +1272,17 @@ test('hover within cooldown does not retrigger', async ({ page }) => {
 })
 ```
 
-- [ ] **Step 8: Run e2e — expect pass**
+- [x] **Step 8: Run e2e — expect pass**
 
 ```bash
 npm run test:e2e -- shibuya-scramble
 ```
 
-- [ ] **Step 9: Manual verify**
+- [x] **Step 9: Manual verify**
 
 `npm run dev`. Hover `shibuya.` — letters cycle, settle. Hover twice fast — only one cycle. Toggle reduced-motion — no scramble.
 
-- [ ] **Step 10: Tick spec checkbox** for TODO #4.
+- [x] **Step 10: Tick spec checkbox** for TODO #4. (skipped by implementer per dispatch rules — controller ticks after code review)
 
 - [ ] **Step 11: Commit**
 
