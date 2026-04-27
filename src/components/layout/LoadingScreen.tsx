@@ -12,6 +12,18 @@ export function LoadingScreen() {
   const [progress, setProgress] = useState(0)
   const [done, setDone] = useState(false)
 
+  // Lock body scroll while the loader covers the viewport. The handoff
+  // timeline flips this to 'done' on completion; cleanup restores it if
+  // the component unmounts before that (e.g. fast nav, HMR).
+  useLayoutEffect(() => {
+    document.body.dataset.loaderState = 'loading'
+    return () => {
+      if (document.body.dataset.loaderState === 'loading') {
+        delete document.body.dataset.loaderState
+      }
+    }
+  }, [])
+
   // Runtime measurement: align loader words to exact hero word positions.
   // CSS-only centering can't reliably replicate the hero's align-self:center
   // grid cell, so we measure both elements and apply a GSAP offset.

@@ -28,6 +28,34 @@ test('loader hands off to hero with bbox-continuous word lines', async ({ page }
   expect(Math.abs(afterBox!.y - beforeBox!.y)).toBeLessThan(2)
 })
 
+test('body scroll is locked while loader is visible', async ({ page }) => {
+  await page.goto('/')
+
+  // Loader is up — body should be marked loading and have overflow:hidden,
+  // and a real wheel event must not advance scrollY.
+  await expect(page.locator('[data-loader-panel]')).toBeVisible({ timeout: 5000 })
+
+  const stateDuring = await page.evaluate(() => document.body.dataset.loaderState)
+  expect(stateDuring).toBe('loading')
+
+  const overflowDuring = await page.evaluate(() =>
+    getComputedStyle(document.body).overflow
+  )
+  expect(overflowDuring).toBe('hidden')
+
+  await page.mouse.move(200, 200)
+  await page.mouse.wheel(0, 1200)
+  const scrollDuring = await page.evaluate(() => window.scrollY)
+  expect(scrollDuring).toBe(0)
+
+  // After loader resolves, body returns to its normal scrolling state.
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+  const overflowAfter = await page.evaluate(() =>
+    getComputedStyle(document.body).overflow
+  )
+  expect(overflowAfter).not.toBe('hidden')
+})
+
 test('loader underline reaches scaleX=1 before any other timeline starts', async ({ page }) => {
   await page.goto('/')
   await page.waitForFunction(() => {

@@ -900,6 +900,16 @@ img { max-width: 100%; display: block; }
   overflow: hidden;
 }
 
+/* Prevent the page underneath from scrolling while the loader is up.
+   Belt-and-braces: lock both <html> and <body>, and pin the body so iOS
+   Safari doesn't bypass overflow:hidden via momentum scroll. */
+html:has(body[data-loader-state="loading"]),
+body[data-loader-state="loading"] {
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
 /* Mirrors .hero: same max-width + side padding + vertical centering */
 .loader-hero-mirror {
   flex: 1;
