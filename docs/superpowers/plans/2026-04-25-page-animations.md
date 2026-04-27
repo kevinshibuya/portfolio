@@ -1284,7 +1284,7 @@ npm run test:e2e -- shibuya-scramble
 
 - [x] **Step 10: Tick spec checkbox** for TODO #4. (skipped by implementer per dispatch rules — controller ticks after code review)
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add -A
