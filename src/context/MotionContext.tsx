@@ -28,7 +28,9 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
 
   const [r3fEnabled, setR3fEnabled] = useState(false)
   useEffect(() => {
-    setR3fEnabled(ENABLE_R3F_ACCENT && window.innerWidth >= MOBILE_BREAKPOINT_PX)
+    const url = new URL(window.location.href)
+    const forceOff = url.searchParams.get('disableR3f') === '1'
+    setR3fEnabled(ENABLE_R3F_ACCENT && !forceOff && window.innerWidth >= MOBILE_BREAKPOINT_PX)
   }, [])
 
   const value = useMemo<MotionContextValue>(

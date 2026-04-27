@@ -1,5 +1,6 @@
 import { Suspense, lazy, useRef } from 'react'
 import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import { useMotion } from '../../context/MotionContext'
 import { projectEaseGsap } from '../../utils/animations'
@@ -35,6 +36,63 @@ export function HeroDataFragments() {
             .to('[data-fragment="accent"]',          { opacity: 1, duration: 0.7, ease: projectEaseGsap }, 0.5)
         })
         .catch(() => {})
+
+      // Scroll-linked parallax — fragments drift at independent speeds as hero scrolls out
+      const speeds: Record<string, number> = {
+        bars: 0.18,
+        line: 0.10,
+        annotation: 0.30,
+        lattice: 0.14,
+        numeric: 0.22,
+        accent: 0.28,
+      }
+      const isMobile = window.innerWidth < 768
+      const cap = isMobile ? 40 : 80
+
+      Object.entries(speeds).forEach(([id, speed]) => {
+        gsap.to(`[data-fragment="${id}"]`, {
+          y: -cap * speed,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '.hero',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 1,
+            fastScrollEnd: true,
+          },
+        })
+      })
+
+      // Bar height extension up to 1.12x as hero scrolls
+      gsap.to('[data-fragment="bars"] rect', {
+        scaleY: 1.12,
+        transformOrigin: 'bottom',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.hero',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 1,
+        },
+      })
+
+      // Lattice highlight advances across dots based on scroll progress
+      const dots = gsap.utils.toArray<SVGCircleElement>('[data-fragment="lattice"] circle')
+      ScrollTrigger.create({
+        trigger: '.hero',
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 1,
+        onUpdate: (self) => {
+          const idx = Math.floor(self.progress * (dots.length - 1))
+          dots.forEach((d, i) => {
+            const isHi = i === idx
+            d.setAttribute('fill', isHi ? '#3A96E8' : '#D4E5F2')
+            d.setAttribute('r', isHi ? '4' : '2.5')
+          })
+        },
+      })
+
       return () => { cancelled = true }
     },
     { dependencies: [prefersReducedMotion], scope: root }

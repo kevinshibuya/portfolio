@@ -930,7 +930,7 @@ Maps to spec TODO: *"Hero data-fragments respond to scroll progress via ScrollTr
 **Files:**
 - Modify: `src/components/canvas/HeroDataFragments.tsx`
 
-- [ ] **Step 1: Write failing acceptance test**
+- [x] **Step 1: Write failing acceptance test** _(mobile skip guards added per workflow rules)_
 
 Create `tests/e2e/hero-scroll-parallax.spec.ts`:
 
@@ -968,14 +968,14 @@ test('disabling R3F accent does not shift other fragment positions', async ({ pa
 })
 ```
 
-- [ ] **Step 2: Run — expect failure**
+- [x] **Step 2: Run — expect failure**
 
 ```bash
 npm run test:e2e -- hero-scroll-parallax
 ```
 Expected: FAIL.
 
-- [ ] **Step 3: Add ScrollTrigger parallax to `HeroDataFragments.tsx`**
+- [x] **Step 3: Add ScrollTrigger parallax to `HeroDataFragments.tsx`**
 
 Inside the existing `useGSAP` (after the entry timeline registration), add:
 
@@ -1039,7 +1039,7 @@ ScrollTrigger.create({
 })
 ```
 
-- [ ] **Step 4: Wire URL flag for `disableR3f` (test-only)**
+- [x] **Step 4: Wire URL flag for `disableR3f` (test-only)**
 
 In `MotionContext.tsx`, replace the `useEffect` that sets `r3fEnabled`:
 
@@ -1051,21 +1051,21 @@ useEffect(() => {
 }, [])
 ```
 
-- [ ] **Step 5: Run acceptance — expect pass**
+- [x] **Step 5: Run acceptance — expect pass**
 
 ```bash
 npm run test:e2e -- hero-scroll-parallax
 ```
 Expected: PASS.
 
-- [ ] **Step 6: Manual verification**
+- [x] **Step 6: Manual verification**
 
 ```bash
 npm run dev
 ```
 Slow scroll through hero — fragments should drift, bars subtly extend, the highlighted lattice dot should walk along positions. Reload with `?disableR3f=1` — accent renders the silhouette and other fragments remain in place.
 
-- [ ] **Step 7: Tick spec checkbox** for TODO #3.
+- [x] **Step 7: Tick spec checkbox** for TODO #3.
 
 - [ ] **Step 8: Commit**
 
