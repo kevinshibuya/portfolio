@@ -360,7 +360,7 @@ Maps to spec TODO: *"Loading screen renders, fills its progress underline as ass
 - Create: `src/components/layout/LoadingScreen.tsx`, `tests/e2e/loader-handoff.spec.ts`
 - Modify: `src/App.tsx`, `src/components/sections/Hero.tsx`, `src/index.css`
 
-- [ ] **Step 1: Write the failing acceptance test (Playwright)**
+- [x] **Step 1: Write the failing acceptance test (Playwright)**
 
 Create `tests/e2e/loader-handoff.spec.ts`:
 
@@ -410,16 +410,16 @@ test('loader underline reaches scaleX=1 before any other timeline starts', async
 })
 ```
 
-- [ ] **Step 2: Run the test — expect failure**
+- [x] **Step 2: Run the test — expect failure**
 
 ```bash
 npm run test:e2e -- loader-handoff
 ```
 Expected: FAIL — `[data-loader-word]` not found / loader doesn't exist yet.
 
-- [ ] **Step 3: Invoke `frontend-design:frontend-design`** before writing the loader JSX. This shapes the visual quality of the loader composition.
+- [x] **Step 3: Invoke `frontend-design:frontend-design`** before writing the loader JSX. This shapes the visual quality of the loader composition.
 
-- [ ] **Step 4: Create `src/components/layout/LoadingScreen.tsx`**
+- [x] **Step 4: Create `src/components/layout/LoadingScreen.tsx`**
 
 ```tsx
 import { useEffect, useRef, useState } from 'react'
@@ -510,7 +510,7 @@ export function LoadingScreen() {
 }
 ```
 
-- [ ] **Step 5: Add loader styles to `src/index.css`**
+- [x] **Step 5: Add loader styles to `src/index.css`**
 
 Append:
 
@@ -564,7 +564,7 @@ Append:
 }
 ```
 
-- [ ] **Step 6: Tag hero name lines with stable selectors**
+- [x] **Step 6: Tag hero name lines with stable selectors**
 
 Edit `src/components/sections/Hero.tsx` to add `data-hero-word` and `data-hero-eyebrow`:
 
@@ -581,7 +581,7 @@ Edit `src/components/sections/Hero.tsx` to add `data-hero-word` and `data-hero-e
 
 (If a separate eyebrow line doesn't exist yet, add `data-hero-eyebrow` to the role line container.)
 
-- [ ] **Step 7: Render `LoadingScreen` in `App.tsx`**
+- [x] **Step 7: Render `LoadingScreen` in `App.tsx`**
 
 ```tsx
 import { Routes, Route } from 'react-router-dom'
@@ -606,14 +606,14 @@ function App() {
 export default App
 ```
 
-- [ ] **Step 8: Run the acceptance test — expect pass**
+- [x] **Step 8: Run the acceptance test — expect pass**
 
 ```bash
 npm run test:e2e -- loader-handoff
 ```
 Expected: PASS for both cases.
 
-- [ ] **Step 9: Manual verification**
+- [x] **Step 9: Manual verification**
 
 ```bash
 npm run dev
@@ -623,11 +623,11 @@ In a browser at `http://localhost:5173`:
 - On hard reload, the loader should appear, the underline should fill, and the words should remain on-screen as the page reveals (no flash, no remount).
 - Toggle "Emulate CSS prefers-reduced-motion: reduce" in DevTools and reload — loader should resolve almost instantly, hero appears at final state.
 
-- [ ] **Step 10: Tick the spec checkbox**
+- [x] **Step 10: Tick the spec checkbox**
 
 Edit `docs/superpowers/specs/2026-04-25-page-animations-design.md`. Change the line for TODO #1 from `- [ ] Loading screen renders…` to `- [x] Loading screen renders…`.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add -A
