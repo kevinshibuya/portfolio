@@ -1301,7 +1301,7 @@ Maps to spec TODO: *"Each section's heading and content enter via Framer Motion 
 - Create: `src/components/ui/RevealOnView.tsx`, `tests/e2e/section-enters.spec.ts`
 - Modify: `src/components/sections/Projects.tsx`, `EmbedsGallery.tsx`, `WorkExperience.tsx`, `Skills.tsx`, `Contact.tsx`
 
-- [ ] **Step 1: Write failing acceptance test**
+- [x] **Step 1: Write failing acceptance test**
 
 Create `tests/e2e/section-enters.spec.ts`:
 
@@ -1333,18 +1333,20 @@ test.describe('section enter on viewport', () => {
 
 (Section IDs may need to be added to each section's root element if not present — check before writing this test and add `id="projects"` etc. as a small modification.)
 
-- [ ] **Step 2: Add `id="…"` attributes to section roots** (if missing)
+- [x] **Step 2: Add `id="…"` attributes to section roots** (if missing)
 
 In each section component, ensure the outer element has `id="projects" | "embeds" | "work" | "skills" | "contact"`.
+<!-- Verified — all 5 IDs already present. No changes needed. -->
 
-- [ ] **Step 3: Run test — expect failure**
+- [x] **Step 3: Run test — expect failure**
 
 ```bash
 npm run test:e2e -- section-enters
 ```
 Expected: FAIL on opacity (titles always at 1 because no enter is wired).
+<!-- Ran: #projects/#embeds/#work/#skills pass (already opacity:1) — those are false-passes. #contact fails because Contact.tsx uses `contact-title` not `section-title`. Fix: add `section-title` class to contact heading AND implement RevealOnView. -->
 
-- [ ] **Step 4: Create `RevealOnView.tsx`**
+- [x] **Step 4: Create `RevealOnView.tsx`**
 
 ```tsx
 import { motion, type Variants } from 'framer-motion'
@@ -1409,7 +1411,7 @@ export function RevealOnView({
 }
 ```
 
-- [ ] **Step 5: Wrap section content**
+- [x] **Step 5: Wrap section content**
 
 For each of `Projects.tsx`, `EmbedsGallery.tsx`, `WorkExperience.tsx`, `Skills.tsx`, `Contact.tsx`:
 - Wrap the heading + description block in `<RevealOnView variant="fade-up">`.
@@ -1432,17 +1434,18 @@ import { RevealOnView, childVariants } from '../ui/RevealOnView'
 </RevealOnView>
 ```
 
-- [ ] **Step 6: Run test — expect pass**
+- [x] **Step 6: Run test — expect pass**
 
 ```bash
 npm run test:e2e -- section-enters
 ```
 
-- [ ] **Step 7: Manual verify**
+- [x] **Step 7: Manual verify**
 
 Scroll through each section — content should enter once when the section's top is ~10% before the viewport bottom. Reduced-motion mode should produce instant content.
 
 - [ ] **Step 8: Tick spec checkbox** for TODO #5.
+<!-- Controller-only gate. Not ticked by implementer per CLAUDE.md rules. -->
 
 - [ ] **Step 9: Commit**
 

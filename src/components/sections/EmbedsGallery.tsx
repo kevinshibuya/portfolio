@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { RevealOnView, childVariants } from '../ui/RevealOnView'
 import { SectionHeading } from '../ui/SectionHeading'
 import { Tag } from '../ui/Tag'
 import {
@@ -41,12 +43,14 @@ export function EmbedsGallery() {
   return (
     <section id="embeds" className="section section--sand">
       <div className="section-inner">
-        <SectionHeading
-          index={t('sections.embeds.index')}
-          label={t('sections.embeds.label')}
-          title={t('sections.embeds.title')}
-          description={t('sections.embeds.description')}
-        />
+        <RevealOnView variant="fade-up">
+          <SectionHeading
+            index={t('sections.embeds.index')}
+            label={t('sections.embeds.label')}
+            title={t('sections.embeds.title')}
+            description={t('sections.embeds.description')}
+          />
+        </RevealOnView>
 
         <div className="embeds-filters">
           <div className="embeds-filter-group">
@@ -100,11 +104,13 @@ export function EmbedsGallery() {
           <strong>{filtered.length}</strong> {t('sections.embeds.countLabel')}
         </p>
 
-        <div className="tbl">
+        <RevealOnView variant="stagger-children" staggerAmount={0.04} className="tbl">
           {visible.map((embed, idx) => (
-            <EmbedRow key={embed.link} idx={idx} embed={embed} />
+            <motion.div key={embed.link} variants={childVariants}>
+              <EmbedRow idx={idx} embed={embed} />
+            </motion.div>
           ))}
-        </div>
+        </RevealOnView>
 
         {hasMore && (
           <div className="embeds-more">

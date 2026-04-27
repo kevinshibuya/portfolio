@@ -1,5 +1,7 @@
+import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { RevealOnView, childVariants } from '../ui/RevealOnView'
 import { SectionHeading } from '../ui/SectionHeading'
 import { projects } from '../../data/projects'
 import type { Project } from '../../types/content'
@@ -11,23 +13,26 @@ export function Projects() {
 
   return (
     <section id="projects" className="section">
-      <SectionHeading
-        index={t('sections.projects.index')}
-        label={t('sections.projects.label')}
-        title={t('sections.projects.title')}
-        description={t('sections.projects.description')}
-      />
+      <RevealOnView variant="fade-up">
+        <SectionHeading
+          index={t('sections.projects.index')}
+          label={t('sections.projects.label')}
+          title={t('sections.projects.title')}
+          description={t('sections.projects.description')}
+        />
+      </RevealOnView>
 
-      <div className="bento">
+      <RevealOnView variant="stagger-children" staggerAmount={0.06} className="bento">
         {featured.map((project) => (
-          <BentoCard
-            key={project.id}
-            project={project}
-            lang={lang}
-            caseStudy={t('sections.projects.caseStudy')}
-          />
+          <motion.div key={project.id} variants={childVariants}>
+            <BentoCard
+              project={project}
+              lang={lang}
+              caseStudy={t('sections.projects.caseStudy')}
+            />
+          </motion.div>
         ))}
-      </div>
+      </RevealOnView>
     </section>
   )
 }

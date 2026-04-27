@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { RevealOnView, childVariants } from '../ui/RevealOnView'
 import { SectionHeading } from '../ui/SectionHeading'
 import { Tag } from '../ui/Tag'
 import { workExperiences } from '../../data/workExperience'
@@ -11,20 +13,22 @@ export function WorkExperience() {
 
   return (
     <section id="work" className="section">
-      <SectionHeading
-        index={t('sections.work.index')}
-        label={t('sections.work.label')}
-        title={t('sections.work.title')}
-        description={t('sections.work.description')}
-      />
+      <RevealOnView variant="fade-up">
+        <SectionHeading
+          index={t('sections.work.index')}
+          label={t('sections.work.label')}
+          title={t('sections.work.title')}
+          description={t('sections.work.description')}
+        />
+      </RevealOnView>
 
-      <div className="work-list">
+      <RevealOnView variant="stagger-children" staggerAmount={0.06} className="work-list">
         {workExperiences.map((exp, i) => {
           const open = expandedIdx === i
           const num = `0${i + 1}`
 
           return (
-            <div key={exp.id} className={`work-row${open ? ' is-open' : ''}`}>
+            <motion.div key={exp.id} variants={childVariants} className={`work-row${open ? ' is-open' : ''}`}>
               <button
                 className="work-row-head"
                 onClick={() => setExpandedIdx(open ? -1 : i)}
@@ -71,10 +75,10 @@ export function WorkExperience() {
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
           )
         })}
-      </div>
+      </RevealOnView>
     </section>
   )
 }

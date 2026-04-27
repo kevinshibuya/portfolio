@@ -1,4 +1,6 @@
+import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { RevealOnView, childVariants } from '../ui/RevealOnView'
 import { EMAIL, socialLinks } from '../../data/social'
 
 interface ContactRowData {
@@ -45,20 +47,24 @@ export function Contact() {
   return (
     <section id="contact" className="section section--contact">
       <div className="contact-inner">
-        <span className="section-index">
-          {t('sections.contact.index')} · {t('sections.contact.label')}
-        </span>
-        <h2
-          className="contact-title"
-          dangerouslySetInnerHTML={{ __html: t('sections.contact.title') }}
-        />
-        <p className="contact-lede">{t('sections.contact.subtitle')}</p>
+        <RevealOnView variant="fade-up">
+          <span className="section-index">
+            {t('sections.contact.index')} · {t('sections.contact.label')}
+          </span>
+          <h2
+            className="contact-title section-title"
+            dangerouslySetInnerHTML={{ __html: t('sections.contact.title') }}
+          />
+          <p className="contact-lede">{t('sections.contact.subtitle')}</p>
+        </RevealOnView>
 
-        <div className="contact-list">
+        <RevealOnView variant="stagger-children" staggerAmount={0.06} className="contact-list">
           {rows.map((row) => (
-            <ContactRow key={row.num} {...row} />
+            <motion.div key={row.num} variants={childVariants}>
+              <ContactRow {...row} />
+            </motion.div>
           ))}
-        </div>
+        </RevealOnView>
       </div>
     </section>
   )
