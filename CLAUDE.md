@@ -71,6 +71,18 @@ ALWAYS invoke `superpowers:requesting-code-review`.
 ### When working with any library (Framer Motion, GSAP, R3F, TailwindCSS v4):
 Add "use context7" to the prompt to get current documentation. These libraries change frequently.
 
+## Spec & Plan Checkbox Discipline (MANDATORY)
+
+Specs (`docs/superpowers/specs/*.md`) and plans (`docs/superpowers/plans/*.md`) contain GFM checkboxes (`- [ ]`) that are the source of truth for progress. They MUST be kept in sync with reality. Stale boxes (work done but `- [ ]` still showing) silently break the `feat` skill, the retro, and any future session that resumes this work.
+
+**Rules:**
+
+- **Plan step boxes** (`- [ ] **Step N: ...**` inside a task): the implementer (subagent or controller) MUST edit the box from `- [ ]` to `- [x]` immediately after that step's command/action lands successfully — BEFORE moving to the next step. Do not batch ticks "at the end".
+- **Spec TODO boxes** (`- [ ] <acceptance criterion>` under `## TODO`): the controller MUST edit the box from `- [ ]` to `- [x]` only when that TODO's acceptance test passes AND code review approves. Never tick a spec TODO based on "I think it's done".
+- **Verification before claiming a task complete:** before announcing a plan task as done, grep the task's section for any remaining `- [ ]` and tick them or explain why they're not applicable. A "completed" task with un-ticked steps is a bug.
+- **Subagent dispatches:** when dispatching an implementer subagent, the dispatch prompt MUST include the explicit instruction: "after each step's command lands successfully, Edit the corresponding `- [ ]` to `- [x]` in the plan file before proceeding to the next step." Do not assume the subagent will infer this from CLAUDE.md.
+- **Never invent boxes.** Only edit checkboxes that already exist in the spec/plan. If the work doesn't fit any existing box, the plan or spec needs to be revised first — open an Edit on the doc, then proceed.
+
 ## Architecture
 
 ```

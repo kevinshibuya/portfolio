@@ -86,7 +86,7 @@ Each spec-TODO task ends with an Edit to flip its `- [ ]` to `- [x]` in `docs/su
 
 No spec checkbox. Foundation only.
 
-- [ ] **Step 1: Add devDependencies**
+- [x] **Step 1: Add devDependencies**
 
 ```bash
 cd /Users/luizarazzera/Desktop/keki/dev/personal_projects/portfolio
@@ -96,7 +96,7 @@ npx playwright install --with-deps chromium
 
 Expected: `package.json` updated, no errors.
 
-- [ ] **Step 2: Add test scripts to `package.json`**
+- [x] **Step 2: Add test scripts to `package.json`**
 
 Edit the `"scripts"` block to add:
 
@@ -107,7 +107,7 @@ Edit the `"scripts"` block to add:
 "test:e2e": "playwright test"
 ```
 
-- [ ] **Step 3: Create `vitest.config.ts`**
+- [x] **Step 3: Create `vitest.config.ts`**
 
 ```ts
 import { defineConfig } from 'vitest/config'
@@ -124,7 +124,7 @@ export default defineConfig({
 })
 ```
 
-- [ ] **Step 4: Create `tests/setup.ts`**
+- [x] **Step 4: Create `tests/setup.ts`**
 
 ```ts
 import '@testing-library/jest-dom/vitest'
@@ -155,7 +155,7 @@ if (!window.ResizeObserver) {
 }
 ```
 
-- [ ] **Step 5: Create `playwright.config.ts`**
+- [x] **Step 5: Create `playwright.config.ts`**
 
 ```ts
 import { defineConfig, devices } from '@playwright/test'
@@ -183,7 +183,7 @@ export default defineConfig({
 })
 ```
 
-- [ ] **Step 6: Verify infra runs**
+- [x] **Step 6: Verify infra runs**
 
 ```bash
 npm run test:unit
@@ -195,7 +195,7 @@ npm run build
 ```
 Expected: build succeeds (sanity).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add package.json package-lock.json vitest.config.ts playwright.config.ts tests/setup.ts
@@ -212,7 +212,7 @@ git commit -m "chore: add vitest + playwright test infrastructure"
 
 No spec checkbox. Foundation only. Provides what every later task imports.
 
-- [ ] **Step 1: Create `src/utils/motion-flags.ts`**
+- [x] **Step 1: Create `src/utils/motion-flags.ts`**
 
 ```ts
 export const ENABLE_R3F_ACCENT = true
@@ -221,7 +221,7 @@ export const LOADER_MIN_DURATION_MS = 700
 export const LOADER_REDUCED_MOTION_MAX_MS = 200
 ```
 
-- [ ] **Step 2: Create `src/utils/animations.ts`**
+- [x] **Step 2: Create `src/utils/animations.ts`**
 
 ```ts
 import { gsap } from 'gsap'
@@ -253,7 +253,7 @@ export const sectionEnterDefaults = {
 } as const
 ```
 
-- [ ] **Step 3: Create `src/context/MotionContext.tsx`**
+- [x] **Step 3: Create `src/context/MotionContext.tsx`**
 
 ```tsx
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
@@ -305,7 +305,7 @@ export function useMotion() {
 }
 ```
 
-- [ ] **Step 4: Wrap the app in `MotionProvider`**
+- [x] **Step 4: Wrap the app in `MotionProvider`**
 
 Edit `src/main.tsx`:
 
@@ -329,14 +329,14 @@ createRoot(document.getElementById('root')!).render(
 )
 ```
 
-- [ ] **Step 5: Sanity check — build still passes**
+- [x] **Step 5: Sanity check — build still passes**
 
 ```bash
 npm run build
 ```
 Expected: build succeeds.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/context/MotionContext.tsx src/utils/motion-flags.ts src/utils/animations.ts src/main.tsx
