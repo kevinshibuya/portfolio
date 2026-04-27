@@ -356,6 +356,8 @@ git commit -m "feat: add motion context, flags, and shared animation tokens"
 
 Maps to spec TODO: *"Loading screen renders, fills its progress underline as assets resolve, and hands the `kevin` / `shibuya.` words off to their final hero positions without remount or visible discontinuity (bounding-box continuity verified at frame boundaries)."*
 
+> **Implementation note (post-execution):** the spec describes a `clip-path: inset()` tween moving the loader words to the hero positions. The shipped implementation instead uses a structural-mirror CSS layout + a single GSAP `gsap.set` offset measured at runtime via `document.fonts.ready` + `getBoundingClientRect`. The handoff itself is then just an `autoAlpha` cross-fade (the words don't move during the fade — they're already at the hero coordinates). Functionally equivalent for the bbox-continuity contract and simpler to reason about.
+
 **Files:**
 - Create: `src/components/layout/LoadingScreen.tsx`, `tests/e2e/loader-handoff.spec.ts`
 - Modify: `src/App.tsx`, `src/components/sections/Hero.tsx`, `src/index.css`

@@ -28,6 +28,10 @@ dist-ssr
 .claude/design-system-handoff/
 Kevin.pdf
 
+# Scratch / drafts at repo root
+prompt.md
+a.md
+
 # Playwright artifacts
 test-results/
 playwright-report/
