@@ -15,7 +15,7 @@ export const durations = {
 
 export const stagger = {
   embedRows: 0.04,
-  default: 0.06,
+  base: 0.06,
   scrambleChar: 0.03,
 } as const
 
@@ -23,5 +23,5 @@ export const sectionEnterDefaults = {
   y: 24,
   opacity: 0,
   duration: durations.base,
-  ease: projectEase,
+  ease: projectEaseGsap,
 } as const

@@ -241,33 +241,46 @@ export const durations = {
 
 export const stagger = {
   embedRows: 0.04,
-  default: 0.06,
+  base: 0.06,
   scrambleChar: 0.03,
 } as const
 
+// NOTE: `ease` is the GSAP ease, not the CSS bezier — `sectionEnterDefaults`
+// is consumed by GSAP timelines, and GSAP cannot natively parse
+// `cubic-bezier(...)` strings (it would silently fall back to power1.out).
 export const sectionEnterDefaults = {
   y: 24,
   opacity: 0,
   duration: durations.base,
-  ease: projectEase,
+  ease: projectEaseGsap,
 } as const
 ```
 
 - [x] **Step 3: Create `src/context/MotionContext.tsx`**
 
 ```tsx
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { ENABLE_R3F_ACCENT, MOBILE_BREAKPOINT_PX } from '../utils/motion-flags'
 
 type Resolver = () => void
 
 interface MotionContextValue {
+  /**
+   * Resolves once when the LoadingScreen handoff completes. Module-scoped, so
+   * the SAME promise instance survives React 19 StrictMode remounts and any
+   * future MotionProvider unmount/remount — consumers can safely await it from
+   * any hook scope without risking an orphaned cycle-1 promise.
+   */
   loaderDone: Promise<void>
   resolveLoader: Resolver
   prefersReducedMotion: boolean
   r3fAccentEnabled: boolean
 }
+
+let _loaderResolver: Resolver | null = null
+const _loaderDone: Promise<void> = new Promise<void>((res) => { _loaderResolver = res })
+const resolveLoader: Resolver = () => _loaderResolver?.()
 
 const Ctx = createContext<MotionContextValue | null>(null)
 
@@ -279,26 +292,20 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     setR3fEnabled(ENABLE_R3F_ACCENT && window.innerWidth >= MOBILE_BREAKPOINT_PX)
   }, [])
 
-  const resolverRef = useRef<Resolver | null>(null)
-  const loaderDone = useMemo(
-    () => new Promise<void>((res) => { resolverRef.current = res }),
-    []
-  )
-
   const value = useMemo<MotionContextValue>(
     () => ({
-      loaderDone,
-      resolveLoader: () => resolverRef.current?.(),
+      loaderDone: _loaderDone,
+      resolveLoader,
       prefersReducedMotion: reduced,
       r3fAccentEnabled: r3fEnabled,
     }),
-    [loaderDone, reduced, r3fEnabled]
+    [reduced, r3fEnabled]
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 
-export function useMotion() {
+export function useMotion(): MotionContextValue {
   const v = useContext(Ctx)
   if (!v) throw new Error('useMotion must be used within MotionProvider')
   return v
