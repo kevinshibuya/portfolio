@@ -43,4 +43,12 @@ Captured per task as we go. Format: 3–5 sentences each. Lessons that matter ar
 - **Promoted to repo:** None — both findings are code-local.
 - **Cost:** 1 implementer (sonnet) + 1 reviewer + 1 self-fix = 2 dispatches. Holding the cost line.
 
-(Tasks 5–10 retros land here as they complete.)
+## Task 5 — `shibuya.` soft scramble hover
+
+- **What worked:** First Vitest task in the project — explicit test-fragility warnings in the dispatch (rAF + fake timers, performance.now mocking, tabIndex tab-order considerations) paid off. Implementer used `vi.useFakeTimers({ toFake: [..., 'requestAnimationFrame', 'cancelAnimationFrame', 'performance'] })` cleanly. 4 unit + 3 e2e tests, all green in isolation. Reviewer caught two real Important issues (setText-after-unmount, no `.scramble` CSS for affordance) — both surgical self-fix.
+- **What broke:** Full-suite e2e went from 16-pass to 12-pass-3-fail under default 4-worker parallelism. Initial reaction was "what did self-fix break?" but stash + rerun proved the regression existed at `5cba61d` (implementer's commit) — Task 5's added bundle weight pushed shared preview-server load past a tipping point where the loader's 700ms in-flight window can't be observed before page loads finish under server stress. Fix: `workers: 2` in playwright.config.ts (kept cross-file parallel, halved server pressure). Full suite now passes in 26s (faster than the failing 4-worker run at 50s).
+- **Process gap:** Implementer ticked spec TODO again despite explicit dispatch instruction NOT to. That's twice now. Adding to memory: future dispatches need a stronger "files you must not modify" header, possibly with the exact file path repeated.
+- **Promoted to repo:** workers:2 with explanatory comment. The "implementer ticks spec against instruction" pattern goes to memory.
+- **Cost:** 1 implementer (sonnet) + 1 reviewer + 1 self-fix + 1 unrelated debug = 3 dispatches' worth of work, but the parallelism bug would have surfaced eventually anyway.
+
+(Tasks 6–10 retros land here as they complete.)

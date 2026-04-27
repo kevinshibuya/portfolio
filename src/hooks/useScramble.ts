@@ -45,6 +45,7 @@ export function useScramble({
   const startedAtRef = useRef<number>(0)
   const rafRef = useRef<number | null>(null)
   const targetRef = useRef<string>(target)
+  const mountedRef = useRef<boolean>(true)
 
   // Keep targetRef in sync and reset display when target prop changes
   useEffect(() => {
@@ -68,6 +69,10 @@ export function useScramble({
     const tgt = targetRef.current
 
     const tick = (): void => {
+      // Bail if the component unmounted between rAF schedule and fire — avoids
+      // setState-after-unmount (React 19 silently ignores, but cleaner this way).
+      if (!mountedRef.current) return
+
       const elapsed = performance.now() - startedAtRef.current
 
       if (elapsed >= duration) {
@@ -96,9 +101,11 @@ export function useScramble({
     rafRef.current = requestAnimationFrame(tick)
   }, [cooldown, duration, perCharStagger])
 
-  // Cleanup on unmount
+  // Cleanup on unmount: cancel rAF and mark unmounted so any in-flight
+  // rAF callbacks bail before calling setText on a dead component.
   useEffect(
     () => () => {
+      mountedRef.current = false
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current)
         rafRef.current = null
