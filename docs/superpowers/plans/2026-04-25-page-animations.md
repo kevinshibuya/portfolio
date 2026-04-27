@@ -1067,7 +1067,7 @@ Slow scroll through hero — fragments should drift, bars subtly extend, the hig
 
 - [x] **Step 7: Tick spec checkbox** for TODO #3.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A
