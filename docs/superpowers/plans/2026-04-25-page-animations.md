@@ -1447,7 +1447,7 @@ Scroll through each section — content should enter once when the section's top
 - [ ] **Step 8: Tick spec checkbox** for TODO #5.
 <!-- Controller-only gate. Not ticked by implementer per CLAUDE.md rules. -->
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add -A
