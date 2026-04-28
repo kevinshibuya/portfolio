@@ -6,6 +6,11 @@ import { SectionHeading } from '../ui/SectionHeading'
 import { projects } from '../../data/projects'
 import type { Project } from '../../types/content'
 
+// Wrap react-router's Link with framer-motion so the bento card itself is the
+// grid item — wrapping it in a motion.div instead would put `.bento-card--lg/--md`
+// grid-spans on a grandchild, collapsing the bento layout to uniform 1×1 tiles.
+const MotionLink = motion.create(Link)
+
 export function Projects() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'en' | 'pt'
@@ -24,13 +29,12 @@ export function Projects() {
 
       <RevealOnView variant="stagger-children" staggerAmount={0.06} className="bento">
         {featured.map((project) => (
-          <motion.div key={project.id} variants={childVariants}>
-            <BentoCard
-              project={project}
-              lang={lang}
-              caseStudy={t('sections.projects.caseStudy')}
-            />
-          </motion.div>
+          <BentoCard
+            key={project.id}
+            project={project}
+            lang={lang}
+            caseStudy={t('sections.projects.caseStudy')}
+          />
         ))}
       </RevealOnView>
     </section>
@@ -53,7 +57,8 @@ function BentoCard({ project, lang, caseStudy }: BentoCardProps) {
   const darkClass = project.dark ? ' is-dark' : ''
 
   return (
-    <Link
+    <MotionLink
+      variants={childVariants}
       to={`/projects/${project.slug}`}
       className={`bento-card ${sizeClass}${darkClass}`}
       style={{
@@ -69,6 +74,6 @@ function BentoCard({ project, lang, caseStudy }: BentoCardProps) {
         <h3 className="bento-title">{project.title[lang]}</h3>
         <span className="bento-cs">↗ {caseStudy}</span>
       </div>
-    </Link>
+    </MotionLink>
   )
 }

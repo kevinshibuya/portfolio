@@ -106,9 +106,10 @@ export function EmbedsGallery() {
 
         <RevealOnView variant="stagger-children" staggerAmount={0.04} className="tbl">
           {visible.map((embed, idx) => (
-            <motion.div key={embed.link} variants={childVariants}>
-              <EmbedRow idx={idx} embed={embed} />
-            </motion.div>
+            // EmbedRow renders the motion.a directly — wrapping in motion.div
+            // would make every .tbl-row a sole child, breaking the
+            // .tbl-row:last-child border-bottom rule on every row.
+            <EmbedRow key={embed.link} idx={idx} embed={embed} />
           ))}
         </RevealOnView>
 
@@ -137,7 +138,8 @@ function EmbedRow({ idx, embed }: EmbedRowProps) {
   const gradient = typeGradients[embed.type]
 
   return (
-    <a
+    <motion.a
+      variants={childVariants}
       href={embed.link}
       target="_blank"
       rel="noopener noreferrer"
@@ -149,6 +151,6 @@ function EmbedRow({ idx, embed }: EmbedRowProps) {
       <span className="tbl-role">{embed.type.toLowerCase()}</span>
       <span className="tbl-year">{embed.editorial.toLowerCase()}</span>
       <span className="tbl-arrow">↗</span>
-    </a>
+    </motion.a>
   )
 }

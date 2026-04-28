@@ -51,4 +51,16 @@ Captured per task as we go. Format: 3–5 sentences each. Lessons that matter ar
 - **Promoted to repo:** workers:2 with explanatory comment. The "implementer ticks spec against instruction" pattern goes to memory.
 - **Cost:** 1 implementer (sonnet) + 1 reviewer + 1 self-fix + 1 unrelated debug = 3 dispatches' worth of work, but the parallelism bug would have surfaced eventually anyway.
 
-(Tasks 6–10 retros land here as they complete.)
+## Task 6 — Section content viewport enters
+
+- **What worked:** Strengthened "FILES YOU MUST NOT MODIFY" guardrail in the dispatch (with the spec file path repeated in a banner header) — implementer correctly left the spec file alone for the first time. The implementer also caught a real plan gap (`Contact.tsx` doesn't use `SectionHeading`, so the test selector wouldn't match) and added an additive `section-title` alias class without breaking existing styles.
+- **What broke:** Code-reviewer agent hit a quota wall, forcing me to do the review inline. Found three real layout regressions the e2e tests didn't catch (because they only assert opacity, not bbox/layout):
+  1. **Projects bento:** `motion.div` wrappers stripped `.bento-card--lg/--md` from being direct grid children → all cards collapsed to 1×1 (instead of the bento-pattern lg=2×2, md=2×1, sm=1×1).
+  2. **Embeds .tbl:** Each `.tbl-row` became the only child of its `motion.div` wrapper, so `.tbl-row:last-child { border-bottom: none }` matched EVERY row and stripped all dividers.
+  3. **Contact .contact-list:** Same `:last-child` issue with `.contact-row`.
+- **Self-fix:** Promoted the inner element to BE the motion component instead of wrapping it. `motion.create(Link)` for Projects (react-router-dom Link), `motion.a` for Embeds and Contact rows. Variants now apply directly to the grid item / row.
+- **Promoted to repo:** Lesson — "wrap each child in `motion.div variants={childVariants}`" is fine for plain divs but breaks any layout that relies on direct-descendant CSS (grid spans, `:last-child`, sibling combinators). Future plans involving stagger-children should specify "promote the existing root to motion.* rather than nesting" when the children's styling is structurally load-bearing.
+- **Testing gap:** Section-enters tests only check opacity. They missed all three layout regressions. Adding visual regression coverage (bbox, dividers) would be a Task 9 candidate.
+- **Cost:** 1 implementer (sonnet) + 0 reviewer (quota) + 1 inline self-review + 1 self-fix = effectively the same dispatch count, but I burned time on the inline review that an agent would have done in parallel.
+
+(Tasks 7–10 retros land here as they complete.)

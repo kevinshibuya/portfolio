@@ -60,9 +60,10 @@ export function Contact() {
 
         <RevealOnView variant="stagger-children" staggerAmount={0.06} className="contact-list">
           {rows.map((row) => (
-            <motion.div key={row.num} variants={childVariants}>
-              <ContactRow {...row} />
-            </motion.div>
+            // ContactRow renders the motion.a directly — wrapping in motion.div
+            // would make every .contact-row a sole child, breaking any
+            // adjacent-sibling row dividers.
+            <ContactRow key={row.num} {...row} />
           ))}
         </RevealOnView>
       </div>
@@ -73,7 +74,8 @@ export function Contact() {
 function ContactRow({ num, label, meta, href }: ContactRowData) {
   const isExternal = href.startsWith('http')
   return (
-    <a
+    <motion.a
+      variants={childVariants}
       href={href}
       target={isExternal ? '_blank' : undefined}
       rel={isExternal ? 'noopener noreferrer' : undefined}
@@ -86,6 +88,6 @@ function ContactRow({ num, label, meta, href }: ContactRowData) {
       </span>
       <span className="contact-meta">{meta}</span>
       <span className="contact-icon">↗</span>
-    </a>
+    </motion.a>
   )
 }
