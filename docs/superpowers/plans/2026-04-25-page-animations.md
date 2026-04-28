@@ -1648,7 +1648,7 @@ This task primarily verifies behavior already implemented in tasks 2–7. If any
 - Create: `tests/e2e/reduced-motion.spec.ts`
 - Possibly modify: any component missing a reduced-motion guard
 
-- [ ] **Step 1: Write failing acceptance test**
+- [x] **Step 1: Write failing acceptance test**
 
 Create `tests/e2e/reduced-motion.spec.ts`:
 
@@ -1691,7 +1691,7 @@ test('reduced motion: titles never scroll-fade', async ({ page }) => {
 })
 ```
 
-- [ ] **Step 2: Run — expect pass (or fix any uncovered path)**
+- [x] **Step 2: Run — expect pass (or fix any uncovered path)**
 
 ```bash
 npm run test:e2e -- reduced-motion
@@ -1700,7 +1700,7 @@ Expected: PASS. If any test fails, locate the un-guarded path and add a `prefers
 
 - [ ] **Step 3: Tick spec checkbox** for TODO #7.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A
