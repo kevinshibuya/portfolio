@@ -1717,7 +1717,7 @@ Maps to spec TODO: *"Lighthouse mobile run on the production build yields Perfor
 - Create: `tests/e2e/perf-budget.spec.ts`
 - Possibly modify: any code path causing CLS or long tasks
 
-- [ ] **Step 1: Write acceptance test for CLS = 0 and long-task budget**
+- [x] **Step 1: Write acceptance test for CLS = 0 and long-task budget**
 
 Create `tests/e2e/perf-budget.spec.ts`:
 
@@ -1778,7 +1778,7 @@ test.describe('mobile viewport disables R3F accent', () => {
 })
 ```
 
-- [ ] **Step 2: Run — expect pass (or remediate)**
+- [x] **Step 2: Run — expect pass (or remediate)**
 
 ```bash
 npm run test:e2e -- perf-budget
@@ -1787,7 +1787,7 @@ If CLS > 0 — likely the loader removing an absolute panel. Confirm `LoadingScr
 
 If long task fails — profile in DevTools, likely the entry timeline. Move heavy stagger work into `requestIdleCallback` or break into smaller batches.
 
-- [ ] **Step 3: Run a Lighthouse mobile audit (manual)**
+- [x] **Step 3: Run a Lighthouse mobile audit (manual)**
 
 ```bash
 npm run build
