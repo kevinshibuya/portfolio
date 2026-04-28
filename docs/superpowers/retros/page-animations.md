@@ -71,4 +71,11 @@ Captured per task as we go. Format: 3–5 sentences each. Lessons that matter ar
 - **Promoted to repo:** None — the formula fix is code-local, the IO-gate is documented in the hook's comment.
 - **Cost:** 1 implementer (sonnet) + 0 reviewer (skipped — implementer's deviations were already principled and well-explained, inline-reviewed instead) + 0 self-fix = 1 dispatch. Cleanest task yet.
 
-(Tasks 8–10 retros land here as they complete.)
+## Task 8 — Reduced-motion contract verification
+
+- **What worked:** Pure verification task — the implementer wrote the e2e spec (3 tests × 2 projects = 6) and confirmed every reduced-motion path from Tasks 2–7 was already correctly guarded. Zero remediation needed. The spec/test-first discipline of the prior tasks paid off here: the contract was already in the code, this task just made it observable.
+- **What to change:** Nothing process-level. The implementer respected the spec-file rule (third in a row).
+- **Promoted to repo:** None.
+- **Cost:** 1 implementer (sonnet) + 0 reviewer + 0 self-fix = 1 dispatch. Cheapest task in the suite.
+
+(Tasks 9–10 retros land here as they complete.)
