@@ -1799,7 +1799,7 @@ Inspect both JSON files; assert performance ≥ 90 mobile, ≥ 95 desktop. (Add 
 
 - [ ] **Step 4: Tick spec checkbox** for TODO #8.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -1815,7 +1815,7 @@ Maps to spec TODO: *"Net new dependency weight is 0kb gzipped; any future additi
 **Files:**
 - Create: `tests/unit/bundle-deps.test.ts` (sanity check on `package.json`)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/bundle-deps.test.ts`:
 
@@ -1838,14 +1838,14 @@ describe('runtime dependency surface', () => {
 })
 ```
 
-- [ ] **Step 2: Run — expect pass**
+- [x] **Step 2: Run — expect pass**
 
 ```bash
 npm run test:unit -- bundle-deps
 ```
 Expected: PASS (we added only devDependencies).
 
-- [ ] **Step 3: Inspect built bundle size**
+- [x] **Step 3: Inspect built bundle size**
 
 ```bash
 npm run build
