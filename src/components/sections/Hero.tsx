@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { heroStats } from '../../data/stats'
 import { useMotion } from '../../context/MotionContext'
+import { useScrollFade } from '../../hooks/useScrollFade'
 import { HeroDataFragments } from '../canvas/HeroDataFragments'
 import { ScrambleText } from '../ui/ScrambleText'
 
@@ -14,6 +15,8 @@ export function Hero() {
   const lang = i18n.language
   const { loaderDone } = useMotion()
   const suppRef = useRef<HTMLDivElement>(null)
+  const nameRef = useRef<HTMLHeadingElement>(null)
+  useScrollFade(nameRef)
 
   const roles = useMemo(() => {
     const value = t('hero.roles', { returnObjects: true })
@@ -56,7 +59,7 @@ export function Hero() {
   return (
     <section id="top" className="hero">
       <div className="hero-main">
-        <h1 className="hero-name">
+        <h1 className="hero-name" ref={nameRef}>
           <span className="hero-name-line" data-hero-word="kevin">
             {t('hero.name1')}
           </span>

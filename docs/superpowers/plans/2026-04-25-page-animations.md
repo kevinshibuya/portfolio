@@ -1464,7 +1464,7 @@ Maps to spec TODO: *"Hero name lines and every section heading fade continuously
 - Create: `src/hooks/useScrollFade.ts`, `tests/unit/useScrollFade.test.ts`, `tests/e2e/title-scroll-fade.spec.ts`
 - Modify: `src/components/ui/SectionHeading.tsx`, `src/components/sections/Hero.tsx`
 
-- [ ] **Step 1: Write failing unit test**
+- [x] **Step 1: Write failing unit test**
 
 Create `tests/unit/useScrollFade.test.ts`:
 
@@ -1488,14 +1488,14 @@ describe('computeFadeOpacity', () => {
 })
 ```
 
-- [ ] **Step 2: Run — expect failure**
+- [x] **Step 2: Run — expect failure**
 
 ```bash
 npm run test:unit -- useScrollFade
 ```
 Expected: FAIL — `computeFadeOpacity` not exported.
 
-- [ ] **Step 3: Implement `useScrollFade`**
+- [x] **Step 3: Implement `useScrollFade`**
 
 Create `src/hooks/useScrollFade.ts`:
 
@@ -1556,13 +1556,13 @@ export function useScrollFade(ref: RefObject<HTMLElement | null>, cfg: Cfg = {})
 }
 ```
 
-- [ ] **Step 4: Run unit — expect pass**
+- [x] **Step 4: Run unit — expect pass**
 
 ```bash
 npm run test:unit -- useScrollFade
 ```
 
-- [ ] **Step 5: Wire `SectionHeading` to the hook**
+- [x] **Step 5: Wire `SectionHeading` to the hook**
 
 ```tsx
 import { useRef } from 'react'
@@ -1576,11 +1576,11 @@ useScrollFade(titleRef)
 <h2 ref={titleRef} className="section-title" dangerouslySetInnerHTML={{ __html: title }} />
 ```
 
-- [ ] **Step 6: Wire hero name lines**
+- [x] **Step 6: Wire hero name lines**
 
 In `Hero.tsx`, wrap both name lines in a single `<span ref={nameGroupRef}>` and bind `useScrollFade(nameGroupRef)`. Both lines fade together as one group.
 
-- [ ] **Step 7: Write e2e test**
+- [x] **Step 7: Write e2e test**
 
 Create `tests/e2e/title-scroll-fade.spec.ts`:
 
@@ -1617,13 +1617,13 @@ test('section title fades as it scrolls past top', async ({ page }) => {
 })
 ```
 
-- [ ] **Step 8: Run e2e — expect pass**
+- [x] **Step 8: Run e2e — expect pass**
 
 ```bash
 npm run test:e2e -- title-scroll-fade
 ```
 
-- [ ] **Step 9: Manual verify**
+- [x] **Step 9: Manual verify**
 
 Scroll slowly past each section. Titles should fade out continuously, not snap. Hero name fades together. Reduced-motion mode keeps all titles fully opaque.
 

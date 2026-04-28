@@ -1,3 +1,6 @@
+import { useRef } from 'react'
+import { useScrollFade } from '../../hooks/useScrollFade'
+
 interface SectionHeadingProps {
   index: string
   label?: string
@@ -13,11 +16,14 @@ export function SectionHeading({
   description,
 }: SectionHeadingProps) {
   const indexText = label ? `${index} · ${label}` : index
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  useScrollFade(titleRef)
 
   return (
     <div className="section-header">
       <span className="section-index">{indexText}</span>
       <h2
+        ref={titleRef}
         className="section-title"
         dangerouslySetInnerHTML={{ __html: title }}
       />
