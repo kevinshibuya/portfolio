@@ -1629,7 +1629,7 @@ Scroll slowly past each section. Titles should fade out continuously, not snap. 
 
 - [ ] **Step 10: Tick spec checkbox** for TODO #6.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add -A

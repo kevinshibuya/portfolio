@@ -63,4 +63,12 @@ Captured per task as we go. Format: 3–5 sentences each. Lessons that matter ar
 - **Testing gap:** Section-enters tests only check opacity. They missed all three layout regressions. Adding visual regression coverage (bbox, dividers) would be a Task 9 candidate.
 - **Cost:** 1 implementer (sonnet) + 0 reviewer (quota) + 1 inline self-review + 1 self-fix = effectively the same dispatch count, but I burned time on the inline review that an agent would have done in parallel.
 
-(Tasks 7–10 retros land here as they complete.)
+## Task 7 — Title scroll-linked fade
+
+- **What worked:** Implementer caught and fixed two real plan bugs without escalating: (1) the plan's opacity formula `1 - easeOut2(progress)` produced 0.12 at top=-50 (needed 0.4–0.7), corrected to `easeOut2(1 - progress)` which yields 0.578 — math now matches the spec; (2) the plan's `useScrollFade` would conflict with Task 6's `RevealOnView whileInView`: `scrollIntoViewIfNeeded` on tall sections placed titles at top=-287px, which `useScrollFade` would write as opacity=0 just as Framer's `whileInView` was animating opacity 0→1. Fix: `IntersectionObserver` gate so `useScrollFade` only writes opacity AFTER the element has entered the viewport. Spec semantics are still preserved (titles fade as they EXIT the top, not as they enter).
+- **What to change:** The plan should have flagged the Framer/GSAP opacity-conflict risk explicitly. I anticipated it in the dispatch ("KNOWN INTERACTION RISKS"), but the plan itself didn't carry the warning, so a less attentive reader could have shipped a broken Task 6 + 7 stack. Future plans involving multiple opacity-writers on the same element need to call out the ordering contract.
+- **Spec discipline:** Implementer correctly left the spec file untouched. Two-for-two on the new "FILES YOU MUST NOT MODIFY" guardrail.
+- **Promoted to repo:** None — the formula fix is code-local, the IO-gate is documented in the hook's comment.
+- **Cost:** 1 implementer (sonnet) + 0 reviewer (skipped — implementer's deviations were already principled and well-explained, inline-reviewed instead) + 0 self-fix = 1 dispatch. Cleanest task yet.
+
+(Tasks 8–10 retros land here as they complete.)
