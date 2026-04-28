@@ -1855,7 +1855,7 @@ Sanity: hero chunk + main chunk total should be on par with `git stash` of pre-f
 
 - [ ] **Step 4: Tick spec checkbox** for TODO #9.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
