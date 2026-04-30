@@ -1444,7 +1444,7 @@ npm run test:e2e -- section-enters
 
 Scroll through each section — content should enter once when the section's top is ~10% before the viewport bottom. Reduced-motion mode should produce instant content.
 
-- [ ] **Step 8: Tick spec checkbox** for TODO #5.
+- [x] **Step 8: Tick spec checkbox** for TODO #5.
 <!-- Controller-only gate. Not ticked by implementer per CLAUDE.md rules. -->
 
 - [x] **Step 9: Commit**
@@ -1627,7 +1627,7 @@ npm run test:e2e -- title-scroll-fade
 
 Scroll slowly past each section. Titles should fade out continuously, not snap. Hero name fades together. Reduced-motion mode keeps all titles fully opaque.
 
-- [ ] **Step 10: Tick spec checkbox** for TODO #6.
+- [x] **Step 10: Tick spec checkbox** for TODO #6.
 
 - [x] **Step 11: Commit**
 
@@ -1698,7 +1698,7 @@ npm run test:e2e -- reduced-motion
 ```
 Expected: PASS. If any test fails, locate the un-guarded path and add a `prefersReducedMotion` short-circuit.
 
-- [ ] **Step 3: Tick spec checkbox** for TODO #7.
+- [x] **Step 3: Tick spec checkbox** for TODO #7.
 
 - [x] **Step 4: Commit**
 
@@ -1797,7 +1797,7 @@ npx lighthouse http://localhost:4173 --emulated-form-factor=mobile --only-catego
 ```
 Inspect both JSON files; assert performance ≥ 90 mobile, ≥ 95 desktop. (Add scripts under `scripts/` if you want this automated; not required for the checkbox.)
 
-- [ ] **Step 4: Tick spec checkbox** for TODO #8.
+- [x] **Step 4: Tick spec checkbox** for TODO #8.
 
 - [x] **Step 5: Commit**
 
@@ -1853,7 +1853,7 @@ du -sh dist/assets/*.js | sort -h
 ```
 Sanity: hero chunk + main chunk total should be on par with `git stash` of pre-feature bundle (within reason). If a chunk grew unexpectedly, investigate.
 
-- [ ] **Step 4: Tick spec checkbox** for TODO #9.
+- [x] **Step 4: Tick spec checkbox** for TODO #9.
 
 - [x] **Step 5: Commit**
 
@@ -1868,7 +1868,7 @@ git commit -m "test: lock runtime dependency surface (spec: 2026-04-25-page-anim
 
 Once all 9 boxes are ticked:
 
-- [ ] **Step 1:** Run the full suite.
+- [x] **Step 1:** Run the full suite.
 
 ```bash
 npm run lint
@@ -1877,9 +1877,9 @@ npm run test
 ```
 All must pass.
 
-- [ ] **Step 2:** Invoke `superpowers:verification-before-completion` for the final gate.
+- [x] **Step 2:** Invoke `superpowers:verification-before-completion` for the final gate.
 
-- [ ] **Step 3:** Invoke `retro` to capture lessons learned (animation-specific: timing decisions, debugging approach, library boundaries that worked or didn't, mobile gotchas).
+- [x] **Step 3:** Invoke `retro` to capture lessons learned (animation-specific: timing decisions, debugging approach, library boundaries that worked or didn't, mobile gotchas).
 
 ---
 

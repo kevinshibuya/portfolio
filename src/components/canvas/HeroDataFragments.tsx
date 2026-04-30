@@ -20,6 +20,13 @@ export function HeroDataFragments() {
       }
       gsap.set('[data-fragment]', { opacity: 0, y: 12 })
       let cancelled = false
+      // Track the ScrollTriggers we register inside loaderDone.then so the
+      // cleanup function can kill them. useGSAP's gsap.context only auto-kills
+      // tweens created synchronously inside its callback — anything we
+      // register asynchronously (after the loaderDone promise resolves) needs
+      // explicit cleanup, otherwise dev HMR leaks duplicate triggers.
+      const triggers: ScrollTrigger[] = []
+      const tweens: Array<gsap.core.Tween | gsap.core.Timeline> = []
       loaderDone
         .then(() => {
           if (cancelled) return
@@ -34,6 +41,7 @@ export function HeroDataFragments() {
             .to('[data-fragment="numeric"]',         { opacity: 1, y: 0, duration: 0.6, ease: projectEaseGsap }, 0.35)
             .fromTo('[data-fragment="numeric"]',     { scale: 0.92 }, { scale: 1, duration: 0.6, ease: projectEaseGsap }, 0.35)
             .to('[data-fragment="accent"]',          { opacity: 1, duration: 0.7, ease: projectEaseGsap }, 0.5)
+          tweens.push(tl)
 
           // Parallax + bar-extend + lattice-walk register only AFTER the
           // entry timeline is in flight — keeps property ownership unambiguous
@@ -52,7 +60,7 @@ export function HeroDataFragments() {
           const cap = isMobile ? 40 : 80
 
           Object.entries(speeds).forEach(([id, speed]) => {
-            gsap.to(`[data-fragment="${id}"]`, {
+            const tween = gsap.to(`[data-fragment="${id}"]`, {
               y: -cap * speed,
               ease: 'none',
               scrollTrigger: {
@@ -63,9 +71,10 @@ export function HeroDataFragments() {
                 fastScrollEnd: true,
               },
             })
+            tweens.push(tween)
           })
 
-          gsap.to('[data-fragment="bars"] rect', {
+          const barTween = gsap.to('[data-fragment="bars"] rect', {
             scaleY: 1.12,
             transformOrigin: 'bottom',
             ease: 'none',
@@ -76,12 +85,13 @@ export function HeroDataFragments() {
               scrub: 1,
             },
           })
+          tweens.push(barTween)
 
           const dots = gsap.utils.toArray<SVGCircleElement>(
             '[data-fragment="lattice"] circle'
           )
           let lastIdx = -1
-          ScrollTrigger.create({
+          const latticeTrigger = ScrollTrigger.create({
             trigger: '.hero',
             start: 'top top',
             end: 'bottom top',
@@ -102,10 +112,20 @@ export function HeroDataFragments() {
               lastIdx = idx
             },
           })
+          triggers.push(latticeTrigger)
         })
         .catch(() => {})
 
-      return () => { cancelled = true }
+      return () => {
+        cancelled = true
+        // Kill async-registered work that useGSAP's context can't see.
+        // (Synchronous tweens are still auto-cleaned by the surrounding context.)
+        triggers.forEach((t) => t.kill())
+        tweens.forEach((t) => {
+          t.scrollTrigger?.kill()
+          t.kill()
+        })
+      }
     },
     { dependencies: [prefersReducedMotion], scope: root }
   )

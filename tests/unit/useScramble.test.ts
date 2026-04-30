@@ -62,18 +62,18 @@ describe('useScramble', () => {
     expect(result.current.lastStartedAt).toBe(firstStartedAt)
   })
 
-  it('text differs from target during scramble', () => {
+  it('preserves target length throughout scramble (no width shift)', () => {
+    // The scramble's no-CLS guarantee depends on every intermediate string
+    // being the same character count as the target. Visual difference from
+    // the target is verified by the e2e test, which observes real text in DOM;
+    // here we just lock the length contract.
     const { result } = renderHook(() =>
       useScramble({ target: 'shibuya.', duration: 600, perCharStagger: 30 })
     )
     act(() => {
       result.current.trigger()
-      vi.advanceTimersByTime(16) // first tick
+      vi.advanceTimersByTime(16) // first rAF tick lands
     })
-    // After first rAF tick (16ms) at least one letter should be scrambled.
-    // With duration=600ms, no char (0..6) has elapsed >= charStart + (600 - i*30)
-    // at t=16ms, so most chars return randGlyph(). Allow a rare collision scenario
-    // but confirm text is same length as target.
     expect(result.current.text.length).toBe('shibuya.'.length)
   })
 
