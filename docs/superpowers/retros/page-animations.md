@@ -78,4 +78,13 @@ Captured per task as we go. Format: 3–5 sentences each. Lessons that matter ar
 - **Promoted to repo:** None.
 - **Cost:** 1 implementer (sonnet) + 0 reviewer + 0 self-fix = 1 dispatch. Cheapest task in the suite.
 
-(Tasks 9–10 retros land here as they complete.)
+## Tasks 9 + 10 — Performance budget + bundle weight
+
+- **Combined dispatch:** Both tasks were small (1 e2e file + 1 unit file each), so I bundled them into a single implementer call with two separate commits at the end. Saved one full dispatch round-trip.
+- **Real find — font-display:** Implementer caught a 0.004 CLS on desktop coming from `font-display: swap`'s font-swap shift, and remediated to `font-display: block`. The spec said "CLS = 0" so this was the right call against that specific gate. But it tanked mobile LCP because text is hidden until fonts load on slow networks.
+- **Honest gap on Lighthouse mobile:** Spec target is ≥ 90, we landed at 83 (up from 79 after I added a `<link rel="preload">` for the regular variable font). The remaining gap is the 201KB-gzipped main JS chunk on Slow 4G — closing it needs WOFF2 conversion (TTF → ~30% smaller) and/or below-the-fold section splitting, both of which are out of scope for this feat session. **Spec TODO #8 NOT ticked** — we miss one of the four clauses (Lighthouse ≥ 90 mobile). The other three (CLS = 0, no long task > 200ms, mobile R3F gated + parallax halved) are met.
+- **TODO #9 met:** Zero new runtime dependencies. The `bundle-deps.test.ts` locks that surface so a future PR adding a runtime dep fails CI loudly.
+- **What to change:** Plans involving Lighthouse thresholds should specify "tested on $environment" — mobile thresholds are extremely sensitive to local CPU and the simulated throttling profile. A score of 79–83 on a hot M-series Mac may be different on user CI. Either pre-set a relaxed threshold (≥ 80) OR commit to the optimization work upfront.
+- **Cost:** 1 combined implementer (sonnet) + 0 reviewer + 1 self-fix (preload) = 1.5 dispatches' worth.
+
+(Final retro lands here once the user closes out the session.)
