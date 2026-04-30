@@ -11,7 +11,7 @@ A polished, restrained motion layer across the portfolio: a fluid loading-to-her
 - [x] Each section's heading and content enter via Framer Motion `whileInView` (fade-up or stagger-children) when the section's top crosses the viewport −10% margin, plays once, and is complete within 800ms.
 - [x] Hero name lines and every section heading fade continuously with scroll position via an eased (`power2.out`) ScrollTrigger scrub: opacity 1 at +80px from viewport top, opacity 0 at −120px from viewport top, opacity between 0.4 and 0.7 at −50px.
 - [x] When `prefers-reduced-motion: reduce` is set, every behavior short-circuits to its static fallback: loader resolves ≤200ms, hero fragments at final positions immediately, section enters instant, shibuya does not scramble, titles never scroll-fade.
-- [ ] Lighthouse mobile run on the production build yields Performance ≥ 90 and CLS = 0; on Slow 4G + 4× CPU throttling, no long task during scroll exceeds 200ms; mobile (<768px) disables R3F accent and halves parallax range.
+- [x] Lighthouse mobile run on the production build yields Performance ≥ 90 and CLS = 0; on Slow 4G + 4× CPU throttling, no long task during scroll exceeds 200ms; mobile (<768px) disables R3F accent and halves parallax range.
 - [x] Net new dependency weight is 0kb gzipped; any future addition over 20kb is gated by a flag.
 
 ## Context

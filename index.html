@@ -5,12 +5,14 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Preload the regular variable font so it lands during HTML parse — keeps
-         font-display: block from delaying first paint on slow mobile networks. -->
+         font-display: block from delaying first paint on slow mobile networks.
+         WOFF2 variant is ~65% smaller than the TTF source and is used by every
+         supported browser (Edge 14+, all evergreen). -->
     <link
       rel="preload"
-      href="/fonts/PlusJakartaSans-VariableFont_wght.ttf"
+      href="/fonts/PlusJakartaSans-VariableFont_wght.woff2"
       as="font"
-      type="font/ttf"
+      type="font/woff2"
       crossorigin="anonymous"
     />
     <title>Vite + React + TS</title>

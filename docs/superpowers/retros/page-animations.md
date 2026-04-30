@@ -87,4 +87,16 @@ Captured per task as we go. Format: 3–5 sentences each. Lessons that matter ar
 - **What to change:** Plans involving Lighthouse thresholds should specify "tested on $environment" — mobile thresholds are extremely sensitive to local CPU and the simulated throttling profile. A score of 79–83 on a hot M-series Mac may be different on user CI. Either pre-set a relaxed threshold (≥ 80) OR commit to the optimization work upfront.
 - **Cost:** 1 combined implementer (sonnet) + 0 reviewer + 1 self-fix (preload) = 1.5 dispatches' worth.
 
-(Final retro lands here once the user closes out the session.)
+## Perf push — closing the mobile Lighthouse gap
+
+After the initial Tasks 9+10 dispatch landed at mobile 79 → 83 (with `<link rel=preload>` and `font-display: block`), the user pushed back on relaxing the spec target ("less than 80 isn't the smartest choice") and asked for both WOFF2 conversion + section route-splitting. Three sequential moves:
+
+1. **WOFF2 conversion** (`npx ttf2woff2`): regular 173 KB → 60 KB (-65%), italic 178 KB → 66 KB (-63%). Updated `@font-face` to prefer WOFF2 with TTF fallback, and the preload tag to point at the WOFF2 file. **Mobile didn't move** in isolation — the font wasn't the LCP bottleneck once block was in play.
+2. **Section route-splitting:** wrapped Projects, Embeds, Work, Skills, Contact, Footer in `React.lazy` behind a single `<Suspense fallback={<div minHeight 100vh />}>` after Hero. Idle-callback warm-up so chunks are ready before the user scrolls. Main chunk: 201 KB gz → 182 KB gz. **Mobile: 83 → 88.**
+3. **Hero lazy-load of HeroDataFragments:** the right-side composition owns ~all of the GSAP entry/parallax/scroll-fade work, none of which fires until `loaderDone`. Lazy-loading it shaved more JS off the LCP critical path. Main chunk: 182 → final, FCP 2.6s → 2.2s. **Mobile: 88 → 91.**
+
+**Final state:** Desktop 99, Mobile 91, CLS=0, TBT 30ms. All 9 spec TODOs ticked.
+
+**Lesson promoted:** in feat-style perf work, `font-display` is a first-line lever (CLS) but doesn't help LCP unless paired with route-splitting. The biggest wins came from JS bundle shrinkage, not font tricks. The pattern "lazy-load anything whose first effect happens after `loaderDone`" is generally applicable here — same logic could apply to future scroll-only animations.
+
+**Cost:** 0 implementer dispatches (handled inline since I had context already), 1 production build × 3 to measure increments. Tight loop.
