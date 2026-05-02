@@ -51,7 +51,7 @@ Task 17 (Stats + Home wiring) and Task 18 (final verification) run sequentially 
 
 This module currently exports GSAP-coupled `durations`, `stagger`, `sectionEnterDefaults`, plus the `cubic-bezier` ease string. After this task it exports the spring presets, the six recipes as Framer `Variants`, the stagger presets, and the `staggerContainer()` factory — all GSAP imports gone.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // tests/unit/animations.test.ts
@@ -133,12 +133,12 @@ describe('STAGGER_PRESETS', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm run test:unit -- animations`
 Expected: FAIL — module currently exports `durations` / `stagger` / `sectionEnterDefaults`, not `SPRINGS` / `VARIANTS` / `STAGGER_PRESETS`.
 
-- [ ] **Step 3: Replace the entire contents of `src/utils/animations.ts` with:**
+- [x] **Step 3: Replace the entire contents of `src/utils/animations.ts` with:**
 
 ```ts
 import type { Variants, Transition } from 'framer-motion'
@@ -211,19 +211,19 @@ export const REDUCED_MOTION_VARIANT: Variants = {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm run test:unit -- animations`
 Expected: PASS — all describe blocks green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/utils/animations.ts tests/unit/animations.test.ts
 git commit -m "feat(animations): replace GSAP module with Motion spring recipes"
 ```
 
-- [ ] **Step 6: Tick spec checkbox**
+- [x] **Step 6: Tick spec checkbox**
 
 Edit `docs/superpowers/specs/2026-05-02-page-feel-overhaul-design.md` and change the line `- [ ] src/utils/animations.ts rewritten…` to `- [x]`.
 
