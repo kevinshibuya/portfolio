@@ -215,6 +215,8 @@ strong {
   position: relative; z-index: 1;
   align-self: center;
   max-width: 1200px;
+  display: flex;
+  flex-direction: column;
 }
 .hero-name {
   font-size: clamp(64px, 11vw, 192px);
@@ -1004,19 +1006,7 @@ body[data-loader-state="loading"] {
   }
 }
 
-/* =========================================================================
-   HERO SUPPLEMENTARY — starts hidden, reveals post-loader
-   ========================================================================= */
-.hero-supplementary {
-  opacity: 0;
-}
-.hero-supplementary.is-revealed {
-  opacity: 1;
-  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
 /* Hero left column inter-element gaps (spec §1) */
-.hero-main { display: flex; flex-direction: column; }
 .hero-main .hero-name + .hero-supplementary { margin-top: 48px; }
 .hero-supplementary .hero-role-line + .hero-desc { margin-top: 32px; }
 .hero-supplementary .hero-desc + .hero-cta { margin-top: 48px; }

@@ -1190,7 +1190,7 @@ This is the user-facing centerpiece. All foundational primitives are now availab
 
 **Carry-over from Task 7 code review:** `nameRef` in Hero.tsx is now functionally dead — only `useScrollFade(nameRef)` consumed it, and that call was removed in Task 7. The ref still attaches to the `<h1>` but nothing reads it. While rewriting the Hero JSX in this task, drop the `nameRef` declaration AND its `ref={nameRef}` binding. (`suppRef` is independent — it's still load-bearing for the `is-revealed` reveal effect.)
 
-- [ ] **Step 1: Plan the JSX rewrite**
+- [x] **Step 1: Plan the JSX rewrite**
 
 The new Hero structure (left column only — right side `HeroAccent3D` block stays untouched):
 
@@ -1266,7 +1266,7 @@ The new Hero structure (left column only — right side `HeroAccent3D` block sta
 
 Add `Suspense, lazy` back to the React import in Hero.tsx (Task 9 stripped them assuming Task 10 wouldn't need them — they're needed again now). Lazy-import HeroAccent3D using the same pattern as Home.tsx's section lazy-loads.
 
-- [ ] **Step 2: Apply the rewrite**
+- [x] **Step 2: Apply the rewrite**
 
 Edit `src/components/sections/Hero.tsx`:
 - Add `import { Trans } from 'react-i18next'` and `import { RevealOnView } from '../ui/RevealOnView'` to the imports
@@ -1276,7 +1276,7 @@ Edit `src/components/sections/Hero.tsx`:
 - Keep the `useScramble` integration (`<ScrambleText>`) and the role-cycler `useEffect` exactly as they are
 - Find the existing `HeroAccent3D` JSX (Suspense + lazy load); wrap whatever currently mounts `<HeroAccent3D />` in `<RevealOnView recipe="fadeUp" delay={1.28}>`
 
-- [ ] **Step 3: Update the hero description i18n key with `<strong>` markup**
+- [x] **Step 3: Update the hero description i18n key with `<strong>` markup**
 
 Edit `src/i18n/locales/en.json`. Find `hero.description`. Wrap two or three key phrases in `<strong>`. Example:
 
@@ -1286,7 +1286,7 @@ Edit `src/i18n/locales/en.json`. Find `hero.description`. Wrap two or three key 
 
 Edit `src/i18n/locales/pt.json` and apply the equivalent `<strong>` wrapping in the Portuguese translation.
 
-- [ ] **Step 4: Verify build**
+- [x] **Step 4: Verify build**
 
 Run: `npm run build`
 Expected: PASS.
