@@ -1182,8 +1182,11 @@ Tick `- [ ] HeroDataFragments.tsx deleted; no remaining imports…` in the spec.
 **Files:**
 - Modify: `src/components/sections/Hero.tsx`
 - Modify: `src/i18n/locales/en.json`, `src/i18n/locales/pt.json` (only `hero.description`)
+- Modify: `src/index.css` (small follow-up — see "Carry-over from Task 4 review" below)
 
 This is the user-facing centerpiece. All foundational primitives are now available. The choreography uses Motion variants with explicit `delay` per element rather than the loader-driven `is-revealed` class — that legacy mechanism stays for backwards compat where it's still needed but the Hero left column now drives its own timing.
+
+**Carry-over from Task 4 code review:** `.hero-main` is currently declared in TWO non-adjacent blocks in `src/index.css` — the original block (with `position/z-index/align-self/max-width`) plus a tail block at end-of-file (with `display: flex; flex-direction: column;`). While editing Hero CSS in this task, MERGE the two blocks: move `display: flex; flex-direction: column;` up into the original `.hero-main` block, then leave the four "Hero left column inter-element gaps" sibling-selector rules grouped together at the bottom under their existing comment header. Cascade outcome stays identical; maintainability improves (no risk of a future edit missing the tail block).
 
 - [ ] **Step 1: Plan the JSX rewrite**
 
@@ -1426,6 +1429,8 @@ git commit -m "feat(embeds): fast slideInLeft stagger across numbered rows"
 **Files:**
 - Modify: `src/components/sections/Contact.tsx`
 - Modify: `src/i18n/locales/en.json`, `pt.json` (contact body if `<strong>` is added)
+
+**Carry-over from Task 4 code review:** Contact + Footer are the only ink-background sections. Task 4 added a global `strong { color: var(--ink); }` rule. Verify any `<strong>` markup added here renders legibly on the dark background; if it doesn't, add a defensive override `.section--dark strong, .contact strong, .footer strong { color: var(--cream); }` (use whichever scoping selector matches the actual DOM).
 
 - [ ] **Step 1: Read the current file**.
 
