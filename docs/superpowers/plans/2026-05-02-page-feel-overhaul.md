@@ -1401,7 +1401,7 @@ Apply `.section-spacing-content` and `max-w-[640px]` on description.
 
 `npm run dev` → scroll to Projects → confirm `lg` card enters first, others follow in stagger.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/sections/Projects.tsx src/i18n/locales/en.json src/i18n/locales/pt.json
