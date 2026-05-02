@@ -360,7 +360,7 @@ Tick `- [ ] RevealOnView accepts recipe and delay props…` in the spec.
 
 A small parent wrapper that emits `staggerContainer(stagger, delayChildren)` as its variants and renders Motion-aware children. Each child is wrapped in a `<motion.div>` that consumes the parent's stagger via `variants={VARIANTS[childRecipe]}`. Avoids reinventing the variant wiring at every list-rendering site.
 
-- [ ] **Step 1: Create `src/components/ui/Stagger.tsx`:**
+- [x] **Step 1: Create `src/components/ui/Stagger.tsx`:**
 
 ```tsx
 import React from 'react'
@@ -420,19 +420,19 @@ export function Stagger({
 }
 ```
 
-- [ ] **Step 2: Verify build**
+- [x] **Step 2: Verify build**
 
 Run: `npm run build`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/ui/Stagger.tsx
 git commit -m "feat(stagger): add Stagger wrapper for list-style reveals"
 ```
 
-- [ ] **Step 4: Tick spec checkbox**
+- [x] **Step 4: Tick spec checkbox**
 
 Tick `- [ ] New <Stagger> component implemented…` in the spec.
 
