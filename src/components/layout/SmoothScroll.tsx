@@ -25,13 +25,13 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
       return
     }
 
+    // Touch handling: Lenis 1.3+ uses `syncTouch` (default false) — leaving it
+    // off preserves native iOS momentum + pull-to-refresh, which is what
+    // spec §3 wants. We don't pass it explicitly because the default already
+    // matches our intent and passing it would just be noise.
     const instance = new Lenis({
       lerp: 0.1,
       smoothWheel: true,
-      // smoothTouch is a Lenis option in some versions; if your installed
-      // version doesn't accept it, the touch path defaults to native momentum.
-      // @ts-expect-error - present at runtime, may not be in the type defs
-      smoothTouch: false,
     })
     setLenis(instance)
 

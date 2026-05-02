@@ -9,8 +9,8 @@ function App() {
   return (
     <>
       <LoadingScreen />
-      <Header />
       <SmoothScroll>
+        <Header />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/projects/:slug" element={<ProjectDetail />} />
