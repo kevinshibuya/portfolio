@@ -701,7 +701,7 @@ Tick both `- [ ] SmoothScroll provider implemented…` and `- [ ] useLenis() hoo
 
 The current `go()` in `Hero.tsx:59-64` calls `target.scrollIntoView({ behavior: 'smooth' })`. Replace with `lenis.scrollTo`. Same for any anchor handler in `Header.tsx`.
 
-- [ ] **Step 1: Update Hero's anchor handler**
+- [x] **Step 1: Update Hero's anchor handler**
 
 Open `src/components/sections/Hero.tsx`. At the top, add (alongside other hook imports):
 
@@ -724,7 +724,7 @@ const go = (id: string) => (e: React.MouseEvent) => {
 }
 ```
 
-- [ ] **Step 2: Update Header anchor links**
+- [x] **Step 2: Update Header anchor links**
 
 Open `src/components/layout/Header.tsx`. Locate every place where a nav anchor calls `scrollIntoView` or sets `window.location.hash`. Replace with the `useLenis().scrollTo` pattern shown in Step 1. If the Header component doesn't currently use any smooth-scroll behavior on anchor clicks (i.e. the links are plain `href="#section"`), add an `onClick` handler that does:
 
@@ -739,12 +739,12 @@ const handleAnchor = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
 // each anchor: <a href={`#${id}`} onClick={(e) => handleAnchor(e, id)}>...</a>
 ```
 
-- [ ] **Step 3: Smoke-test anchor links**
+- [x] **Step 3: Smoke-test anchor links**
 
 Run (background OK): `npm run dev`
 Click each of the nav links (work / interactives / experience / skills / contact) and the hero "collaborate" CTA. Expected: each click smooth-scrolls via Lenis to the correct section. No native scroll jump.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/sections/Hero.tsx src/components/layout/Header.tsx
