@@ -164,6 +164,7 @@ Hero → About → WorkExperience → Stats (new position) → Skills → Projec
 - `src/components/ui/SectionHeading.tsx` — remove `useScrollFade(titleRef)` call (and the import); the heading-fade-on-exit behavior is intentionally dropped (see §6, item 1)
 - `src/components/layout/Footer.tsx` — wordmark `fadeUp` with `soft` spring
 - `src/components/layout/Header.tsx` (and any nav component) — anchor links migrate to `lenis.scrollTo` via `useLenis()`
+- `src/components/layout/LoadingScreen.tsx` — migrated off GSAP (`useGSAP` / `gsap.timeline` / `gsap.set` → Motion's `animate()` + direct `style.transform`); kept visually identical (loader hold + 0.4s fade + runtime hero-word offset). See §6 item 5.
 - `src/pages/Home.tsx` — section ordering updated to insert `<Stats />` between `<WorkExperience />` and the divider before `<Skills />`
 - `src/i18n/locales/{en,pt}.json` — selected key strings get `<strong>` markup
 - `src/index.css` — clamp/line-height/button updates, global `strong` style, new heading→content `96px` spacing utility
@@ -211,6 +212,7 @@ These deviations from the brainstorm assumptions were discovered when reading th
 2. **No `About` section exists** in `src/components/sections/`. CLAUDE.md mentions one but it is not implemented. All About-specific tasks have been removed from this spec.
 3. **`MarqueeDivider` is not placed anywhere in `Home.tsx`** today. The component exists but no JSX renders it. No divider work in this spec.
 4. **Test layout:** unit tests live at `tests/unit/` (not `src/__tests__/`); the runtime-deps test is `tests/unit/bundle-deps.test.ts`.
+5. **`LoadingScreen.tsx` uses GSAP heavily** (caught after Task 1 broke the build with a missing `projectEaseGsap` export). It uses `useGSAP` from `@gsap/react`, a `gsap.timeline()` for the panel fade-out, and `gsap.set()` for both the runtime hero-word offset measurement and the reduced-motion fast path. Decision: **migrate it off GSAP** (added as plan Task 7.5) — port the timeline to Motion's `animate()` and the offset to direct `style.transform`. Honors the spec's locked "drop GSAP entirely" decision. A one-line `projectEaseGsap = 'power3.out'` re-export was added to `animations.ts` (commit `2780fe8`) as a backwards-compat shim to keep the build green during the migration window; Task 7.5 removes it.
 
 ---
 
@@ -219,7 +221,8 @@ These deviations from the brainstorm assumptions were discovered when reading th
 - [ ] `HeroDataFragments.tsx` deleted; no remaining imports anywhere in `src/`
 - [ ] `useScrollFade(...)` calls removed from `Hero.tsx`, `SectionHeading.tsx`, and `Contact.tsx` (3 call sites + their imports)
 - [ ] `src/hooks/useScrollFade.ts` deleted; `tests/unit/useScrollFade.test.ts` deleted
-- [ ] `gsap` and `@gsap/react` removed from `package.json` + `package-lock.json` + the `allowed` set in `tests/unit/bundle-deps.test.ts`
+- [ ] `LoadingScreen.tsx` migrated off GSAP — `useGSAP` / `gsap.timeline` / `gsap.set` replaced with Motion's `animate()` + direct `style.transform`; visually identical to before; reduced-motion path preserved
+- [ ] `gsap` and `@gsap/react` removed from `package.json` + `package-lock.json` + the `allowed` set in `tests/unit/bundle-deps.test.ts`; the `projectEaseGsap` shim in `animations.ts` removed
 - [ ] `lenis` added to `package.json` and to the `allowed` set in `tests/unit/bundle-deps.test.ts`
 - [x] `src/utils/animations.ts` rewritten to export `SPRINGS`, `VARIANTS`, `STAGGER_PRESETS`, and `staggerContainer()` factory; old GSAP/duration constants removed
 - [ ] `RevealOnView` accepts `recipe` and `delay` props; default call sites unchanged in behavior

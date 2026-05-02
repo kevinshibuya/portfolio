@@ -27,6 +27,8 @@ Task 17 (Stats + Home wiring) and Task 18 (final verification) run sequentially 
                                                                           ↓
                                                             [7] useScrollFade call sites
                                                                           ↓
+                                              [7.5] migrate LoadingScreen off GSAP
+                                                                          ↓
                                               [8] delete useScrollFade + GSAP deps
                                                                           ↓
                                                           [9] delete HeroDataFragments
@@ -809,17 +811,258 @@ Tick `- [ ] useScrollFade(...) calls removed from Hero.tsx, SectionHeading.tsx, 
 
 ---
 
+## Task 7.5: Migrate LoadingScreen off GSAP
+
+> **Why this task exists:** The original plan assumed `HeroDataFragments` was the only GSAP consumer. After Task 1, `LoadingScreen.tsx` was discovered to also use GSAP heavily (`useGSAP` + `gsap.timeline` + two `gsap.set` calls). A backwards-compat shim `projectEaseGsap = 'power3.out'` was added to `animations.ts` (commit `2780fe8`) to keep the build green during Tasks 2–7. This task migrates LoadingScreen so Task 8 can uninstall GSAP cleanly. See spec §6 item 5.
+
+**Files:**
+- Modify: `src/components/layout/LoadingScreen.tsx`
+
+The current file uses GSAP for three things, all of which port to Motion / direct DOM:
+
+1. **`gsap.set(wordsRef.current, { x: dx, y: dy })`** (line 51, runtime offset alignment) — replace with direct `wordsRef.current.style.transform = \`translate3d(${dx}px, ${dy}px, 0)\``.
+2. **`gsap.set('[data-loader-panel]', { autoAlpha: 0 })`** (line 99, reduced-motion fast path) — `autoAlpha` = opacity + visibility. Replace with two direct mutations on the root ref: `el.style.opacity = '0'` and `el.style.visibility = 'hidden'`.
+3. **`gsap.timeline().to('[data-loader-panel]', { autoAlpha: 0, duration: 0.4, ease: projectEaseGsap, delay: 0.12 })`** (lines 107–119, panel fade-out) — replace with Motion's `animate()` from `framer-motion`. The 0.12s delay + 0.4s tween + ease equivalent + `onComplete` callback all map directly. Set `visibility: hidden` in the `onComplete` to preserve the autoAlpha behavior.
+
+The `useGSAP` hook + `import { gsap } from 'gsap'` + `import { useGSAP } from '@gsap/react'` + `import { projectEaseGsap } from '../../utils/animations'` are all removed. The replacement is a plain `useEffect` with a cleanup that cancels the in-flight `animate()` controller if the component unmounts mid-tween.
+
+`power3.out` in GSAP ≈ cubic-bezier `[0.215, 0.61, 0.355, 1]`. Use that tuple as Motion's `ease`.
+
+- [ ] **Step 1: Apply the rewrite**
+
+Replace the contents of `src/components/layout/LoadingScreen.tsx` with:
+
+```tsx
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { animate } from 'framer-motion'
+import { useMotion } from '../../context/MotionContext'
+import { LOADER_MIN_DURATION_MS, LOADER_REDUCED_MOTION_MAX_MS } from '../../utils/motion-flags'
+
+// power3.out approximation as a cubic-bezier tuple. Motion accepts both named
+// eases and tuples; a tuple keeps the curve explicit and matches GSAP's
+// power3.out shape ~1:1 across the 0.4s window.
+const POWER3_OUT: [number, number, number, number] = [0.215, 0.61, 0.355, 1]
+
+export function LoadingScreen() {
+  const { resolveLoader, prefersReducedMotion } = useMotion()
+  const root = useRef<HTMLDivElement>(null)
+  const wordsRef = useRef<HTMLDivElement>(null)
+  const [progress, setProgress] = useState(0)
+  const [done, setDone] = useState(false)
+
+  // Lock body scroll while the loader covers the viewport. Cleanup restores
+  // it if the component unmounts before the handoff completes (fast nav, HMR).
+  useLayoutEffect(() => {
+    document.body.dataset.loaderState = 'loading'
+    return () => {
+      if (document.body.dataset.loaderState === 'loading') {
+        delete document.body.dataset.loaderState
+      }
+    }
+  }, [])
+
+  // Runtime measurement: align loader words to exact hero word positions.
+  // Wait for `document.fonts.ready` first — measuring before Plus Jakarta Sans
+  // has decoded gives fallback-font metrics, and the bbox would shift on swap.
+  useLayoutEffect(() => {
+    let cancelled = false
+    void document.fonts.ready.then(() => {
+      if (cancelled || !wordsRef.current) return
+
+      const loaderKevin = wordsRef.current.querySelector<HTMLElement>(
+        '[data-loader-word="kevin"]'
+      )
+      const heroKevin = document.querySelector<HTMLElement>(
+        '[data-hero-word="kevin"]'
+      )
+      if (!loaderKevin || !heroKevin) return
+
+      const lb = loaderKevin.getBoundingClientRect()
+      const hb = heroKevin.getBoundingClientRect()
+      const dy = hb.top - lb.top
+      const dx = hb.left - lb.left
+
+      if (Math.abs(dy) > 0.5 || Math.abs(dx) > 0.5) {
+        wordsRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0)`
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Track asset readiness and drive progress 0 → 1
+  useEffect(() => {
+    const start = performance.now()
+    const minDelay = prefersReducedMotion
+      ? LOADER_REDUCED_MOTION_MAX_MS
+      : LOADER_MIN_DURATION_MS
+
+    const finish = () => {
+      const elapsed = performance.now() - start
+      const wait = Math.max(0, minDelay - elapsed)
+      setTimeout(() => setProgress(1), wait)
+    }
+
+    const id = window.setInterval(() => {
+      const elapsed = performance.now() - start
+      setProgress(Math.min(0.92, elapsed / minDelay))
+    }, 30)
+
+    if (document.readyState === 'complete') {
+      finish()
+    } else {
+      window.addEventListener('load', finish, { once: true })
+    }
+
+    return () => {
+      window.clearInterval(id)
+      window.removeEventListener('load', finish)
+    }
+  }, [prefersReducedMotion])
+
+  // Handoff: when progress reaches 1, fade the panel out (or skip the tween
+  // entirely under reduced motion) and resolve the loader gate.
+  useEffect(() => {
+    if (progress < 1) return
+    const panel = root.current
+    if (!panel) return
+
+    const finalize = () => {
+      // autoAlpha equivalent — set visibility AFTER opacity hits 0 so the
+      // node stops painting and stops capturing pointer events.
+      panel.style.visibility = 'hidden'
+      document.body.dataset.loaderState = 'done'
+      resolveLoader()
+      setDone(true)
+    }
+
+    if (prefersReducedMotion) {
+      panel.style.opacity = '0'
+      finalize()
+      return
+    }
+
+    const controls = animate(panel, { opacity: 0 }, {
+      duration: 0.4,
+      delay: 0.12,
+      ease: POWER3_OUT,
+      onComplete: finalize,
+    })
+
+    return () => {
+      controls.stop()
+    }
+  }, [progress, prefersReducedMotion, resolveLoader])
+
+  if (done) return null
+
+  return (
+    <div
+      ref={root}
+      data-loader-panel
+      className="loader-screen"
+      role="status"
+      aria-live="polite"
+    >
+      {/*
+        Structural mirror of .hero > .hero-main > h1.hero-name.
+        Approximate CSS layout; fine-tuned at runtime via useLayoutEffect
+        measuring the actual hero word positions and applying a transform.
+      */}
+      <div className="loader-hero-mirror">
+        <div className="loader-hero-main">
+          <div ref={wordsRef} className="loader-hero-name">
+            <span
+              data-loader-word="kevin"
+              className="loader-hero-name-line loader-hero-name-line--ink"
+            >
+              kevin
+            </span>
+            <span
+              data-loader-word="shibuya"
+              className="loader-hero-name-line loader-hero-name-line--ghost"
+            >
+              shibuya.
+            </span>
+          </div>
+          <div
+            data-loader-progress
+            data-value={progress}
+            className="loader-underline"
+            style={{ transform: `scaleX(${progress})` }}
+            aria-hidden="true"
+          />
+        </div>
+      </div>
+      <span className="sr-only">loading</span>
+    </div>
+  )
+}
+```
+
+- [ ] **Step 2: Confirm no remaining gsap imports in LoadingScreen**
+
+```bash
+grep -n "gsap" src/components/layout/LoadingScreen.tsx
+```
+
+Expected: zero output.
+
+- [ ] **Step 3: Build verification**
+
+Run: `npm run build`
+Expected: PASS — no TS errors. (The `projectEaseGsap` shim still exists in `animations.ts` at this point; it's removed in Task 8 step 1a.)
+
+- [ ] **Step 4: Visual smoke test**
+
+Run: `npm run dev` (background OK)
+Reload `localhost:5173` with cache disabled. Expected:
+- Loader panel appears with `kevin / shibuya.`
+- Underline progress fills left → right
+- After hold, panel fades out over ~0.4s (delay 0.12s before fade starts)
+- Panel becomes hidden (no pointer interception); hero takes over
+- Hero word positions match where the loader words were sitting (no visible jump)
+
+Then reload with `prefers-reduced-motion: reduce` (DevTools → Rendering). Expected: panel disappears instantly when progress hits 1, no fade.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/layout/LoadingScreen.tsx
+git commit -m "refactor(loader): migrate LoadingScreen off GSAP to Motion's animate()"
+```
+
+- [ ] **Step 6: Tick spec checkbox**
+
+Tick `- [ ] LoadingScreen.tsx migrated off GSAP…` in the spec.
+
+---
+
 ## Task 8: Delete `useScrollFade` + remove GSAP from deps + update bundle-deps test
 
 **Files:**
 - Delete: `src/hooks/useScrollFade.ts`, `tests/unit/useScrollFade.test.ts`
-- Modify: `package.json`, `package-lock.json`, `tests/unit/bundle-deps.test.ts`
+- Modify: `src/utils/animations.ts` (remove `projectEaseGsap` shim), `package.json`, `package-lock.json`, `tests/unit/bundle-deps.test.ts`
 
 - [ ] **Step 1: Delete the hook + its test**
 
 ```bash
 rm src/hooks/useScrollFade.ts tests/unit/useScrollFade.test.ts
 ```
+
+- [ ] **Step 1a: Remove the `projectEaseGsap` shim from `src/utils/animations.ts`**
+
+After Task 7.5, no consumer needs this re-export. Delete the trailing block:
+
+```ts
+// Backwards-compat shim — LoadingScreen and HeroDataFragments still pass this
+// to GSAP tweens. Removed when LoadingScreen is migrated off GSAP and
+// HeroDataFragments is deleted (see plan Tasks 8 + 9).
+export const projectEaseGsap = 'power3.out'
+```
+
+Verify: `grep -rn "projectEaseGsap" src/` — expected zero output.
 
 - [ ] **Step 2: Uninstall GSAP packages**
 
