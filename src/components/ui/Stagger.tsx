@@ -15,6 +15,8 @@ interface StaggerProps {
   stagger: number
   /** Delay before the first child fires, seconds */
   delayChildren?: number
+  /** Viewport-amount threshold for whileInView trigger (0..1). Default 0.2.
+   *  Use 0.0 when the wrapped list is taller than the viewport. */
   amount?: number
   className?: string
   children: React.ReactNode
