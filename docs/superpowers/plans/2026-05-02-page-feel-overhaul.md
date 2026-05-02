@@ -1358,15 +1358,15 @@ git commit -m "feat(work): apply slideInLeft stagger to rows + max-w on descript
 **Files:**
 - Modify: `src/components/sections/Skills.tsx`
 
-- [ ] **Step 1: Read the current file** to identify column/item structure.
+- [x] **Step 1: Read the current file** to identify column/item structure.
 
-- [ ] **Step 2: Apply the mapping**
+- [x] **Step 2: Apply the mapping**
 
 Wrap the section heading in `<RevealOnView recipe="stampIn">`. The three numbered columns are wrapped in an outer `<Stagger recipe="slideInLeft" stagger={STAGGER_PRESETS.skillsColumns}>`. Inside each column, the list of items is wrapped in an inner `<Stagger recipe="slideInLeft" stagger={STAGGER_PRESETS.skillsItems}>`.
 
 Apply `.section-spacing-content` to the container holding the columns, and `max-w-[640px]` to any section description paragraph.
 
-- [ ] **Step 3: Build & smoke**
+- [x] **Step 3: Build & smoke**
 
 `npm run dev` → scroll to Skills → columns enter left-to-right, then items inside each column cascade.
 

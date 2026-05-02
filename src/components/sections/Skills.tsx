@@ -1,8 +1,9 @@
-import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { RevealOnView, childVariants } from '../ui/RevealOnView'
+import { RevealOnView } from '../ui/RevealOnView'
+import { Stagger } from '../ui/Stagger'
 import { SectionHeading } from '../ui/SectionHeading'
 import { skillCategories } from '../../data/skills'
+import { STAGGER_PRESETS } from '../../utils/animations'
 
 const categoryKeys: Record<string, string> = {
   frontend: 'sections.skills.frontend',
@@ -16,7 +17,7 @@ export function Skills() {
   return (
     <section id="skills" className="section section--sand">
       <div className="section-inner">
-        <RevealOnView variant="fade-up">
+        <RevealOnView recipe="stampIn">
           <SectionHeading
             index={t('sections.skills.index')}
             label={t('sections.skills.label')}
@@ -25,24 +26,32 @@ export function Skills() {
           />
         </RevealOnView>
 
-        <RevealOnView variant="stagger-children" staggerAmount={0.06} className="skills-grid">
+        <Stagger
+          recipe="slideInLeft"
+          stagger={STAGGER_PRESETS.skillsColumns}
+          className="skills-grid section-spacing-content"
+        >
           {skillCategories.map((category, ci) => (
-            <motion.div key={category.key} variants={childVariants} className="skills-col">
+            <div key={category.key} className="skills-col">
               <div className="skills-col-head">
                 <span className="skills-num">0{ci + 1}</span>
                 <h3 className="skills-title">{t(categoryKeys[category.key])}</h3>
               </div>
-              <ul className="skills-list">
+              <Stagger
+                recipe="slideInLeft"
+                stagger={STAGGER_PRESETS.skillsItems}
+                className="skills-list"
+              >
                 {category.skills.map((skill) => (
-                  <li key={skill} className="skills-item">
+                  <div key={skill} className="skills-item">
                     <span className="skills-dot" />
                     <span>{skill.toLowerCase()}</span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
-            </motion.div>
+              </Stagger>
+            </div>
           ))}
-        </RevealOnView>
+        </Stagger>
       </div>
     </section>
   )
