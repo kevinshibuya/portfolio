@@ -55,7 +55,7 @@ export function Hero() {
           </RevealOnView>
         </h1>
 
-        <div className="hero-supplementary" data-hero-eyebrow>
+        <div className="hero-supplementary">
           <RevealOnView recipe="slideInLeft" delay={0.52}>
             <div className="hero-role-line">
               <span className="hero-role-prefix">{t('hero.rolePrefix')}</span>

@@ -1015,7 +1015,9 @@ body[data-loader-state="loading"] {
    was a half-width grid of multiple SVG fragments + the 3D accent; that
    component was deleted in Task 9. The lone surviving accent re-mounts
    here, positioned absolutely so it sits beside .hero-main without
-   pushing the grid layout. Hidden on mobile. */
+   pushing the grid layout. Hidden once .hero padding compresses (1100px
+   breakpoint), where right:80px would no longer track the 40px section
+   padding and the accent would crowd hero-main's content. */
 .hero-accent-mount {
   position: absolute;
   top: 50%;
@@ -1026,6 +1028,6 @@ body[data-loader-state="loading"] {
   pointer-events: none;
   z-index: 0;
 }
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .hero-accent-mount { display: none; }
 }
