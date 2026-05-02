@@ -13,7 +13,7 @@ interface SmoothScrollProps {
 }
 
 export function SmoothScroll({ children }: SmoothScrollProps) {
-  const { prefersReducedMotion } = useMotion()
+  const { prefersReducedMotion, handoffDone } = useMotion()
   // Hold the instance in state so the provider re-renders with a non-null
   // value once Lenis mounts. (A ref alone wouldn't trigger a re-render, so
   // useLenis() consumers would see null forever on first mount.)
@@ -33,6 +33,10 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
       lerp: 0.1,
       smoothWheel: true,
     })
+    // Hold scroll inert until the loader handoff completes. Lenis intercepts
+    // wheel/touch events directly, so the body[data-loader-state] CSS lock
+    // alone doesn't stop it — we need to stop the instance.
+    instance.stop()
     setLenis(instance)
 
     let rafId = 0
@@ -42,12 +46,20 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
     }
     rafId = requestAnimationFrame(raf)
 
+    let cancelled = false
+    handoffDone
+      .then(() => {
+        if (!cancelled) instance.start()
+      })
+      .catch(() => {})
+
     return () => {
+      cancelled = true
       cancelAnimationFrame(rafId)
       instance.destroy()
       setLenis(null)
     }
-  }, [prefersReducedMotion])
+  }, [prefersReducedMotion, handoffDone])
 
   return <LenisCtx.Provider value={lenis}>{children}</LenisCtx.Provider>
 }

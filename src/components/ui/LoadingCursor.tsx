@@ -100,11 +100,21 @@ export function LoadingCursor({ getAnchors }: LoadingCursorProps) {
         if (cancelled) return
         const navDot = document.querySelector<HTMLElement>('.nav-avail-dot')
         const anchors = getAnchors()
-        if (!navDot || !anchors) {
-          resolveHandoff()
+        const navRect = navDot?.getBoundingClientRect()
+        // Mobile (<= 720px): .nav-avail (and its dot) is display:none and
+        // its bounding rect collapses to 0×0. Skip the flight in that case
+        // — the dot just fades out in place after the bloom.
+        if (!navRect || navRect.width === 0 || !anchors) {
+          animate(1, 0, {
+            duration: 0.2,
+            onUpdate: (v) => setPostFlightOpacity(v),
+            onComplete: () => {
+              resolveHandoff()
+              setUnmounted(true)
+            },
+          })
           return
         }
-        const navRect = navDot.getBoundingClientRect()
         const targetX = navRect.left + navRect.width / 2
         const targetY = navRect.top + navRect.height / 2
         const startX = anchors.periodX

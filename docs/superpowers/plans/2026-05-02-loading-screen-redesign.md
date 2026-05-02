@@ -1520,7 +1520,7 @@ git commit -m "chore(loader): delete LoadingScreen + flush old CSS, add new laye
 
 The old e2e tests target `data-loader-word` attributes on the deleted loader and `data-loader-progress` on the deleted underline. The new tests target the new architecture: `data-name-word="kevin"` / `="shibuya"` SVG elements (rendered from frame 1), the `.loading-cursor` body-portal element, the `.nav-avail-dot` (visible after handoff), and the `data-loader-state` body attribute.
 
-- [ ] **Step 1: Rewrite the spec**
+- [x] **Step 1: Rewrite the spec**
 
 ```ts
 // tests/e2e/loader-handoff.spec.ts
@@ -1590,7 +1590,7 @@ test('body scroll is locked while loader is active', async ({ page }) => {
 })
 ```
 
-- [ ] **Step 2: Run e2e test**
+- [x] **Step 2: Run e2e test**
 
 ```bash
 npm run test:e2e -- loader-handoff
@@ -1598,12 +1598,16 @@ npm run test:e2e -- loader-handoff
 
 Expected: all 5 tests pass. (You may need `npm run build` first if the preview server doesn't auto-build; the playwright config already chains `build && preview`.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/e2e/loader-handoff.spec.ts
 git commit -m "test(loader): rewrite e2e for SVG draw + cursor flight + handoff"
 ```
+
+**Deviations:**
+1. Lenis was bypassing the body[data-loader-state] CSS scroll lock by intercepting wheel events directly. Updated `SmoothScroll.tsx` to call `instance.stop()` at init and `instance.start()` after handoffDone resolves.
+2. The nav-avail-dot is `display:none` on viewports ≤720px (existing responsive CSS), so the cursor flight target collapses on mobile. `LoadingCursor` now detects `navRect.width === 0` and falls back to a 200ms fade-out at the period instead of the flight. The e2e test was relaxed from `toBeVisible()` to `toHaveCount(1)` for the same reason.
 
 ---
 
