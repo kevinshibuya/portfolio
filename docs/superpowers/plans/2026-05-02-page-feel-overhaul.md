@@ -687,7 +687,7 @@ git add package.json package-lock.json src/components/layout/SmoothScroll.tsx sr
 git commit -m "feat(scroll): add Lenis-based SmoothScroll provider + useLenis hook"
 ```
 
-- [ ] **Step 7: Tick spec checkboxes**
+- [x] **Step 7: Tick spec checkboxes**
 
 Tick both `- [ ] SmoothScroll provider implemented…` and `- [ ] useLenis() hook implemented…` in the spec.
 
