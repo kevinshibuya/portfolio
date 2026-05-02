@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback } from 'react'
 import { motion, type Variants } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useMotion } from '../../context/MotionContext'
-import { RevealOnView } from '../ui/RevealOnView'
 import { SectionHeading } from '../ui/SectionHeading'
 import { Tag } from '../ui/Tag'
 import {
@@ -58,14 +57,12 @@ export function EmbedsGallery() {
   return (
     <section id="embeds" className="section section--sand">
       <div className="section-inner">
-        <RevealOnView recipe="stampIn">
-          <SectionHeading
-            index={t('sections.embeds.index')}
-            label={t('sections.embeds.label')}
-            title={t('sections.embeds.title')}
-            description={t('sections.embeds.description')}
-          />
-        </RevealOnView>
+        <SectionHeading
+          index={t('sections.embeds.index')}
+          label={t('sections.embeds.label')}
+          title={t('sections.embeds.title')}
+          description={t('sections.embeds.description')}
+        />
 
         <div className="embeds-filters">
           <div className="embeds-filter-group">

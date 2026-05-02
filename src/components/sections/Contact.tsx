@@ -46,16 +46,14 @@ export function Contact() {
   return (
     <section id="contact" className="section section--contact">
       <div className="contact-inner">
-        <RevealOnView recipe="stampIn">
-          <span className="section-index">
-            {t('sections.contact.index')} · {t('sections.contact.label')}
-          </span>
-          <h2
-            className="contact-title section-title"
-            dangerouslySetInnerHTML={{ __html: t('sections.contact.title') }}
-          />
-          <p className="contact-lede">{t('sections.contact.subtitle')}</p>
-        </RevealOnView>
+        <span className="section-index">
+          {t('sections.contact.index')} · {t('sections.contact.label')}
+        </span>
+        <h2
+          className="contact-title section-title"
+          dangerouslySetInnerHTML={{ __html: t('sections.contact.title') }}
+        />
+        <p className="contact-lede">{t('sections.contact.subtitle')}</p>
 
         <RevealOnView recipe="fadeUp" className="contact-list section-spacing-content">
           {rows.map((row) => (

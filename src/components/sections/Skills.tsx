@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import { RevealOnView } from '../ui/RevealOnView'
 import { Stagger } from '../ui/Stagger'
 import { SectionHeading } from '../ui/SectionHeading'
 import { skillCategories } from '../../data/skills'
@@ -17,14 +16,12 @@ export function Skills() {
   return (
     <section id="skills" className="section section--sand">
       <div className="section-inner">
-        <RevealOnView recipe="stampIn">
-          <SectionHeading
-            index={t('sections.skills.index')}
-            label={t('sections.skills.label')}
-            title={t('sections.skills.title')}
-            description={t('sections.skills.description')}
-          />
-        </RevealOnView>
+        <SectionHeading
+          index={t('sections.skills.index')}
+          label={t('sections.skills.label')}
+          title={t('sections.skills.title')}
+          description={t('sections.skills.description')}
+        />
 
         <Stagger
           recipe="slideInLeft"

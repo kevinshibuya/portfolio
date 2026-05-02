@@ -2,7 +2,6 @@ import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useMotion } from '../../context/MotionContext'
-import { RevealOnView } from '../ui/RevealOnView'
 import { SectionHeading } from '../ui/SectionHeading'
 import { projects } from '../../data/projects'
 import {
@@ -30,14 +29,12 @@ export function Projects() {
 
   return (
     <section id="projects" className="section">
-      <RevealOnView recipe="stampIn">
-        <SectionHeading
-          index={t('sections.projects.index')}
-          label={t('sections.projects.label')}
-          title={t('sections.projects.title')}
-          description={t('sections.projects.description')}
-        />
-      </RevealOnView>
+      <SectionHeading
+        index={t('sections.projects.index')}
+        label={t('sections.projects.label')}
+        title={t('sections.projects.title')}
+        description={t('sections.projects.description')}
+      />
 
       <motion.div
         className="bento section-spacing-content"

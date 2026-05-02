@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RevealOnView } from '../ui/RevealOnView'
 import { Stagger } from '../ui/Stagger'
 import { SectionHeading } from '../ui/SectionHeading'
 import { Tag } from '../ui/Tag'
@@ -14,14 +13,12 @@ export function WorkExperience() {
 
   return (
     <section id="work" className="section">
-      <RevealOnView recipe="stampIn">
-        <SectionHeading
-          index={t('sections.work.index')}
-          label={t('sections.work.label')}
-          title={t('sections.work.title')}
-          description={t('sections.work.description')}
-        />
-      </RevealOnView>
+      <SectionHeading
+        index={t('sections.work.index')}
+        label={t('sections.work.label')}
+        title={t('sections.work.title')}
+        description={t('sections.work.description')}
+      />
 
       <Stagger
         recipe="slideInLeft"
