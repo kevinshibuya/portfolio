@@ -1,9 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { gsap } from 'gsap'
-import { useGSAP } from '@gsap/react'
+import { animate } from 'framer-motion'
 import { useMotion } from '../../context/MotionContext'
 import { LOADER_MIN_DURATION_MS, LOADER_REDUCED_MOTION_MAX_MS } from '../../utils/motion-flags'
-import { projectEaseGsap } from '../../utils/animations'
+
+// power3.out approximation as a cubic-bezier tuple. Motion accepts both named
+// eases and tuples; a tuple keeps the curve explicit and matches GSAP's
+// power3.out shape ~1:1 across the 0.4s window.
+const POWER3_OUT: [number, number, number, number] = [0.215, 0.61, 0.355, 1]
 
 export function LoadingScreen() {
   const { resolveLoader, prefersReducedMotion } = useMotion()
@@ -12,9 +15,8 @@ export function LoadingScreen() {
   const [progress, setProgress] = useState(0)
   const [done, setDone] = useState(false)
 
-  // Lock body scroll while the loader covers the viewport. The handoff
-  // timeline flips this to 'done' on completion; cleanup restores it if
-  // the component unmounts before that (e.g. fast nav, HMR).
+  // Lock body scroll while the loader covers the viewport. Cleanup restores
+  // it if the component unmounts before the handoff completes (fast nav, HMR).
   useLayoutEffect(() => {
     document.body.dataset.loaderState = 'loading'
     return () => {
@@ -25,8 +27,6 @@ export function LoadingScreen() {
   }, [])
 
   // Runtime measurement: align loader words to exact hero word positions.
-  // CSS-only centering can't reliably replicate the hero's align-self:center
-  // grid cell, so we measure both elements and apply a GSAP offset.
   // Wait for `document.fonts.ready` first — measuring before Plus Jakarta Sans
   // has decoded gives fallback-font metrics, and the bbox would shift on swap.
   useLayoutEffect(() => {
@@ -48,7 +48,7 @@ export function LoadingScreen() {
       const dx = hb.left - lb.left
 
       if (Math.abs(dy) > 0.5 || Math.abs(dx) > 0.5) {
-        gsap.set(wordsRef.current, { x: dx, y: dy })
+        wordsRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0)`
       }
     })
     return () => {
@@ -86,40 +86,39 @@ export function LoadingScreen() {
     }
   }, [prefersReducedMotion])
 
-  // Handoff timeline — triggers once progress reaches 1.
-  // NOTE: `scope: root` confines GSAP selector strings to the loader's subtree.
-  // Any future selector targeting elements outside `root` (e.g. hero nodes)
-  // would silently match nothing — use a direct ref or move the tween outside
-  // this hook in that case.
-  useGSAP(
-    () => {
-      if (progress < 1) return
+  // Handoff: when progress reaches 1, fade the panel out (or skip the tween
+  // entirely under reduced motion) and resolve the loader gate.
+  useEffect(() => {
+    if (progress < 1) return
+    const panel = root.current
+    if (!panel) return
 
-      if (prefersReducedMotion) {
-        gsap.set('[data-loader-panel]', { autoAlpha: 0 })
-        document.body.dataset.loaderState = 'done'
-        resolveLoader()
-        setDone(true)
-        return
-      }
+    const finalize = () => {
+      // autoAlpha equivalent — set visibility AFTER opacity hits 0 so the
+      // node stops painting and stops capturing pointer events.
+      panel.style.visibility = 'hidden'
+      document.body.dataset.loaderState = 'done'
+      resolveLoader()
+      setDone(true)
+    }
 
-      // Brief hold so the underline is visibly full, then fade the panel out
-      const tl = gsap.timeline({
-        onComplete: () => {
-          document.body.dataset.loaderState = 'done'
-          resolveLoader()
-          setDone(true)
-        },
-      })
-      tl.to('[data-loader-panel]', {
-        autoAlpha: 0,
-        duration: 0.4,
-        ease: projectEaseGsap,
-        delay: 0.12,
-      })
-    },
-    { dependencies: [progress, prefersReducedMotion], scope: root }
-  )
+    if (prefersReducedMotion) {
+      panel.style.opacity = '0'
+      finalize()
+      return
+    }
+
+    const controls = animate(panel, { opacity: 0 }, {
+      duration: 0.4,
+      delay: 0.12,
+      ease: POWER3_OUT,
+      onComplete: finalize,
+    })
+
+    return () => {
+      controls.stop()
+    }
+  }, [progress, prefersReducedMotion, resolveLoader])
 
   if (done) return null
 
@@ -134,7 +133,7 @@ export function LoadingScreen() {
       {/*
         Structural mirror of .hero > .hero-main > h1.hero-name.
         Approximate CSS layout; fine-tuned at runtime via useLayoutEffect
-        measuring the actual hero word positions and applying a GSAP offset.
+        measuring the actual hero word positions and applying a transform.
       */}
       <div className="loader-hero-mirror">
         <div className="loader-hero-main">
