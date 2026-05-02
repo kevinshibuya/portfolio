@@ -66,3 +66,8 @@ export const REDUCED_MOTION_VARIANT: Variants = {
   hidden:  { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.2, ease: 'easeOut' } },
 }
+
+// Backwards-compat shim — LoadingScreen and HeroDataFragments still pass this
+// to GSAP tweens. Removed when LoadingScreen is migrated off GSAP and
+// HeroDataFragments is deleted (see plan Tasks 8 + 9).
+export const projectEaseGsap = 'power3.out'
