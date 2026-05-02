@@ -168,7 +168,7 @@ Open `src/data/glyphPaths.ts` and confirm:
 - `NAME_SHIBUYA.glyphs` has 8 entries, characters `s, h, i, b, u, y, a, .`
 - Each glyph has a non-empty `d` string starting with `M` (move-to)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add package.json package-lock.json scripts/extract-glyph-paths.mjs src/data/glyphPaths.ts
@@ -187,7 +187,7 @@ Single source of truth for the `progress` value (0..1) and the `drawDone` / `han
 
 Critically: the hook does NOT own the `handoffDone` resolution. `handoffDone` resolves later, when the cursor's flight to the nav completes — `LoadingCursor` (Task 5) calls back into the hook to resolve it. The hook returns `resolveHandoff` for that callback.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // tests/unit/useLoaderProgress.test.tsx
@@ -261,7 +261,7 @@ describe('useLoaderProgress', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 ```bash
 npm run test:unit -- useLoaderProgress
@@ -269,7 +269,7 @@ npm run test:unit -- useLoaderProgress
 
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement the hook**
+- [x] **Step 3: Implement the hook**
 
 ```ts
 // src/hooks/useLoaderProgress.ts
@@ -389,7 +389,7 @@ export function useLoaderProgress(prefersReducedMotion: boolean): LoaderProgress
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 npm run test:unit -- useLoaderProgress
@@ -397,7 +397,7 @@ npm run test:unit -- useLoaderProgress
 
 Expected: 4 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/hooks/useLoaderProgress.ts tests/unit/useLoaderProgress.test.tsx
