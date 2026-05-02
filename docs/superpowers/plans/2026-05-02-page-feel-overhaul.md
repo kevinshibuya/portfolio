@@ -530,7 +530,7 @@ Tick `- [ ] Type ramp updates applied in index.css…`, `- [ ] New heading→con
 - Create: `src/hooks/useLenis.ts`
 - Modify: `src/App.tsx`
 
-- [ ] **Step 1: Install lenis**
+- [x] **Step 1: Install lenis**
 
 ```bash
 npm install lenis
@@ -544,7 +544,7 @@ node -e "console.log(require('./package.json').dependencies.lenis)"
 
 Expected: a version string like `^1.x.y`.
 
-- [ ] **Step 2: Create the Lenis context + provider**
+- [x] **Step 2: Create the Lenis context + provider**
 
 Create `src/components/layout/SmoothScroll.tsx`:
 
@@ -601,7 +601,7 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
 }
 ```
 
-- [ ] **Step 3: Create the `useLenis` hook**
+- [x] **Step 3: Create the `useLenis` hook**
 
 Create `src/hooks/useLenis.ts`:
 
@@ -645,7 +645,7 @@ export function useLenis(): {
 }
 ```
 
-- [ ] **Step 4: Wrap App in `<SmoothScroll>`**
+- [x] **Step 4: Wrap App in `<SmoothScroll>`**
 
 Edit `src/App.tsx`. Wrap the `<Routes>` element (everything below the `Header`) inside `<SmoothScroll>`:
 
@@ -675,12 +675,12 @@ function App() {
 export default App
 ```
 
-- [ ] **Step 5: Smoke-test in the dev server**
+- [x] **Step 5: Smoke-test in the dev server**
 
 Run (background OK): `npm run dev`
 Open `localhost:5173` and scroll with the mouse wheel. Expected: scroll feels noticeably smoothed (interpolated easing on each wheel tick). No console errors. Touch devices (or Chrome DevTools mobile emulation) should fall back to native momentum.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json package-lock.json src/components/layout/SmoothScroll.tsx src/hooks/useLenis.ts src/App.tsx
