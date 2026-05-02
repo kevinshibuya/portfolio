@@ -40,6 +40,7 @@ export const VARIANTS = {
 export type RecipeName = keyof typeof VARIANTS
 
 // Stagger presets keyed by section role. Values in seconds.
+// Mirrors the recipe→section mapping in spec §2.
 export const STAGGER_PRESETS = {
   workRows: 0.1,
   skillsColumns: 0.12,
@@ -47,9 +48,7 @@ export const STAGGER_PRESETS = {
   projectCards: 0.1,
   embedRows: 0.05,
   statValues: 0.12,
-  aboutPills: 0.08,    // reserved for future use
-  ctaPair: 0.08,
-} as const
+} as const satisfies Record<string, number>
 
 export function staggerContainer(stagger: number, delayChildren = 0): Variants {
   return {
@@ -68,6 +67,6 @@ export const REDUCED_MOTION_VARIANT: Variants = {
 }
 
 // Backwards-compat shim — LoadingScreen and HeroDataFragments still pass this
-// to GSAP tweens. Removed when LoadingScreen is migrated off GSAP and
-// HeroDataFragments is deleted (see plan Tasks 8 + 9).
+// to GSAP tweens. Removed in plan Task 8 step 1a, after Task 7.5 migrates
+// LoadingScreen to Motion's animate() and Task 9 deletes HeroDataFragments.
 export const projectEaseGsap = 'power3.out'

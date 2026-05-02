@@ -4,6 +4,7 @@ import {
   VARIANTS,
   STAGGER_PRESETS,
   staggerContainer,
+  REDUCED_MOTION_VARIANT,
   type RecipeName,
 } from '../../src/utils/animations'
 
@@ -71,6 +72,15 @@ describe('STAGGER_PRESETS', () => {
     expect(STAGGER_PRESETS.projectCards).toBeCloseTo(0.1)
     expect(STAGGER_PRESETS.embedRows).toBeCloseTo(0.05)
     expect(STAGGER_PRESETS.statValues).toBeCloseTo(0.12)
-    expect(STAGGER_PRESETS.aboutPills).toBeCloseTo(0.08)
+  })
+})
+
+describe('REDUCED_MOTION_VARIANT', () => {
+  it('collapses to opacity-only with a 200ms easeOut tween', () => {
+    expect(REDUCED_MOTION_VARIANT.hidden).toMatchObject({ opacity: 0 })
+    expect(REDUCED_MOTION_VARIANT.visible).toMatchObject({
+      opacity: 1,
+      transition: { duration: 0.2, ease: 'easeOut' },
+    })
   })
 })
