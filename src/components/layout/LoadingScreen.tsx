@@ -3,10 +3,12 @@ import { animate } from 'framer-motion'
 import { useMotion } from '../../context/MotionContext'
 import { LOADER_MIN_DURATION_MS, LOADER_REDUCED_MOTION_MAX_MS } from '../../utils/motion-flags'
 
-// power3.out approximation as a cubic-bezier tuple. Motion accepts both named
-// eases and tuples; a tuple keeps the curve explicit and matches GSAP's
-// power3.out shape ~1:1 across the 0.4s window.
-const POWER3_OUT: [number, number, number, number] = [0.215, 0.61, 0.355, 1]
+// power3.out approximation as a cubic-bezier tuple. GSAP's power3.out is
+// quartic (1 - (1-t)^4); the canonical easeOutQuart bezier below is the
+// closest standard approximation. The visible delta over the 0.4s opacity
+// fade is well below the JND, but using easeOutQuart honors the original
+// curve choice rather than silently downgrading to easeOutCubic.
+const POWER3_OUT: [number, number, number, number] = [0.165, 0.84, 0.44, 1]
 
 export function LoadingScreen() {
   const { resolveLoader, prefersReducedMotion } = useMotion()
@@ -117,6 +119,14 @@ export function LoadingScreen() {
 
     return () => {
       controls.stop()
+      // Motion's animation.stop() does not fire onComplete. If we unmount mid-
+      // tween (HMR, fast nav, StrictMode dev double-invoke), finalize() would
+      // never run and the module-scoped loaderDone Promise would stay
+      // unresolved — Hero choreography awaits it. Drive finalize defensively
+      // unless a successful onComplete already fired (dataset === 'done').
+      if (document.body.dataset.loaderState !== 'done') {
+        finalize()
+      }
     }
   }, [progress, prefersReducedMotion, resolveLoader])
 
