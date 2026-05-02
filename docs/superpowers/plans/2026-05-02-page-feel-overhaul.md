@@ -1311,7 +1311,7 @@ git add src/components/sections/Hero.tsx src/i18n/locales/en.json src/i18n/local
 git commit -m "feat(hero): staged choreography + decluttered layout + bold-emphasis description"
 ```
 
-- [ ] **Step 7: Tick spec checkbox**
+- [x] **Step 7: Tick spec checkbox**
 
 Tick `- [ ] Hero left column uses staged-timeline mount choreography…` in the spec.
 
