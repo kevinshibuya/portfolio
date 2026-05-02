@@ -1126,7 +1126,7 @@ Tick `- [ ] src/hooks/useScrollFade.ts deleted; tests/unit/useScrollFade.test.ts
 - Delete: `src/components/canvas/HeroDataFragments.tsx`
 - Modify: `src/components/sections/Hero.tsx` (remove the lazy import + Suspense block)
 
-- [ ] **Step 1: Remove the import and JSX from Hero.tsx**
+- [x] **Step 1: Remove the import and JSX from Hero.tsx**
 
 Edit `src/components/sections/Hero.tsx`:
 - Delete lines 14-16 (the `const HeroDataFragments = lazy(...)` block) and the surrounding comment
@@ -1140,13 +1140,13 @@ Edit `src/components/sections/Hero.tsx`:
 
 - If `Suspense` and `lazy` are no longer used elsewhere in this file, remove them from the React import line
 
-- [ ] **Step 2: Delete the canvas file**
+- [x] **Step 2: Delete the canvas file**
 
 ```bash
 rm src/components/canvas/HeroDataFragments.tsx
 ```
 
-- [ ] **Step 3: Verify no remaining HeroDataFragments references**
+- [x] **Step 3: Verify no remaining HeroDataFragments references**
 
 ```bash
 grep -rn "HeroDataFragments" src/
@@ -1154,24 +1154,24 @@ grep -rn "HeroDataFragments" src/
 
 Expected: zero output.
 
-- [ ] **Step 4: Verify build**
+- [x] **Step 4: Verify build**
 
 Run: `npm run build`
 Expected: PASS.
 
-- [ ] **Step 5: Smoke-test the Hero**
+- [x] **Step 5: Smoke-test the Hero**
 
 Run (background OK): `npm run dev`
 Visit `localhost:5173`. Expected: Hero right side now shows only `HeroAccent3D` (the rotating 3D object). The bars/line/lattice/"47"/hexagon-with-FIG-label collage is gone. No console errors, no missing-component warnings.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A
 git commit -m "chore(hero): delete HeroDataFragments — single rotating accent only"
 ```
 
-- [ ] **Step 7: Tick spec checkbox**
+- [x] **Step 7: Tick spec checkbox**
 
 Tick `- [ ] HeroDataFragments.tsx deleted; no remaining imports…` in the spec.
 

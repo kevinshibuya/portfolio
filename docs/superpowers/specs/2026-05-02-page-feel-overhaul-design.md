@@ -218,7 +218,7 @@ These deviations from the brainstorm assumptions were discovered when reading th
 
 ## TODO
 
-- [ ] `HeroDataFragments.tsx` deleted; no remaining imports anywhere in `src/`
+- [x] `HeroDataFragments.tsx` deleted; no remaining imports anywhere in `src/`
 - [x] `useScrollFade(...)` calls removed from `Hero.tsx`, `SectionHeading.tsx`, and `Contact.tsx` (3 call sites + their imports)
 - [x] `src/hooks/useScrollFade.ts` deleted; `tests/unit/useScrollFade.test.ts` deleted
 - [x] `LoadingScreen.tsx` migrated off GSAP — `useGSAP` / `gsap.timeline` / `gsap.set` replaced with Motion's `animate()` + direct `style.transform`; visually identical to before; reduced-motion path preserved
