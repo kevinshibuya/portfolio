@@ -1,30 +1,36 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { ENABLE_R3F_ACCENT, MOBILE_BREAKPOINT_PX } from '../utils/motion-flags'
-
-type Resolver = () => void
+import { useLoaderProgress } from '../hooks/useLoaderProgress'
 
 interface MotionContextValue {
-  /**
-   * Resolves once when the LoadingScreen handoff completes. Module-scoped, so
-   * the SAME promise instance survives React 19 StrictMode remounts and any
-   * future MotionProvider unmount/remount — consumers can safely await it from
-   * any hook scope without risking an orphaned cycle-1 promise.
-   */
+  /** 0..1 loader progress; drives HeroNameDrawing stroke pathLengths and
+   *  LoadingCursor X position during the draw phase. */
+  progress: number
+  /** Resolves when progress reaches 1 (visual draw complete, before
+   *  ink-fill / period bloom / float-to-nav). */
+  drawDone: Promise<void>
+  /** Resolves when the cursor's flight to the nav completes (or
+   *  immediately under reduced motion / non-home routes). */
+  handoffDone: Promise<void>
+  /** Backward-compat alias for handoffDone. */
   loaderDone: Promise<void>
-  resolveLoader: Resolver
+  /** Called by LoadingCursor (or route-aware code) to resolve handoffDone. */
+  resolveHandoff: () => void
+  /** Backward-compat alias for resolveHandoff. The old LoadingScreen
+   *  consumes this; deleted in Task 8. */
+  resolveLoader: () => void
   prefersReducedMotion: boolean
   r3fAccentEnabled: boolean
 }
-
-let _loaderResolver: Resolver | null = null
-const _loaderDone: Promise<void> = new Promise<void>((res) => { _loaderResolver = res })
-const resolveLoader: Resolver = () => _loaderResolver?.()
 
 const Ctx = createContext<MotionContextValue | null>(null)
 
 export function MotionProvider({ children }: { children: React.ReactNode }) {
   const reduced = useReducedMotion() ?? false
+
+  const { progress, drawDone, handoffDone, resolveHandoff } =
+    useLoaderProgress(reduced)
 
   const [r3fEnabled, setR3fEnabled] = useState(false)
   useEffect(() => {
@@ -35,12 +41,16 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<MotionContextValue>(
     () => ({
-      loaderDone: _loaderDone,
-      resolveLoader,
+      progress,
+      drawDone,
+      handoffDone,
+      loaderDone: handoffDone,
+      resolveHandoff,
+      resolveLoader: resolveHandoff,
       prefersReducedMotion: reduced,
       r3fAccentEnabled: r3fEnabled,
     }),
-    [reduced, r3fEnabled]
+    [progress, drawDone, handoffDone, resolveHandoff, reduced, r3fEnabled]
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

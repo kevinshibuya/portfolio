@@ -415,7 +415,7 @@ git commit -m "feat(loader): add useLoaderProgress hook with synthetic ramp + sn
 
 The hook must mount inside the React tree, so we move it into `MotionProvider` and replace the module-scoped `_loaderDone` Promise. **This means HMR no longer preserves the loader promise across remounts** — acceptable because every HMR cycle restarts the loader anyway, and there are no consumers awaiting the promise from outside the provider's lifetime.
 
-- [ ] **Step 1: Rewrite `MotionContext.tsx`**
+- [x] **Step 1: Rewrite `MotionContext.tsx`**
 
 ```tsx
 // src/context/MotionContext.tsx
@@ -483,7 +483,7 @@ export function useMotion(): MotionContextValue {
 }
 ```
 
-- [ ] **Step 2: Verify the type-check passes**
+- [x] **Step 2: Verify the type-check passes**
 
 ```bash
 npx tsc -b --noEmit
@@ -491,7 +491,9 @@ npx tsc -b --noEmit
 
 Expected: no errors. (Existing consumers of `loaderDone` in `Hero.tsx` and any other place still compile because `loaderDone` is still a `Promise<void>`.)
 
-- [ ] **Step 3: Run unit tests to ensure nothing broke**
+**Deviation:** the old `LoadingScreen.tsx` reads `resolveLoader` from context. Added a temporary `resolveLoader: resolveHandoff` alias in `MotionContextValue` so the typecheck passes; alias is removed when LoadingScreen.tsx is deleted in Task 8.
+
+- [x] **Step 3: Run unit tests to ensure nothing broke**
 
 ```bash
 npm run test:unit
@@ -499,7 +501,7 @@ npm run test:unit
 
 Expected: all existing tests pass; `useLoaderProgress.test.tsx` from Task 2 still passes.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/context/MotionContext.tsx
