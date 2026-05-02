@@ -1045,13 +1045,13 @@ Tick `- [ ] LoadingScreen.tsx migrated off GSAP…` in the spec.
 - Delete: `src/hooks/useScrollFade.ts`, `tests/unit/useScrollFade.test.ts`
 - Modify: `src/utils/animations.ts` (remove `projectEaseGsap` shim), `package.json`, `package-lock.json`, `tests/unit/bundle-deps.test.ts`
 
-- [ ] **Step 1: Delete the hook + its test**
+- [x] **Step 1: Delete the hook + its test**
 
 ```bash
 rm src/hooks/useScrollFade.ts tests/unit/useScrollFade.test.ts
 ```
 
-- [ ] **Step 1a: Remove the `projectEaseGsap` shim from `src/utils/animations.ts`**
+- [x] **Step 1a: Remove the `projectEaseGsap` shim from `src/utils/animations.ts`**
 
 After Task 7.5, no consumer needs this re-export. Delete the trailing block:
 
@@ -1064,7 +1064,7 @@ export const projectEaseGsap = 'power3.out'
 
 Verify: `grep -rn "projectEaseGsap" src/` — expected zero output.
 
-- [ ] **Step 2: Uninstall GSAP packages**
+- [x] **Step 2: Uninstall GSAP packages**
 
 ```bash
 npm uninstall gsap @gsap/react
@@ -1072,7 +1072,7 @@ npm uninstall gsap @gsap/react
 
 Expected: both packages removed from `dependencies` in `package.json` and from `node_modules`.
 
-- [ ] **Step 3: Update bundle-deps test allowlist**
+- [x] **Step 3: Update bundle-deps test allowlist**
 
 Edit `tests/unit/bundle-deps.test.ts`:
 - Remove `'@gsap/react'` and `'gsap'` from the `allowed` set
@@ -1089,12 +1089,12 @@ const allowed = new Set([
 ])
 ```
 
-- [ ] **Step 4: Run the unit test suite to confirm both bundle-deps & animations pass**
+- [x] **Step 4: Run the unit test suite to confirm both bundle-deps & animations pass**
 
 Run: `npm run test:unit`
 Expected: PASS — bundle-deps reflects the new allowlist; animations test still passes; useScramble test still passes (untouched). useScrollFade test no longer exists.
 
-- [ ] **Step 5: Confirm no remaining gsap imports in src/**
+- [x] **Step 5: Confirm no remaining gsap imports in src/**
 
 ```bash
 grep -rn "from 'gsap" src/ ; grep -rn "@gsap/react" src/
@@ -1102,7 +1102,7 @@ grep -rn "from 'gsap" src/ ; grep -rn "@gsap/react" src/
 
 Expected: zero output.
 
-- [ ] **Step 6: Verify build**
+- [x] **Step 6: Verify build**
 
 Run: `npm run build`
 Expected: PASS.
