@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { motion, type Variants } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { RevealOnView, childVariants } from '../ui/RevealOnView'
+import { useMotion } from '../../context/MotionContext'
+import { RevealOnView } from '../ui/RevealOnView'
 import { SectionHeading } from '../ui/SectionHeading'
 import { Tag } from '../ui/Tag'
 import {
@@ -10,12 +11,19 @@ import {
   editorialCategories,
   typeGradients,
 } from '../../data/embeds'
+import {
+  VARIANTS,
+  STAGGER_PRESETS,
+  staggerContainer,
+  REDUCED_MOTION_VARIANT,
+} from '../../utils/animations'
 import type { Embed, EmbedType } from '../../types/content'
 
 const PAGE_SIZE = 12
 
 export function EmbedsGallery() {
   const { t } = useTranslation()
+  const { prefersReducedMotion } = useMotion()
   const [activeType, setActiveType] = useState<EmbedType | null>(null)
   const [activeEditorial, setActiveEditorial] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
@@ -40,10 +48,17 @@ export function EmbedsGallery() {
     setVisibleCount(PAGE_SIZE)
   }, [])
 
+  const parentVariants = prefersReducedMotion
+    ? REDUCED_MOTION_VARIANT
+    : staggerContainer(STAGGER_PRESETS.embedRows)
+  const rowVariants = prefersReducedMotion
+    ? REDUCED_MOTION_VARIANT
+    : VARIANTS.slideInLeft
+
   return (
     <section id="embeds" className="section section--sand">
       <div className="section-inner">
-        <RevealOnView variant="fade-up">
+        <RevealOnView recipe="stampIn">
           <SectionHeading
             index={t('sections.embeds.index')}
             label={t('sections.embeds.label')}
@@ -104,14 +119,28 @@ export function EmbedsGallery() {
           <strong>{filtered.length}</strong> {t('sections.embeds.countLabel')}
         </p>
 
-        <RevealOnView variant="stagger-children" staggerAmount={0.04} className="tbl">
+        {/*
+          EmbedRow renders motion.a directly so each .tbl-row stays a direct
+          child of .tbl — keeps the .tbl-row:last-child border-bottom rule
+          intact. Stagger is driven by staggerContainer(embedRows) here
+          instead of the <Stagger> wrapper for the same reason.
+        */}
+        <motion.div
+          className="tbl section-spacing-content"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={parentVariants}
+        >
           {visible.map((embed, idx) => (
-            // EmbedRow renders the motion.a directly — wrapping in motion.div
-            // would make every .tbl-row a sole child, breaking the
-            // .tbl-row:last-child border-bottom rule on every row.
-            <EmbedRow key={embed.link} idx={idx} embed={embed} />
+            <EmbedRow
+              key={embed.link}
+              idx={idx}
+              embed={embed}
+              variants={rowVariants}
+            />
           ))}
-        </RevealOnView>
+        </motion.div>
 
         {hasMore && (
           <div className="embeds-more">
@@ -131,15 +160,16 @@ export function EmbedsGallery() {
 interface EmbedRowProps {
   idx: number
   embed: Embed
+  variants: Variants
 }
 
-function EmbedRow({ idx, embed }: EmbedRowProps) {
+function EmbedRow({ idx, embed, variants }: EmbedRowProps) {
   const num = String(idx + 1).padStart(2, '0')
   const gradient = typeGradients[embed.type]
 
   return (
     <motion.a
-      variants={childVariants}
+      variants={variants}
       href={embed.link}
       target="_blank"
       rel="noopener noreferrer"
