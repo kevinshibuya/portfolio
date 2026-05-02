@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { heroStats } from '../../data/stats'
 import { useMotion } from '../../context/MotionContext'
 import { useScrollFade } from '../../hooks/useScrollFade'
+import { useLenis } from '../../hooks/useLenis'
 import { ScrambleText } from '../ui/ScrambleText'
 
 // HeroDataFragments owns ~all of the GSAP entry/parallax/scroll-fade work for
@@ -21,6 +22,7 @@ export function Hero() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
   const { loaderDone } = useMotion()
+  const { scrollTo } = useLenis()
   const suppRef = useRef<HTMLDivElement>(null)
   const nameRef = useRef<HTMLHeadingElement>(null)
   useScrollFade(nameRef)
@@ -58,9 +60,7 @@ export function Hero() {
 
   const go = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
-    const target = document.getElementById(id)
-    if (!target) return
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    scrollTo(`#${id}`, { duration: 1.2 })
   }
 
   return (

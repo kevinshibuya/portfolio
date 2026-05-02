@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLenis } from '../../hooks/useLenis'
 
 const NAV_ITEMS = [
   'work',
@@ -22,6 +23,7 @@ const SECTION_ID: Record<NavItem, string> = {
 export function Header() {
   const { t, i18n } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
+  const { scrollTo } = useLenis()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -32,9 +34,7 @@ export function Header() {
 
   const go = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
-    const target = id === 'top' ? document.body : document.getElementById(id)
-    if (!target) return
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    scrollTo(`#${id}`, { duration: 1.2 })
   }
 
   const toggleLanguage = (): void => {
