@@ -1188,6 +1188,8 @@ This is the user-facing centerpiece. All foundational primitives are now availab
 
 **Carry-over from Task 4 code review:** `.hero-main` is currently declared in TWO non-adjacent blocks in `src/index.css` — the original block (with `position/z-index/align-self/max-width`) plus a tail block at end-of-file (with `display: flex; flex-direction: column;`). While editing Hero CSS in this task, MERGE the two blocks: move `display: flex; flex-direction: column;` up into the original `.hero-main` block, then leave the four "Hero left column inter-element gaps" sibling-selector rules grouped together at the bottom under their existing comment header. Cascade outcome stays identical; maintainability improves (no risk of a future edit missing the tail block).
 
+**Carry-over from Task 7 code review:** `nameRef` in Hero.tsx is now functionally dead — only `useScrollFade(nameRef)` consumed it, and that call was removed in Task 7. The ref still attaches to the `<h1>` but nothing reads it. While rewriting the Hero JSX in this task, drop the `nameRef` declaration AND its `ref={nameRef}` binding. (`suppRef` is independent — it's still load-bearing for the `is-revealed` reveal effect.)
+
 - [ ] **Step 1: Plan the JSX rewrite**
 
 The new Hero structure (left column only — right side `HeroAccent3D` block stays untouched):
@@ -1431,6 +1433,8 @@ git commit -m "feat(embeds): fast slideInLeft stagger across numbered rows"
 - Modify: `src/i18n/locales/en.json`, `pt.json` (contact body if `<strong>` is added)
 
 **Carry-over from Task 4 code review:** Contact + Footer are the only ink-background sections. Task 4 added a global `strong { color: var(--ink); }` rule. Verify any `<strong>` markup added here renders legibly on the dark background; if it doesn't, add a defensive override `.section--dark strong, .contact strong, .footer strong { color: var(--cream); }` (use whichever scoping selector matches the actual DOM).
+
+**Carry-over from Task 7 code review:** `contactTitleRef` in Contact.tsx is now functionally dead — only `useScrollFade(contactTitleRef)` consumed it, and that call was removed in Task 7. The ref still attaches but nothing reads it. While editing Contact JSX in this task, drop the `contactTitleRef` declaration AND its `ref={contactTitleRef}` binding.
 
 - [ ] **Step 1: Read the current file**.
 
