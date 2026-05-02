@@ -51,7 +51,7 @@ This task adds a one-shot Node script that reads `public/fonts/PlusJakartaSans-V
 
 opentype.js renders variable fonts at their default instance (weight 400). The hero displays at weight 700; we accept this visual delta on the *outline* shape during the draw because the strokes will be filled to weight-700 ink color at the end of the draw, where weight matters more (filled glyphs vs outlined). If verification (Task 10) shows the outline silhouette feels too light, the escape hatch is to bake a static weight-700 TTF via fonttools and re-run extraction; that's documented as a follow-up, not blocking.
 
-- [ ] **Step 1: Install opentype.js as a dev dependency**
+- [x] **Step 1: Install opentype.js as a dev dependency**
 
 ```bash
 npm install --save-dev opentype.js
@@ -59,7 +59,7 @@ npm install --save-dev opentype.js
 
 Expected: package added to `devDependencies` in `package.json`. Lockfile updated.
 
-- [ ] **Step 2: Write the extraction script**
+- [x] **Step 2: Write the extraction script**
 
 ```js
 // scripts/extract-glyph-paths.mjs
@@ -146,7 +146,7 @@ console.log(`  kevin: ${kevin.glyphs.length} glyphs, totalAdvance=${kevin.totalA
 console.log(`  shibuya.: ${shibuya.glyphs.length} glyphs, totalAdvance=${shibuya.totalAdvance.toFixed(1)}`)
 ```
 
-- [ ] **Step 3: Run the script to generate `glyphPaths.ts`**
+- [x] **Step 3: Run the script to generate `glyphPaths.ts`**
 
 ```bash
 node scripts/extract-glyph-paths.mjs
@@ -161,7 +161,7 @@ Wrote /…/src/data/glyphPaths.ts
 
 (Glyph count for `shibuya.` is 8 — 7 letters + period.)
 
-- [ ] **Step 4: Sanity-check the generated file**
+- [x] **Step 4: Sanity-check the generated file**
 
 Open `src/data/glyphPaths.ts` and confirm:
 - `NAME_KEVIN.glyphs` has 5 entries, characters `k, e, v, i, n`
