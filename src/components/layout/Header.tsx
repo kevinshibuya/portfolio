@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLenis } from '../../hooks/useLenis'
+import { useMotion } from '../../context/MotionContext'
 
 const NAV_ITEMS = [
   'work',
@@ -24,6 +25,8 @@ export function Header() {
   const { t, i18n } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
   const { scrollTo } = useLenis()
+  const { handoffDone } = useMotion()
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -31,6 +34,14 @@ export function Header() {
     onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    handoffDone
+      .then(() => { if (!cancelled) setVisible(true) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [handoffDone])
 
   const go = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
@@ -43,7 +54,14 @@ export function Header() {
   }
 
   return (
-    <header className={`nav${scrolled ? ' is-scrolled' : ''}`}>
+    <header
+      className={`nav${scrolled ? ' is-scrolled' : ''}`}
+      style={{
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 200ms ease-out',
+        pointerEvents: visible ? 'auto' : 'none',
+      }}
+    >
       <div className="nav-inner">
         <a href="#top" className="nav-brand" onClick={go('top')}>
           <span className="nav-mark">ks</span>

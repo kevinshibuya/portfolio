@@ -1282,7 +1282,7 @@ git commit -m "feat(loader): Hero renders HeroNameDrawing + crossfades to h1 on 
 
 `App.tsx` currently renders `<LoadingScreen />` as a sibling of `<SmoothScroll>`. After this task it does not — the loader is now an in-place state of `Hero`. We add a small hook that listens for `handoffDone` and toggles `document.body.dataset.loaderState` from `"loading"` to `"done"`, preserving the existing CSS scroll-lock rule (`html:has(body[data-loader-state="loading"])`) so we don't have to change CSS scroll-lock semantics. The hook also forces `body.dataset.loaderState = "loading"` on mount so the lock is in effect from frame 1.
 
-- [ ] **Step 1: Create the scroll-lock hook**
+- [x] **Step 1: Create the scroll-lock hook**
 
 ```ts
 // src/hooks/useScrollLockDuringLoader.ts
@@ -1315,7 +1315,7 @@ export function useScrollLockDuringLoader(): void {
 }
 ```
 
-- [ ] **Step 2: Update `App.tsx`**
+- [x] **Step 2: Update `App.tsx`**
 
 ```tsx
 // src/App.tsx
@@ -1342,7 +1342,7 @@ function App() {
 export default App
 ```
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 ```bash
 npx tsc -b --noEmit
@@ -1350,7 +1350,7 @@ npx tsc -b --noEmit
 
 Expected: no errors. (TypeScript will flag the now-unused `LoadingScreen` import — it's removed in this step.)
 
-- [ ] **Step 4: Hide the Header during the loader**
+- [x] **Step 4: Hide the Header during the loader**
 
 The Header renders unconditionally in App.tsx. With the SVG-on-cream loader, the header sitting on top would be visually intrusive. Open `src/components/layout/Header.tsx` and add an opacity gate driven by `handoffDone`:
 
@@ -1396,12 +1396,14 @@ return (
 
 The 200ms duration matches the cursor's last 200ms of flight, so the header materializes around the dot exactly as it lands on the nav availability indicator.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/App.tsx src/hooks/useScrollLockDuringLoader.ts src/components/layout/Header.tsx
 git commit -m "feat(loader): wire scroll-lock + header gate to handoffDone"
 ```
+
+**Deviation:** added route-aware logic to `useScrollLockDuringLoader` (flagged at start of execution): on non-home routes the hook immediately calls `resolveHandoff()` and skips the lock. Without this, project-detail pages would never unlock scroll or reveal the header.
 
 ---
 
