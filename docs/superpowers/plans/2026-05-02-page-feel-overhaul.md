@@ -1515,7 +1515,7 @@ After all section refactors are done, tick `- [ ] WorkExperience, Skills, Projec
 - Create: `src/components/sections/Stats.tsx`
 - Modify: `src/pages/Home.tsx`
 
-- [ ] **Step 1: Locate the stats data source**
+- [x] **Step 1: Locate the stats data source**
 
 ```bash
 sed -n '1,30p' src/data/stats.ts
@@ -1523,7 +1523,7 @@ sed -n '1,30p' src/data/stats.ts
 
 This is currently consumed by `Hero.tsx` (now removed). Confirm it exports `heroStats` with shape `{ value, labelKey }[]` — the new Stats component will import the same data.
 
-- [ ] **Step 2: Create the Stats section**
+- [x] **Step 2: Create the Stats section**
 
 Create `src/components/sections/Stats.tsx`:
 
@@ -1605,7 +1605,7 @@ export function Stats() {
 }
 ```
 
-- [ ] **Step 3: Add CSS for the slim band**
+- [x] **Step 3: Add CSS for the slim band**
 
 Append to `src/index.css`:
 
@@ -1636,7 +1636,7 @@ Append to `src/index.css`:
 }
 ```
 
-- [ ] **Step 4: Insert Stats into Home.tsx**
+- [x] **Step 4: Insert Stats into Home.tsx**
 
 Edit `src/pages/Home.tsx`. Add a lazy import alongside the others:
 
@@ -1662,19 +1662,19 @@ In the JSX, insert `<Stats />` between `<WorkExperience />` and `<Skills />`. No
 </Suspense>
 ```
 
-- [ ] **Step 5: Build & smoke**
+- [x] **Step 5: Build & smoke**
 
 Run: `npm run build` → PASS.
 `npm run dev` → scroll past WorkExperience → confirm Stats slim band appears with the three numerals counting up from 0 to their target values, staggered 120ms apart. Numerals have the `40px / 700` weight.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/sections/Stats.tsx src/pages/Home.tsx src/index.css
 git commit -m "feat(stats): slim band w/ stampIn stagger + count-up; insert after Work"
 ```
 
-- [ ] **Step 7: Tick spec checkbox**
+- [x] **Step 7: Tick spec checkbox**
 
 Tick `- [ ] <Stats /> section component implemented…` in the spec.
 

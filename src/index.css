@@ -1038,3 +1038,29 @@ body[data-loader-state="loading"] {
 @media (max-width: 1100px) {
   .hero-accent-mount { display: none; }
 }
+
+/* Stats slim-band section. Reuses .hero-stat-v / .hero-stat-l for type
+   styles so the relocated Hero stat numerals keep their 40px/700 weight. */
+.stats {
+  padding: 128px 80px;
+}
+.stats-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  text-align: center;
+}
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 768px) {
+  .stats { padding: 96px 24px; }
+  .stats-grid { grid-template-columns: 1fr; gap: 32px; }
+}

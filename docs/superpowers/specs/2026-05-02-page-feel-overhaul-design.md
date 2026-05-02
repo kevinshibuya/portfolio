@@ -229,7 +229,7 @@ These deviations from the brainstorm assumptions were discovered when reading th
 - [ ] New `<Stagger>` component implemented and used by every section that maps to a `staggerContainer` recipe
 - [x] Hero left column uses staged-timeline mount choreography with the 180/520/780/1040/1280ms timings; stats row removed from Hero JSX; description constrained to `max-w-[640px]`; new `48px / 32px / 48px` vertical gaps applied
 - [x] WorkExperience, Skills, Projects, EmbedsGallery, Contact each apply their assigned recipes per the mapping table
-- [ ] `<Stats />` section component implemented as slim band with `stampIn` stagger + count-up numerals; placed in `Home.tsx` between `<WorkExperience />` and `<Skills />`
+- [x] `<Stats />` section component implemented as slim band with `stampIn` stagger + count-up numerals; placed in `Home.tsx` between `<WorkExperience />` and `<Skills />`
 - [x] `SmoothScroll` provider implemented with `lerp: 0.1`, `smoothWheel: true`, `smoothTouch: false`; wraps routed content in `App.tsx`; bypassed when `prefersReducedMotion` is true
 - [x] `useLenis()` hook implemented and consumed by all anchor-link handlers (nav items + hero scroll cue); falls back to `window.scrollTo` when Lenis is absent
 - [x] Type ramp updates applied in `index.css`: hero name `clamp(64px, 11vw, 192px)` lh `0.92`, role prefix/active grown, hero/section description line-heights `1.75`/`1.7`, button `13px / 16px 28px`, stat value `40px / w 700`
