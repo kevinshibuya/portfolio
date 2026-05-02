@@ -1415,19 +1415,19 @@ git commit -m "feat(projects): cardReveal stagger w/ lg-card lead + bold-emphasi
 **Files:**
 - Modify: `src/components/sections/EmbedsGallery.tsx`
 
-- [ ] **Step 1: Read the current file** to confirm row structure.
+- [x] **Step 1: Read the current file** to confirm row structure.
 
-- [ ] **Step 2: Apply the mapping**
+- [x] **Step 2: Apply the mapping**
 
 Wrap the section heading in `<RevealOnView recipe="stampIn">`. Wrap the row list in `<Stagger recipe="slideInLeft" stagger={STAGGER_PRESETS.embedRows}>`. Note this stagger is fast (50ms) — many rows, faster cadence per spec §2.
 
 Apply `.section-spacing-content` and `max-w-[640px]` on description.
 
-- [ ] **Step 3: Build & smoke**
+- [x] **Step 3: Build & smoke**
 
 `npm run dev` → scroll to Embeds → rows enter rapid-fire from the left, no stalls.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/sections/EmbedsGallery.tsx
@@ -1446,19 +1446,19 @@ git commit -m "feat(embeds): fast slideInLeft stagger across numbered rows"
 
 **Carry-over from Task 7 code review:** `contactTitleRef` in Contact.tsx is now functionally dead — only `useScrollFade(contactTitleRef)` consumed it, and that call was removed in Task 7. The ref still attaches but nothing reads it. While editing Contact JSX in this task, drop the `contactTitleRef` declaration AND its `ref={contactTitleRef}` binding.
 
-- [ ] **Step 1: Read the current file**.
+- [x] **Step 1: Read the current file**.
 
-- [ ] **Step 2: Apply the mapping**
+- [x] **Step 2: Apply the mapping**
 
 Wrap the section heading in `<RevealOnView recipe="stampIn">`. Wrap the body / link list in `<RevealOnView recipe="fadeUp">`. The submit button (if present) wraps in `<RevealOnView recipe="scaleIn">`.
 
 Apply `.section-spacing-content` and `max-w-[640px]` on body. Convert any string with emphasis to `<Trans>` + `<strong>`.
 
-- [ ] **Step 3: Build & smoke**
+- [x] **Step 3: Build & smoke**
 
 `npm run dev` → scroll to Contact → heading stamps in, body fades up, submit scales in.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/sections/Contact.tsx src/i18n/locales/en.json src/i18n/locales/pt.json
@@ -1472,9 +1472,9 @@ git commit -m "feat(contact): heading stampIn + body fadeUp + button scaleIn"
 **Files:**
 - Modify: `src/components/layout/Footer.tsx`
 
-- [ ] **Step 1: Read the current file**.
+- [x] **Step 1: Read the current file**.
 
-- [ ] **Step 2: Apply the mapping**
+- [x] **Step 2: Apply the mapping**
 
 Locate the outlined `kevin shibuya` wordmark element. Wrap it in `<RevealOnView recipe="fadeUp">`. To use the `soft` spring specifically (slowest settle), import `SPRINGS` and pass an inline override:
 
@@ -1492,18 +1492,18 @@ If the wordmark already lives inside a `<motion.div>` or similar, you can swap t
 
 Otherwise add a `RevealOnView`-style wrapper but use the inline `motion.div` shown above to override the default `gentle` spring. (RevealOnView always uses VARIANTS' default spring; for the special-case `soft` override on a single element, the inline form is cleanest.)
 
-- [ ] **Step 3: Build & smoke**
+- [x] **Step 3: Build & smoke**
 
 `npm run dev` → scroll to footer → confirm wordmark fades up with a noticeably slower settle than other elements.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/layout/Footer.tsx
 git commit -m "feat(footer): wordmark fadeUp with soft spring as page coda"
 ```
 
-- [ ] **Step 5: After Tasks 11-16, tick the spec checkbox**
+- [x] **Step 5: After Tasks 11-16, tick the spec checkbox**
 
 After all section refactors are done, tick `- [ ] WorkExperience, Skills, Projects, EmbedsGallery, Contact each apply their assigned recipes per the mapping table` and `- [ ] <Trans> migration completed for every i18n string containing <strong>…` in the spec.
 

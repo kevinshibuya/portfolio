@@ -228,7 +228,7 @@ These deviations from the brainstorm assumptions were discovered when reading th
 - [x] `RevealOnView` accepts `recipe` and `delay` props; default call sites unchanged in behavior
 - [ ] New `<Stagger>` component implemented and used by every section that maps to a `staggerContainer` recipe
 - [x] Hero left column uses staged-timeline mount choreography with the 180/520/780/1040/1280ms timings; stats row removed from Hero JSX; description constrained to `max-w-[640px]`; new `48px / 32px / 48px` vertical gaps applied
-- [ ] WorkExperience, Skills, Projects, EmbedsGallery, Contact each apply their assigned recipes per the mapping table
+- [x] WorkExperience, Skills, Projects, EmbedsGallery, Contact each apply their assigned recipes per the mapping table
 - [ ] `<Stats />` section component implemented as slim band with `stampIn` stagger + count-up numerals; placed in `Home.tsx` between `<WorkExperience />` and `<Skills />`
 - [x] `SmoothScroll` provider implemented with `lerp: 0.1`, `smoothWheel: true`, `smoothTouch: false`; wraps routed content in `App.tsx`; bypassed when `prefersReducedMotion` is true
 - [x] `useLenis()` hook implemented and consumed by all anchor-link handlers (nav items + hero scroll cue); falls back to `window.scrollTo` when Lenis is absent
