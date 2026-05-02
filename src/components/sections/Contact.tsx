@@ -1,7 +1,5 @@
-import { useRef } from 'react'
-import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { RevealOnView, childVariants } from '../ui/RevealOnView'
+import { RevealOnView } from '../ui/RevealOnView'
 import { EMAIL, socialLinks } from '../../data/social'
 
 interface ContactRowData {
@@ -17,7 +15,6 @@ function getSocialUrl(platform: string): string {
 
 export function Contact() {
   const { t } = useTranslation()
-  const contactTitleRef = useRef<HTMLHeadingElement>(null)
 
   const rows: ContactRowData[] = [
     {
@@ -49,23 +46,19 @@ export function Contact() {
   return (
     <section id="contact" className="section section--contact">
       <div className="contact-inner">
-        <RevealOnView variant="fade-up">
+        <RevealOnView recipe="stampIn">
           <span className="section-index">
             {t('sections.contact.index')} · {t('sections.contact.label')}
           </span>
           <h2
-            ref={contactTitleRef}
             className="contact-title section-title"
             dangerouslySetInnerHTML={{ __html: t('sections.contact.title') }}
           />
           <p className="contact-lede">{t('sections.contact.subtitle')}</p>
         </RevealOnView>
 
-        <RevealOnView variant="stagger-children" staggerAmount={0.06} className="contact-list">
+        <RevealOnView recipe="fadeUp" className="contact-list section-spacing-content">
           {rows.map((row) => (
-            // ContactRow renders the motion.a directly — wrapping in motion.div
-            // would make every .contact-row a sole child, breaking any
-            // adjacent-sibling row dividers.
             <ContactRow key={row.num} {...row} />
           ))}
         </RevealOnView>
@@ -77,8 +70,7 @@ export function Contact() {
 function ContactRow({ num, label, meta, href }: ContactRowData) {
   const isExternal = href.startsWith('http')
   return (
-    <motion.a
-      variants={childVariants}
+    <a
       href={href}
       target={isExternal ? '_blank' : undefined}
       rel={isExternal ? 'noopener noreferrer' : undefined}
@@ -91,6 +83,6 @@ function ContactRow({ num, label, meta, href }: ContactRowData) {
       </span>
       <span className="contact-meta">{meta}</span>
       <span className="contact-icon">↗</span>
-    </motion.a>
+    </a>
   )
 }

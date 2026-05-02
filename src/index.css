@@ -107,6 +107,13 @@ strong {
   color: var(--ink);
   font-style: normal;
 }
+/* Defensive override for ink-background sections — Contact + Footer use
+   color: var(--cream) on their text so global strong { color: var(--ink) }
+   would render invisibly. */
+.section--contact strong,
+.footer strong {
+  color: var(--cream);
+}
 
 /* =========================================================================
    NAV
