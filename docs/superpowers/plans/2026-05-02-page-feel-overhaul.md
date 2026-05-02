@@ -1107,14 +1107,14 @@ Expected: zero output.
 Run: `npm run build`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
 git commit -m "chore(deps): remove gsap + @gsap/react; delete useScrollFade hook"
 ```
 
-- [ ] **Step 8: Tick spec checkboxes**
+- [x] **Step 8: Tick spec checkboxes**
 
 Tick `- [ ] src/hooks/useScrollFade.ts deleted; tests/unit/useScrollFade.test.ts deleted`, `- [ ] gsap and @gsap/react removed…`, and `- [ ] lenis added…` in the spec.
 

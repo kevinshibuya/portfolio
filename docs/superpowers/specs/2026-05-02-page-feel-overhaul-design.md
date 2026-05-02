@@ -220,10 +220,10 @@ These deviations from the brainstorm assumptions were discovered when reading th
 
 - [ ] `HeroDataFragments.tsx` deleted; no remaining imports anywhere in `src/`
 - [x] `useScrollFade(...)` calls removed from `Hero.tsx`, `SectionHeading.tsx`, and `Contact.tsx` (3 call sites + their imports)
-- [ ] `src/hooks/useScrollFade.ts` deleted; `tests/unit/useScrollFade.test.ts` deleted
+- [x] `src/hooks/useScrollFade.ts` deleted; `tests/unit/useScrollFade.test.ts` deleted
 - [x] `LoadingScreen.tsx` migrated off GSAP — `useGSAP` / `gsap.timeline` / `gsap.set` replaced with Motion's `animate()` + direct `style.transform`; visually identical to before; reduced-motion path preserved
-- [ ] `gsap` and `@gsap/react` removed from `package.json` + `package-lock.json` + the `allowed` set in `tests/unit/bundle-deps.test.ts`; the `projectEaseGsap` shim in `animations.ts` removed
-- [ ] `lenis` added to `package.json` and to the `allowed` set in `tests/unit/bundle-deps.test.ts`
+- [x] `gsap` and `@gsap/react` removed from `package.json` + `package-lock.json` + the `allowed` set in `tests/unit/bundle-deps.test.ts`; the `projectEaseGsap` shim in `animations.ts` removed
+- [x] `lenis` added to `package.json` and to the `allowed` set in `tests/unit/bundle-deps.test.ts`
 - [x] `src/utils/animations.ts` rewritten to export `SPRINGS`, `VARIANTS`, `STAGGER_PRESETS`, and `staggerContainer()` factory; old GSAP/duration constants removed
 - [x] `RevealOnView` accepts `recipe` and `delay` props; default call sites unchanged in behavior
 - [ ] New `<Stagger>` component implemented and used by every section that maps to a `staggerContainer` recipe
