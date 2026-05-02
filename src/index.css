@@ -240,6 +240,15 @@ strong {
   -webkit-text-stroke: 1px var(--blue-300);
 }
 
+/* Hero name drawing (loader phase) — see Task 8 for full styling. This
+   minimal block ensures the SVGs render at the right pixel size. */
+.hero-name-drawing { display: block; width: 100%; }
+.hero-name-drawing-word {
+  display: block;
+  width: auto;
+  height: clamp(64px, 11vw, 192px);
+}
+
 /* Scramble lettering — cursor affordance + design-system focus ring.
    The ::after underline on hover is for parity with the wider editorial feel:
    a soft suggestion that the lettering is interactive, without committing to

@@ -528,7 +528,7 @@ A screen-reader-only `<h1 className="sr-only">kevin shibuya.</h1>` is rendered a
 
 The SVG sizing matches `.hero-name`'s `font-size: clamp(64px, 11vw, 192px)`. The viewBox is determined by the kevin/shibuya em-units; CSS sets the height via `font-size`-equivalent measurement and width auto-sizes from the viewBox aspect ratio. Practically: render two stacked SVGs (one per word) since they have different widths and different baselines; this keeps each word's viewBox independent and correct.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // tests/unit/HeroNameDrawing.test.tsx
@@ -577,7 +577,7 @@ describe('HeroNameDrawing', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 ```bash
 npm run test:unit -- HeroNameDrawing
@@ -585,7 +585,7 @@ npm run test:unit -- HeroNameDrawing
 
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement `HeroNameDrawing`**
+- [x] **Step 3: Implement `HeroNameDrawing`**
 
 ```tsx
 // src/components/ui/HeroNameDrawing.tsx
@@ -752,7 +752,7 @@ export const HeroNameDrawing = forwardRef<HeroNameDrawingHandle>(function HeroNa
 })
 ```
 
-- [ ] **Step 4: Add CSS for `.hero-name-drawing` (will be flushed in Task 8 alongside other CSS work)**
+- [x] **Step 4: Add CSS for `.hero-name-drawing` (will be flushed in Task 8 alongside other CSS work)**
 
 For now, append a minimal block to `src/index.css` so the component renders at the correct size during testing. The full styling pass happens in Task 8.
 
@@ -777,7 +777,7 @@ For now, append a minimal block to `src/index.css` so the component renders at t
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 ```bash
 npm run test:unit -- HeroNameDrawing
@@ -785,7 +785,7 @@ npm run test:unit -- HeroNameDrawing
 
 Expected: 3 tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/ui/HeroNameDrawing.tsx tests/unit/HeroNameDrawing.test.tsx src/index.css
