@@ -238,7 +238,7 @@ Edit `docs/superpowers/specs/2026-05-02-page-feel-overhaul-design.md` and change
 
 The existing component supports three legacy variants (`fade`, `fade-up`, `stagger-children`). Replace them with the new recipe vocabulary while keeping default behavior reasonable for any unmigrated call sites: when no `recipe` is supplied, default to `fadeUp`. The legacy names get an internal alias so accidentally-unmigrated usages still render something sensible. Also accept a `delay` prop (seconds) that gets injected into the visible transition.
 
-- [ ] **Step 1: Replace the file contents with:**
+- [x] **Step 1: Replace the file contents with:**
 
 ```tsx
 import React from 'react'
@@ -335,19 +335,19 @@ export function RevealOnView({
 }
 ```
 
-- [ ] **Step 2: Verify the build still passes**
+- [x] **Step 2: Verify the build still passes**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. The legacy `variant` and `staggerAmount` props are kept as backwards-compat shims so existing call sites continue to type-check. They will be removed in Task 16's cleanup after every section refactor lands.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/ui/RevealOnView.tsx
 git commit -m "feat(reveal): switch RevealOnView to new recipe vocabulary"
 ```
 
-- [ ] **Step 4: Tick spec checkbox**
+- [x] **Step 4: Tick spec checkbox**
 
 Tick `- [ ] RevealOnView accepts recipe and delay props…` in the spec.
 

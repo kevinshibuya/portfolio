@@ -225,7 +225,7 @@ These deviations from the brainstorm assumptions were discovered when reading th
 - [ ] `gsap` and `@gsap/react` removed from `package.json` + `package-lock.json` + the `allowed` set in `tests/unit/bundle-deps.test.ts`; the `projectEaseGsap` shim in `animations.ts` removed
 - [ ] `lenis` added to `package.json` and to the `allowed` set in `tests/unit/bundle-deps.test.ts`
 - [x] `src/utils/animations.ts` rewritten to export `SPRINGS`, `VARIANTS`, `STAGGER_PRESETS`, and `staggerContainer()` factory; old GSAP/duration constants removed
-- [ ] `RevealOnView` accepts `recipe` and `delay` props; default call sites unchanged in behavior
+- [x] `RevealOnView` accepts `recipe` and `delay` props; default call sites unchanged in behavior
 - [ ] New `<Stagger>` component implemented and used by every section that maps to a `staggerContainer` recipe
 - [ ] Hero left column uses staged-timeline mount choreography with the 180/520/780/1040/1280ms timings; stats row removed from Hero JSX; description constrained to `max-w-[640px]`; new `48px / 32px / 48px` vertical gaps applied
 - [ ] WorkExperience, Skills, Projects, EmbedsGallery, Contact each apply their assigned recipes per the mapping table
