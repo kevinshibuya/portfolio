@@ -71,7 +71,6 @@ The reference project achieves "clean and cinematic" through three specific move
 | Section | Heading | Body / list / cards | Notes |
 |---|---|---|---|
 | Hero | `stampIn` (name) | per choreography table above | staged on mount |
-| About | `stampIn` | portrait `slideInRight` (180ms after heading), bio `fadeUp`, pills `staggerContainer` of `scaleIn` (80ms stagger) | |
 | WorkExperience | `stampIn` | rows `staggerContainer` of `slideInLeft` (100ms stagger). Accordion expand stays Framer `AnimatePresence` height-auto | |
 | Stats | none | `staggerContainer` of `stampIn` (120ms stagger). Numerals count up via `animate(0, target)` driven by `useInView`, ~1.4s | new placement, see §5 |
 | Skills | `stampIn` | three numbered columns as `staggerContainer` of `slideInLeft` (120ms between columns, 60ms between items inside each column) | |
@@ -129,7 +128,7 @@ The reference project achieves "clean and cinematic" through three specific move
 | Container max-width | `1440px`, side padding `80px` | unchanged |
 | Inner paragraph max-width on hero & section descriptions | unconstrained | `~640–680px` (new `max-w-[640px]` utility on description JSX) |
 
-**Bold-emphasis inline pattern:** existing italic blue-400 `<em>` convention for in-line accents in section titles **stays**. New complementary convention for **body copy** — semantic `<strong>` element gets globally-styled weight bump from `400 → 600` in `text-ink` color (not blue, not italic — distinct from `<em>`). Each paragraph can now have two or three weight peaks instead of one flat run. Applied to hero description, About bio, project descriptions, and selected section descriptions.
+**Bold-emphasis inline pattern:** existing italic blue-400 `<em>` convention for in-line accents in section titles **stays**. New complementary convention for **body copy** — semantic `<strong>` element gets globally-styled weight bump from `400 → 600` in `text-ink` color (not blue, not italic — distinct from `<em>`). Each paragraph can now have two or three weight peaks instead of one flat run. Applied to hero description, project descriptions, and selected section descriptions.
 
 **i18n implication:** any string with embedded `<strong>` switches from `t('key')` to `<Trans i18nKey="key" components={{ strong: <strong /> }} />`. Strings without emphasis stay as plain `t()`.
 
@@ -144,7 +143,7 @@ Hero → About → WorkExperience → Stats (new position) → Skills → Projec
 
 **Animation:** each stat enters via `stampIn` with 120ms stagger. On enter, numerals count up from `0` to target value over ~1.4s using Motion's `animate(0, n)` driven by `useInView`. Reduced-motion: numerals appear at final value with the 200ms opacity-only fade.
 
-**Dividers:** no `MarqueeDivider` is added between WorkExperience and Stats (they read as one continuous statement). If a `MarqueeDivider` currently sits between WorkExperience and Skills, it relocates to between Stats and Skills, preserving the existing divider count. If no divider currently exists at that boundary, none is added. Implementer must confirm current divider placement before relocating.
+**Dividers:** `MarqueeDivider` is not currently rendered anywhere in `Home.tsx` (the component exists but isn't placed). No divider work in this spec — Stats slots in directly between `<WorkExperience />` and `<Skills />`.
 
 ---
 
@@ -161,25 +160,27 @@ Hero → About → WorkExperience → Stats (new position) → Skills → Projec
 - `src/utils/animations.ts` — rewritten (`SPRINGS`, `VARIANTS`, `STAGGER_PRESETS`, `staggerContainer()` factory)
 - `src/components/ui/RevealOnView.tsx` — adds `recipe` and `delay` props (default behavior preserved)
 - `src/components/sections/Hero.tsx` — removes `HeroDataFragments` + stats row, applies new gap utilities + max-w on description, switches to staged-timeline mount animation
-- `src/components/sections/{About,WorkExperience,Skills,Projects,EmbedsGallery,Contact}.tsx` — adopt new recipes, `max-w` on descriptions, `<Trans>` for `<strong>` strings
+- `src/components/sections/{WorkExperience,Skills,Projects,EmbedsGallery,Contact}.tsx` — adopt new recipes, `max-w` on descriptions, `<Trans>` for `<strong>` strings
+- `src/components/ui/SectionHeading.tsx` — remove `useScrollFade(titleRef)` call (and the import); the heading-fade-on-exit behavior is intentionally dropped (see §6, item 1)
 - `src/components/layout/Footer.tsx` — wordmark `fadeUp` with `soft` spring
 - `src/components/layout/Header.tsx` (and any nav component) — anchor links migrate to `lenis.scrollTo` via `useLenis()`
 - `src/pages/Home.tsx` — section ordering updated to insert `<Stats />` between `<WorkExperience />` and the divider before `<Skills />`
 - `src/i18n/locales/{en,pt}.json` — selected key strings get `<strong>` markup
 - `src/index.css` — clamp/line-height/button updates, global `strong` style, new heading→content `96px` spacing utility
 - `src/App.tsx` — wraps the routed content in `<SmoothScroll>` provider
-- `src/__tests__/runtime-deps.test.ts` — remove `gsap`, add `lenis`
-- `package.json` + `package-lock.json` — add `lenis`, remove `gsap` (and `@gsap/react` if installed)
+- `tests/unit/bundle-deps.test.ts` — update the `allowed` set: remove `gsap` and `@gsap/react`, add `lenis`
+- `package.json` + `package-lock.json` — add `lenis`, remove `gsap` and `@gsap/react`
 
 **Deleted:**
 - `src/components/canvas/HeroDataFragments.tsx`
-- `src/hooks/useScrollFade.ts` — delete only after confirming no remaining imports outside `HeroDataFragments` (it was created for that parallax; verify with `grep -r useScrollFade src/`)
+- `src/hooks/useScrollFade.ts` — confirmed three consumers (`Hero.tsx`, `SectionHeading.tsx`, `Contact.tsx`); each call site is removed first, then the hook file is deleted. The scroll-progress-driven heading-fade-on-exit behavior is intentionally dropped in this spec (will be redesigned in a future spec).
+- `tests/unit/useScrollFade.test.ts` — deleted alongside the hook
 
 ---
 
 ## Verification approach
 
-- **Runtime-deps test** (`src/__tests__/runtime-deps.test.ts`) updated: removes `gsap`, adds `lenis`. Test asserts exact dependency surface, so it's a hard signal if either is wrong.
+- **Runtime-deps test** (`tests/unit/bundle-deps.test.ts`) updated: removes `gsap` and `@gsap/react`, adds `lenis`. Test asserts exact dependency surface, so it's a hard signal if either is wrong.
 - **Type check + build:** `npm run build` passes with no TS errors.
 - **Visual sweep in dev:** open `npm run dev`, scroll full page top → bottom, verify each section's enter recipe matches the mapping, verify Hero staged choreography (180/520/780/1040/1280ms), verify Stats count-up triggers at the right moment.
 - **Reduced motion:** Chrome DevTools → Rendering panel → emulate `prefers-reduced-motion: reduce`. Confirm all recipes collapse to 200ms opacity fade with no transform/blur, Lenis is bypassed entirely (native scroll restored).
@@ -193,35 +194,47 @@ Hero → About → WorkExperience → Stats (new position) → Skills → Projec
 
 - Font family swap (Plus Jakarta Sans stays)
 - Color palette changes (soft-blue editorial language stays)
-- Nav layout changes (Header/Navigation untouched aside from anchor handler migration)
-- New sections (only Stats relocates; no new content)
+- Nav layout changes (Header untouched aside from anchor handler migration)
+- New sections (Stats is relocated, not new content; no About is added — see §6)
 - R3F changes to `HeroAccent3D` (untouched)
-- `MarqueeDivider` restyling (existing implementation preserved)
+- `MarqueeDivider` work — component exists but isn't placed in `Home.tsx` today; left alone
 - Re-enabling GSAP for any future bespoke moment (will be reintroduced if and when a single editorial moment justifies it; not in this spec)
+- Replacement of the section-heading scroll-fade behavior that is dropped here (see §6, item 1) — explicitly deferred to a future spec
+
+---
+
+## 6. Codebase corrections (post-brainstorm reality check)
+
+These deviations from the brainstorm assumptions were discovered when reading the actual codebase before writing the implementation plan. The spec above already reflects them; this section explains them for reviewers and future-you.
+
+1. **`useScrollFade` was load-bearing on three call sites**, not one. It currently drives a subtle scroll-progress opacity fade on the Hero name (`Hero.tsx`), every section heading via `SectionHeading.tsx`, and the contact heading (`Contact.tsx`). Decision: **drop the behavior** in this spec (delete the hook + remove all three call sites). The user will redesign the heading-exit treatment in a separate future spec.
+2. **No `About` section exists** in `src/components/sections/`. CLAUDE.md mentions one but it is not implemented. All About-specific tasks have been removed from this spec.
+3. **`MarqueeDivider` is not placed anywhere in `Home.tsx`** today. The component exists but no JSX renders it. No divider work in this spec.
+4. **Test layout:** unit tests live at `tests/unit/` (not `src/__tests__/`); the runtime-deps test is `tests/unit/bundle-deps.test.ts`.
 
 ---
 
 ## TODO
 
 - [ ] `HeroDataFragments.tsx` deleted; no remaining imports anywhere in `src/`
-- [ ] `useScrollFade.ts` deleted; no remaining imports anywhere in `src/`
-- [ ] `gsap` (and `@gsap/react` if present) removed from `package.json`, `package-lock.json`, and the runtime-deps test
-- [ ] `lenis` added to `package.json` and the runtime-deps test
+- [ ] `useScrollFade(...)` calls removed from `Hero.tsx`, `SectionHeading.tsx`, and `Contact.tsx` (3 call sites + their imports)
+- [ ] `src/hooks/useScrollFade.ts` deleted; `tests/unit/useScrollFade.test.ts` deleted
+- [ ] `gsap` and `@gsap/react` removed from `package.json` + `package-lock.json` + the `allowed` set in `tests/unit/bundle-deps.test.ts`
+- [ ] `lenis` added to `package.json` and to the `allowed` set in `tests/unit/bundle-deps.test.ts`
 - [ ] `src/utils/animations.ts` rewritten to export `SPRINGS`, `VARIANTS`, `STAGGER_PRESETS`, and `staggerContainer()` factory; old GSAP/duration constants removed
 - [ ] `RevealOnView` accepts `recipe` and `delay` props; default call sites unchanged in behavior
 - [ ] New `<Stagger>` component implemented and used by every section that maps to a `staggerContainer` recipe
 - [ ] Hero left column uses staged-timeline mount choreography with the 180/520/780/1040/1280ms timings; stats row removed from Hero JSX; description constrained to `max-w-[640px]`; new `48px / 32px / 48px` vertical gaps applied
-- [ ] About, WorkExperience, Skills, Projects, EmbedsGallery, Contact each apply their assigned recipes per the mapping table
-- [ ] `<Stats />` section component implemented as slim band with `stampIn` stagger + count-up numerals; placed between `<WorkExperience />` and the divider preceding `<Skills />` in `Home.tsx`
-- [ ] `MarqueeDivider` placement: none added between WorkExperience → Stats; if a divider currently sits between WorkExperience → Skills, it is relocated to Stats → Skills (implementer verifies first)
+- [ ] WorkExperience, Skills, Projects, EmbedsGallery, Contact each apply their assigned recipes per the mapping table
+- [ ] `<Stats />` section component implemented as slim band with `stampIn` stagger + count-up numerals; placed in `Home.tsx` between `<WorkExperience />` and `<Skills />`
 - [ ] `SmoothScroll` provider implemented with `lerp: 0.1`, `smoothWheel: true`, `smoothTouch: false`; wraps routed content in `App.tsx`; bypassed when `prefersReducedMotion` is true
 - [ ] `useLenis()` hook implemented and consumed by all anchor-link handlers (nav items + hero scroll cue); falls back to `window.scrollTo` when Lenis is absent
 - [ ] Type ramp updates applied in `index.css`: hero name `clamp(64px, 11vw, 192px)` lh `0.92`, role prefix/active grown, hero/section description line-heights `1.75`/`1.7`, button `13px / 16px 28px`, stat value `40px / w 700`
 - [ ] New heading→content `96px` spacing utility applied in every section
 - [ ] Global `strong` style added to `index.css` (weight 600, ink color, no italic)
-- [ ] `<Trans>` migration completed for every i18n string containing `<strong>`; selected emphasis applied in hero description, About bio, project descriptions, and section descriptions per §4
+- [ ] `<Trans>` migration completed for every i18n string containing `<strong>`; selected emphasis applied in hero description, project descriptions, and section descriptions per §4
 - [ ] Reduced-motion behavior verified manually in DevTools: every recipe → 200ms opacity fade only; Lenis fully bypassed
 - [ ] `npm run build` passes with no errors
-- [ ] Runtime-deps test passes
+- [ ] `npm run test:unit` passes (bundle-deps + useScramble; useScrollFade test is deleted)
 - [ ] Lighthouse mobile ≥ 91
 - [ ] Visual smoke test approved by user (screenshot or live dev session)
