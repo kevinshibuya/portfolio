@@ -1413,17 +1413,17 @@ git commit -m "feat(loader): wire scroll-lock + header gate to handoffDone"
 - Delete: `src/components/layout/LoadingScreen.tsx`
 - Modify: `src/index.css` (remove old loader CSS, add new HeroNameDrawing + LoadingCursor CSS)
 
-- [ ] **Step 1: Delete the old component**
+- [x] **Step 1: Delete the old component**
 
 ```bash
 rm src/components/layout/LoadingScreen.tsx
 ```
 
-- [ ] **Step 2: Remove old loader CSS rules from `src/index.css`**
+- [x] **Step 2: Remove old loader CSS rules from `src/index.css`**
 
 Open `src/index.css` and delete the entire block from the comment header `LOADER SCREEN — structural mirror of .hero layout` (around line 928) through to and including the `@media (max-width: 768px) { .loader-hero-mirror { ... } }` rule (around line 1014). **Keep** the `html:has(body[data-loader-state="loading"]), body[data-loader-state="loading"]` block (around lines 947–952) — it now drives the new in-place loader's scroll lock via the body attribute that `useScrollLockDuringLoader` sets.
 
-- [ ] **Step 3: Add new CSS for HeroNameDrawing stack + LoadingCursor**
+- [x] **Step 3: Add new CSS for HeroNameDrawing stack + LoadingCursor**
 
 Append to `src/index.css` (after the existing hero rules around line 240):
 
@@ -1494,7 +1494,7 @@ Append to `src/index.css` (after the existing hero rules around line 240):
 }
 ```
 
-- [ ] **Step 4: Type-check + run unit tests**
+- [x] **Step 4: Type-check + run unit tests**
 
 ```bash
 npx tsc -b --noEmit
@@ -1503,7 +1503,7 @@ npm run test:unit
 
 Expected: no type errors; all unit tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/index.css

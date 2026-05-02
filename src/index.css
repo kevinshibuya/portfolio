@@ -240,13 +240,67 @@ strong {
   -webkit-text-stroke: 1px var(--blue-300);
 }
 
-/* Hero name drawing (loader phase) — see Task 8 for full styling. This
-   minimal block ensures the SVGs render at the right pixel size. */
-.hero-name-drawing { display: block; width: 100%; }
+/* =========================================================================
+   HERO NAME DRAWING (loader phase) + h1 (post-handoff)
+   Both layers occupy the same grid cell so they overlay pixel-equivalent
+   for the 200ms crossfade at handoff.
+   ========================================================================= */
+.hero-name-stack {
+  position: relative;
+  display: grid;
+  grid-template-areas: "stack";
+}
+.hero-name-stack-layer {
+  grid-area: stack;
+}
+.hero-name-stack-layer--svg {
+  pointer-events: none;
+}
+.hero-name-stack-layer--h1 {
+  margin: 0;
+}
+
+.hero-name-drawing {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
 .hero-name-drawing-word {
   display: block;
   width: auto;
   height: clamp(64px, 11vw, 192px);
+  /* line-height-equivalent: -8% so adjacent words sit close like h1 line-height: 0.92 */
+  margin-bottom: -8%;
+}
+.hero-name-drawing-word:last-child {
+  margin-bottom: 0;
+}
+
+/* =========================================================================
+   LOADING CURSOR — periwinkle dot, body-portal'd
+   ========================================================================= */
+.loading-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--periwinkle-300);
+  pointer-events: none;
+  will-change: transform, opacity;
+  z-index: 9998;
+  transform-origin: center;
+}
+.loading-cursor-halo {
+  position: absolute;
+  inset: -3.5px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--periwinkle-300);
+  opacity: 0;
+  transform-origin: center;
 }
 
 /* Scramble lettering — cursor affordance + design-system focus ring.
@@ -935,91 +989,16 @@ strong {
 }
 
 /* =========================================================================
-   LOADER SCREEN — structural mirror of .hero layout
-   Matches .hero padding, max-width, and .hero-name font metrics so that
-   the loader words sit at identical pixel coordinates to the hero words.
-   Handoff is opacity-only — no FLIP required.
+   LOADER SCROLL LOCK — keyed off body[data-loader-state="loading"], which
+   useScrollLockDuringLoader sets on mount and clears when handoff resolves.
+   Belt-and-braces: lock both <html> and <body>; pin touch-action so iOS
+   Safari doesn't bypass overflow:hidden via momentum scroll.
    ========================================================================= */
-.loader-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: var(--cream, #F6F9FC);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* Prevent the page underneath from scrolling while the loader is up.
-   Belt-and-braces: lock both <html> and <body>, and pin the body so iOS
-   Safari doesn't bypass overflow:hidden via momentum scroll. */
 html:has(body[data-loader-state="loading"]),
 body[data-loader-state="loading"] {
   overflow: hidden;
   overscroll-behavior: none;
   touch-action: none;
-}
-
-/* Mirrors .hero: same max-width + side padding + vertical centering */
-.loader-hero-mirror {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  max-width: 1440px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 140px 80px 60px;
-  box-sizing: border-box;
-}
-
-/* Mirrors .hero-main: same max-width */
-.loader-hero-main {
-  max-width: 1200px;
-}
-
-/* Mirrors .hero-name */
-.loader-hero-name {
-  font-size: clamp(72px, 13vw, 220px);
-  font-weight: 700;
-  line-height: 0.88;
-  letter-spacing: -0.05em;
-  text-transform: lowercase;
-  margin: 0;
-  color: var(--ink, #111822);
-}
-
-/* Mirrors .hero-name-line */
-.loader-hero-name-line {
-  display: block;
-}
-
-/* Mirrors .hero-name-line--ink (the solid "kevin") */
-.loader-hero-name-line--ink {
-  color: var(--ink, #111822);
-}
-
-/* Mirrors .hero-name-line--ghost ("shibuya.") */
-.loader-hero-name-line--ghost {
-  color: var(--mist, #D4E5F2);
-  -webkit-text-stroke: 1px var(--blue-300, #6DB8FF);
-}
-
-/* Progress underline */
-.loader-underline {
-  width: 100%;
-  max-width: 1200px;
-  height: 2px;
-  margin-top: 28px;
-  background: var(--blue-400, #3A96E8);
-  transform-origin: left center;
-  will-change: transform;
-}
-
-@media (max-width: 768px) {
-  .loader-hero-mirror {
-    padding: 120px 20px 40px;
-  }
 }
 
 /* Hero left column inter-element gaps (spec §1) */

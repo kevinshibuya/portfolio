@@ -17,9 +17,6 @@ interface MotionContextValue {
   loaderDone: Promise<void>
   /** Called by LoadingCursor (or route-aware code) to resolve handoffDone. */
   resolveHandoff: () => void
-  /** Backward-compat alias for resolveHandoff. The old LoadingScreen
-   *  consumes this; deleted in Task 8. */
-  resolveLoader: () => void
   prefersReducedMotion: boolean
   r3fAccentEnabled: boolean
 }
@@ -46,7 +43,6 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
       handoffDone,
       loaderDone: handoffDone,
       resolveHandoff,
-      resolveLoader: resolveHandoff,
       prefersReducedMotion: reduced,
       r3fAccentEnabled: r3fEnabled,
     }),
