@@ -36,3 +36,6 @@ a.md
 test-results/
 playwright-report/
 tests/e2e/_screens/
+
+# Superpowers brainstorming session artifacts
+.superpowers/
