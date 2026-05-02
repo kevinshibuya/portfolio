@@ -445,7 +445,7 @@ Tick `- [ ] New <Stagger> component implemented…` in the spec.
 
 Apply every typographic change from spec §4. Add the new `.section-spacing-content` utility (96px gap between heading and content) and the global `strong` rule.
 
-- [ ] **Step 1: Apply the type ramp updates**
+- [x] **Step 1: Apply the type ramp updates**
 
 Open `src/index.css`. For each rule below, locate the existing selector (line numbers from the spec's exploration; expect drift) and update the value:
 
@@ -464,7 +464,7 @@ Open `src/index.css`. For each rule below, locate the existing selector (line nu
 
 If a class name above doesn't exist verbatim, search for the equivalent by visual purpose — don't invent new ones. The existing CSS uses kebab-case classnames matching the JSX in `src/components/sections/Hero.tsx`.
 
-- [ ] **Step 2: Add the `.section-spacing-content` utility**
+- [x] **Step 2: Add the `.section-spacing-content` utility**
 
 Append (somewhere in `src/index.css`, near the other section/layout utilities):
 
@@ -475,7 +475,7 @@ Append (somewhere in `src/index.css`, near the other section/layout utilities):
 }
 ```
 
-- [ ] **Step 3: Add the global `strong` rule**
+- [x] **Step 3: Add the global `strong` rule**
 
 Append (near the other typography base rules):
 
@@ -490,7 +490,7 @@ strong {
 
 If the codebase uses `@theme` color tokens instead of CSS variables, replace `var(--color-ink, #111822)` with the project's existing ink reference (e.g. `theme(colors.ink)` or whatever pattern other rules use).
 
-- [ ] **Step 4: Add Hero left-column gap utilities**
+- [x] **Step 4: Add Hero left-column gap utilities**
 
 Append:
 
@@ -504,19 +504,19 @@ Append:
 
 If `.hero-main` already declares `display: flex`, leave that line out. The `+`-selector rules are additive and will cleanly slot above existing tighter defaults.
 
-- [ ] **Step 5: Verify the dev server still loads**
+- [x] **Step 5: Verify the dev server still loads**
 
 Run: `npm run dev` (background OK)
 Expected: dev server boots; visit `localhost:5173`, confirm hero is still visually intact (just larger gaps and slightly smaller name) and no CSS console errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/index.css
 git commit -m "feat(css): type ramp tightening + spacing rhythm + global strong style"
 ```
 
-- [ ] **Step 7: Tick spec checkboxes**
+- [x] **Step 7: Tick spec checkboxes**
 
 Tick `- [ ] Type ramp updates applied in index.css…`, `- [ ] New heading→content 96px spacing utility applied…`, and `- [ ] Global strong style added to index.css…` in the spec.
 

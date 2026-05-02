@@ -232,9 +232,9 @@ These deviations from the brainstorm assumptions were discovered when reading th
 - [ ] `<Stats />` section component implemented as slim band with `stampIn` stagger + count-up numerals; placed in `Home.tsx` between `<WorkExperience />` and `<Skills />`
 - [ ] `SmoothScroll` provider implemented with `lerp: 0.1`, `smoothWheel: true`, `smoothTouch: false`; wraps routed content in `App.tsx`; bypassed when `prefersReducedMotion` is true
 - [ ] `useLenis()` hook implemented and consumed by all anchor-link handlers (nav items + hero scroll cue); falls back to `window.scrollTo` when Lenis is absent
-- [ ] Type ramp updates applied in `index.css`: hero name `clamp(64px, 11vw, 192px)` lh `0.92`, role prefix/active grown, hero/section description line-heights `1.75`/`1.7`, button `13px / 16px 28px`, stat value `40px / w 700`
+- [x] Type ramp updates applied in `index.css`: hero name `clamp(64px, 11vw, 192px)` lh `0.92`, role prefix/active grown, hero/section description line-heights `1.75`/`1.7`, button `13px / 16px 28px`, stat value `40px / w 700`
 - [ ] New heading→content `96px` spacing utility applied in every section
-- [ ] Global `strong` style added to `index.css` (weight 600, ink color, no italic)
+- [x] Global `strong` style added to `index.css` (weight 600, ink color, no italic)
 - [ ] `<Trans>` migration completed for every i18n string containing `<strong>`; selected emphasis applied in hero description, project descriptions, and section descriptions per §4
 - [ ] Reduced-motion behavior verified manually in DevTools: every recipe → 200ms opacity fade only; Lenis fully bypassed
 - [ ] `npm run build` passes with no errors
