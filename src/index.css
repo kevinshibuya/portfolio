@@ -101,6 +101,12 @@ button {
 }
 ul { list-style: none; margin: 0; padding: 0; }
 img { max-width: 100%; display: block; }
+/* Body-copy emphasis. Distinct from <em>, which renders as italic blue-400. */
+strong {
+  font-weight: 600;
+  color: var(--ink);
+  font-style: normal;
+}
 
 /* =========================================================================
    NAV
@@ -211,9 +217,9 @@ img { max-width: 100%; display: block; }
   max-width: 1200px;
 }
 .hero-name {
-  font-size: clamp(72px, 13vw, 220px);
+  font-size: clamp(64px, 11vw, 192px);
   font-weight: 700;
-  line-height: 0.88;
+  line-height: 0.92;
   letter-spacing: -0.05em;
   text-transform: lowercase;
   margin: 0;
@@ -246,14 +252,14 @@ img { max-width: 100%; display: block; }
   margin-top: 36px;
 }
 .hero-role-prefix {
-  font-size: clamp(20px, 2.2vw, 32px);
+  font-size: clamp(22px, 2.4vw, 36px);
   font-weight: 300;
   color: var(--bark);
   text-transform: lowercase;
   letter-spacing: -0.02em;
 }
 .hero-role {
-  font-size: clamp(22px, 2.4vw, 36px);
+  font-size: clamp(24px, 2.6vw, 40px);
   font-weight: 600;
   color: var(--blue-400);
   text-transform: lowercase;
@@ -266,7 +272,7 @@ img { max-width: 100%; display: block; }
   font-size: 17px;
   color: var(--bark);
   max-width: 560px;
-  line-height: 1.6;
+  line-height: 1.75;
   margin: 24px 0 0;
   text-transform: lowercase;
 }
@@ -281,7 +287,7 @@ img { max-width: 100%; display: block; }
 }
 .hero-stat { display: flex; flex-direction: column; gap: 4px; }
 .hero-stat-v {
-  font-size: 32px; font-weight: 600;
+  font-size: 40px; font-weight: 700;
   color: var(--ink);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -300,10 +306,10 @@ img { max-width: 100%; display: block; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
   font-family: inherit;
-  font-size: 12px; font-weight: 600;
+  font-size: 13px; font-weight: 600;
   text-transform: lowercase;
   letter-spacing: 0.04em;
-  padding: 13px 22px;
+  padding: 16px 28px;
   border-radius: 999px;
   transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   white-space: nowrap;
@@ -320,7 +326,7 @@ img { max-width: 100%; display: block; }
   background: transparent;
   color: var(--ink);
   border: 1.5px solid var(--ink);
-  padding: 11.5px 22px;
+  padding: 14.5px 26.5px;
 }
 .btn--ghost:hover {
   background: var(--ink);
@@ -378,10 +384,14 @@ img { max-width: 100%; display: block; }
 .section-desc {
   font-size: 17px;
   color: var(--bark);
-  line-height: 1.6;
+  line-height: 1.7;
   margin: 0;
   text-transform: lowercase;
   max-width: 560px;
+}
+/* Replaces ad-hoc 64px gaps between section heading and body content. */
+.section-spacing-content {
+  margin-top: 96px;
 }
 
 /* =========================================================================
@@ -1040,3 +1050,9 @@ body[data-loader-state="loading"] {
 @media (max-width: 768px) {
   .hero-fragments { display: none; }
 }
+
+/* Hero left column inter-element gaps (spec §1) */
+.hero-main { display: flex; flex-direction: column; }
+.hero-main .hero-name + .hero-supplementary { margin-top: 48px; }
+.hero-supplementary .hero-role-line + .hero-desc { margin-top: 32px; }
+.hero-supplementary .hero-desc + .hero-cta { margin-top: 48px; }
