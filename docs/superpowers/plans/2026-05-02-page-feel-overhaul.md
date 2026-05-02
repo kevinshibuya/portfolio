@@ -764,28 +764,28 @@ git commit -m "feat(scroll): migrate anchor handlers to lenis.scrollTo"
 
 The hook itself is deleted in Task 8. This task removes its usage from every consumer first so the deletion is safe.
 
-- [ ] **Step 1: Remove from Hero.tsx**
+- [x] **Step 1: Remove from Hero.tsx**
 
 Edit `src/components/sections/Hero.tsx`:
 - Delete the import line `import { useScrollFade } from '../../hooks/useScrollFade'`
 - Delete the call `useScrollFade(nameRef)` (currently around line 26)
 - The `nameRef` ref itself is still used by JSX, so keep `const nameRef = useRef<HTMLHeadingElement>(null)` and the `ref={nameRef}` on the `<h1>`
 
-- [ ] **Step 2: Remove from Contact.tsx**
+- [x] **Step 2: Remove from Contact.tsx**
 
 Edit `src/components/sections/Contact.tsx`:
 - Delete the import line `import { useScrollFade } from '../../hooks/useScrollFade'`
 - Delete the call `useScrollFade(contactTitleRef)` (around line 22)
 - Keep the `contactTitleRef` declaration and `ref` binding if other code uses them
 
-- [ ] **Step 3: Remove from SectionHeading.tsx**
+- [x] **Step 3: Remove from SectionHeading.tsx**
 
 Edit `src/components/ui/SectionHeading.tsx`:
 - Delete the import line `import { useScrollFade } from '../../hooks/useScrollFade'`
 - Delete the call `useScrollFade(titleRef)` (around line 20)
 - Keep `titleRef` if it's bound to JSX
 
-- [ ] **Step 4: Verify no `useScrollFade` references remain in src/**
+- [x] **Step 4: Verify no `useScrollFade` references remain in src/**
 
 ```bash
 grep -rn "useScrollFade" src/
@@ -793,19 +793,19 @@ grep -rn "useScrollFade" src/
 
 Expected: only the hook file itself (`src/hooks/useScrollFade.ts`) — no consumers.
 
-- [ ] **Step 5: Verify build**
+- [x] **Step 5: Verify build**
 
 Run: `npm run build`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/sections/Hero.tsx src/components/sections/Contact.tsx src/components/ui/SectionHeading.tsx
 git commit -m "chore(scrollfade): remove useScrollFade call sites (heading-fade dropped per spec §6)"
 ```
 
-- [ ] **Step 7: Tick spec checkbox**
+- [x] **Step 7: Tick spec checkbox**
 
 Tick `- [ ] useScrollFade(...) calls removed from Hero.tsx, SectionHeading.tsx, and Contact.tsx…` in the spec.
 
