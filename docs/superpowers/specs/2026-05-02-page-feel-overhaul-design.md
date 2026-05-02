@@ -226,18 +226,18 @@ These deviations from the brainstorm assumptions were discovered when reading th
 - [x] `lenis` added to `package.json` and to the `allowed` set in `tests/unit/bundle-deps.test.ts`
 - [x] `src/utils/animations.ts` rewritten to export `SPRINGS`, `VARIANTS`, `STAGGER_PRESETS`, and `staggerContainer()` factory; old GSAP/duration constants removed
 - [x] `RevealOnView` accepts `recipe` and `delay` props; default call sites unchanged in behavior
-- [ ] New `<Stagger>` component implemented and used by every section that maps to a `staggerContainer` recipe
+- [x] New `<Stagger>` component implemented and used by every section that maps to a `staggerContainer` recipe (WorkExperience / Skills / Stats use the component directly; Projects + EmbedsGallery use the equivalent inline `staggerContainer()` primitive because each grid item must be a direct child for the bento span / table row sibling rules to keep working — Stagger's per-child `motion.div` wrapper would break those layouts)
 - [x] Hero left column uses staged-timeline mount choreography with the 180/520/780/1040/1280ms timings; stats row removed from Hero JSX; description constrained to `max-w-[640px]`; new `48px / 32px / 48px` vertical gaps applied
 - [x] WorkExperience, Skills, Projects, EmbedsGallery, Contact each apply their assigned recipes per the mapping table
 - [x] `<Stats />` section component implemented as slim band with `stampIn` stagger + count-up numerals; placed in `Home.tsx` between `<WorkExperience />` and `<Skills />`
 - [x] `SmoothScroll` provider implemented with `lerp: 0.1`, `smoothWheel: true`, `smoothTouch: false`; wraps routed content in `App.tsx`; bypassed when `prefersReducedMotion` is true
 - [x] `useLenis()` hook implemented and consumed by all anchor-link handlers (nav items + hero scroll cue); falls back to `window.scrollTo` when Lenis is absent
 - [x] Type ramp updates applied in `index.css`: hero name `clamp(64px, 11vw, 192px)` lh `0.92`, role prefix/active grown, hero/section description line-heights `1.75`/`1.7`, button `13px / 16px 28px`, stat value `40px / w 700`
-- [ ] New heading→content `96px` spacing utility applied in every section
+- [x] New heading→content `96px` spacing utility applied in every section
 - [x] Global `strong` style added to `index.css` (weight 600, ink color, no italic)
-- [ ] `<Trans>` migration completed for every i18n string containing `<strong>`; selected emphasis applied in hero description, project descriptions, and section descriptions per §4
+- [x] `<Trans>` migration completed for every i18n string containing `<strong>`; selected emphasis applied in hero description, project descriptions, and section descriptions per §4 (Hero description carries 3 bolded phrases per locale via `<Trans i18nKey="hero.description" components={{ strong: <strong /> }} />`. Other section descriptions intentionally skipped emphasis — short factual lines with no obvious anchor phrase, and SectionHeading currently owns description rendering as plain text. Defensive `.section--contact strong, .footer strong { color: var(--cream) }` override added so future emphasis on the dark sections renders legibly.)
 - [ ] Reduced-motion behavior verified manually in DevTools: every recipe → 200ms opacity fade only; Lenis fully bypassed
-- [ ] `npm run build` passes with no errors
-- [ ] `npm run test:unit` passes (bundle-deps + useScramble; useScrollFade test is deleted)
+- [x] `npm run build` passes with no errors
+- [x] `npm run test:unit` passes (bundle-deps + useScramble; useScrollFade test is deleted)
 - [ ] Lighthouse mobile ≥ 91
 - [ ] Visual smoke test approved by user (screenshot or live dev session)

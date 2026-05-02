@@ -7,22 +7,15 @@ import {
   type RecipeName,
 } from '../../utils/animations'
 
-// Legacy string aliases so any not-yet-migrated call sites still render.
-// Removed in Task 18 step 0 once every consumer uses RecipeName directly.
 const LEGACY_ALIASES: Record<string, RecipeName> = {
   'fade': 'fadeUp',
   'fade-up': 'fadeUp',
-  'stagger-children': 'fadeUp',  // legacy stagger now handled by <Stagger>
 }
 
 type LegacyVariant = keyof typeof LEGACY_ALIASES
 
 interface RevealOnViewProps {
   recipe?: RecipeName | LegacyVariant
-  /** Backwards-compat alias for `recipe`. Removed in Task 18 step 0. */
-  variant?: LegacyVariant
-  /** Backwards-compat — silently ignored. Stagger now lives in <Stagger>. Removed in Task 18 step 0. */
-  staggerAmount?: number
   /** Seconds added to the visible transition delay. */
   delay?: number
   className?: string
@@ -46,8 +39,6 @@ function resolveRecipe(input: RecipeName | LegacyVariant | undefined): RecipeNam
 
 export function RevealOnView({
   recipe,
-  variant,
-  staggerAmount: _staggerAmount,
   delay = 0,
   className,
   children,
@@ -72,7 +63,7 @@ export function RevealOnView({
     )
   }
 
-  const recipeName = resolveRecipe(recipe ?? variant)
+  const recipeName = resolveRecipe(recipe)
   const base = VARIANTS[recipeName]
 
   // If a delay was requested, splice it into the visible variant's transition
@@ -102,12 +93,4 @@ export function RevealOnView({
       {children}
     </motion.div>
   )
-}
-
-// Backwards-compat re-export — five section files still import { childVariants }
-// from this module to drive the inner motion.div in their stagger lists.
-// Removed in Task 18 step 0 once those sections migrate to <Stagger> (Tasks 11-15).
-export const childVariants: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
 }

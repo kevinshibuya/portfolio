@@ -1684,7 +1684,7 @@ Tick `- [ ] <Stats /> section component implemented…` in the spec.
 
 **Files:** `src/components/ui/RevealOnView.tsx` (small cleanup step), then verification only.
 
-- [ ] **Step 0: Remove the backwards-compat shims from RevealOnView**
+- [x] **Step 0: Remove the backwards-compat shims from RevealOnView**
 
 Now that every section refactor has migrated to `recipe`-prop usage, remove the legacy aliases. Edit `src/components/ui/RevealOnView.tsx`:
 - Delete the `variant?:` and `staggerAmount?:` lines from `RevealOnViewProps`
@@ -1702,7 +1702,7 @@ Expected: zero output (or only matches inside `RevealOnView.tsx`'s own legacy-al
 
 Run: `npm run build` → PASS.
 
-- [ ] **Step 1: Build**
+- [x] **Step 1: Build**
 
 ```bash
 npm run build
@@ -1710,7 +1710,7 @@ npm run build
 
 Expected: 0 TS errors, vite build succeeds.
 
-- [ ] **Step 2: Unit tests**
+- [x] **Step 2: Unit tests**
 
 ```bash
 npm run test:unit
