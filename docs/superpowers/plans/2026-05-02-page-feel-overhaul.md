@@ -828,7 +828,7 @@ The `useGSAP` hook + `import { gsap } from 'gsap'` + `import { useGSAP } from '@
 
 `power3.out` in GSAP ≈ cubic-bezier `[0.215, 0.61, 0.355, 1]`. Use that tuple as Motion's `ease`.
 
-- [ ] **Step 1: Apply the rewrite**
+- [x] **Step 1: Apply the rewrite**
 
 Replace the contents of `src/components/layout/LoadingScreen.tsx` with:
 
@@ -1001,7 +1001,7 @@ export function LoadingScreen() {
 }
 ```
 
-- [ ] **Step 2: Confirm no remaining gsap imports in LoadingScreen**
+- [x] **Step 2: Confirm no remaining gsap imports in LoadingScreen**
 
 ```bash
 grep -n "gsap" src/components/layout/LoadingScreen.tsx
@@ -1009,12 +1009,12 @@ grep -n "gsap" src/components/layout/LoadingScreen.tsx
 
 Expected: zero output.
 
-- [ ] **Step 3: Build verification**
+- [x] **Step 3: Build verification**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. (The `projectEaseGsap` shim still exists in `animations.ts` at this point; it's removed in Task 8 step 1a.)
 
-- [ ] **Step 4: Visual smoke test**
+- [x] **Step 4: Visual smoke test**
 
 Run: `npm run dev` (background OK)
 Reload `localhost:5173` with cache disabled. Expected:
@@ -1026,14 +1026,14 @@ Reload `localhost:5173` with cache disabled. Expected:
 
 Then reload with `prefers-reduced-motion: reduce` (DevTools → Rendering). Expected: panel disappears instantly when progress hits 1, no fade.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/layout/LoadingScreen.tsx
 git commit -m "refactor(loader): migrate LoadingScreen off GSAP to Motion's animate()"
 ```
 
-- [ ] **Step 6: Tick spec checkbox**
+- [x] **Step 6: Tick spec checkbox**
 
 Tick `- [ ] LoadingScreen.tsx migrated off GSAP…` in the spec.
 
