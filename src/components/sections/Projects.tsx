@@ -1,24 +1,36 @@
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { RevealOnView, childVariants } from '../ui/RevealOnView'
+import { useMotion } from '../../context/MotionContext'
+import { RevealOnView } from '../ui/RevealOnView'
 import { SectionHeading } from '../ui/SectionHeading'
 import { projects } from '../../data/projects'
+import {
+  VARIANTS,
+  STAGGER_PRESETS,
+  staggerContainer,
+  REDUCED_MOTION_VARIANT,
+} from '../../utils/animations'
 import type { Project } from '../../types/content'
 
-// Wrap react-router's Link with framer-motion so the bento card itself is the
-// grid item — wrapping it in a motion.div instead would put `.bento-card--lg/--md`
-// grid-spans on a grandchild, collapsing the bento layout to uniform 1×1 tiles.
 const MotionLink = motion.create(Link)
 
 export function Projects() {
   const { t, i18n } = useTranslation()
+  const { prefersReducedMotion } = useMotion()
   const lang = i18n.language as 'en' | 'pt'
   const featured = projects.filter((p) => p.featured)
 
+  const parentVariants = prefersReducedMotion
+    ? REDUCED_MOTION_VARIANT
+    : staggerContainer(STAGGER_PRESETS.projectCards)
+  const cardVariants = prefersReducedMotion
+    ? REDUCED_MOTION_VARIANT
+    : VARIANTS.cardReveal
+
   return (
     <section id="projects" className="section">
-      <RevealOnView variant="fade-up">
+      <RevealOnView recipe="stampIn">
         <SectionHeading
           index={t('sections.projects.index')}
           label={t('sections.projects.label')}
@@ -27,16 +39,23 @@ export function Projects() {
         />
       </RevealOnView>
 
-      <RevealOnView variant="stagger-children" staggerAmount={0.06} className="bento">
+      <motion.div
+        className="bento section-spacing-content"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={parentVariants}
+      >
         {featured.map((project) => (
           <BentoCard
             key={project.id}
             project={project}
             lang={lang}
             caseStudy={t('sections.projects.caseStudy')}
+            variants={cardVariants}
           />
         ))}
-      </RevealOnView>
+      </motion.div>
     </section>
   )
 }
@@ -45,9 +64,10 @@ interface BentoCardProps {
   project: Project
   lang: 'en' | 'pt'
   caseStudy: string
+  variants: import('framer-motion').Variants
 }
 
-function BentoCard({ project, lang, caseStudy }: BentoCardProps) {
+function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
   const sizeClass =
     project.size === 'lg'
       ? 'bento-card--lg'
@@ -58,7 +78,7 @@ function BentoCard({ project, lang, caseStudy }: BentoCardProps) {
 
   return (
     <MotionLink
-      variants={childVariants}
+      variants={variants}
       to={`/projects/${project.slug}`}
       className={`bento-card ${sizeClass}${darkClass}`}
       style={{

@@ -1370,7 +1370,7 @@ Apply `.section-spacing-content` to the container holding the columns, and `max-
 
 `npm run dev` → scroll to Skills → columns enter left-to-right, then items inside each column cascade.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/sections/Skills.tsx
@@ -1385,9 +1385,9 @@ git commit -m "feat(skills): nested slideInLeft stagger across columns + items"
 - Modify: `src/components/sections/Projects.tsx`
 - Modify: `src/i18n/locales/en.json`, `pt.json` (project titles/descriptions if `<strong>` is added)
 
-- [ ] **Step 1: Read the current file** to identify card structure (size: lg / md / sm).
+- [x] **Step 1: Read the current file** to identify card structure (size: lg / md / sm).
 
-- [ ] **Step 2: Apply the mapping**
+- [x] **Step 2: Apply the mapping**
 
 Wrap the section heading in `<RevealOnView recipe="stampIn">`.
 
@@ -1397,7 +1397,7 @@ Card titles can use the `<em>` italic blue accent (existing pattern). Card descr
 
 Apply `.section-spacing-content` and `max-w-[640px]` on description.
 
-- [ ] **Step 3: Build & smoke**
+- [x] **Step 3: Build & smoke**
 
 `npm run dev` → scroll to Projects → confirm `lg` card enters first, others follow in stagger.
 
