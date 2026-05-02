@@ -1344,7 +1344,7 @@ Add the `.section-spacing-content` utility to whichever container groups heading
 Run: `npm run build` → PASS.
 `npm run dev` → scroll to Work section → confirm rows enter from the left in sequence.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/sections/WorkExperience.tsx src/i18n/locales/en.json src/i18n/locales/pt.json
