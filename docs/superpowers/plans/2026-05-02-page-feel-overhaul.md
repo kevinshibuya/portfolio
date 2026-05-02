@@ -1248,13 +1248,23 @@ The new Hero structure (left column only — right side `HeroAccent3D` block sta
 
   {/* Stats row REMOVED — relocates in Task 17 */}
 
-  {/* Right column: existing HeroAccent3D / Suspense block, untouched, but
-      wrap the existing <HeroAccent3D /> markup in a RevealOnView for entry: */}
+  {/* Right column: HeroAccent3D + HeroAccentSilhouette were previously mounted
+      *inside* HeroDataFragments (now deleted). This task ADDS a fresh mount
+      below — they must be lazy-loaded behind a Suspense boundary so the R3F
+      bundle stays out of the LCP critical path. The components themselves
+      (in src/components/canvas/) are untouched; only the mount site moves. */}
   <RevealOnView recipe="fadeUp" delay={1.28}>
-    {/* ...existing HeroAccent3D + HeroAccentSilhouette JSX here... */}
+    <Suspense fallback={null}>
+      <HeroAccent3D />
+      {/* HeroAccentSilhouette is the fallback; mount it under HeroAccent3D's
+          internal R3F Suspense or as a sibling, depending on the existing
+          component pattern — read both files and follow the convention. */}
+    </Suspense>
   </RevealOnView>
 </section>
 ```
+
+Add `Suspense, lazy` back to the React import in Hero.tsx (Task 9 stripped them assuming Task 10 wouldn't need them — they're needed again now). Lazy-import HeroAccent3D using the same pattern as Home.tsx's section lazy-loads.
 
 - [ ] **Step 2: Apply the rewrite**
 

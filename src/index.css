@@ -1015,42 +1015,6 @@ body[data-loader-state="loading"] {
   transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* =========================================================================
-   HERO DATA-FRAGMENTS — right-side editorial composition
-   ========================================================================= */
-.hero-fragments {
-  position: absolute;
-  inset: 0 0 0 auto;
-  width: 50%;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  /* 5 rows so the left column accommodates bars (span 3) stacked over
-     line (span 2), while the right column keeps the annotation/numeric/
-     accent stack at row heights tight enough for the 47 numeric to read. */
-  grid-template-rows: repeat(5, 1fr);
-  gap: 16px;
-  padding: 40px 80px 40px 0;
-  pointer-events: none;
-}
-.hero-frag { position: relative; }
-.hero-frag--bars       { grid-column: span 2; grid-row: span 3; }
-.hero-frag--line       { grid-column: span 2; grid-row: span 2; }
-.hero-frag--annotation { grid-column: span 1; grid-row: span 1;
-  font: 600 11px/1.2 'Plus Jakarta Sans', sans-serif;
-  color: #6A8CAA; text-transform: uppercase; letter-spacing: 0.12em;
-  border-bottom: 1px solid #D4E5F2; padding-bottom: 6px; align-self: end;
-}
-.hero-frag--lattice    { grid-column: span 2; grid-row: span 2; }
-.hero-frag--numeric    { grid-column: span 1; grid-row: span 2;
-  font: 800 88px/0.9 'Plus Jakarta Sans', sans-serif;
-  color: transparent; -webkit-text-stroke: 1.5px #6DB8FF;
-  display: flex; align-items: center; justify-content: center;
-}
-.hero-frag--accent     { grid-column: span 1; grid-row: span 1; }
-@media (max-width: 768px) {
-  .hero-fragments { display: none; }
-}
-
 /* Hero left column inter-element gaps (spec §1) */
 .hero-main { display: flex; flex-direction: column; }
 .hero-main .hero-name + .hero-supplementary { margin-top: 48px; }
