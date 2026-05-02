@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -7,6 +7,8 @@ import { useMotion } from '../../context/MotionContext'
 import { ScrambleText } from '../ui/ScrambleText'
 import { RevealOnView } from '../ui/RevealOnView'
 import { HeroAccentSilhouette } from '../canvas/HeroAccentSilhouette'
+import { HeroNameDrawing, type HeroNameDrawingHandle } from '../ui/HeroNameDrawing'
+import { LoadingCursor } from '../ui/LoadingCursor'
 
 const HeroAccent3D = lazy(() => import('../canvas/HeroAccent3D'))
 
@@ -16,26 +18,36 @@ export function Hero() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
   const { scrollTo } = useLenis()
-  const { loaderDone } = useMotion()
+  const { handoffDone, prefersReducedMotion } = useMotion()
 
-  // Gate the staged choreography on loaderDone. Without this the RevealOnView
-  // chain fires from mount, which means the early stages (name stampIn at
-  // 180ms, role slideIn at 520ms) play behind the loader and the user only
-  // catches the tail. Flipping `gate` after the loader fully fades restarts
-  // the cascade in plain view; the authored delays then become offsets from
-  // the loader-gone moment instead of from mount.
+  // gate: enables the RevealOnView cascade. Fires when the cursor's flight
+  // to the nav completes — the eye is already at the top of the page so the
+  // cascade reads as the page filling in around the now-static name.
   const [gate, setGate] = useState(false)
+  // showSvg: keep HeroNameDrawing mounted until crossfade completes.
+  const [showSvg, setShowSvg] = useState(true)
+  // h1Visible: the static <h1> starts hidden, crossfades in on handoffDone.
+  const [h1Visible, setH1Visible] = useState(prefersReducedMotion)
+
+  const drawingRef = useRef<HeroNameDrawingHandle>(null)
+  const getAnchors = () => drawingRef.current?.getCursorAnchors() ?? null
+
   useEffect(() => {
     let cancelled = false
-    loaderDone
+    handoffDone
       .then(() => {
-        if (!cancelled) setGate(true)
+        if (cancelled) return
+        setGate(true)
+        setH1Visible(true)
+        window.setTimeout(() => {
+          if (!cancelled) setShowSvg(false)
+        }, 220)
       })
       .catch(() => {})
     return () => {
       cancelled = true
     }
-  }, [loaderDone])
+  }, [handoffDone])
 
   const roles = useMemo(() => {
     const value = t('hero.roles', { returnObjects: true })
@@ -62,8 +74,24 @@ export function Hero() {
   return (
     <section id="top" className="hero">
       <div className="hero-main">
-        <h1 className="hero-name">
-          <RevealOnView recipe="stampIn" delay={0.18} gate={gate}>
+        <div className="hero-name-stack">
+          {showSvg && (
+            <motion.div
+              className="hero-name-stack-layer hero-name-stack-layer--svg"
+              initial={false}
+              animate={{ opacity: h1Visible ? 0 : 1 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
+              <HeroNameDrawing ref={drawingRef} />
+            </motion.div>
+          )}
+          <motion.h1
+            className="hero-name hero-name-stack-layer hero-name-stack-layer--h1"
+            initial={false}
+            animate={{ opacity: h1Visible ? 1 : 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            aria-hidden={!h1Visible || undefined}
+          >
             <span className="hero-name-line" data-hero-word="kevin">
               {t('hero.name1')}
             </span>
@@ -73,11 +101,11 @@ export function Hero() {
             >
               <ScrambleText>{t('hero.name2') as string}</ScrambleText>
             </span>
-          </RevealOnView>
-        </h1>
+          </motion.h1>
+        </div>
 
         <div className="hero-supplementary">
-          <RevealOnView recipe="slideInLeft" delay={0.52} gate={gate}>
+          <RevealOnView recipe="slideInLeft" delay={0.0} gate={gate}>
             <div className="hero-role-line">
               <span className="hero-role-prefix">{t('hero.rolePrefix')}</span>
               <AnimatePresence mode="wait" initial={false}>
@@ -95,13 +123,13 @@ export function Hero() {
             </div>
           </RevealOnView>
 
-          <RevealOnView recipe="fadeUp" delay={0.78} gate={gate}>
+          <RevealOnView recipe="fadeUp" delay={0.18} gate={gate}>
             <p className="hero-desc max-w-[640px]">
               <Trans i18nKey="hero.description" components={{ strong: <strong /> }} />
             </p>
           </RevealOnView>
 
-          <RevealOnView recipe="scaleIn" delay={1.04} gate={gate}>
+          <RevealOnView recipe="scaleIn" delay={0.36} gate={gate}>
             <div className="hero-cta">
               <a
                 href="#contact"
@@ -120,18 +148,13 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Stats row REMOVED — relocates in Task 17 */}
-
-      {/* Right column: HeroAccent3D + HeroAccentSilhouette were previously
-          mounted inside HeroDataFragments (now deleted). They mount fresh here
-          behind a Suspense boundary so the R3F bundle stays out of the LCP
-          critical path. The silhouette serves as the Suspense fallback so the
-          bbox is reserved while R3F loads. */}
-      <RevealOnView recipe="fadeUp" delay={1.28} gate={gate} className="hero-accent-mount">
+      <RevealOnView recipe="fadeUp" delay={0.6} gate={gate} className="hero-accent-mount">
         <Suspense fallback={<HeroAccentSilhouette />}>
           <HeroAccent3D />
         </Suspense>
       </RevealOnView>
+
+      <LoadingCursor getAnchors={getAnchors} />
     </section>
   )
 }

@@ -1086,7 +1086,7 @@ The existing `RevealOnView recipe="stampIn" delay={0.18}` wrapper around the nam
 
 Hero also holds the `HeroNameDrawing` ref and passes `getAnchors` down to `<LoadingCursor>` (which Hero renders too). The cursor is a child of Hero so it has access to the same lifecycle, but `createPortal` puts the actual DOM node on body.
 
-- [ ] **Step 1: Rewrite `Hero.tsx`**
+- [x] **Step 1: Rewrite `Hero.tsx`**
 
 ```tsx
 // src/components/sections/Hero.tsx
@@ -1257,7 +1257,7 @@ export function Hero() {
 
 Notes on the delay changes: previously the cascade was offset from "loader gone" by `0.18 / 0.52 / 0.78 / 1.04 / 1.28` seconds. The first offset (`0.18`) was the name's own stampIn — now removed. The remaining offsets are tightened relative to "cursor landed on nav" because the eye is already at the top. New offsets: `0 / 0.18 / 0.36 / 0.6` (role / desc / cta / accent).
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 ```bash
 npx tsc -b --noEmit
@@ -1265,7 +1265,7 @@ npx tsc -b --noEmit
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/sections/Hero.tsx
