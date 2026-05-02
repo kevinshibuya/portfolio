@@ -56,16 +56,13 @@ test('body scroll is locked while loader is visible', async ({ page }) => {
   expect(overflowAfter).not.toBe('hidden')
 })
 
-test('loader underline reaches scaleX=1 before any other timeline starts', async ({ page }) => {
-  await page.goto('/')
-  await page.waitForFunction(() => {
-    const el = document.querySelector<HTMLElement>('[data-loader-progress]')
-    return el ? Number(el.dataset.value) >= 1 : false
-  })
-  // The hero supplementary content (eyebrow/role/desc) must NOT yet be visible at opacity 1
-  const eyebrow = page.locator('[data-hero-eyebrow]')
-  const opacity = await eyebrow.evaluate((el) =>
-    parseFloat(getComputedStyle(el as HTMLElement).opacity)
-  )
-  expect(opacity).toBeLessThan(0.95)
-})
+// NOTE: A third test previously asserted that `[data-hero-eyebrow]` had
+// opacity < 0.95 at the moment the loader underline reached scaleX=1.
+// That coupling no longer holds: under the page-feel-overhaul (2026-05-02),
+// Hero choreography is driven by RevealOnView's viewport-based timing with
+// explicit per-element delays, not gated by `loaderDone`. The loader still
+// covers the page during the same window (scroll lock + visibility), so
+// the user-perceived ordering ("loader visually completes first") is
+// preserved by z-order rather than by an opacity invariant on Hero DOM.
+// The legacy `.hero-supplementary { opacity: 0 }` rule was removed in the
+// same task, so the assertion is no longer measurable against this DOM.

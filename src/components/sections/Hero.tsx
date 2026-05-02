@@ -106,7 +106,7 @@ export function Hero() {
           behind a Suspense boundary so the R3F bundle stays out of the LCP
           critical path. The silhouette serves as the Suspense fallback so the
           bbox is reserved while R3F loads. */}
-      <RevealOnView recipe="fadeUp" delay={1.28}>
+      <RevealOnView recipe="fadeUp" delay={1.28} className="hero-accent-mount">
         <Suspense fallback={<HeroAccentSilhouette />}>
           <HeroAccent3D />
         </Suspense>

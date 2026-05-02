@@ -1010,3 +1010,22 @@ body[data-loader-state="loading"] {
 .hero-main .hero-name + .hero-supplementary { margin-top: 48px; }
 .hero-supplementary .hero-role-line + .hero-desc { margin-top: 32px; }
 .hero-supplementary .hero-desc + .hero-cta { margin-top: 48px; }
+
+/* Right-side HeroAccent3D mount. The previous container (.hero-fragments)
+   was a half-width grid of multiple SVG fragments + the 3D accent; that
+   component was deleted in Task 9. The lone surviving accent re-mounts
+   here, positioned absolutely so it sits beside .hero-main without
+   pushing the grid layout. Hidden on mobile. */
+.hero-accent-mount {
+  position: absolute;
+  top: 50%;
+  right: 80px;
+  transform: translateY(-50%);
+  width: 280px;
+  height: 280px;
+  pointer-events: none;
+  z-index: 0;
+}
+@media (max-width: 768px) {
+  .hero-accent-mount { display: none; }
+}
