@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { RevealOnView, childVariants } from '../ui/RevealOnView'
+import { RevealOnView } from '../ui/RevealOnView'
+import { Stagger } from '../ui/Stagger'
 import { SectionHeading } from '../ui/SectionHeading'
 import { Tag } from '../ui/Tag'
 import { workExperiences } from '../../data/workExperience'
+import { STAGGER_PRESETS } from '../../utils/animations'
 
 export function WorkExperience() {
   const { t, i18n } = useTranslation()
@@ -13,7 +14,7 @@ export function WorkExperience() {
 
   return (
     <section id="work" className="section">
-      <RevealOnView variant="fade-up">
+      <RevealOnView recipe="stampIn">
         <SectionHeading
           index={t('sections.work.index')}
           label={t('sections.work.label')}
@@ -22,13 +23,17 @@ export function WorkExperience() {
         />
       </RevealOnView>
 
-      <RevealOnView variant="stagger-children" staggerAmount={0.06} className="work-list">
+      <Stagger
+        recipe="slideInLeft"
+        stagger={STAGGER_PRESETS.workRows}
+        className="work-list section-spacing-content"
+      >
         {workExperiences.map((exp, i) => {
           const open = expandedIdx === i
           const num = `0${i + 1}`
 
           return (
-            <motion.div key={exp.id} variants={childVariants} className={`work-row${open ? ' is-open' : ''}`}>
+            <div key={exp.id} className={`work-row${open ? ' is-open' : ''}`}>
               <button
                 className="work-row-head"
                 onClick={() => setExpandedIdx(open ? -1 : i)}
@@ -75,10 +80,10 @@ export function WorkExperience() {
                   </div>
                 </div>
               )}
-            </motion.div>
+            </div>
           )
         })}
-      </RevealOnView>
+      </Stagger>
     </section>
   )
 }

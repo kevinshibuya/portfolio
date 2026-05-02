@@ -1323,13 +1323,13 @@ Tick `- [ ] Hero left column uses staged-timeline mount choreography…` in the 
 - Modify: `src/components/sections/WorkExperience.tsx`
 - Modify: `src/i18n/locales/en.json`, `pt.json` (only the WorkExperience section description if `<strong>` is added)
 
-- [ ] **Step 1: Read the current file** to learn the current row markup and any existing RevealOnView usage:
+- [x] **Step 1: Read the current file** to learn the current row markup and any existing RevealOnView usage:
 
 ```bash
 sed -n '1,200p' src/components/sections/WorkExperience.tsx
 ```
 
-- [ ] **Step 2: Apply the recipe mapping**
+- [x] **Step 2: Apply the recipe mapping**
 
 Wrap the section heading in `<RevealOnView recipe="stampIn">`. Wrap the rows list in `<Stagger recipe="slideInLeft" stagger={STAGGER_PRESETS.workRows}>` (import `Stagger` and `STAGGER_PRESETS`). Each direct child of `<Stagger>` is one row.
 
@@ -1339,7 +1339,7 @@ If the section has a description paragraph, constrain it with `className="... ma
 
 Add the `.section-spacing-content` utility to whichever container groups heading-and-content (typically the wrapping `<div>` around the rows).
 
-- [ ] **Step 3: Build & smoke**
+- [x] **Step 3: Build & smoke**
 
 Run: `npm run build` → PASS.
 `npm run dev` → scroll to Work section → confirm rows enter from the left in sequence.
