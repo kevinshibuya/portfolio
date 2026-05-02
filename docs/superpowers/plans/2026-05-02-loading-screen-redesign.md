@@ -806,7 +806,7 @@ The component takes a `getAnchors` prop — a callable that returns the latest `
 
 Under reduced motion the component renders nothing (returns `null`) — `resolveHandoff` is fired by the hook in that case.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // tests/unit/LoadingCursor.test.tsx
@@ -865,7 +865,7 @@ describe('LoadingCursor', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 ```bash
 npm run test:unit -- LoadingCursor
@@ -873,7 +873,7 @@ npm run test:unit -- LoadingCursor
 
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement `LoadingCursor`**
+- [x] **Step 3: Implement `LoadingCursor`**
 
 ```tsx
 // src/components/ui/LoadingCursor.tsx
@@ -1056,7 +1056,7 @@ export function LoadingCursor({ getAnchors }: LoadingCursorProps) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 npm run test:unit -- LoadingCursor
@@ -1064,7 +1064,9 @@ npm run test:unit -- LoadingCursor
 
 Expected: 2 tests pass.
 
-- [ ] **Step 5: Commit**
+**Deviation:** the matchMedia-based mock in the original test plan leaked between tests, causing `useReducedMotion()` to return true even when set to false. Switched to `vi.mock('framer-motion', ...)` to mock `useReducedMotion` directly via a per-test ref.
+
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/ui/LoadingCursor.tsx tests/unit/LoadingCursor.test.tsx
