@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { heroStats } from '../../data/stats'
 import { useMotion } from '../../context/MotionContext'
-import { useScrollFade } from '../../hooks/useScrollFade'
 import { useLenis } from '../../hooks/useLenis'
 import { ScrambleText } from '../ui/ScrambleText'
 
@@ -25,7 +24,6 @@ export function Hero() {
   const { scrollTo } = useLenis()
   const suppRef = useRef<HTMLDivElement>(null)
   const nameRef = useRef<HTMLHeadingElement>(null)
-  useScrollFade(nameRef)
 
   const roles = useMemo(() => {
     const value = t('hero.roles', { returnObjects: true })

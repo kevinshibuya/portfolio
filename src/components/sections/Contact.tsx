@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { RevealOnView, childVariants } from '../ui/RevealOnView'
 import { EMAIL, socialLinks } from '../../data/social'
-import { useScrollFade } from '../../hooks/useScrollFade'
 
 interface ContactRowData {
   num: string
@@ -19,7 +18,6 @@ function getSocialUrl(platform: string): string {
 export function Contact() {
   const { t } = useTranslation()
   const contactTitleRef = useRef<HTMLHeadingElement>(null)
-  useScrollFade(contactTitleRef)
 
   const rows: ContactRowData[] = [
     {
