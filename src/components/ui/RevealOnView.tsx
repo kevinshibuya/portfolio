@@ -30,6 +30,12 @@ interface RevealOnViewProps {
   /** Override the default viewport-amount (0.2). Use 0.0 when an element is
    *  taller than the viewport and would otherwise never trigger. */
   amount?: number
+  /** Defer the hidden→visible transition until this flag is true. Used by
+   *  Hero to chain the staged reveal AFTER the loader has fully faded out;
+   *  without this gate, RevealOnView triggers on mount and the early frames
+   *  play behind the loader. When undefined, the default whileInView
+   *  behavior applies. */
+  gate?: boolean
 }
 
 function resolveRecipe(input: RecipeName | LegacyVariant | undefined): RecipeName {
@@ -46,16 +52,19 @@ export function RevealOnView({
   className,
   children,
   amount = 0.2,
+  gate,
 }: RevealOnViewProps) {
   const { prefersReducedMotion } = useMotion()
+  const useGate = gate !== undefined
 
   if (prefersReducedMotion) {
     return (
       <motion.div
         className={className}
         initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount }}
+        animate={useGate ? (gate ? 'visible' : 'hidden') : undefined}
+        whileInView={useGate ? undefined : 'visible'}
+        viewport={useGate ? undefined : { once: true, amount }}
         variants={REDUCED_MOTION_VARIANT}
       >
         {children}
@@ -85,8 +94,9 @@ export function RevealOnView({
     <motion.div
       className={className}
       initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount }}
+      animate={useGate ? (gate ? 'visible' : 'hidden') : undefined}
+      whileInView={useGate ? undefined : 'visible'}
+      viewport={useGate ? undefined : { once: true, amount }}
       variants={variants}
     >
       {children}
