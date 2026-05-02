@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -6,14 +6,6 @@ import { heroStats } from '../../data/stats'
 import { useMotion } from '../../context/MotionContext'
 import { useLenis } from '../../hooks/useLenis'
 import { ScrambleText } from '../ui/ScrambleText'
-
-// HeroDataFragments owns ~all of the GSAP entry/parallax/scroll-fade work for
-// the right side composition. None of that motion fires until loaderDone
-// resolves, so loading the component lazily after first paint shaves measurable
-// JS off the LCP critical path without affecting the visual sequence.
-const HeroDataFragments = lazy(() =>
-  import('../canvas/HeroDataFragments').then((m) => ({ default: m.HeroDataFragments }))
-)
 
 const ROLE_DURATION_MS = 2800
 
@@ -131,9 +123,6 @@ export function Hero() {
         ))}
       </div>
 
-      <Suspense fallback={null}>
-        <HeroDataFragments />
-      </Suspense>
     </section>
   )
 }
