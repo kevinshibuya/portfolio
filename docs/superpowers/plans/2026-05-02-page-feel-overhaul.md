@@ -1304,7 +1304,7 @@ Reload `localhost:5173`. Expected:
 - Vertical spacing inside the left column feels generous (48/32/48)
 - Description column doesn't sprawl past ~640px
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/sections/Hero.tsx src/i18n/locales/en.json src/i18n/locales/pt.json
