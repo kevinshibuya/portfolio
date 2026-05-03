@@ -29,8 +29,9 @@ const Footer = lazy(() =>
   import('../components/layout/Footer').then((m) => ({ default: m.Footer }))
 )
 
+const STORAGE_KEY = 'portfolio:home:scrollY'
+
 export function Home() {
-  const STORAGE_KEY = 'portfolio:home:scrollY'
   const { scrollTo } = useLenis()
   const { bypassEntrance } = useMotion()
 
@@ -45,10 +46,10 @@ export function Home() {
     // Bypass the hero entrance BEFORE scroll restoration so the lock
     // doesn't latch.
     bypassEntrance()
-    // Synchronous scroll before paint.
+    // Synchronous scroll before paint — must happen in useLayoutEffect.
     window.scrollTo(0, y)
-    // Tell Lenis to catch up.
-    scrollTo(document.body, { duration: 0, offset: y })
+    // Numeric target so Lenis snaps to the absolute Y; no offset trickery.
+    scrollTo(y, { duration: 0 })
     sessionStorage.removeItem(STORAGE_KEY)
   }, [bypassEntrance, scrollTo])
 

@@ -19,7 +19,7 @@ export function ProjectDetail() {
 
   useEffect(() => {
     // Tell Lenis to align with the new top once it's wired post-mount.
-    scrollTo(document.body, { duration: 0 })
+    scrollTo(0, { duration: 0 })
   }, [scrollTo])
 
   const project = projects.find((p) => p.slug === slug)

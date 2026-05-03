@@ -9,12 +9,12 @@ interface ScrollOpts {
 }
 
 export function useLenis(): {
-  scrollTo: (target: string | HTMLElement, opts?: ScrollOpts) => void
+  scrollTo: (target: number | string | HTMLElement, opts?: ScrollOpts) => void
 } {
   const lenis = useLenisContext()
 
   const scrollTo = useCallback(
-    (target: string | HTMLElement, opts: ScrollOpts = {}) => {
+    (target: number | string | HTMLElement, opts: ScrollOpts = {}) => {
       const { duration = 1.2, offset = 0 } = opts
 
       if (lenis) {
@@ -23,6 +23,10 @@ export function useLenis(): {
       }
 
       // Fallback: reduced-motion or pre-mount path. Use native scroll.
+      if (typeof target === 'number') {
+        window.scrollTo({ top: target + offset, behavior: 'auto' })
+        return
+      }
       const el = typeof target === 'string'
         ? document.querySelector(target) as HTMLElement | null
         : target

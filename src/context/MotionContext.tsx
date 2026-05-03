@@ -34,11 +34,13 @@ const _entranceDone: Promise<void> = new Promise<void>((res) => {
 })
 const resolveEntrance: Resolver = () => _resolveEntrance?.()
 
+// Module-scoped flag is the survive-everything source of truth (StrictMode
+// double-mount, MotionProvider remount). The provider also mirrors it in
+// state so calling bypassEntrance() triggers a context re-render and
+// consumers see the new value. Without the state mirror, useMemo would
+// keep returning the cached false until reduced/r3fEnabled happened to
+// change.
 let _entranceBypassed = false
-const bypassEntrance: Resolver = () => {
-  _entranceBypassed = true
-  resolveEntrance()
-}
 
 const Ctx = createContext<MotionContextValue | null>(null)
 
@@ -54,17 +56,28 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     )
   }, [])
 
+  // Initialise from the module flag so a remounted provider picks up an
+  // already-bypassed state instead of resetting to false.
+  const [bypassed, setBypassed] = useState(_entranceBypassed)
+  const bypassEntrance: Resolver = () => {
+    _entranceBypassed = true
+    setBypassed(true)
+    resolveEntrance()
+  }
+
   const value = useMemo<MotionContextValue>(
     () => ({
       entranceDone: _entranceDone,
       resolveEntrance,
       bypassEntrance,
-      entranceBypassed: _entranceBypassed,
+      entranceBypassed: bypassed,
       loaderDone: _entranceDone,
       prefersReducedMotion: reduced,
       r3fAccentEnabled: r3fEnabled,
     }),
-    [reduced, r3fEnabled]
+    // bypassEntrance is recreated each render but its identity changing
+    // doesn't matter to consumers — it's a one-shot side-effecting call.
+    [reduced, r3fEnabled, bypassed]
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

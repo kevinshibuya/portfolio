@@ -262,9 +262,9 @@ The Contact rows' label transitions from upright to italic on hover, and the swa
 - [x] **(3)** Move the `.hero-accent-mount { display: none }` rule to fire at `(max-width: 720px)` only; verify R3F accent visible and well-positioned at 721–1099px.
 - [x] **(4.1)** Replace bento `min-height` driven sizing with grid-auto-rows + aspect-ratio strategy; verify cells are square at desktop.
 - [x] **(4.2)** Adjust 2-col and 1-col responsive behavior so collapsed bentos don't go flat or absurdly tall; verify at 720px and 480px.
-- [ ] **(5.1)** Add scroll-to-top in `ProjectDetail` mount via `useLayoutEffect` + Lenis + window fallback.
-- [ ] **(5.2)** Save Lenis scroll-Y to `sessionStorage` on Home unmount; restore on Home mount via `useLayoutEffect` before first paint.
-- [ ] **(5.3)** Add a `wasRestored` flag to `MotionContext` (or equivalent); when true, pre-resolve `entranceDone`, skip scroll-lock, and render `HeroNameDrawing` in its final ink-filled state.
+- [x] **(5.1)** Add scroll-to-top in `ProjectDetail` mount via `useLayoutEffect` + Lenis + window fallback.
+- [x] **(5.2)** Save Lenis scroll-Y to `sessionStorage` on Home unmount; restore on Home mount via `useLayoutEffect` before first paint.
+- [x] **(5.3)** Add a `wasRestored` flag to `MotionContext` (or equivalent); when true, pre-resolve `entranceDone`, skip scroll-lock, and render `HeroNameDrawing` in its final ink-filled state.
 - [ ] **(5.4)** Verify navigate-to-project-and-back lands at the original scroll-Y with no hero replay; verify hard reload still plays full hero entrance.
 - [ ] **(6.1)** Create `src/types/archive.ts` (or extend `content.ts`) with `ArchiveItem` + `ArchiveKind` types.
 - [ ] **(6.2)** Create `src/data/archive.ts` that normalises `projects` + `embeds` into `ArchiveItem[]`; export sorted by `sortDate` desc.
