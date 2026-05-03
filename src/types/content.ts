@@ -45,3 +45,25 @@ export interface Embed {
   title: string
   imagePreview?: string
 }
+
+export type ArchiveKind = 'featured' | 'editorial' | 'personal' | 'oss' | 'freelance'
+
+export type Bilingual = string | { en: string; pt: string }
+
+export interface ArchiveItem {
+  id: string
+  kind: ArchiveKind
+  title: Bilingual
+  type?: EmbedType
+  editorial?: string
+  date: string
+  sortDate: number
+  href: string
+  internal: boolean
+  gradient: string
+}
+
+export function resolveTitle(item: ArchiveItem, lang: 'en' | 'pt'): string {
+  if (typeof item.title === 'string') return item.title
+  return item.title[lang]
+}

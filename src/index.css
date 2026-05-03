@@ -5,19 +5,25 @@
    ========================================================================= */
 @font-face {
   font-family: 'Plus Jakarta Sans';
-  src: url('/fonts/PlusJakartaSans-VariableFont_wght.ttf') format('truetype-variations'),
+  src: url('/fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2-variations'),
+       url('/fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2'),
+       url('/fonts/PlusJakartaSans-VariableFont_wght.ttf') format('truetype-variations'),
        url('/fonts/PlusJakartaSans-VariableFont_wght.ttf') format('truetype');
   font-weight: 200 800;
   font-style: normal;
-  font-display: swap;
+  /* block: local font loads within 100ms block window — no FOUT/CLS */
+  font-display: block;
 }
 @font-face {
   font-family: 'Plus Jakarta Sans';
-  src: url('/fonts/PlusJakartaSans-Italic-VariableFont_wght.ttf') format('truetype-variations'),
+  src: url('/fonts/PlusJakartaSans-Italic-VariableFont_wght.woff2') format('woff2-variations'),
+       url('/fonts/PlusJakartaSans-Italic-VariableFont_wght.woff2') format('woff2'),
+       url('/fonts/PlusJakartaSans-Italic-VariableFont_wght.ttf') format('truetype-variations'),
        url('/fonts/PlusJakartaSans-Italic-VariableFont_wght.ttf') format('truetype');
   font-weight: 200 800;
   font-style: italic;
-  font-display: swap;
+  /* block: local font loads within 100ms block window — no FOUT/CLS */
+  font-display: block;
 }
 
 /* =========================================================================
@@ -95,6 +101,19 @@ button {
 }
 ul { list-style: none; margin: 0; padding: 0; }
 img { max-width: 100%; display: block; }
+/* Body-copy emphasis. Distinct from <em>, which renders as italic blue-400. */
+strong {
+  font-weight: 600;
+  color: var(--ink);
+  font-style: normal;
+}
+/* Defensive override for ink-background sections — Contact + Footer use
+   color: var(--cream) on their text so global strong { color: var(--ink) }
+   would render invisibly. */
+.section--contact strong,
+.footer strong {
+  color: var(--cream);
+}
 
 /* =========================================================================
    NAV
@@ -102,7 +121,17 @@ img { max-width: 100%; display: block; }
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   padding: 18px 40px;
-  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    padding 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 200ms ease-out;
+}
+.nav.is-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 .nav.is-scrolled {
   padding: 12px 40px;
@@ -165,6 +194,7 @@ img { max-width: 100%; display: block; }
   color: var(--ink);
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  white-space: nowrap;
 }
 .nav-avail-dot {
   width: 7px; height: 7px; border-radius: 50%;
@@ -203,11 +233,13 @@ img { max-width: 100%; display: block; }
   position: relative; z-index: 1;
   align-self: center;
   max-width: 1200px;
+  display: flex;
+  flex-direction: column;
 }
 .hero-name {
-  font-size: clamp(72px, 13vw, 220px);
+  font-size: clamp(64px, 11vw, 192px);
   font-weight: 700;
-  line-height: 0.88;
+  line-height: 0.92;
   letter-spacing: -0.05em;
   text-transform: lowercase;
   margin: 0;
@@ -218,20 +250,95 @@ img { max-width: 100%; display: block; }
   color: var(--mist);
   -webkit-text-stroke: 1px var(--blue-300);
 }
+
+/* Visually-hidden helper used by HeroNameDrawing's screen-reader h1.
+   Standard a11y pattern. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =========================================================================
+   HERO NAME DRAWING — SVG glyph paths animated as ink-trace + ink-fill.
+   This component IS the hero title (it replaces the static <h1>).
+   Each <path> is a glyph outline extracted from Plus Jakarta Sans Bold;
+   stroke-dashoffset 1→0 produces the trace, then the .--ink / .--ghost
+   classes swap stroke for fill to land on the final h1-equivalent state.
+   ========================================================================= */
+.hero-name-drawing {
+  display: block;
+  /* Aggressive vw component so the title scales toward full-width on
+     mobile/tablet; the 192px max keeps it composed on desktop. */
+  font-size: clamp(72px, 22vw, 192px);
+  line-height: 0.92;
+}
+.hero-name-drawing-word {
+  display: block;
+  width: auto;
+  height: 1em;
+  overflow: visible;
+}
+.hero-name-drawing-glyph {
+  fill: transparent;
+  stroke: var(--blue-400);
+  /* Stroke is in 1000-em viewBox units. 14 ≈ 2.7px @ 192px font — thin
+     and elegant trace, not a thick brush. */
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+/* Final state of "kevin": solid ink fill, no stroke (matches the previous
+   .hero-name-line --ink). */
+.hero-name-drawing-glyph--ink {
+  fill: var(--ink);
+  stroke: transparent;
+}
+/* Final state of "shibuya.": ghost (cream/mist fill + thin blue stroke,
+   matches the previous .hero-name-line--ghost). */
+.hero-name-drawing-glyph--ghost {
+  fill: var(--mist);
+  stroke: var(--blue-300);
+  stroke-width: 4;
+}
+
+/* Scramble lettering — cursor affordance + design-system focus ring.
+   The ::after underline on hover is for parity with the wider editorial feel:
+   a soft suggestion that the lettering is interactive, without committing to
+   button-like styling that would break the H1 silhouette. */
+.scramble {
+  cursor: pointer;
+  outline: none;
+  border-radius: 2px;
+  transition: text-decoration-color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.scramble:focus-visible {
+  outline: 2px solid var(--blue-300);
+  outline-offset: 6px;
+}
+.scramble-static { /* reduced-motion fallback — render as plain text */ }
 .hero-role-line {
   display: flex; align-items: baseline; gap: 16px;
   flex-wrap: wrap;
   margin-top: 36px;
 }
 .hero-role-prefix {
-  font-size: clamp(20px, 2.2vw, 32px);
+  font-size: clamp(22px, 2.4vw, 36px);
   font-weight: 300;
   color: var(--bark);
   text-transform: lowercase;
   letter-spacing: -0.02em;
 }
 .hero-role {
-  font-size: clamp(22px, 2.4vw, 36px);
+  font-size: clamp(24px, 2.6vw, 40px);
   font-weight: 600;
   color: var(--blue-400);
   text-transform: lowercase;
@@ -240,11 +347,28 @@ img { max-width: 100%; display: block; }
   padding-bottom: 4px;
   display: inline-block;
 }
+/* Click-to-cycle: cursor + accessible focus ring + smooth color shift on hover. */
+.hero-role--clickable {
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  border-radius: 2px;
+  transition: color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              border-bottom-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero-role--clickable:hover {
+  color: var(--blue-500, #1C6EC4);
+  border-bottom-color: var(--blue-400);
+}
+.hero-role--clickable:focus-visible {
+  outline: 2px solid var(--blue-300);
+  outline-offset: 6px;
+}
 .hero-desc {
   font-size: 17px;
   color: var(--bark);
   max-width: 560px;
-  line-height: 1.6;
+  line-height: 1.75;
   margin: 24px 0 0;
   text-transform: lowercase;
 }
@@ -259,7 +383,7 @@ img { max-width: 100%; display: block; }
 }
 .hero-stat { display: flex; flex-direction: column; gap: 4px; }
 .hero-stat-v {
-  font-size: 32px; font-weight: 600;
+  font-size: 40px; font-weight: 700;
   color: var(--ink);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -278,10 +402,10 @@ img { max-width: 100%; display: block; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
   font-family: inherit;
-  font-size: 12px; font-weight: 600;
+  font-size: 13px; font-weight: 600;
   text-transform: lowercase;
   letter-spacing: 0.04em;
-  padding: 13px 22px;
+  padding: 16px 28px;
   border-radius: 999px;
   transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   white-space: nowrap;
@@ -298,7 +422,7 @@ img { max-width: 100%; display: block; }
   background: transparent;
   color: var(--ink);
   border: 1.5px solid var(--ink);
-  padding: 11.5px 22px;
+  padding: 14.5px 26.5px;
 }
 .btn--ghost:hover {
   background: var(--ink);
@@ -356,10 +480,14 @@ img { max-width: 100%; display: block; }
 .section-desc {
   font-size: 17px;
   color: var(--bark);
-  line-height: 1.6;
+  line-height: 1.7;
   margin: 0;
   text-transform: lowercase;
   max-width: 560px;
+}
+/* Replaces ad-hoc 64px gaps between section heading and body content. */
+.section-spacing-content {
+  margin-top: 96px;
 }
 
 /* =========================================================================
@@ -465,11 +593,9 @@ img { max-width: 100%; display: block; }
   color: var(--ink);
   font-weight: 300;
   line-height: 1;
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   display: inline-block;
   justify-self: end;
 }
-.work-toggle.is-open { transform: rotate(45deg); color: var(--blue-400); }
 .work-body {
   overflow: hidden;
 }
@@ -579,6 +705,8 @@ img { max-width: 100%; display: block; }
 .bento {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  aspect-ratio: 2 / 1;
   gap: 12px;
 }
 .bento-card {
@@ -587,7 +715,6 @@ img { max-width: 100%; display: block; }
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 140px;
   cursor: pointer;
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
               box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
@@ -600,7 +727,6 @@ img { max-width: 100%; display: block; }
 .bento-card--lg {
   grid-column: span 2;
   grid-row: span 2;
-  min-height: 300px;
   padding: 28px;
 }
 .bento-card--md {
@@ -638,94 +764,6 @@ img { max-width: 100%; display: block; }
 }
 .bento-card.is-dark .bento-cs { color: var(--cream); opacity: 0.85; }
 .bento-card:hover .bento-cs { transform: translateX(3px); }
-
-/* =========================================================================
-   TABLE (numbered rows v02 — used by Embeds)
-   ========================================================================= */
-.tbl {
-  background: var(--cream);
-  border: 1px solid var(--mist);
-  border-radius: 14px;
-  overflow: hidden;
-}
-.tbl-row {
-  display: grid;
-  grid-template-columns: 50px 64px 1fr 120px 80px 30px;
-  gap: 16px;
-  align-items: center;
-  padding: 14px 22px;
-  border-bottom: 1px solid var(--mist);
-  transition: background 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  cursor: pointer;
-}
-.tbl-row:last-child { border-bottom: none; }
-.tbl-row:hover { background: var(--sand); }
-.tbl-num {
-  font-size: 10px;
-  color: var(--dust);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
-}
-.tbl-preview {
-  width: 56px; height: 40px;
-  border-radius: 6px;
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.tbl-row:hover .tbl-preview { transform: scale(1.08); }
-.tbl-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.tbl-row:hover .tbl-title {
-  font-weight: 700;
-  transform: translateX(6px);
-}
-.tbl-role {
-  font-size: 11px;
-  color: var(--bark);
-  text-transform: lowercase;
-}
-.tbl-year {
-  font-size: 11px;
-  color: var(--dust);
-  text-transform: lowercase;
-}
-.tbl-arrow {
-  font-size: 14px;
-  color: var(--ink);
-  opacity: 0.3;
-  transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  justify-self: end;
-}
-.tbl-row:hover .tbl-arrow { opacity: 1; }
-
-/* Filters row */
-.embeds-filters { display: flex; flex-direction: column; gap: 18px; margin-bottom: 32px; }
-.embeds-filter-group { display: flex; flex-direction: column; gap: 10px; }
-.embeds-filter-label {
-  font-size: 10px; font-weight: 600;
-  color: var(--dust);
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-}
-.embeds-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.embeds-count {
-  font-size: 13px;
-  color: var(--bark);
-  margin: 0 0 24px;
-  text-transform: lowercase;
-}
-.embeds-count strong { color: var(--ink); font-weight: 600; }
-.embeds-more { display: flex; justify-content: center; margin-top: 40px; }
 
 /* =========================================================================
    CONTACT (dark ink)
@@ -786,10 +824,22 @@ img { max-width: 100%; display: block; }
   color: var(--cream);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  transition: all 0.3s;
+  /* inline-block + transform-origin so skewX animates from the left edge
+     without horizontal drift. font-weight is not interpolable so it
+     stays out of the transition list and snaps on hover; that's
+     imperceptible against the 400ms skew. */
+  display: inline-block;
+  transform: skewX(0);
+  transform-origin: 0 50%;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.3s;
 }
+/* Progressive skew replaces the previous font-style: italic swap, which
+   was an instant glyph-pop because Plus Jakarta Italic is a separate
+   font file with no slant axis. */
 .contact-row:hover .contact-label {
-  font-style: italic;
+  transform: skewX(-10deg);
   color: var(--blue-300);
   font-weight: 600;
 }
@@ -853,18 +903,27 @@ img { max-width: 100%; display: block; }
     padding-left: 40px;
     padding-right: 40px;
   }
-  .bento { grid-template-columns: repeat(2, 1fr); }
-  .bento-card--lg, .bento-card--md { grid-column: span 2; }
+  /* 2-col grid auto-places into 3 rows (lg / sm sm / md) — drive shapes
+     per-card so geometry doesn't depend on row-count. */
+  .bento {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: auto;
+    aspect-ratio: auto;
+  }
+  .bento-card { aspect-ratio: 1 / 1; }
+  .bento-card--lg, .bento-card--md {
+    grid-column: span 2;
+    aspect-ratio: 2 / 1;
+  }
   .bento-card--lg { grid-row: auto; }
   .skills-grid { grid-template-columns: 1fr; gap: 40px; max-width: 560px; }
-  .tbl-row {
-    grid-template-columns: 40px 64px 1fr 30px;
-  }
-  .tbl-role, .tbl-year { display: none; }
 }
 
 @media (max-width: 720px) {
   .nav { padding: 12px 20px; }
+  /* Override the outer .nav.is-scrolled rule (which sets 12px 40px and
+     would win on specificity) so horizontal padding stays 20px on scroll. */
+  .nav.is-scrolled { padding: 12px 20px; }
   .nav-links { display: none; }
   .nav-inner { grid-template-columns: auto 1fr; }
   .nav-avail { display: none; }
@@ -876,10 +935,243 @@ img { max-width: 100%; display: block; }
   .hero-stats { gap: 32px; }
   .work-row-head { grid-template-columns: 32px 1fr 24px; padding: 20px; gap: 14px; }
   .work-body-inner { padding: 0 20px 28px 20px; }
-  .bento { grid-template-columns: 1fr; }
-  .bento-card--lg, .bento-card--md { grid-column: span 1; }
+  .bento {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    aspect-ratio: auto;
+  }
+  .bento-card { aspect-ratio: 4 / 3; }
+  .bento-card--lg, .bento-card--md { grid-column: span 1; aspect-ratio: 4 / 3; }
   .contact-row { grid-template-columns: 32px 1fr 24px; }
   .contact-meta { display: none; }
   .section-header { margin-bottom: 40px; }
   .section { padding: 100px 20px; }
+  .hero-accent-mount { display: none; }
+}
+
+/* =========================================================================
+   LOADER SCROLL LOCK — keyed off body[data-loader-state="loading"], which
+   useScrollLockDuringLoader sets on mount and clears when handoff resolves.
+   Belt-and-braces: lock both <html> and <body>; pin touch-action so iOS
+   Safari doesn't bypass overflow:hidden via momentum scroll.
+   ========================================================================= */
+html:has(body[data-loader-state="loading"]),
+body[data-loader-state="loading"] {
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+/* Hero left column inter-element gaps (spec §1) */
+.hero-main .hero-name + .hero-supplementary { margin-top: 48px; }
+.hero-supplementary .hero-role-line + .hero-desc { margin-top: 32px; }
+.hero-supplementary .hero-desc + .hero-cta { margin-top: 48px; }
+
+/* Right-side HeroAccent3D mount. The previous container (.hero-fragments)
+   was a half-width grid of multiple SVG fragments + the 3D accent; that
+   component was deleted in Task 9. The lone surviving accent re-mounts
+   here, positioned absolutely so it sits beside .hero-main without
+   pushing the grid layout. Hidden at ≤720px where the hero layout
+   collapses single-column and the accent would crowd hero-main's
+   content. Between 721–1100px the accent stays mounted; right:80px
+   continues to track section padding at those widths. */
+.hero-accent-mount {
+  position: absolute;
+  top: 50%;
+  right: 80px;
+  transform: translateY(-50%);
+  width: 280px;
+  height: 280px;
+  pointer-events: none;
+  z-index: 0;
+}
+/* Stats slim-band section. Reuses .hero-stat-v / .hero-stat-l for type
+   styles so the relocated Hero stat numerals keep their 40px/700 weight. */
+.stats {
+  padding: 128px 80px;
+}
+.stats-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  text-align: center;
+}
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 768px) {
+  .stats { padding: 96px 24px; }
+  .stats-grid { grid-template-columns: 1fr; gap: 32px; }
+}
+
+/* =========================================================================
+   ARCHIVE DROPDOWN
+   ========================================================================= */
+.archive-dropdown { position: relative; display: inline-block; }
+.archive-dropdown.is-disabled { opacity: 0.4; pointer-events: none; }
+.archive-dropdown-trigger {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--mist);
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.archive-dropdown-trigger:hover { border-color: var(--blue-300); }
+.archive-dropdown-trigger.is-open { border-color: var(--blue-400); background: var(--sand); }
+.archive-dropdown-label { color: var(--dust); }
+.archive-dropdown-value { color: var(--ink); font-weight: 600; }
+.archive-dropdown-caret { font-size: 10px; color: var(--bark); }
+.archive-dropdown-list {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
+  min-width: 100%;
+  max-height: 280px; overflow-y: auto;
+  margin: 0; padding: 6px;
+  list-style: none;
+  background: var(--cream);
+  border: 1px solid var(--mist);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(17, 24, 34, 0.08);
+}
+.archive-dropdown-option {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--bark);
+  text-transform: lowercase;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.archive-dropdown-option.is-active { background: var(--sand); color: var(--ink); }
+.archive-dropdown-option.is-selected { color: var(--blue-400); font-weight: 600; }
+
+/* =========================================================================
+   ARCHIVE — toolbar, chips, list
+   ========================================================================= */
+.archive-toolbar {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.archive-search {
+  flex: 1 1 240px;
+  min-width: 200px;
+  padding: 9px 14px;
+  border: 1px solid var(--mist);
+  border-radius: 999px;
+  background: var(--cream);
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+  transition: border-color 0.2s;
+}
+.archive-search:focus { outline: none; border-color: var(--blue-400); }
+.archive-search::placeholder { color: var(--dust); text-transform: lowercase; }
+
+.archive-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.archive-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--mist);
+  border-radius: 999px;
+  background: transparent;
+  font: inherit; font-size: 11px;
+  color: var(--bark);
+  text-transform: lowercase;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.archive-chip:hover { background: var(--cream); border-color: var(--blue-300); }
+
+.archive-count {
+  font-size: 12px;
+  color: var(--bark);
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 24px;
+}
+.archive-count strong { color: var(--ink); font-weight: 600; }
+
+.archive-list {
+  border: 1px solid var(--mist);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--cream);
+}
+.archive-row-wrap { display: block; }
+.archive-row {
+  display: grid;
+  grid-template-columns: 36px 56px 1fr 90px 120px 140px 110px 24px;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--mist);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.25s;
+}
+.archive-row-wrap:last-child .archive-row { border-bottom: none; }
+.archive-row:hover { background: var(--sand); }
+.archive-num {
+  font-size: 11px; font-weight: 500;
+  color: var(--dust); letter-spacing: 0.04em;
+}
+.archive-preview {
+  width: 56px; height: 40px;
+  border-radius: 8px;
+  transition: transform 0.3s;
+}
+.archive-row:hover .archive-preview { transform: scale(1.08); }
+.archive-title {
+  font-size: 13px; font-weight: 600;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  transition: transform 0.3s;
+}
+.archive-row:hover .archive-title {
+  transform: translateX(4px);
+  color: var(--blue-400);
+}
+.archive-kind, .archive-type, .archive-editorial, .archive-date {
+  font-size: 11px; color: var(--bark);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.archive-arrow {
+  font-size: 14px; color: var(--bark);
+  opacity: 0; transition: opacity 0.3s;
+  text-align: right;
+}
+.archive-row:hover .archive-arrow { opacity: 1; }
+
+.archive-more { display: flex; justify-content: center; margin-top: 32px; }
+
+@media (max-width: 1100px) {
+  .archive-row {
+    grid-template-columns: 32px 56px 1fr 110px 24px;
+  }
+  .archive-kind, .archive-type, .archive-editorial { display: none; }
+}
+@media (max-width: 720px) {
+  .archive-row {
+    grid-template-columns: 32px 1fr 24px;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .archive-preview, .archive-date { display: none; }
 }

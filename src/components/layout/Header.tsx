@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLenis } from '../../hooks/useLenis'
+import { useMotion } from '../../context/MotionContext'
 
 const NAV_ITEMS = [
   'work',
-  'embeds',
+  'archive',
   'experience',
   'skills',
   'contact',
@@ -13,7 +15,7 @@ type NavItem = (typeof NAV_ITEMS)[number]
 
 const SECTION_ID: Record<NavItem, string> = {
   work: 'projects',
-  embeds: 'embeds',
+  archive: 'archive',
   experience: 'work',
   skills: 'skills',
   contact: 'contact',
@@ -22,6 +24,9 @@ const SECTION_ID: Record<NavItem, string> = {
 export function Header() {
   const { t, i18n } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
+  const { scrollTo } = useLenis()
+  const { entranceDone } = useMotion()
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -30,11 +35,17 @@ export function Header() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+    entranceDone
+      .then(() => { if (!cancelled) setVisible(true) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [entranceDone])
+
   const go = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
-    const target = id === 'top' ? document.body : document.getElementById(id)
-    if (!target) return
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    scrollTo(`#${id}`, { duration: 1.2 })
   }
 
   const toggleLanguage = (): void => {
@@ -43,7 +54,9 @@ export function Header() {
   }
 
   return (
-    <header className={`nav${scrolled ? ' is-scrolled' : ''}`}>
+    <header
+      className={`nav${scrolled ? ' is-scrolled' : ''}${visible ? ' is-visible' : ''}`}
+    >
       <div className="nav-inner">
         <a href="#top" className="nav-brand" onClick={go('top')}>
           <span className="nav-mark">ks</span>

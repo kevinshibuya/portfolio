@@ -27,3 +27,15 @@ dist-ssr
 .claude/portfolio-handoff/
 .claude/design-system-handoff/
 Kevin.pdf
+
+# Scratch / drafts at repo root
+prompt.md
+a.md
+
+# Playwright artifacts
+test-results/
+playwright-report/
+tests/e2e/_screens/
+
+# Superpowers brainstorming session artifacts
+.superpowers/

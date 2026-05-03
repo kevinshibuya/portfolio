@@ -1,7 +1,7 @@
 {
   "nav": {
     "work": "work",
-    "embeds": "interactives",
+    "archive": "the archive",
     "experience": "experience",
     "skills": "skills",
     "contact": "contact",
@@ -18,7 +18,7 @@
       "system architect",
       "data journalist"
     ],
-    "description": "full-stack developer specializing in interactive journalism and digital experiences — transforming data and narratives into engaging visual stories.",
+    "description": "<strong>full-stack developer</strong> specializing in interactive journalism and digital experiences — transforming <strong>data and narratives</strong> into engaging <strong>visual stories.</strong>",
     "cta": {
       "collaborate": "collaborate",
       "resume": "resume"
@@ -37,16 +37,28 @@
       "description": "asymmetric grid of my most important recent projects.",
       "caseStudy": "case study"
     },
-    "embeds": {
-      "index": "02 · interactives",
+    "archive": {
+      "index": "02 · everything",
       "label": "",
-      "title": "editorial <em>embeds.</em>",
-      "description": "250+ published interactives — simulators, quizzes, maps, infographics.",
-      "all": "all",
-      "filterByType": "filter by type",
-      "filterByEditorial": "filter by editorial",
-      "showMore": "show more",
-      "countLabel": "interactives"
+      "title": "the <em>archive.</em>",
+      "description": "everything I've shipped — interactives, projects, experiments.",
+      "toolbar": {
+        "search": "search…",
+        "kind": "kind",
+        "type": "type",
+        "editorial": "editorial",
+        "year": "year",
+        "sort": "sort",
+        "all": "all",
+        "countLabel": "items",
+        "showMore": "show more"
+      },
+      "sort": {
+        "newest": "newest first",
+        "oldest": "oldest first",
+        "az": "a–z",
+        "za": "z–a"
+      }
     },
     "work": {
       "index": "03 · experience",

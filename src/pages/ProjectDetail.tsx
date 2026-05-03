@@ -1,12 +1,25 @@
+import { useLayoutEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Tag } from '../components/ui/Tag'
 import { projects } from '../data/projects'
+import { useLenis } from '../hooks/useLenis'
 
 export function ProjectDetail() {
   const { slug } = useParams<{ slug: string }>()
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'en' | 'pt'
+  const { scrollTo } = useLenis()
+
+  useLayoutEffect(() => {
+    // Snap both native scroll and Lenis's internal target to 0 BEFORE
+    // first paint. duration: 0 alone still goes through one Lenis lerp
+    // tick, which the user reads as a visible scroll-to-top animation.
+    // immediate + force bypass the lerp; window.scrollTo handles the
+    // pre-Lenis-mount path.
+    window.scrollTo(0, 0)
+    scrollTo(0, { immediate: true, force: true })
+  }, [scrollTo])
 
   const project = projects.find((p) => p.slug === slug)
 
