@@ -9,7 +9,7 @@ import {
   NAME_DESCENT,
 } from '../../data/glyphPaths'
 
-type Phase = 'idle' | 'tracing' | 'crossfade' | 'marquee'
+type Phase = 'idle' | 'tracing' | 'marquee'
 
 /** Per-glyph stagger delay, in ms. */
 const STAGGER_MS = 80
@@ -17,8 +17,8 @@ const STAGGER_MS = 80
 const TRACE_DUR_MS = 800
 /** Breath between copy 1 finishing and copy 2 starting, in ms. */
 const PAUSE_BETWEEN_COPIES_MS = 120
-/** Stroke color/width cross-fade duration, in ms (matches hero ink-fill). */
-const CROSSFADE_DUR_MS = 650
+/** Pause after the last trace stroke completes before marquee scrolling kicks in. */
+const MARQUEE_BREATH_MS = 50
 
 /** Footer text is "kevin shibuya" — drop the period glyph from NAME_SHIBUYA. */
 const SHIBUYA_GLYPHS = NAME_SHIBUYA.glyphs.slice(0, 7)
@@ -40,23 +40,9 @@ const VIEWBOX_HEIGHT = NAME_ASCENT + NAME_DESCENT // 1070
 
 interface NameCopyProps {
   refs: MutableRefObject<(SVGPathElement | null)[]>
-  phase: Phase
 }
 
-function glyphClassName(phase: Phase): string {
-  const isFinal = phase === 'crossfade' || phase === 'marquee'
-  const isCrossfade = phase === 'crossfade'
-  return [
-    'footer-marquee-glyph',
-    isFinal ? 'footer-marquee-glyph--final' : '',
-    isCrossfade ? 'footer-marquee-glyph--crossfade' : '',
-  ]
-    .filter(Boolean)
-    .join(' ')
-}
-
-function NameCopy({ refs, phase }: NameCopyProps): React.JSX.Element {
-  const cls = glyphClassName(phase)
+function NameCopy({ refs }: NameCopyProps): React.JSX.Element {
   return (
     <svg
       className="footer-marquee-track-copy"
@@ -72,7 +58,7 @@ function NameCopy({ refs, phase }: NameCopyProps): React.JSX.Element {
             refs.current[i] = el
           }}
           d={g.d}
-          className={cls}
+          className="footer-marquee-glyph"
         />
       ))}
       <g transform={`translate(${SHIBUYA_X_OFFSET}, 0)`} data-shibuya-group>
@@ -83,7 +69,7 @@ function NameCopy({ refs, phase }: NameCopyProps): React.JSX.Element {
               refs.current[KEVIN_GLYPHS.length + i] = el
             }}
             d={g.d}
-            className={cls}
+            className="footer-marquee-glyph"
           />
         ))}
       </g>
@@ -95,8 +81,8 @@ export function FooterNameMarquee(): React.JSX.Element {
   const { t } = useTranslation()
   const { prefersReducedMotion } = useMotion()
 
-  // Reduced motion skips IDLE / TRACING / CROSSFADE entirely and lands in
-  // the visual end-state (cream-stroked, single static copy) from mount.
+  // Reduced motion skips IDLE / TRACING entirely and lands in the visual
+  // end-state (cream-stroked, single static copy) from mount.
   const [phase, setPhase] = useState<Phase>(
     prefersReducedMotion ? 'marquee' : 'idle'
   )
@@ -163,9 +149,9 @@ export function FooterNameMarquee(): React.JSX.Element {
     }
   }, [prefersReducedMotion, phase])
 
-  // TRACING: drive copy 1 then copy 2 sequentially, schedule the crossfade
-  // phase flip. The marquee phase is scheduled by the next effect so its
-  // cleanup never accidentally cancels a pending crossfade-→-marquee timer.
+  // TRACING → MARQUEE: drive copy 1 then copy 2 sequentially, then flip
+  // the phase to start the marquee. Cleanup safely no-ops if the timer
+  // has already fired (which is what triggered the phase change).
   useEffect(() => {
     if (phase !== 'tracing') return
 
@@ -198,29 +184,12 @@ export function FooterNameMarquee(): React.JSX.Element {
       })
     })
 
-    // When the trace is done, clear inline transitions (which only cover
-    // stroke-dashoffset). Otherwise they would override the CSS rule for
-    // the --crossfade class transition (which covers stroke + stroke-width).
-    const crossfadeTimer = window.setTimeout(() => {
-      ;[...copy1Refs.current, ...copy2Refs.current].forEach((p) => {
-        if (p) p.style.transition = ''
-      })
-      setPhase('crossfade')
-    }, totalTrace + 50)
+    const marqueeTimer = window.setTimeout(() => {
+      setPhase('marquee')
+    }, totalTrace + MARQUEE_BREATH_MS)
 
     return () => {
       cancelAnimationFrame(rafId)
-      window.clearTimeout(crossfadeTimer)
-    }
-  }, [phase])
-
-  // CROSSFADE → MARQUEE: hold for CROSSFADE_DUR_MS, then flip to marquee.
-  useEffect(() => {
-    if (phase !== 'crossfade') return
-    const marqueeTimer = window.setTimeout(() => {
-      setPhase('marquee')
-    }, CROSSFADE_DUR_MS)
-    return () => {
       window.clearTimeout(marqueeTimer)
     }
   }, [phase])
@@ -233,10 +202,8 @@ export function FooterNameMarquee(): React.JSX.Element {
           ref={trackRef}
           className={`footer-marquee-track footer-marquee-track--${phase}`}
         >
-          <NameCopy refs={copy1Refs} phase={phase} />
-          {!prefersReducedMotion && (
-            <NameCopy refs={copy2Refs} phase={phase} />
-          )}
+          <NameCopy refs={copy1Refs} />
+          {!prefersReducedMotion && <NameCopy refs={copy2Refs} />}
         </div>
       </div>
     </>

@@ -872,10 +872,17 @@ strong {
 }
 /* =========================================================================
    FOOTER NAME MARQUEE
-   "kevin shibuya" trace + crossfade + infinite marquee. Replaces the static
-   .footer-big outline. The track lives inside .footer (which has 80px LR
-   padding); negative margin breaks out so the marquee runs edge-to-edge of
-   the viewport while the bottom meta row keeps its gutter.
+   "kevin shibuya" stroke-dashoffset trace then infinite leftward marquee.
+   The trace and marquee both render in cream-25% — no color shift. Track
+   lives inside .footer (which has 80px LR padding); negative margin on the
+   container breaks out so the marquee runs edge-to-edge of the viewport
+   while the bottom meta row keeps its gutter.
+
+   Track sizing: width:max-content forces the track to size to its two
+   children, so translateX(-50%) translates by exactly one copy-width
+   (= seamless wrap). Without it, the track defaults to 100% of its parent
+   (~100vw) and -50% becomes -50vw, which doesn't line up with copy width
+   on most viewports → visible snap mid-loop.
    ========================================================================= */
 .footer-marquee {
   margin-left: -80px;
@@ -887,8 +894,8 @@ strong {
   display: flex;
   flex-wrap: nowrap;
   gap: 0;
+  width: max-content;
   font-size: clamp(80px, 18vw, 280px);
-  line-height: 0.88;
 }
 .footer-marquee-track-copy {
   display: block;
@@ -899,21 +906,12 @@ strong {
 }
 .footer-marquee-glyph {
   fill: transparent;
-  stroke: var(--blue-400);
-  stroke-width: 12;
+  stroke: rgba(246, 249, 252, 0.25);
+  stroke-width: 6;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-}
-.footer-marquee-glyph--final {
-  stroke: rgba(246, 249, 252, 0.25);
-  stroke-width: 6;
-}
-.footer-marquee-glyph--crossfade {
-  transition:
-    stroke 650ms cubic-bezier(0.22, 1, 0.36, 1),
-    stroke-width 650ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .footer-marquee-track--marquee {
   animation: footer-marquee-scroll 45s linear infinite;
