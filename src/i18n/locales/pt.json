@@ -1,7 +1,7 @@
 {
   "nav": {
     "work": "trabalhos",
-    "embeds": "interativos",
+    "archive": "arquivo",
     "experience": "experiência",
     "skills": "habilidades",
     "contact": "contato",
@@ -37,16 +37,28 @@
       "description": "grade assimétrica dos meus projetos recentes mais importantes.",
       "caseStudy": "estudo de caso"
     },
-    "embeds": {
-      "index": "02 · interativos",
+    "archive": {
+      "index": "02 · arquivo",
       "label": "",
-      "title": "interativos <em>editoriais.</em>",
-      "description": "250+ interativos publicados — simuladores, quizzes, mapas, infográficos.",
-      "all": "todos",
-      "filterByType": "filtrar por tipo",
-      "filterByEditorial": "filtrar por editoria",
-      "showMore": "mostrar mais",
-      "countLabel": "interativos"
+      "title": "o <em>arquivo.</em>",
+      "description": "tudo que eu já publiquei — interativos, projetos, experimentos.",
+      "toolbar": {
+        "search": "buscar…",
+        "kind": "tipo",
+        "type": "formato",
+        "editorial": "editoria",
+        "year": "ano",
+        "sort": "ordenar",
+        "all": "todos",
+        "countLabel": "itens",
+        "showMore": "mostrar mais"
+      },
+      "sort": {
+        "newest": "mais recentes",
+        "oldest": "mais antigos",
+        "az": "a–z",
+        "za": "z–a"
+      }
     },
     "work": {
       "index": "03 · experiência",

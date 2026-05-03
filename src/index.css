@@ -768,94 +768,6 @@ strong {
 .bento-card:hover .bento-cs { transform: translateX(3px); }
 
 /* =========================================================================
-   TABLE (numbered rows v02 — used by Embeds)
-   ========================================================================= */
-.tbl {
-  background: var(--cream);
-  border: 1px solid var(--mist);
-  border-radius: 14px;
-  overflow: hidden;
-}
-.tbl-row {
-  display: grid;
-  grid-template-columns: 50px 64px 1fr 120px 80px 30px;
-  gap: 16px;
-  align-items: center;
-  padding: 14px 22px;
-  border-bottom: 1px solid var(--mist);
-  transition: background 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  cursor: pointer;
-}
-.tbl-row:last-child { border-bottom: none; }
-.tbl-row:hover { background: var(--sand); }
-.tbl-num {
-  font-size: 10px;
-  color: var(--dust);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
-}
-.tbl-preview {
-  width: 56px; height: 40px;
-  border-radius: 6px;
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.tbl-row:hover .tbl-preview { transform: scale(1.08); }
-.tbl-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.tbl-row:hover .tbl-title {
-  font-weight: 700;
-  transform: translateX(6px);
-}
-.tbl-role {
-  font-size: 11px;
-  color: var(--bark);
-  text-transform: lowercase;
-}
-.tbl-year {
-  font-size: 11px;
-  color: var(--dust);
-  text-transform: lowercase;
-}
-.tbl-arrow {
-  font-size: 14px;
-  color: var(--ink);
-  opacity: 0.3;
-  transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  justify-self: end;
-}
-.tbl-row:hover .tbl-arrow { opacity: 1; }
-
-/* Filters row */
-.embeds-filters { display: flex; flex-direction: column; gap: 18px; margin-bottom: 32px; }
-.embeds-filter-group { display: flex; flex-direction: column; gap: 10px; }
-.embeds-filter-label {
-  font-size: 10px; font-weight: 600;
-  color: var(--dust);
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-}
-.embeds-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.embeds-count {
-  font-size: 13px;
-  color: var(--bark);
-  margin: 0 0 24px;
-  text-transform: lowercase;
-}
-.embeds-count strong { color: var(--ink); font-weight: 600; }
-.embeds-more { display: flex; justify-content: center; margin-top: 40px; }
-
-/* =========================================================================
    CONTACT (dark ink)
    ========================================================================= */
 .section--contact {
@@ -995,10 +907,6 @@ strong {
   }
   .bento-card--lg { grid-row: auto; }
   .skills-grid { grid-template-columns: 1fr; gap: 40px; max-width: 560px; }
-  .tbl-row {
-    grid-template-columns: 40px 64px 1fr 30px;
-  }
-  .tbl-role, .tbl-year { display: none; }
 }
 
 @media (max-width: 720px) {

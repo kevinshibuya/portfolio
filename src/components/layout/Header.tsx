@@ -5,7 +5,7 @@ import { useMotion } from '../../context/MotionContext'
 
 const NAV_ITEMS = [
   'work',
-  'embeds',
+  'archive',
   'experience',
   'skills',
   'contact',
@@ -15,7 +15,7 @@ type NavItem = (typeof NAV_ITEMS)[number]
 
 const SECTION_ID: Record<NavItem, string> = {
   work: 'projects',
-  embeds: 'embeds',
+  archive: 'archive',
   experience: 'work',
   skills: 'skills',
   contact: 'contact',

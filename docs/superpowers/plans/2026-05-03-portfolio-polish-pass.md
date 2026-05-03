@@ -406,7 +406,7 @@ From the project page, click "← back to projects". Verify:
 
 Hard-reload `/` (or open a new tab to `/`). Verify the full hero entrance animation plays as before (sessionStorage was cleared by the reload, so bypass doesn't kick in).
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add src/context/MotionContext.tsx src/hooks/useScrollLockDuringEntrance.ts src/components/ui/HeroNameDrawing.tsx src/pages/ProjectDetail.tsx src/pages/Home.tsx
@@ -423,7 +423,7 @@ git commit -m "feat(routing): restore home scroll on back-nav, bypass hero entra
 - Create: `src/data/archive.ts`
 - Create: `tests/unit/data/archive.test.ts`
 
-- [ ] **Step 1: Write failing test for archive normalization**
+- [x] **Step 1: Write failing test for archive normalization**
 
 Create `tests/unit/data/archive.test.ts` (the project's vitest config globs `tests/unit/**/*.test.{ts,tsx}` only):
 
@@ -488,7 +488,7 @@ describe('archive', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test — confirm it fails**
+- [x] **Step 2: Run the test — confirm it fails**
 
 ```bash
 npm run test:unit -- tests/unit/data/archive.test.ts
@@ -496,7 +496,7 @@ npm run test:unit -- tests/unit/data/archive.test.ts
 
 Expected: fails with "Cannot find module '../../../src/data/archive'" or similar.
 
-- [ ] **Step 3: Add `ArchiveItem` types to `content.ts`**
+- [x] **Step 3: Add `ArchiveItem` types to `content.ts`**
 
 Append to `src/types/content.ts`:
 
@@ -524,7 +524,7 @@ export function resolveTitle(item: ArchiveItem, lang: 'en' | 'pt'): string {
 }
 ```
 
-- [ ] **Step 4: Implement `src/data/archive.ts`**
+- [x] **Step 4: Implement `src/data/archive.ts`**
 
 Create `src/data/archive.ts`:
 
@@ -600,7 +600,7 @@ export const archiveKinds: ArchiveItem['kind'][] = [
 ].sort()
 ```
 
-- [ ] **Step 5: Run the test — confirm it passes**
+- [x] **Step 5: Run the test — confirm it passes**
 
 ```bash
 npm run test:unit -- tests/unit/data/archive.test.ts
@@ -608,7 +608,7 @@ npm run test:unit -- tests/unit/data/archive.test.ts
 
 Expected: 8 tests pass.
 
-- [ ] **Step 6: Run typecheck**
+- [x] **Step 6: Run typecheck**
 
 ```bash
 npm run build
@@ -616,7 +616,7 @@ npm run build
 
 Expected: passes.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/types/content.ts src/data/archive.ts src/data/__tests__/archive.test.ts
@@ -632,7 +632,7 @@ git commit -m "feat(archive): add ArchiveItem types + unified projects/embeds no
 - Create: `src/components/ui/ArchiveDropdown.tsx`
 - Modify: `src/index.css` (append `.archive-dropdown*` rules — see Step 4)
 
-- [ ] **Step 1: Create the component**
+- [x] **Step 1: Create the component**
 
 Create `src/components/ui/ArchiveDropdown.tsx`:
 
@@ -760,7 +760,7 @@ export function ArchiveDropdown({
 }
 ```
 
-- [ ] **Step 2: Append dropdown styles to `src/index.css`**
+- [x] **Step 2: Append dropdown styles to `src/index.css`**
 
 Append to the end of `src/index.css`:
 
@@ -814,7 +814,7 @@ Append to the end of `src/index.css`:
 .archive-dropdown-option.is-selected { color: var(--blue-400); font-weight: 600; }
 ```
 
-- [ ] **Step 3: Verify build + lint**
+- [x] **Step 3: Verify build + lint**
 
 ```bash
 npm run build
@@ -823,7 +823,7 @@ npm run lint
 
 Expected: both pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/ui/ArchiveDropdown.tsx src/index.css
@@ -839,7 +839,7 @@ git commit -m "feat(ui): ArchiveDropdown — accessible select with keyboard nav
 - Create: `src/components/sections/Archive.tsx`
 - Modify: `src/index.css` (append `.archive*` row/toolbar/chip rules)
 
-- [ ] **Step 1: Create the Archive section**
+- [x] **Step 1: Create the Archive section**
 
 Create `src/components/sections/Archive.tsx`:
 
@@ -1088,7 +1088,7 @@ function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
 }
 ```
 
-- [ ] **Step 2: Append archive list / toolbar / chip styles to `src/index.css`**
+- [x] **Step 2: Append archive list / toolbar / chip styles to `src/index.css`**
 
 Append to the end of `src/index.css`:
 
@@ -1211,7 +1211,7 @@ Append to the end of `src/index.css`:
 }
 ```
 
-- [ ] **Step 3: Build + lint check**
+- [x] **Step 3: Build + lint check**
 
 ```bash
 npm run build
@@ -1220,7 +1220,7 @@ npm run lint
 
 Expected: build + lint pass. (Note: this task does NOT yet wire Archive into Home, so the section won't render in the dev server until Task 7. Build verifies the component compiles.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/sections/Archive.tsx src/index.css
@@ -1240,7 +1240,7 @@ git commit -m "feat(archive): Archive section — toolbar, chips, animated list,
 - Delete: `src/components/sections/EmbedsGallery.tsx`
 - Modify: `src/index.css` (delete dead `.embeds-*`, `.tbl-*` rules)
 
-- [ ] **Step 1: Replace `EmbedsGallery` lazy import with `Archive` in Home.tsx**
+- [x] **Step 1: Replace `EmbedsGallery` lazy import with `Archive` in Home.tsx**
 
 In `src/pages/Home.tsx`:
 
@@ -1264,7 +1264,7 @@ b) Replace the `<EmbedsGallery />` render with `<Archive />` (in the JSX).
 
 c) Replace the chunk-warming `void import('../components/sections/EmbedsGallery')` with `void import('../components/sections/Archive')`.
 
-- [ ] **Step 2: Update Header nav id `embeds` → `archive`**
+- [x] **Step 2: Update Header nav id `embeds` → `archive`**
 
 In `src/components/layout/Header.tsx`:
 
@@ -1290,7 +1290,7 @@ const SECTION_ID: Record<NavItem, string> = {
 
 b) The translation key already comes from `t('nav.${key}')` so the new key `nav.archive` will be required — handled in Step 3.
 
-- [ ] **Step 3: Migrate i18n keys in `en.json`**
+- [x] **Step 3: Migrate i18n keys in `en.json`**
 
 In `src/i18n/locales/en.json`:
 
@@ -1326,7 +1326,7 @@ b) Replace the entire `sections.embeds` block with:
 
 (Place `archive` where `embeds` used to be, preserving the section ordering inside `sections`.)
 
-- [ ] **Step 4: Mirror i18n changes in `pt.json`**
+- [x] **Step 4: Mirror i18n changes in `pt.json`**
 
 In `src/i18n/locales/pt.json`:
 
@@ -1362,13 +1362,13 @@ b) Replace the `sections.embeds` block with:
 
 (Open the file first to confirm exact existing PT key naming and preserve any unrelated keys.)
 
-- [ ] **Step 5: Delete `EmbedsGallery.tsx`**
+- [x] **Step 5: Delete `EmbedsGallery.tsx`**
 
 ```bash
 git rm src/components/sections/EmbedsGallery.tsx
 ```
 
-- [ ] **Step 6: Delete dead CSS in `src/index.css`**
+- [x] **Step 6: Delete dead CSS in `src/index.css`**
 
 Delete the following rule blocks (search for each prefix):
 - `.embeds-filters`, `.embeds-filter-group`, `.embeds-filter-label`, `.embeds-chips`, `.embeds-count`, `.embeds-count strong`, `.embeds-more`
@@ -1377,7 +1377,7 @@ Delete the following rule blocks (search for each prefix):
 
 Also search for any leftover references to the old `tbl-*` classes — if none remain in components, the CSS deletion is safe.
 
-- [ ] **Step 7: Confirm no stale references**
+- [x] **Step 7: Confirm no stale references**
 
 ```bash
 grep -r "EmbedsGallery\|sections.embeds\|nav.embeds\|tbl-row\|tbl-num\|embeds-chips" src/
@@ -1385,7 +1385,7 @@ grep -r "EmbedsGallery\|sections.embeds\|nav.embeds\|tbl-row\|tbl-num\|embeds-ch
 
 Expected output: only matches in already-staged deleted files / nothing relevant. If anything appears in active components, fix it before continuing.
 
-- [ ] **Step 8: Build + lint + unit tests**
+- [x] **Step 8: Build + lint + unit tests**
 
 ```bash
 npm run build
