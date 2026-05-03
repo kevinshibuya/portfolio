@@ -3,11 +3,13 @@ import { embeds, typeGradients } from './embeds'
 import type { ArchiveItem, EmbedType } from '../types/content'
 
 function parseEditorialDate(ddmmyyyy: string): number {
-  // Expect 'dd/mm/yyyy'. Returns epoch ms; falls back to 0 on malformed input.
+  // Expect 'dd/mm/yyyy'. Returns epoch ms; falls back to 0 on malformed input
+  // (bad shape, or semantically invalid like month=13 / day=32 → NaN).
   const m = ddmmyyyy.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
   if (!m) return 0
   const [, dd, mm, yyyy] = m
-  return new Date(`${yyyy}-${mm}-${dd}T00:00:00Z`).getTime()
+  const t = new Date(`${yyyy}-${mm}-${dd}T00:00:00Z`).getTime()
+  return Number.isFinite(t) ? t : 0
 }
 
 function fromProjects(): ArchiveItem[] {
@@ -60,7 +62,10 @@ export const archiveEditorials: string[] = [
 
 export const archiveYears: number[] = [
   ...new Set(
-    archive.map((i) => new Date(i.sortDate).getUTCFullYear()).filter((y) => y > 1970)
+    archive
+      .map((i) => new Date(i.sortDate).getUTCFullYear())
+      // Skip the epoch-0 fallback (year 1970) and any NaN that slipped through.
+      .filter((y) => Number.isFinite(y) && y > 1970)
   ),
 ].sort((a, b) => b - a)
 

@@ -266,8 +266,8 @@ The Contact rows' label transitions from upright to italic on hover, and the swa
 - [x] **(5.2)** Save Lenis scroll-Y to `sessionStorage` on Home unmount; restore on Home mount via `useLayoutEffect` before first paint.
 - [x] **(5.3)** Add a `wasRestored` flag to `MotionContext` (or equivalent); when true, pre-resolve `entranceDone`, skip scroll-lock, and render `HeroNameDrawing` in its final ink-filled state.
 - [ ] **(5.4)** Verify navigate-to-project-and-back lands at the original scroll-Y with no hero replay; verify hard reload still plays full hero entrance.
-- [ ] **(6.1)** Create `src/types/archive.ts` (or extend `content.ts`) with `ArchiveItem` + `ArchiveKind` types.
-- [ ] **(6.2)** Create `src/data/archive.ts` that normalises `projects` + `embeds` into `ArchiveItem[]`; export sorted by `sortDate` desc.
+- [x] **(6.1)** Create `src/types/archive.ts` (or extend `content.ts`) with `ArchiveItem` + `ArchiveKind` types.
+- [x] **(6.2)** Create `src/data/archive.ts` that normalises `projects` + `embeds` into `ArchiveItem[]`; export sorted by `sortDate` desc.
 - [ ] **(6.3)** Build `src/components/ui/ArchiveDropdown.tsx` — controlled select with click-outside-close, keyboard nav, ARIA listbox.
 - [ ] **(6.4)** Build `src/components/sections/Archive.tsx` with toolbar (search + 4 dropdowns + sort dropdown), active-filter chip strip, and per-row animated list.
 - [ ] **(6.5)** Replace `EmbedsGallery` import in `Home.tsx` with `Archive`; delete `EmbedsGallery.tsx` and dead `.embeds-*` / `.tbl-*` CSS.
