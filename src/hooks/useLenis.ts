@@ -6,6 +6,12 @@ interface ScrollOpts {
   duration?: number
   /** Pixel offset from the target's top (e.g. -80 to leave header room). */
   offset?: number
+  /** Snap instantly without lerping. Use for scroll restoration / page
+   *  resets where any visible animation reads as a glitch. */
+  immediate?: boolean
+  /** Override Lenis lock/stop state (used when restoring scroll while
+   *  the entrance lock is in the process of releasing). */
+  force?: boolean
 }
 
 export function useLenis(): {
@@ -15,10 +21,10 @@ export function useLenis(): {
 
   const scrollTo = useCallback(
     (target: number | string | HTMLElement, opts: ScrollOpts = {}) => {
-      const { duration = 1.2, offset = 0 } = opts
+      const { duration = 1.2, offset = 0, immediate = false, force = false } = opts
 
       if (lenis) {
-        lenis.scrollTo(target, { duration, offset })
+        lenis.scrollTo(target, { duration, offset, immediate, force })
         return
       }
 

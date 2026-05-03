@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Tag } from '../components/ui/Tag'
@@ -12,14 +12,13 @@ export function ProjectDetail() {
   const { scrollTo } = useLenis()
 
   useLayoutEffect(() => {
-    // Synchronous scroll before first paint so the page never flashes
-    // at the previous home scroll position.
+    // Snap both native scroll and Lenis's internal target to 0 BEFORE
+    // first paint. duration: 0 alone still goes through one Lenis lerp
+    // tick, which the user reads as a visible scroll-to-top animation.
+    // immediate + force bypass the lerp; window.scrollTo handles the
+    // pre-Lenis-mount path.
     window.scrollTo(0, 0)
-  }, [])
-
-  useEffect(() => {
-    // Tell Lenis to align with the new top once it's wired post-mount.
-    scrollTo(0, { duration: 0 })
+    scrollTo(0, { immediate: true, force: true })
   }, [scrollTo])
 
   const project = projects.find((p) => p.slug === slug)

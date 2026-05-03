@@ -48,17 +48,30 @@ export function Home() {
     bypassEntrance()
     // Synchronous scroll before paint — must happen in useLayoutEffect.
     window.scrollTo(0, y)
-    // Numeric target so Lenis snaps to the absolute Y; no offset trickery.
-    scrollTo(y, { duration: 0 })
+    // immediate + force so Lenis snaps without lerping and ignores the
+    // mid-release entrance lock state.
+    scrollTo(y, { immediate: true, force: true })
     sessionStorage.removeItem(STORAGE_KEY)
   }, [bypassEntrance, scrollTo])
 
-  // Save scroll on unmount (i.e., when navigating away from Home).
+  // Continuously mirror Home's scrollY into sessionStorage. This is more
+  // robust than saving in a useEffect cleanup: cleanup can run after
+  // ProjectDetail's window.scrollTo(0, 0), capturing the wrong value, and
+  // unmount timing under React 19 + concurrent nav is not guaranteed to
+  // run before the new route's effects.
   useEffect(() => {
-    return () => {
-      const y = window.scrollY
-      if (y > 0) sessionStorage.setItem(STORAGE_KEY, String(y))
+    let pending = false
+    const onScroll = (): void => {
+      if (pending) return
+      pending = true
+      requestAnimationFrame(() => {
+        const y = window.scrollY
+        if (y > 0) sessionStorage.setItem(STORAGE_KEY, String(y))
+        pending = false
+      })
     }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   // Warm the lazy chunks at idle so the first scroll doesn't show a placeholder.
