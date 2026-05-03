@@ -597,7 +597,6 @@ strong {
   display: inline-block;
   justify-self: end;
 }
-.work-toggle.is-open { transform: rotate(45deg); color: var(--blue-400); }
 .work-body {
   overflow: hidden;
 }
