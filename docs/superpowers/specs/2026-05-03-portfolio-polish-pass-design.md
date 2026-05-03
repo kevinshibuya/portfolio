@@ -256,10 +256,10 @@ The Contact rows' label transitions from upright to italic on hover, and the swa
 
 ## TODO
 
-- [ ] **(1.1)** Move opacity transition out of inline style; class drives both opacity and padding transitions; verify nav padding eases smoothly on scroll.
-- [ ] **(1.2)** Add `.nav.is-scrolled { padding: 12px 20px }` inside `@media (max-width: 720px)`; verify horizontal padding doesn't change on scroll at small widths.
-- [ ] **(2)** Add `white-space: nowrap` to `.nav-avail`; verify pill never wraps and never overflows the nav area.
-- [ ] **(3)** Move the `.hero-accent-mount { display: none }` rule to fire at `(max-width: 720px)` only; verify R3F accent visible and well-positioned at 721–1099px.
+- [x] **(1.1)** Move opacity transition out of inline style; class drives both opacity and padding transitions; verify nav padding eases smoothly on scroll.
+- [x] **(1.2)** Add `.nav.is-scrolled { padding: 12px 20px }` inside `@media (max-width: 720px)`; verify horizontal padding doesn't change on scroll at small widths.
+- [x] **(2)** Add `white-space: nowrap` to `.nav-avail`; verify pill never wraps and never overflows the nav area.
+- [x] **(3)** Move the `.hero-accent-mount { display: none }` rule to fire at `(max-width: 720px)` only; verify R3F accent visible and well-positioned at 721–1099px.
 - [ ] **(4.1)** Replace bento `min-height` driven sizing with grid-auto-rows + aspect-ratio strategy; verify cells are square at desktop.
 - [ ] **(4.2)** Adjust 2-col and 1-col responsive behavior so collapsed bentos don't go flat or absurdly tall; verify at 720px and 480px.
 - [ ] **(5.1)** Add scroll-to-top in `ProjectDetail` mount via `useLayoutEffect` + Lenis + window fallback.

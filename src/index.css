@@ -993,6 +993,8 @@ strong {
 
 @media (max-width: 720px) {
   .nav { padding: 12px 20px; }
+  /* Override the outer .nav.is-scrolled rule (which sets 12px 40px and
+     would win on specificity) so horizontal padding stays 20px on scroll. */
   .nav.is-scrolled { padding: 12px 20px; }
   .nav-links { display: none; }
   .nav-inner { grid-template-columns: auto 1fr; }
@@ -1036,9 +1038,10 @@ body[data-loader-state="loading"] {
    was a half-width grid of multiple SVG fragments + the 3D accent; that
    component was deleted in Task 9. The lone surviving accent re-mounts
    here, positioned absolutely so it sits beside .hero-main without
-   pushing the grid layout. Hidden once .hero padding compresses (1100px
-   breakpoint), where right:80px would no longer track the 40px section
-   padding and the accent would crowd hero-main's content. */
+   pushing the grid layout. Hidden at ≤720px where the hero layout
+   collapses single-column and the accent would crowd hero-main's
+   content. Between 721–1100px the accent stays mounted; right:80px
+   continues to track section padding at those widths. */
 .hero-accent-mount {
   position: absolute;
   top: 50%;
