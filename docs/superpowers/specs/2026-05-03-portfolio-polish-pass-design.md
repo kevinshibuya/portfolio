@@ -69,8 +69,8 @@ Replace the `min-height` driven sizing with grid-row sizing that yields square c
 
 ### Acceptance
 - Desktop ≥1101px: every bento cell visually reads as a square (sm = 1:1, md = 2:1 banner, lg = 1:1 at 2× scale). No card is more than ~5% off the target ratio.
-- 721–1100px: 2-col grid; bento switches to `aspect-ratio: 1 / 1` (2 cols × 2 rows of square cells); `lg` and `md` collapse to span 2 cols (existing rule). Cells stay close to square.
-- ≤720px: drop `aspect-ratio` from `.bento` (single column means the rows are vertical anyway); set `.bento-card { aspect-ratio: 4 / 3 }` so each stacked card is a consistent landscape rectangle (~280–320px tall on a typical phone width). `.bento-card--lg` keeps `aspect-ratio: 4 / 3` (no longer 2× anything since spans collapse).
+- 721–1100px: 2-col grid; auto-places into 3 rows (lg / sm sm / md). Drive shapes per-card: `.bento-card { aspect-ratio: 1 / 1 }` for sm cells, `.bento-card--lg, .bento-card--md { aspect-ratio: 2 / 1 }` for the wide spans. Container drops the `aspect-ratio` constraint (`auto`) so rows size to their cards.
+- ≤720px: single-column; `.bento-card { aspect-ratio: 4 / 3 }` so each stacked card is a consistent landscape rectangle (~280–320px tall on a typical phone width). `.bento-card--lg, .bento-card--md` inherit the same 4/3 ratio (no longer 2× anything since spans collapse).
 
 ---
 
@@ -260,8 +260,8 @@ The Contact rows' label transitions from upright to italic on hover, and the swa
 - [x] **(1.2)** Add `.nav.is-scrolled { padding: 12px 20px }` inside `@media (max-width: 720px)`; verify horizontal padding doesn't change on scroll at small widths.
 - [x] **(2)** Add `white-space: nowrap` to `.nav-avail`; verify pill never wraps and never overflows the nav area.
 - [x] **(3)** Move the `.hero-accent-mount { display: none }` rule to fire at `(max-width: 720px)` only; verify R3F accent visible and well-positioned at 721–1099px.
-- [ ] **(4.1)** Replace bento `min-height` driven sizing with grid-auto-rows + aspect-ratio strategy; verify cells are square at desktop.
-- [ ] **(4.2)** Adjust 2-col and 1-col responsive behavior so collapsed bentos don't go flat or absurdly tall; verify at 720px and 480px.
+- [x] **(4.1)** Replace bento `min-height` driven sizing with grid-auto-rows + aspect-ratio strategy; verify cells are square at desktop.
+- [x] **(4.2)** Adjust 2-col and 1-col responsive behavior so collapsed bentos don't go flat or absurdly tall; verify at 720px and 480px.
 - [ ] **(5.1)** Add scroll-to-top in `ProjectDetail` mount via `useLayoutEffect` + Lenis + window fallback.
 - [ ] **(5.2)** Save Lenis scroll-Y to `sessionStorage` on Home unmount; restore on Home mount via `useLayoutEffect` before first paint.
 - [ ] **(5.3)** Add a `wasRestored` flag to `MotionContext` (or equivalent); when true, pre-resolve `entranceDone`, skip scroll-lock, and render `HeroNameDrawing` in its final ink-filled state.
