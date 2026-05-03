@@ -924,7 +924,14 @@ strong {
   to   { transform: translate3d(-50%, 0, 0); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .footer-marquee-track--marquee { animation: none; }
+  /* Reset will-change too — under rmotion the --marquee class is still
+     applied (component initializes to phase='marquee'), so leaving the
+     base rule's will-change:transform active would waste a GPU layer
+     on a static element. */
+  .footer-marquee-track--marquee {
+    animation: none;
+    will-change: auto;
+  }
 }
 .footer-bottom {
   display: flex; justify-content: space-between; align-items: center;
