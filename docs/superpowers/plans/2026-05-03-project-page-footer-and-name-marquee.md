@@ -813,7 +813,7 @@ Open `http://localhost:5173/`, click into any project card, and verify:
 
 If anything is off, fix it before proceeding. Stop the dev server when done.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/pages/ProjectDetail.tsx
