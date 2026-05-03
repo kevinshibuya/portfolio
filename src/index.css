@@ -825,14 +825,15 @@ strong {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   /* inline-block + transform-origin so skewX animates from the left edge
-     without horizontal drift. */
+     without horizontal drift. font-weight is not interpolable so it
+     stays out of the transition list and snaps on hover; that's
+     imperceptible against the 400ms skew. */
   display: inline-block;
   transform: skewX(0);
   transform-origin: 0 50%;
   transition:
     transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    color 0.3s,
-    font-weight 0.3s;
+    color 0.3s;
 }
 /* Progressive skew replaces the previous font-style: italic swap, which
    was an instant glyph-pop because Plus Jakarta Italic is a separate
