@@ -11,7 +11,7 @@ describe('HeroNameDrawing', () => {
   })
   afterEach(() => vi.restoreAllMocks())
 
-  it('renders 5 kevin glyphs and 8 shibuya glyphs as paths', () => {
+  it('renders 5 kevin glyphs and 8 shibuya glyphs as SVG paths', () => {
     const { container } = render(
       <MotionProvider><HeroNameDrawing /></MotionProvider>
     )

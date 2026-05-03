@@ -3,10 +3,10 @@ import { Header } from './components/layout/Header'
 import { Home } from './pages/Home'
 import { ProjectDetail } from './pages/ProjectDetail'
 import { SmoothScroll } from './components/layout/SmoothScroll'
-import { useScrollLockDuringLoader } from './hooks/useScrollLockDuringLoader'
+import { useScrollLockDuringEntrance } from './hooks/useScrollLockDuringEntrance'
 
 function App() {
-  useScrollLockDuringLoader()
+  useScrollLockDuringEntrance()
   return (
     <SmoothScroll>
       <Header />

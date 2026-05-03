@@ -25,7 +25,7 @@ export function Header() {
   const { t, i18n } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
   const { scrollTo } = useLenis()
-  const { handoffDone } = useMotion()
+  const { entranceDone } = useMotion()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -37,11 +37,11 @@ export function Header() {
 
   useEffect(() => {
     let cancelled = false
-    handoffDone
+    entranceDone
       .then(() => { if (!cancelled) setVisible(true) })
       .catch(() => {})
     return () => { cancelled = true }
-  }, [handoffDone])
+  }, [entranceDone])
 
   const go = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()

@@ -240,67 +240,63 @@ strong {
   -webkit-text-stroke: 1px var(--blue-300);
 }
 
-/* =========================================================================
-   HERO NAME DRAWING (loader phase) + h1 (post-handoff)
-   Both layers occupy the same grid cell so they overlay pixel-equivalent
-   for the 200ms crossfade at handoff.
-   ========================================================================= */
-.hero-name-stack {
-  position: relative;
-  display: grid;
-  grid-template-areas: "stack";
-}
-.hero-name-stack-layer {
-  grid-area: stack;
-}
-.hero-name-stack-layer--svg {
-  pointer-events: none;
-}
-.hero-name-stack-layer--h1 {
-  margin: 0;
+/* Visually-hidden helper used by HeroNameDrawing's screen-reader h1.
+   Standard a11y pattern. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
+/* =========================================================================
+   HERO NAME DRAWING — SVG glyph paths animated as ink-trace + ink-fill.
+   This component IS the hero title (it replaces the static <h1>).
+   Each <path> is a glyph outline extracted from Plus Jakarta Sans Bold;
+   stroke-dashoffset 1→0 produces the trace, then the .--ink / .--ghost
+   classes swap stroke for fill to land on the final h1-equivalent state.
+   ========================================================================= */
 .hero-name-drawing {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+  display: block;
+  /* Aggressive vw component so the title scales toward full-width on
+     mobile/tablet; the 192px max keeps it composed on desktop. */
+  font-size: clamp(72px, 22vw, 192px);
+  line-height: 0.92;
 }
 .hero-name-drawing-word {
   display: block;
   width: auto;
-  height: clamp(64px, 11vw, 192px);
-  /* line-height-equivalent: -8% so adjacent words sit close like h1 line-height: 0.92 */
-  margin-bottom: -8%;
+  height: 1em;
+  overflow: visible;
 }
-.hero-name-drawing-word:last-child {
-  margin-bottom: 0;
+.hero-name-drawing-glyph {
+  fill: transparent;
+  stroke: var(--blue-400);
+  /* Stroke is in 1000-em viewBox units. 14 ≈ 2.7px @ 192px font — thin
+     and elegant trace, not a thick brush. */
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
 }
-
-/* =========================================================================
-   LOADING CURSOR — periwinkle dot, body-portal'd
-   ========================================================================= */
-.loading-cursor {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--periwinkle-300);
-  pointer-events: none;
-  will-change: transform, opacity;
-  z-index: 9998;
-  transform-origin: center;
+/* Final state of "kevin": solid ink fill, no stroke (matches the previous
+   .hero-name-line --ink). */
+.hero-name-drawing-glyph--ink {
+  fill: var(--ink);
+  stroke: transparent;
 }
-.loading-cursor-halo {
-  position: absolute;
-  inset: -3.5px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--periwinkle-300);
-  opacity: 0;
-  transform-origin: center;
+/* Final state of "shibuya.": ghost (cream/mist fill + thin blue stroke,
+   matches the previous .hero-name-line--ghost). */
+.hero-name-drawing-glyph--ghost {
+  fill: var(--mist);
+  stroke: var(--blue-300);
+  stroke-width: 4;
 }
 
 /* Scramble lettering — cursor affordance + design-system focus ring.
@@ -339,6 +335,23 @@ strong {
   border-bottom: 2px solid var(--blue-200);
   padding-bottom: 4px;
   display: inline-block;
+}
+/* Click-to-cycle: cursor + accessible focus ring + smooth color shift on hover. */
+.hero-role--clickable {
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  border-radius: 2px;
+  transition: color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              border-bottom-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero-role--clickable:hover {
+  color: var(--blue-500, #1C6EC4);
+  border-bottom-color: var(--blue-400);
+}
+.hero-role--clickable:focus-visible {
+  outline: 2px solid var(--blue-300);
+  outline-offset: 6px;
 }
 .hero-desc {
   font-size: 17px;

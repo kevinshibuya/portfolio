@@ -4,50 +4,30 @@ import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useLenis } from '../../hooks/useLenis'
 import { useMotion } from '../../context/MotionContext'
-import { ScrambleText } from '../ui/ScrambleText'
 import { RevealOnView } from '../ui/RevealOnView'
 import { HeroAccentSilhouette } from '../canvas/HeroAccentSilhouette'
-import { HeroNameDrawing, type HeroNameDrawingHandle } from '../ui/HeroNameDrawing'
-import { LoadingCursor } from '../ui/LoadingCursor'
+import { HeroNameDrawing } from '../ui/HeroNameDrawing'
 
 const HeroAccent3D = lazy(() => import('../canvas/HeroAccent3D'))
 
-const ROLE_DURATION_MS = 2800
+const ROLE_DURATION_MS = 5000
 
 export function Hero() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
   const { scrollTo } = useLenis()
-  const { handoffDone, prefersReducedMotion } = useMotion()
+  const { entranceDone, resolveEntrance } = useMotion()
 
-  // gate: enables the RevealOnView cascade. Fires when the cursor's flight
-  // to the nav completes — the eye is already at the top of the page so the
-  // cascade reads as the page filling in around the now-static name.
+  // gate: enables the supplementary RevealOnView cascade. Fires when the
+  // hero name's trace + ink-fill animation completes.
   const [gate, setGate] = useState(false)
-  // showSvg: keep HeroNameDrawing mounted until crossfade completes.
-  const [showSvg, setShowSvg] = useState(true)
-  // h1Visible: the static <h1> starts hidden, crossfades in on handoffDone.
-  const [h1Visible, setH1Visible] = useState(prefersReducedMotion)
-
-  const drawingRef = useRef<HeroNameDrawingHandle>(null)
-  const getAnchors = () => drawingRef.current?.getCursorAnchors() ?? null
-
   useEffect(() => {
     let cancelled = false
-    handoffDone
-      .then(() => {
-        if (cancelled) return
-        setGate(true)
-        setH1Visible(true)
-        window.setTimeout(() => {
-          if (!cancelled) setShowSvg(false)
-        }, 220)
-      })
+    entranceDone
+      .then(() => { if (!cancelled) setGate(true) })
       .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [handoffDone])
+    return () => { cancelled = true }
+  }, [entranceDone])
 
   const roles = useMemo(() => {
     const value = t('hero.roles', { returnObjects: true })
@@ -55,14 +35,39 @@ export function Hero() {
   }, [t, lang])
 
   const [roleIdx, setRoleIdx] = useState(0)
-  useEffect(() => {
-    setRoleIdx(0)
-    if (roles.length <= 1) return
-    const id = setInterval(() => {
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Start (or reset) the auto-cycle interval. Used by both the gate
+  // effect and the click handler — clicking restarts the timer so the
+  // user gets a full ROLE_DURATION_MS to read the role they just
+  // advanced to, instead of getting cycled by a stale interval.
+  const startCycling = (): void => {
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    if (!gate || roles.length <= 1) return
+    intervalRef.current = setInterval(() => {
       setRoleIdx((i) => (i + 1) % roles.length)
     }, ROLE_DURATION_MS)
-    return () => clearInterval(id)
-  }, [roles])
+  }
+
+  useEffect(() => {
+    // Gate the role-cycling interval on the entrance: don't start
+    // counting until the hero name has finished its trace + ink-fill.
+    if (!gate) return
+    setRoleIdx(0)
+    startCycling()
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+    // startCycling is stable enough across renders for our purposes;
+    // re-running the effect on roles + gate is what matters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roles, gate])
+
+  const cycleRole = (): void => {
+    if (roles.length <= 1) return
+    setRoleIdx((i) => (i + 1) % roles.length)
+    startCycling()
+  }
 
   const activeRole = roles[roleIdx] ?? ''
 
@@ -74,35 +79,10 @@ export function Hero() {
   return (
     <section id="top" className="hero">
       <div className="hero-main">
-        <div className="hero-name-stack">
-          {showSvg && (
-            <motion.div
-              className="hero-name-stack-layer hero-name-stack-layer--svg"
-              initial={false}
-              animate={{ opacity: h1Visible ? 0 : 1 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-            >
-              <HeroNameDrawing ref={drawingRef} />
-            </motion.div>
-          )}
-          <motion.h1
-            className="hero-name hero-name-stack-layer hero-name-stack-layer--h1"
-            initial={false}
-            animate={{ opacity: h1Visible ? 1 : 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            aria-hidden={!h1Visible || undefined}
-          >
-            <span className="hero-name-line" data-hero-word="kevin">
-              {t('hero.name1')}
-            </span>
-            <span
-              className="hero-name-line hero-name-line--ghost"
-              data-hero-word="shibuya"
-            >
-              <ScrambleText>{t('hero.name2') as string}</ScrambleText>
-            </span>
-          </motion.h1>
-        </div>
+        {/* The SVG drawing IS the title — it traces in, then ink-fills to
+            its final state. Its onComplete resolves the entrance gate that
+            the rest of the hero cascade waits on. */}
+        <HeroNameDrawing onComplete={resolveEntrance} />
 
         <div className="hero-supplementary">
           <RevealOnView recipe="slideInLeft" delay={0.0} gate={gate}>
@@ -115,7 +95,18 @@ export function Hero() {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: -12, opacity: 0 }}
                   transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  className="hero-role"
+                  whileTap={{ scale: 0.94 }}
+                  className="hero-role hero-role--clickable"
+                  onClick={cycleRole}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      cycleRole()
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="cycle role"
                 >
                   {activeRole}
                 </motion.span>
@@ -153,8 +144,6 @@ export function Hero() {
           <HeroAccent3D />
         </Suspense>
       </RevealOnView>
-
-      <LoadingCursor getAnchors={getAnchors} />
     </section>
   )
 }

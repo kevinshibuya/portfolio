@@ -1,158 +1,158 @@
-import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
 import { useMotion } from '../../context/MotionContext'
-import { NAME_KEVIN, NAME_SHIBUYA, NAME_FONT_EM } from '../../data/glyphPaths'
+import {
+  NAME_KEVIN,
+  NAME_SHIBUYA,
+  NAME_ASCENT,
+  NAME_DESCENT,
+} from '../../data/glyphPaths'
 
-/** Coordinates LoadingCursor needs to position itself. All values in
- *  viewport pixel space (post-getBoundingClientRect). */
-export interface CursorAnchors {
-  kevinStartX: number
-  kevinEndX: number
-  kevinBaselineY: number
-  shibuyaStartX: number
-  shibuyaEndX: number
-  shibuyaBaselineY: number
-  periodX: number
-  periodY: number
+/** Per-glyph stagger delay, in ms. */
+const STAGGER_MS = 80
+/** Per-glyph trace (stroke-dashoffset 1→0) duration, in ms. */
+const TRACE_DUR_MS = 800
+/** Ink-fill (stroke→fill cross-fade) duration, in ms. */
+const INK_FILL_DUR_MS = 650
+
+interface HeroNameDrawingProps {
+  /** Called once the trace + ink-fill sequence completes (or immediately
+   *  under reduced motion). Used by Hero to resolve the entrance gate
+   *  that the rest of the hero cascade waits on. */
+  onComplete?: () => void
 }
 
-export interface HeroNameDrawingHandle {
-  /** Returns viewport-space anchors, or null if SVGs not yet measured. */
-  getCursorAnchors: () => CursorAnchors | null
-}
+export function HeroNameDrawing({ onComplete }: HeroNameDrawingProps) {
+  const { prefersReducedMotion } = useMotion()
+  const kevinRefs = useRef<(SVGPathElement | null)[]>([])
+  const shibuyaRefs = useRef<(SVGPathElement | null)[]>([])
+  // The ink-fill state lives in React (not in classList.add) so that
+  // when a parent re-renders for any reason and React reconciles the
+  // path elements, the className we want stays applied. Imperatively
+  // adding the class via classList.add gets overwritten the next time
+  // React diffs the JSX className.
+  const [inkFilled, setInkFilled] = useState(prefersReducedMotion)
 
-const STAGGER_PER_GLYPH = 0.05
-const DRAW_WINDOW = 0.40
+  useEffect(() => {
+    const kevinPaths = kevinRefs.current.filter((p): p is SVGPathElement => p !== null)
+    const shibuyaPaths = shibuyaRefs.current.filter((p): p is SVGPathElement => p !== null)
+    const allPaths = [...kevinPaths, ...shibuyaPaths]
 
-function glyphPathLength(progress: number, globalIndex: number): number {
-  const start = globalIndex * STAGGER_PER_GLYPH
-  const end = start + DRAW_WINDOW
-  if (progress <= start) return 0
-  if (progress >= end) return 1
-  return (progress - start) / (end - start)
-}
+    // jsdom (vitest) doesn't run SVG layout, so we feature-detect a
+    // browser-only API and short-circuit to onComplete there.
+    if (typeof allPaths[0]?.getBBox !== 'function') {
+      setInkFilled(true)
+      onComplete?.()
+      return
+    }
 
-// SVG viewBox: opentype.js positions glyphs with baseline at y=0; ascenders
-// go negative, descenders go positive. Plus Jakarta Sans needs ~0.85em above
-// and ~0.30em below for letters like 'k' (ascender) and 'y'/'.' (descender).
-const VIEWBOX_TOP = -NAME_FONT_EM * 0.85
-const VIEWBOX_HEIGHT = NAME_FONT_EM * 1.15
+    // SVG `pathLength="1"` normalizes each glyph's reported length to 1
+    // regardless of complexity / subpath count. With dasharray:1 +
+    // dashoffset:1 (initial hidden) and animating dashoffset → 0, the
+    // entire compound path traces cleanly.
+    allPaths.forEach((p) => {
+      p.setAttribute('pathLength', '1')
+      p.style.strokeDasharray = '1'
+      p.style.strokeDashoffset = '1'
+    })
 
-export const HeroNameDrawing = forwardRef<HeroNameDrawingHandle>(function HeroNameDrawing(_, ref) {
-  const { progress } = useMotion()
-  const kevinSvgRef = useRef<SVGSVGElement>(null)
-  const shibuyaSvgRef = useRef<SVGSVGElement>(null)
+    if (prefersReducedMotion) {
+      // Skip the animation: paint the final state immediately.
+      allPaths.forEach((p) => {
+        p.style.strokeDashoffset = '0'
+      })
+      setInkFilled(true)
+      onComplete?.()
+      return
+    }
 
-  const inkFilled = progress >= 1
+    // Reset transitions before scheduling new ones.
+    allPaths.forEach((p) => {
+      p.style.transition = 'none'
+    })
+    void document.body.offsetHeight
 
-  useImperativeHandle(ref, () => ({
-    getCursorAnchors: () => {
-      const k = kevinSvgRef.current
-      const s = shibuyaSvgRef.current
-      if (!k || !s) return null
-      const kRect = k.getBoundingClientRect()
-      const sRect = s.getBoundingClientRect()
-      const period = NAME_SHIBUYA.glyphs[NAME_SHIBUYA.glyphs.length - 1]
-      const periodRatioX = (period.x + period.advance * 0.4) / NAME_SHIBUYA.totalAdvance
-      // The period sits visually on the baseline. Convert SVG baseline (y=0)
-      // to pixel space: baseline y in SVG is at top + (|VIEWBOX_TOP| / VIEWBOX_HEIGHT) * height.
-      const baselineRatio = -VIEWBOX_TOP / VIEWBOX_HEIGHT
-      const kevinBaselinePx = kRect.top + baselineRatio * kRect.height
-      const shibuyaBaselinePx = sRect.top + baselineRatio * sRect.height
-      return {
-        kevinStartX: kRect.left,
-        kevinEndX: kRect.right,
-        kevinBaselineY: kevinBaselinePx,
-        shibuyaStartX: sRect.left,
-        shibuyaEndX: sRect.right,
-        shibuyaBaselineY: shibuyaBaselinePx,
-        periodX: sRect.left + periodRatioX * sRect.width,
-        periodY: shibuyaBaselinePx - 6, // period sits just above baseline
-      }
-    },
-  }), [])
+    const totalTrace = (allPaths.length - 1) * STAGGER_MS + TRACE_DUR_MS
 
-  const kevinLengths = useMemo(
-    () => NAME_KEVIN.glyphs.map((_, i) => glyphPathLength(progress, i)),
-    [progress]
-  )
-  const shibuyaLengths = useMemo(
-    () => NAME_SHIBUYA.glyphs.map(
-      (_, i) => glyphPathLength(progress, NAME_KEVIN.glyphs.length + i)
-    ),
-    [progress]
-  )
+    const rafId = requestAnimationFrame(() => {
+      allPaths.forEach((p, i) => {
+        p.style.transition = `stroke-dashoffset ${TRACE_DUR_MS}ms cubic-bezier(0.65, 0, 0.35, 1) ${i * STAGGER_MS}ms`
+        p.style.strokeDashoffset = '0'
+      })
+    })
+
+    // After the trace completes, replace the per-path inline transition
+    // (currently scoped to stroke-dashoffset) with one that covers the
+    // properties the ink-fill will animate, then flip React state to
+    // apply the --ink / --ghost classes via JSX (so they survive any
+    // future re-renders without being wiped by React reconciliation).
+    const fillTimer = window.setTimeout(() => {
+      const fillTransition = `fill ${INK_FILL_DUR_MS}ms cubic-bezier(0.22, 1, 0.36, 1), stroke ${INK_FILL_DUR_MS}ms cubic-bezier(0.22, 1, 0.36, 1), stroke-width ${INK_FILL_DUR_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`
+      allPaths.forEach((p) => {
+        p.style.transition = fillTransition
+      })
+      setInkFilled(true)
+    }, totalTrace + 100)
+
+    const completeTimer = window.setTimeout(() => {
+      onComplete?.()
+    }, totalTrace + 100 + INK_FILL_DUR_MS)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      window.clearTimeout(fillTimer)
+      window.clearTimeout(completeTimer)
+    }
+  }, [prefersReducedMotion, onComplete])
+
+  const viewBoxKevin = `0 ${-NAME_ASCENT} ${NAME_KEVIN.totalAdvance} ${NAME_ASCENT + NAME_DESCENT}`
+  const viewBoxShibuya = `0 ${-NAME_ASCENT} ${NAME_SHIBUYA.totalAdvance} ${NAME_ASCENT + NAME_DESCENT}`
+
+  const kevinClass = `hero-name-drawing-glyph${inkFilled ? ' hero-name-drawing-glyph--ink' : ''}`
+  const shibuyaClass = `hero-name-drawing-glyph${inkFilled ? ' hero-name-drawing-glyph--ghost' : ''}`
 
   return (
     <>
       <h1 className="sr-only">kevin shibuya.</h1>
       <div className="hero-name-drawing" aria-hidden="true">
         <svg
-          ref={kevinSvgRef}
+          className="hero-name-drawing-word"
           data-name-word="kevin"
-          viewBox={`0 ${VIEWBOX_TOP} ${NAME_KEVIN.totalAdvance} ${VIEWBOX_HEIGHT}`}
-          preserveAspectRatio="xMinYMin meet"
-          className="hero-name-drawing-word hero-name-drawing-word--kevin"
+          viewBox={viewBoxKevin}
+          preserveAspectRatio="xMinYMid meet"
+          xmlns="http://www.w3.org/2000/svg"
         >
           {NAME_KEVIN.glyphs.map((g, i) => (
-            <motion.path
+            <path
               key={i}
-              data-name-glyph={i}
+              ref={(el) => {
+                kevinRefs.current[i] = el
+              }}
               d={g.d}
-              initial={false}
-              animate={{
-                pathLength: kevinLengths[i],
-                stroke: inkFilled ? 'rgba(0,0,0,0)' : 'var(--blue-400)',
-                fill: inkFilled ? 'var(--ink)' : 'rgba(0,0,0,0)',
-              }}
-              transition={{
-                pathLength: { duration: 0 },
-                stroke: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
-                fill: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
-              }}
-              style={{
-                strokeWidth: 12,
-                strokeLinecap: 'round',
-                strokeLinejoin: 'round',
-              }}
+              className={kevinClass}
+              data-name-glyph={i}
             />
           ))}
         </svg>
         <svg
-          ref={shibuyaSvgRef}
+          className="hero-name-drawing-word"
           data-name-word="shibuya"
-          viewBox={`0 ${VIEWBOX_TOP} ${NAME_SHIBUYA.totalAdvance} ${VIEWBOX_HEIGHT}`}
-          preserveAspectRatio="xMinYMin meet"
-          className="hero-name-drawing-word hero-name-drawing-word--shibuya"
+          viewBox={viewBoxShibuya}
+          preserveAspectRatio="xMinYMid meet"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          {NAME_SHIBUYA.glyphs.map((g, i) => {
-            const globalIndex = NAME_KEVIN.glyphs.length + i
-            return (
-              <motion.path
-                key={i}
-                data-name-glyph={globalIndex}
-                d={g.d}
-                initial={false}
-                animate={{
-                  pathLength: shibuyaLengths[i],
-                  stroke: inkFilled ? 'var(--blue-300)' : 'var(--blue-400)',
-                  fill: inkFilled ? 'var(--mist)' : 'rgba(0,0,0,0)',
-                }}
-                transition={{
-                  pathLength: { duration: 0 },
-                  stroke: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
-                  fill: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
-                }}
-                style={{
-                  strokeWidth: 12,
-                  strokeLinecap: 'round',
-                  strokeLinejoin: 'round',
-                }}
-              />
-            )
-          })}
+          {NAME_SHIBUYA.glyphs.map((g, i) => (
+            <path
+              key={i}
+              ref={(el) => {
+                shibuyaRefs.current[i] = el
+              }}
+              d={g.d}
+              className={shibuyaClass}
+              data-name-glyph={NAME_KEVIN.glyphs.length + i}
+            />
+          ))}
         </svg>
       </div>
     </>
   )
-})
+}
