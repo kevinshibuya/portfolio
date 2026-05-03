@@ -581,7 +581,7 @@ Open `http://localhost:5173/`, scroll to the footer, and verify (these will be r
 
 If something is visibly broken at this stage, fix it before proceeding (most likely culprit: a CSS class typo against the JSX). Stop the dev server when done.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/layout/Footer.tsx
