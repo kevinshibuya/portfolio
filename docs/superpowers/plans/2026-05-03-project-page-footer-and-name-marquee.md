@@ -597,7 +597,7 @@ git commit -m "feat(footer): wire FooterNameMarquee into Footer; drop static foo
 **Files:**
 - Modify: `src/pages/ProjectDetail.tsx`
 
-- [ ] **Step 1: Add lazy imports + chunk warmer + Suspense + restructured `<main>`**
+- [x] **Step 1: Add lazy imports + chunk warmer + Suspense + restructured `<main>`**
 
 Replace the entire contents of `src/pages/ProjectDetail.tsx` with:
 
@@ -790,7 +790,7 @@ Key structural changes from the previous file:
 - Idle chunk-warmer effect (also matches `Home.tsx`).
 - The not-found branch gets the same `<main> + <section className="section">` shape for consistency.
 
-- [ ] **Step 2: Run typecheck and full unit suite**
+- [x] **Step 2: Run typecheck and full unit suite**
 
 ```bash
 npm run build
