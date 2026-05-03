@@ -567,7 +567,9 @@ npm run test:unit
 
 Expected: PASS — clean build, all unit tests still green.
 
-- [ ] **Step 3: Visual smoke check on Home**
+- [x] **Step 3: Visual smoke check on Home**
+
+*(Deferred to Task 5's full visual verification pass, which covered Home — see Task 5 Step 3.)*
 
 ```bash
 npm run dev
@@ -799,7 +801,9 @@ npm run test:unit
 
 Expected: PASS — clean build, all unit tests still green.
 
-- [ ] **Step 3: Visual smoke check on a project page**
+- [x] **Step 3: Visual smoke check on a project page**
+
+*(Deferred to Task 5's full visual verification pass, which covered project pages — see Task 5 Step 4.)*
 
 ```bash
 npm run dev
@@ -902,7 +906,7 @@ Stop the dev server.
 
 Commit `b8804b3` (`refactor(footer): cream stroke from start; fix marquee loop math`) landed during the verification pass — it removes the blue → cream cross-fade phase and adds `width: max-content` to fix the marquee wrap math. Spec doc was updated in the same commit to reflect the simpler design.
 
-- [ ] **Step 9: Tick the spec TODO checklist**
+- [x] **Step 9: Tick the spec TODO checklist**
 
 Open `docs/superpowers/specs/2026-05-03-project-page-footer-and-name-marquee-design.md` and tick every item under `## TODO` from `- [ ]` to `- [x]`. Commit:
 
