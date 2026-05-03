@@ -22,7 +22,7 @@
 - Create: `tests/unit/FooterNameMarquee.test.tsx`
 - Create: `src/components/ui/FooterNameMarquee.tsx`
 
-- [ ] **Step 1: Write the failing test file**
+- [x] **Step 1: Write the failing test file**
 
 Create `tests/unit/FooterNameMarquee.test.tsx`:
 
@@ -86,7 +86,7 @@ describe('FooterNameMarquee', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to confirm it fails (component does not exist yet)**
+- [x] **Step 2: Run the test to confirm it fails (component does not exist yet)**
 
 ```bash
 npm run test:unit -- tests/unit/FooterNameMarquee.test.tsx
@@ -94,7 +94,7 @@ npm run test:unit -- tests/unit/FooterNameMarquee.test.tsx
 
 Expected: FAIL — module `'../../src/components/ui/FooterNameMarquee'` not found.
 
-- [ ] **Step 3: Create the component**
+- [x] **Step 3: Create the component**
 
 Create `src/components/ui/FooterNameMarquee.tsx`:
 
@@ -345,7 +345,7 @@ export function FooterNameMarquee(): React.JSX.Element {
 }
 ```
 
-- [ ] **Step 4: Run the unit test to confirm it passes**
+- [x] **Step 4: Run the unit test to confirm it passes**
 
 ```bash
 npm run test:unit -- tests/unit/FooterNameMarquee.test.tsx
@@ -353,7 +353,7 @@ npm run test:unit -- tests/unit/FooterNameMarquee.test.tsx
 
 Expected: PASS — all 5 tests green. (jsdom short-circuits to phase='marquee' so paths render in their final state, but the structural assertions don't care about animation state.)
 
-- [ ] **Step 5: Run full unit suite to confirm no regressions**
+- [x] **Step 5: Run full unit suite to confirm no regressions**
 
 ```bash
 npm run test:unit
@@ -361,7 +361,7 @@ npm run test:unit
 
 Expected: PASS — all existing tests green plus the 5 new ones.
 
-- [ ] **Step 6: Run typecheck**
+- [x] **Step 6: Run typecheck**
 
 ```bash
 npm run build
