@@ -22,7 +22,7 @@ interface HeroNameDrawingProps {
 }
 
 export function HeroNameDrawing({ onComplete }: HeroNameDrawingProps) {
-  const { prefersReducedMotion } = useMotion()
+  const { prefersReducedMotion, entranceBypassed } = useMotion()
   const kevinRefs = useRef<(SVGPathElement | null)[]>([])
   const shibuyaRefs = useRef<(SVGPathElement | null)[]>([])
   // The ink-fill state lives in React (not in classList.add) so that
@@ -30,7 +30,7 @@ export function HeroNameDrawing({ onComplete }: HeroNameDrawingProps) {
   // path elements, the className we want stays applied. Imperatively
   // adding the class via classList.add gets overwritten the next time
   // React diffs the JSX className.
-  const [inkFilled, setInkFilled] = useState(prefersReducedMotion)
+  const [inkFilled, setInkFilled] = useState(prefersReducedMotion || entranceBypassed)
 
   useEffect(() => {
     const kevinPaths = kevinRefs.current.filter((p): p is SVGPathElement => p !== null)
@@ -40,6 +40,19 @@ export function HeroNameDrawing({ onComplete }: HeroNameDrawingProps) {
     // jsdom (vitest) doesn't run SVG layout, so we feature-detect a
     // browser-only API and short-circuit to onComplete there.
     if (typeof allPaths[0]?.getBBox !== 'function') {
+      setInkFilled(true)
+      onComplete?.()
+      return
+    }
+
+    // Bypass: when returning from a project page the entrance is pre-resolved.
+    // Render the SVG in its final filled state immediately without tracing.
+    if (entranceBypassed) {
+      allPaths.forEach((p) => {
+        p.setAttribute('pathLength', '1')
+        p.style.strokeDasharray = '1'
+        p.style.strokeDashoffset = '0'
+      })
       setInkFilled(true)
       onComplete?.()
       return
@@ -102,7 +115,7 @@ export function HeroNameDrawing({ onComplete }: HeroNameDrawingProps) {
       window.clearTimeout(fillTimer)
       window.clearTimeout(completeTimer)
     }
-  }, [prefersReducedMotion, onComplete])
+  }, [prefersReducedMotion, entranceBypassed, onComplete])
 
   const viewBoxKevin = `0 ${-NAME_ASCENT} ${NAME_KEVIN.totalAdvance} ${NAME_ASCENT + NAME_DESCENT}`
   const viewBoxShibuya = `0 ${-NAME_ASCENT} ${NAME_SHIBUYA.totalAdvance} ${NAME_ASCENT + NAME_DESCENT}`

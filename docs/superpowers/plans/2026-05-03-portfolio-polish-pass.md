@@ -21,7 +21,7 @@
 - Modify: `src/index.css` (sections: `.nav`, `.nav-avail`, `.hero-accent-mount`, media queries)
 - Modify: `src/components/layout/Header.tsx` (remove the inline `transition: 'opacity 200ms ease-out'` on the header)
 
-- [ ] **Step 1: Move opacity transition off inline style in Header.tsx**
+- [x] **Step 1: Move opacity transition off inline style in Header.tsx**
 
 In `src/components/layout/Header.tsx`, replace the `<header>` element's inline style:
 
@@ -33,7 +33,7 @@ In `src/components/layout/Header.tsx`, replace the `<header>` element's inline s
 
 Remove the `style={{ opacity, transition, pointerEvents }}` block entirely. The class `is-visible` will drive opacity / pointer-events from CSS.
 
-- [ ] **Step 2: Update `.nav` CSS to drive opacity + padding + nav padding-transition**
+- [x] **Step 2: Update `.nav` CSS to drive opacity + padding + nav padding-transition**
 
 In `src/index.css`, replace the `.nav` rule (around line 121):
 
@@ -57,7 +57,7 @@ In `src/index.css`, replace the `.nav` rule (around line 121):
 
 Leave `.nav.is-scrolled` rule unchanged at this step.
 
-- [ ] **Step 3: Add `.nav-avail` nowrap**
+- [x] **Step 3: Add `.nav-avail` nowrap**
 
 In `src/index.css`, find the `.nav-avail` rule (around line 177). Add `white-space: nowrap;` to the existing block:
 
@@ -68,7 +68,7 @@ In `src/index.css`, find the `.nav-avail` rule (around line 177). Add `white-spa
 }
 ```
 
-- [ ] **Step 4: Override `.nav.is-scrolled` padding inside the small-screen media query**
+- [x] **Step 4: Override `.nav.is-scrolled` padding inside the small-screen media query**
 
 In `src/index.css`, inside the existing `@media (max-width: 720px)` block (around line 983), add:
 
@@ -82,7 +82,7 @@ In `src/index.css`, inside the existing `@media (max-width: 720px)` block (aroun
 
 (Place the `.nav.is-scrolled` line right after the existing `.nav { padding: 12px 20px }` line.)
 
-- [ ] **Step 5: Move `.hero-accent-mount { display: none }` to the small-screen breakpoint**
+- [x] **Step 5: Move `.hero-accent-mount { display: none }` to the small-screen breakpoint**
 
 In `src/index.css`, find the existing rule:
 
@@ -98,7 +98,7 @@ Delete that rule. Add inside the existing `@media (max-width: 720px)` block:
 .hero-accent-mount { display: none; }
 ```
 
-- [ ] **Step 6: Run typecheck + lint**
+- [x] **Step 6: Run typecheck + lint**
 
 ```bash
 npm run build
@@ -107,7 +107,7 @@ npm run lint
 
 Expected: both pass with no errors related to changed files.
 
-- [ ] **Step 7: Manual visual verification**
+- [x] **Step 7: Manual visual verification**
 
 Run `npm run dev`. Open at desktop width and verify:
 - Nav padding eases smoothly when scrolling past 40px (no snap).
@@ -116,7 +116,7 @@ Run `npm run dev`. Open at desktop width and verify:
 - At ≤720px viewport, scrolling does NOT change horizontal padding (it stays 20px both before and after `.is-scrolled`).
 - At ≤720px viewport, hero R3F accent is hidden.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/index.css src/components/layout/Header.tsx
@@ -131,7 +131,7 @@ git commit -m "fix(nav,hero): smooth nav padding, nowrap availability pill, hero
 **Files:**
 - Modify: `src/index.css` (`.bento`, `.bento-card`, `.bento-card--lg`, `.bento-card--md`, related media queries)
 
-- [ ] **Step 1: Update `.bento` to drive square cells via grid-auto-rows + aspect-ratio**
+- [x] **Step 1: Update `.bento` to drive square cells via grid-auto-rows + aspect-ratio**
 
 In `src/index.css`, replace the `.bento` rule (around line 696):
 
@@ -145,11 +145,11 @@ In `src/index.css`, replace the `.bento` rule (around line 696):
 }
 ```
 
-- [ ] **Step 2: Remove `min-height` from card rules**
+- [x] **Step 2: Remove `min-height` from card rules**
 
 In `src/index.css`, in `.bento-card`, delete `min-height: 140px;`. In `.bento-card--lg`, delete `min-height: 300px;` (keep the `padding: 28px;` line).
 
-- [ ] **Step 3: Update 1100px and 720px responsive bento rules**
+- [x] **Step 3: Update 1100px and 720px responsive bento rules**
 
 In `src/index.css`, in the existing `@media (max-width: 1100px)` block (around line 968), update the bento section:
 
@@ -174,7 +174,7 @@ In the existing `@media (max-width: 720px)` block (around line 983), update the 
 .bento-card--lg { aspect-ratio: 4 / 3; }
 ```
 
-- [ ] **Step 4: Run build**
+- [x] **Step 4: Run build**
 
 ```bash
 npm run build
@@ -182,11 +182,11 @@ npm run build
 
 Expected: passes.
 
-- [ ] **Step 5: Manual visual verification**
+- [x] **Step 5: Manual visual verification**
 
 Run `npm run dev`. At desktop ≥1101px, verify each bento cell visually reads as a square: small cards (poll system, embeds) are square, the lg card (reconstruction) is square at 2× scale, the md card (field notes) is a 2:1 banner. Then resize through 1100px and 720px and confirm proportions stay reasonable, no flat or stretched cards.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/index.css
@@ -206,7 +206,7 @@ git commit -m "fix(bento): square cells via grid-auto-rows + aspect-ratio"
 - Modify: `src/pages/Home.tsx`
 - Modify: `src/components/layout/SmoothScroll.tsx` (only if Lenis ref isn't reachable for synchronous scroll — verify)
 
-- [ ] **Step 1: Add `entranceBypass` flag to MotionContext**
+- [x] **Step 1: Add `entranceBypass` flag to MotionContext**
 
 In `src/context/MotionContext.tsx`:
 
@@ -258,7 +258,7 @@ const value = useMemo<MotionContextValue>(
 
 Note: `entranceBypassed` is read at MotionProvider mount; since it's only ever set true (never reset), the memo doesn't need to track it as a dep.
 
-- [ ] **Step 2: Update `useScrollLockDuringEntrance` to skip lock if bypassed**
+- [x] **Step 2: Update `useScrollLockDuringEntrance` to skip lock if bypassed**
 
 In `src/hooks/useScrollLockDuringEntrance.ts`, change the early-return logic to also check the bypass flag:
 
@@ -278,7 +278,7 @@ export function useScrollLockDuringEntrance(): void {
 }
 ```
 
-- [ ] **Step 3: Update `HeroNameDrawing` to render in final state when bypassed**
+- [x] **Step 3: Update `HeroNameDrawing` to render in final state when bypassed**
 
 In `src/components/ui/HeroNameDrawing.tsx`:
 
@@ -311,7 +311,7 @@ if (entranceBypassed) {
 
 This skips the trace + ink-fill animation entirely and renders the SVG in its final filled state, while still resolving the entrance gate via `onComplete`.
 
-- [ ] **Step 4: Add scroll-to-top in ProjectDetail mount**
+- [x] **Step 4: Add scroll-to-top in ProjectDetail mount**
 
 In `src/pages/ProjectDetail.tsx`, add at the top of the component body (after `useTranslation()` and before the `project` lookup):
 
@@ -332,7 +332,7 @@ useEffect(() => {
 }, [scrollTo])
 ```
 
-- [ ] **Step 5: Add scroll save + restore + bypass in Home.tsx**
+- [x] **Step 5: Add scroll save + restore + bypass in Home.tsx**
 
 In `src/pages/Home.tsx`:
 
@@ -380,7 +380,7 @@ useEffect(() => {
 
 c) Leave the existing chunk-warming `useEffect` and the JSX unchanged.
 
-- [ ] **Step 6: Run build + lint**
+- [x] **Step 6: Run build + lint**
 
 ```bash
 npm run build

@@ -12,11 +12,11 @@ import { useMotion } from '../context/MotionContext'
  *  entrance gate immediately and skip the lock so other pages render
  *  normally. */
 export function useScrollLockDuringEntrance(): void {
-  const { entranceDone, resolveEntrance } = useMotion()
+  const { entranceDone, resolveEntrance, entranceBypassed } = useMotion()
   const { pathname } = useLocation()
 
   useEffect(() => {
-    if (pathname !== '/') {
+    if (pathname !== '/' || entranceBypassed) {
       resolveEntrance()
       document.body.dataset.loaderState = 'done'
       return
@@ -36,5 +36,5 @@ export function useScrollLockDuringEntrance(): void {
         delete document.body.dataset.loaderState
       }
     }
-  }, [entranceDone, resolveEntrance, pathname])
+  }, [entranceDone, resolveEntrance, pathname, entranceBypassed])
 }

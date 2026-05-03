@@ -15,6 +15,13 @@ interface MotionContextValue {
    *  an orphaned cycle-1 promise. */
   entranceDone: Promise<void>
   resolveEntrance: Resolver
+  /** Skips the hero entrance animation entirely and resolves the gate.
+   *  Used when restoring Home from back-navigation so the ink-trace
+   *  doesn't replay. */
+  bypassEntrance: Resolver
+  /** True once bypassEntrance() has been called. HeroNameDrawing and
+   *  useScrollLockDuringEntrance read this to skip animation / lock. */
+  entranceBypassed: boolean
   /** Backward-compat alias — some legacy consumers still read `loaderDone`. */
   loaderDone: Promise<void>
   prefersReducedMotion: boolean
@@ -26,6 +33,12 @@ const _entranceDone: Promise<void> = new Promise<void>((res) => {
   _resolveEntrance = res
 })
 const resolveEntrance: Resolver = () => _resolveEntrance?.()
+
+let _entranceBypassed = false
+const bypassEntrance: Resolver = () => {
+  _entranceBypassed = true
+  resolveEntrance()
+}
 
 const Ctx = createContext<MotionContextValue | null>(null)
 
@@ -45,6 +58,8 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     () => ({
       entranceDone: _entranceDone,
       resolveEntrance,
+      bypassEntrance,
+      entranceBypassed: _entranceBypassed,
       loaderDone: _entranceDone,
       prefersReducedMotion: reduced,
       r3fAccentEnabled: r3fEnabled,

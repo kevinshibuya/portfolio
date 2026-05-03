@@ -1,5 +1,7 @@
-import { Suspense, lazy, useEffect } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect } from 'react'
 import { Hero } from '../components/sections/Hero'
+import { useLenis } from '../hooks/useLenis'
+import { useMotion } from '../context/MotionContext'
 
 // Below-the-fold sections lazy-load so the main JS chunk only carries Hero
 // (the LCP target). After Hero mounts, an idle callback warms the chunks so
@@ -28,6 +30,36 @@ const Footer = lazy(() =>
 )
 
 export function Home() {
+  const STORAGE_KEY = 'portfolio:home:scrollY'
+  const { scrollTo } = useLenis()
+  const { bypassEntrance } = useMotion()
+
+  useLayoutEffect(() => {
+    const raw = sessionStorage.getItem(STORAGE_KEY)
+    if (!raw) return
+    const y = parseInt(raw, 10)
+    if (!Number.isFinite(y) || y <= 0) {
+      sessionStorage.removeItem(STORAGE_KEY)
+      return
+    }
+    // Bypass the hero entrance BEFORE scroll restoration so the lock
+    // doesn't latch.
+    bypassEntrance()
+    // Synchronous scroll before paint.
+    window.scrollTo(0, y)
+    // Tell Lenis to catch up.
+    scrollTo(document.body, { duration: 0, offset: y })
+    sessionStorage.removeItem(STORAGE_KEY)
+  }, [bypassEntrance, scrollTo])
+
+  // Save scroll on unmount (i.e., when navigating away from Home).
+  useEffect(() => {
+    return () => {
+      const y = window.scrollY
+      if (y > 0) sessionStorage.setItem(STORAGE_KEY, String(y))
+    }
+  }, [])
+
   // Warm the lazy chunks at idle so the first scroll doesn't show a placeholder.
   // requestIdleCallback isn't in Safari yet — fall back to a 0ms timer.
   useEffect(() => {
