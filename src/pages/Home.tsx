@@ -48,12 +48,15 @@ export function Home() {
     bypassEntrance()
 
     // Below-the-fold sections are Suspense-wrapped lazy chunks. On Home
-    // re-mount the document is only ~200vh tall (Hero + 100vh placeholder),
-    // so a single window.scrollTo(0, y) for any y past the placeholder
-    // gets clamped to max-scroll. Try once, and if the page wasn't tall
-    // enough, watch document size with a ResizeObserver and re-apply once
-    // it has expanded enough to reach y. Cancel everything on user input
-    // so we don't fight a user who scrolls during the catch-up window.
+    // re-mount the document may be only ~200vh tall while chunks resolve,
+    // so a single window.scrollTo(0, y) past the placeholder clamps to
+    // max-scroll. Apply once, then re-apply each time the document grows
+    // (ResizeObserver) until y is reachable, capped by a short timeout.
+    //
+    // No user-input cancel: macOS swipe-back gestures fire wheel events
+    // that would trip the cancel and abort restore before chunks load.
+    // The retry window is short enough (≤500ms) that if a user scrolls
+    // immediately they'll see at most one or two corrective scrolls.
     let cancelled = false
     let observer: ResizeObserver | null = null
     let timeoutId: number | null = null
@@ -62,14 +65,7 @@ export function Home() {
       cancelled = true
       observer?.disconnect()
       if (timeoutId !== null) window.clearTimeout(timeoutId)
-      window.removeEventListener('wheel', onUserInput)
-      window.removeEventListener('touchstart', onUserInput)
-      window.removeEventListener('keydown', onUserInput)
       sessionStorage.removeItem(STORAGE_KEY)
-    }
-
-    function onUserInput(): void {
-      cleanup()
     }
 
     const apply = (): boolean => {
@@ -78,10 +74,6 @@ export function Home() {
       scrollTo(y, { immediate: true, force: true })
       return window.scrollY >= y
     }
-
-    window.addEventListener('wheel', onUserInput, { passive: true, once: true })
-    window.addEventListener('touchstart', onUserInput, { passive: true, once: true })
-    window.addEventListener('keydown', onUserInput, { once: true })
 
     if (apply()) {
       cleanup()
@@ -95,9 +87,9 @@ export function Home() {
       })
       observer.observe(document.documentElement)
     }
-    // Safety net: if the page never grows tall enough (e.g., a section
-    // failed to load), give up rather than leak listeners.
-    timeoutId = window.setTimeout(cleanup, 1500)
+    // After ~500ms the chunks should have settled; let the user own scroll
+    // beyond that even if the target was never reached.
+    timeoutId = window.setTimeout(cleanup, 500)
 
     return cleanup
   }, [bypassEntrance, scrollTo])
