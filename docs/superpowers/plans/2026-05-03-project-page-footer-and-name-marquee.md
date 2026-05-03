@@ -369,7 +369,7 @@ npm run build
 
 Expected: PASS — no TS errors. (The build will succeed even though the CSS rules don't exist yet; the component just renders unstyled glyphs at this point.)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tests/unit/FooterNameMarquee.test.tsx src/components/ui/FooterNameMarquee.tsx
@@ -385,7 +385,7 @@ git commit -m "feat(footer): FooterNameMarquee component + unit tests (trace, cr
 **Files:**
 - Modify: `src/index.css` (replace the `.footer-big` rule and add `.footer-marquee*` rules)
 
-- [ ] **Step 1: Replace the `.footer-big` block with the new marquee rules**
+- [x] **Step 1: Replace the `.footer-big` block with the new marquee rules**
 
 In `src/index.css`, find the existing block (around lines 873–885):
 
@@ -466,7 +466,7 @@ Replace it with:
 }
 ```
 
-- [ ] **Step 2: Update the responsive breakpoints to match footer's reduced gutter**
+- [x] **Step 2: Update the responsive breakpoints to match footer's reduced gutter**
 
 In `src/index.css`, inside the existing `@media (max-width: 1100px)` block (around line 901), find:
 
@@ -507,7 +507,7 @@ Add right after that selector group, still inside the same media query:
   }
 ```
 
-- [ ] **Step 3: Run typecheck and lint**
+- [x] **Step 3: Run typecheck and lint**
 
 ```bash
 npm run build
