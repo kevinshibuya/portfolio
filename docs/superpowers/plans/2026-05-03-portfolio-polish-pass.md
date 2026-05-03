@@ -1395,7 +1395,7 @@ npm run test:unit
 
 Expected: all green.
 
-- [ ] **Step 9: Manual visual verification**
+- [x] **Step 9: Manual visual verification**
 
 Run `npm run dev`. Verify:
 - Section reads "the archive." with `archive.` in italic blue.
@@ -1497,7 +1497,7 @@ npm run lint
 
 Expected: pass.
 
-- [ ] **Step 4: Manual visual verification**
+- [x] **Step 4: Manual visual verification**
 
 Run `npm run dev`. Scroll to the work section. Verify:
 - Clicking a row's head opens the body over ~320ms (smooth height + fade).
@@ -1553,7 +1553,7 @@ npm run lint
 
 Expected: pass.
 
-- [ ] **Step 4: Manual visual verification**
+- [x] **Step 4: Manual visual verification**
 
 Run `npm run dev`. Scroll to Contact. Hover each contact row and verify:
 - The label slants from upright to ~10° lean smoothly over the hover transition.
@@ -1572,7 +1572,7 @@ git commit -m "fix(contact): progressive skew replaces instant italic swap on ho
 
 ## Final verification (after all tasks)
 
-- [ ] **Run full test suite**
+- [x] **Run full test suite**
 
 ```bash
 npm run test:unit
@@ -1581,7 +1581,7 @@ npm run build
 
 Expected: all unit tests pass, build succeeds.
 
-- [ ] **End-to-end smoke check**
+- [x] **End-to-end smoke check**
 
 Run `npm run dev`. Walk through:
 1. Hard reload at `/` — verify hero ink-trace plays, section animations trigger as you scroll.
@@ -1593,7 +1593,7 @@ Run `npm run dev`. Walk through:
 7. Toggle EN/PT — archive section labels, dropdowns, chips all switch.
 8. Test the archive: search, each dropdown, sort, show-more (verify new rows animate in).
 
-- [ ] **Final commit if any small fixes surfaced**
+- [x] **Final commit if any small fixes surfaced**
 
 ```bash
 git status
