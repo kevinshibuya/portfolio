@@ -824,10 +824,21 @@ strong {
   color: var(--cream);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  transition: all 0.3s;
+  /* inline-block + transform-origin so skewX animates from the left edge
+     without horizontal drift. */
+  display: inline-block;
+  transform: skewX(0);
+  transform-origin: 0 50%;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.3s,
+    font-weight 0.3s;
 }
+/* Progressive skew replaces the previous font-style: italic swap, which
+   was an instant glyph-pop because Plus Jakarta Italic is a separate
+   font file with no slant axis. */
 .contact-row:hover .contact-label {
-  font-style: italic;
+  transform: skewX(-10deg);
   color: var(--blue-300);
   font-weight: 600;
 }

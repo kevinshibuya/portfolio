@@ -278,8 +278,8 @@ The Contact rows' label transitions from upright to italic on hover, and the swa
 - [x] **(7.2)** Replace CSS chevron rotation with `motion.span animate={{ rotate }}` synced to body tween.
 - [x] **(7.3)** Respect `prefersReducedMotion` (snap open/close, no tween).
 - [ ] **(7.4)** Verify smooth open/close, no layout flicker, no overlap with sibling rows.
-- [ ] **(8.1)** Replace `font-style: italic` swap on `.contact-label` hover with `transform: skewX(-10deg)` + matching transition.
-- [ ] **(8.2)** Set `transform-origin: 0 50%`; verify no horizontal drift and no clipping into adjacent column.
+- [x] **(8.1)** Replace `font-style: italic` swap on `.contact-label` hover with `transform: skewX(-10deg)` + matching transition.
+- [x] **(8.2)** Set `transform-origin: 0 50%`; verify no horizontal drift and no clipping into adjacent column.
 
 ---
 

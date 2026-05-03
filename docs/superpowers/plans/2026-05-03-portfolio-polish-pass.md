@@ -1409,7 +1409,7 @@ Run `npm run dev`. Verify:
 - Header nav link "the archive" / "arquivo" scrolls to the section.
 - Toggling EN/PT updates the section title, dropdown labels, and chip labels.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add src/pages/Home.tsx src/components/layout/Header.tsx src/i18n/locales/en.json src/i18n/locales/pt.json src/index.css
@@ -1425,7 +1425,7 @@ git commit -m "feat(archive): wire into Home + Header, migrate i18n, delete Embe
 - Modify: `src/components/sections/WorkExperience.tsx`
 - Modify: `src/index.css` (the chevron rotation rule moves into Framer)
 
-- [ ] **Step 1: Refactor work-row body to AnimatePresence + height tween**
+- [x] **Step 1: Refactor work-row body to AnimatePresence + height tween**
 
 In `src/components/sections/WorkExperience.tsx`:
 
@@ -1484,11 +1484,11 @@ d) Replace the `{open && <div className="work-body">…</div>}` block with:
 </AnimatePresence>
 ```
 
-- [ ] **Step 2: Remove the dead `.work-toggle.is-open` rule from CSS**
+- [x] **Step 2: Remove the dead `.work-toggle.is-open` rule from CSS**
 
 In `src/index.css`, search for the `.work-toggle.is-open` selector. Delete that rule (Framer drives the rotation now). Leave the base `.work-toggle` rule alone.
 
-- [ ] **Step 3: Build + lint**
+- [x] **Step 3: Build + lint**
 
 ```bash
 npm run build
@@ -1506,7 +1506,7 @@ Run `npm run dev`. Scroll to the work section. Verify:
 - No flicker, no layout jump on open/close.
 - With OS-level "reduce motion" enabled (System Settings → Accessibility), open/close is instant.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/sections/WorkExperience.tsx src/index.css
@@ -1521,11 +1521,11 @@ git commit -m "feat(work): animated accordion with height + chevron tween"
 **Files:**
 - Modify: `src/index.css` (`.contact-row:hover .contact-label` block)
 
-- [ ] **Step 1: Find the existing `.contact-row:hover .contact-label` rule**
+- [x] **Step 1: Find the existing `.contact-row:hover .contact-label` rule**
 
 Search `src/index.css` for `.contact-row:hover .contact-label`. The current rule sets `font-style: italic` (or similar instant property change). Note any other properties currently on it.
 
-- [ ] **Step 2: Replace italic swap with skew transform**
+- [x] **Step 2: Replace italic swap with skew transform**
 
 Replace the rule with:
 
@@ -1544,7 +1544,7 @@ Replace the rule with:
 
 (`display: inline-block` is required for `transform` to apply to inline text. If `.contact-label` already has `display` set elsewhere, leave that alone.)
 
-- [ ] **Step 3: Build + lint**
+- [x] **Step 3: Build + lint**
 
 ```bash
 npm run build
@@ -1561,7 +1561,7 @@ Run `npm run dev`. Scroll to Contact. Hover each contact row and verify:
 - On hover-out, the label returns smoothly to upright.
 - The skewed label stays inside its grid column (doesn't clip into the meta column).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/index.css
