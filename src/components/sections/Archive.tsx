@@ -54,10 +54,17 @@ export function Archive() {
   const filtersDisabledForNonEditorial = kind !== 'all' && kind !== 'editorial'
 
   const filtered = useMemo(() => {
+    const collation = lang === 'pt' ? 'pt-BR' : 'en'
     let result = archive
     if (kind !== 'all') result = result.filter((i) => i.kind === kind)
-    if (type !== 'all') result = result.filter((i) => i.type === type)
-    if (editorial !== 'all') result = result.filter((i) => i.editorial === editorial)
+    // Skip type/editorial filters when the dropdowns are disabled so a
+    // stale 'quiz' selection doesn't silently zero-out a featured-only
+    // result. The selections persist; they re-apply when kind returns
+    // to 'all' or 'editorial'.
+    if (type !== 'all' && !filtersDisabledForNonEditorial)
+      result = result.filter((i) => i.type === type)
+    if (editorial !== 'all' && !filtersDisabledForNonEditorial)
+      result = result.filter((i) => i.editorial === editorial)
     if (year !== 'all') {
       const yNum = parseInt(year, 10)
       result = result.filter((i) => new Date(i.sortDate).getUTCFullYear() === yNum)
@@ -70,14 +77,14 @@ export function Archive() {
     else if (sort === 'oldest') result = [...result].sort((a, b) => a.sortDate - b.sortDate)
     else if (sort === 'az')
       result = [...result].sort((a, b) =>
-        resolveTitle(a, lang).localeCompare(resolveTitle(b, lang))
+        resolveTitle(a, lang).localeCompare(resolveTitle(b, lang), collation)
       )
     else if (sort === 'za')
       result = [...result].sort((a, b) =>
-        resolveTitle(b, lang).localeCompare(resolveTitle(a, lang))
+        resolveTitle(b, lang).localeCompare(resolveTitle(a, lang), collation)
       )
     return result
-  }, [kind, type, editorial, year, debouncedSearch, sort, lang])
+  }, [kind, type, editorial, year, debouncedSearch, sort, lang, filtersDisabledForNonEditorial])
 
   const visible = filtered.slice(0, visibleCount)
   const hasMore = visibleCount < filtered.length
@@ -114,8 +121,13 @@ export function Archive() {
 
   const activeChips: { label: string; clear: () => void }[] = []
   if (kind !== 'all') activeChips.push({ label: `kind: ${kind}`, clear: () => setKind('all') })
-  if (type !== 'all') activeChips.push({ label: `type: ${type.toLowerCase()}`, clear: () => setType('all') })
-  if (editorial !== 'all') activeChips.push({ label: `editorial: ${editorial}`, clear: () => setEditorial('all') })
+  // Hide type/editorial chips when their filters aren't actually applying
+  // (otherwise the chip suggests an active filter that the filtered() memo
+  // is silently bypassing).
+  if (type !== 'all' && !filtersDisabledForNonEditorial)
+    activeChips.push({ label: `type: ${type.toLowerCase()}`, clear: () => setType('all') })
+  if (editorial !== 'all' && !filtersDisabledForNonEditorial)
+    activeChips.push({ label: `editorial: ${editorial}`, clear: () => setEditorial('all') })
   if (year !== 'all') activeChips.push({ label: `year: ${year}`, clear: () => setYear('all') })
 
   return (
@@ -223,7 +235,9 @@ function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
   const inView = useInView(ref, { once: true, amount: 0.2 })
   const num = String(idx + 1).padStart(2, '0')
   const title = resolveTitle(item, lang)
-  const delay = reduced ? 0 : Math.min(idx * (STAGGER_MS / 1000), 0.4)
+  // Stagger per page so "show more" rows produce a fresh wave instead of all
+  // being clamped to the same max delay as the first page's tail rows.
+  const delay = reduced ? 0 : Math.min((idx % PAGE_SIZE) * (STAGGER_MS / 1000), 0.4)
 
   const inner = (
     <>
