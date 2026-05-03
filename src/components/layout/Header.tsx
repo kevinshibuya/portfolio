@@ -55,12 +55,7 @@ export function Header() {
 
   return (
     <header
-      className={`nav${scrolled ? ' is-scrolled' : ''}`}
-      style={{
-        opacity: visible ? 1 : 0,
-        transition: 'opacity 200ms ease-out',
-        pointerEvents: visible ? 'auto' : 'none',
-      }}
+      className={`nav${scrolled ? ' is-scrolled' : ''}${visible ? ' is-visible' : ''}`}
     >
       <div className="nav-inner">
         <a href="#top" className="nav-brand" onClick={go('top')}>

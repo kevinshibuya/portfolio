@@ -121,7 +121,17 @@ strong {
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   padding: 18px 40px;
-  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    padding 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 200ms ease-out;
+}
+.nav.is-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 .nav.is-scrolled {
   padding: 12px 40px;
@@ -184,6 +194,7 @@ strong {
   color: var(--ink);
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  white-space: nowrap;
 }
 .nav-avail-dot {
   width: 7px; height: 7px; border-radius: 50%;
@@ -982,6 +993,7 @@ strong {
 
 @media (max-width: 720px) {
   .nav { padding: 12px 20px; }
+  .nav.is-scrolled { padding: 12px 20px; }
   .nav-links { display: none; }
   .nav-inner { grid-template-columns: auto 1fr; }
   .nav-avail { display: none; }
@@ -999,6 +1011,7 @@ strong {
   .contact-meta { display: none; }
   .section-header { margin-bottom: 40px; }
   .section { padding: 100px 20px; }
+  .hero-accent-mount { display: none; }
 }
 
 /* =========================================================================
@@ -1036,10 +1049,6 @@ body[data-loader-state="loading"] {
   pointer-events: none;
   z-index: 0;
 }
-@media (max-width: 1100px) {
-  .hero-accent-mount { display: none; }
-}
-
 /* Stats slim-band section. Reuses .hero-stat-v / .hero-stat-l for type
    styles so the relocated Hero stat numerals keep their 40px/700 weight. */
 .stats {
