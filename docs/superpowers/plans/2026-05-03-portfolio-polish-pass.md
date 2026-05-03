@@ -389,12 +389,12 @@ npm run lint
 
 Expected: both pass.
 
-- [ ] **Step 7: Manual verification — go-to-project**
+- [x] **Step 7: Manual verification — go-to-project**
 
 Run `npm run dev`. Hard reload at `/`. Wait through hero entrance. Scroll to the work-experience section. Click any bento project card. Verify:
 - Project page loads scrolled to the top (not at the previous scroll position).
 
-- [ ] **Step 8: Manual verification — back-to-home**
+- [x] **Step 8: Manual verification — back-to-home**
 
 From the project page, click "← back to projects". Verify:
 - You land at the same scroll-Y where you clicked the bento card.
@@ -402,7 +402,7 @@ From the project page, click "← back to projects". Verify:
 - No scroll lock.
 - The page is immediately interactive.
 
-- [ ] **Step 9: Manual verification — fresh reload**
+- [x] **Step 9: Manual verification — fresh reload**
 
 Hard-reload `/` (or open a new tab to `/`). Verify the full hero entrance animation plays as before (sessionStorage was cleared by the reload, so bypass doesn't kick in).
 
