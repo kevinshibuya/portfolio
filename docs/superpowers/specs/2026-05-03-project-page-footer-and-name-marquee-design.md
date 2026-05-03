@@ -251,12 +251,14 @@ vitest/jsdom doesn't run SVG layout, so the component feature-detects `getBBox` 
 
 ## TODO
 
-- [ ] Lazy-load `Contact` and `Footer` in `src/pages/ProjectDetail.tsx`, append below the live/source button row, wrap in `Suspense`, warm chunks at idle.
-- [ ] Create `src/components/ui/FooterNameMarquee.tsx` with the three-phase state machine, two `NameCopy` SVGs, IntersectionObserver trigger, full cleanup, reduced-motion guard, and a11y `sr-only h2`.
-- [ ] Add `.footer-marquee*` rules to `src/index.css` (full-bleed track, two-copy layout, glyph stroke states, marquee keyframes, reduced-motion override) and remove the old `.footer-big` rules now that the component is replaced.
-- [ ] Replace the `motion.div.footer-big` block in `src/components/layout/Footer.tsx` with `<FooterNameMarquee />`; bottom meta row unchanged.
-- [ ] `npm run build` produces a clean build (no TS errors, no warnings).
-- [ ] Visual verification on Home: trace (blue, sequential 2 copies), cross-fade, seamless marquee.
-- [ ] Visual verification on `/projects/<slug>`: Contact + Footer render below project content; trace plays on scroll-into-view; does not replay on scroll up/down within the same mount.
-- [ ] Visual verification at ≤720px viewport: full-bleed, trace + marquee still function.
-- [ ] Visual verification with `prefers-reduced-motion: reduce`: single static "kevin shibuya", no trace, no marquee.
+> The wording below reflects the original design. The trace color, cross-fade phase, and stroke-width transitions described in items 6 and elsewhere were dropped during verification — see "Locked decisions" above for what was actually shipped.
+
+- [x] Lazy-load `Contact` and `Footer` in `src/pages/ProjectDetail.tsx`, append below the live/source button row, wrap in `Suspense`, warm chunks at idle.
+- [x] Create `src/components/ui/FooterNameMarquee.tsx` with the three-phase state machine (`idle | tracing | marquee`), two `NameCopy` SVGs, IntersectionObserver trigger, full cleanup, reduced-motion guard, and a11y `sr-only h2`.
+- [x] Add `.footer-marquee*` rules to `src/index.css` (full-bleed track with `width: max-content`, two-copy layout, single cream-stroke glyph rule, marquee keyframes, reduced-motion override) and remove the old `.footer-big` rules now that the component is replaced.
+- [x] Replace the `motion.div.footer-big` block in `src/components/layout/Footer.tsx` with `<FooterNameMarquee />`; bottom meta row unchanged.
+- [x] `npm run build` produces a clean build (no TS errors, no warnings).
+- [x] Visual verification on Home: cream-25% trace (sequential 2 copies), seamless marquee wrap. *(No cross-fade beat — see revised "Locked decisions".)*
+- [x] Visual verification on `/projects/<slug>`: Contact + Footer render below project content; trace plays on scroll-into-view; does not replay on scroll up/down within the same mount.
+- [x] Visual verification at ≤720px viewport: full-bleed, trace + marquee still function.
+- [x] Visual verification with `prefers-reduced-motion: reduce`: single static "kevin shibuya", no trace, no marquee.

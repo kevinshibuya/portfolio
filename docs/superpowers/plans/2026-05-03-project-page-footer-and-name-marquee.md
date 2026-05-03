@@ -850,63 +850,57 @@ Expected: all existing e2e tests pass.
 
 Result: 20 pass, 14 fail. All 14 failures are PRE-EXISTING on `main` and unrelated to this branch — confirmed by re-running `shibuya-scramble.spec.ts` against `main` (still 6 failures). The failing groups (`shibuya-scramble`, `reduced-motion` hero, `perf-budget` mobile R3F, `section-enters` `#embeds`) all reference code paths this branch does not touch (Hero, Archive section, R3F mounts). No footer-related e2e test exists in the suite, so this task adds no new tests to that category.
 
-- [ ] **Step 3: Manual visual verification — Home page footer**
+- [x] **Step 3: Manual visual verification — Home page footer**
 
 ```bash
 npm run dev
 ```
 
 On `http://localhost:5173/`:
-- [ ] Scroll smoothly to the footer; trace begins when footer is ≥30% in view.
-- [ ] Copy 1 traces in blue, glyph by glyph (k→e→v→i→n→s→h→i→b→u→y→a).
-- [ ] After ~120ms breath, copy 2 traces sequentially.
-- [ ] After copy 2 finishes, all 24 paths simultaneously cross-fade stroke from blue to cream-25% AND stroke-width from 12 to 6 over 650ms.
-- [ ] Marquee starts moving leftward at ~45s/cycle.
-- [ ] Watch a full cycle — confirm seamless wrap, no visible jump at the 50% mark.
-- [ ] Scroll up and back down to the footer — trace does NOT replay (once-per-mount semantics).
+- [x] Scroll smoothly to the footer; trace begins when footer is ≥30% in view.
+- [x] Copy 1 traces in cream-25%, glyph by glyph (k→e→v→i→n→s→h→i→b→u→y→a). *(Revised from blue: design simplified to cream from start — see commit `b8804b3`.)*
+- [x] After ~120ms breath, copy 2 traces sequentially.
+- [x] After copy 2 finishes, paths flip directly to marquee phase. *(Revised from cross-fade: simplified state machine, no color/width animation between trace and marquee.)*
+- [x] Marquee starts moving leftward at ~45s/cycle.
+- [x] Watch a full cycle — confirm seamless wrap, no visible jump at the 50% mark. *(Required `width: max-content` fix on the track — see commit `b8804b3`.)*
+- [x] Scroll up and back down to the footer — trace does NOT replay (once-per-mount semantics).
 
-- [ ] **Step 4: Manual visual verification — project page footer**
+- [x] **Step 4: Manual visual verification — project page footer**
 
 Still on the dev server:
-- [ ] Click a project card → project page loads.
-- [ ] Scroll to the footer; the trace plays again on this page (fresh mount).
-- [ ] Contact section is visible above the footer.
-- [ ] Live/source button row is still visible above Contact.
-- [ ] Click the back button → return to Home; scroll restores correctly (existing behavior, should not have regressed).
+- [x] Click a project card → project page loads.
+- [x] Scroll to the footer; the trace plays again on this page (fresh mount).
+- [x] Contact section is visible above the footer.
+- [x] Live/source button row is still visible above Contact.
+- [x] Click the back button → return to Home; scroll restores correctly (existing behavior, should not have regressed).
 
-- [ ] **Step 5: Manual visual verification — mobile width**
+- [x] **Step 5: Manual visual verification — mobile width**
 
 Open Chrome devtools → device toolbar → set viewport to 375×667 (or any width ≤720px):
-- [ ] The marquee runs edge-to-edge of the viewport (no 80px gutter visible at the sides).
-- [ ] The trace + marquee still function (font-size scales down via `clamp(80px, 18vw, 280px)`).
-- [ ] The bottom meta row stays inside the 20px gutter.
-- [ ] Resize from 375 → 1100 → 1440 — verify the marquee remains full-bleed at every breakpoint and the bottom meta row keeps its gutter.
+- [x] The marquee runs edge-to-edge of the viewport (no 80px gutter visible at the sides).
+- [x] The trace + marquee still function (font-size scales down via `clamp(80px, 18vw, 280px)`).
+- [x] The bottom meta row stays inside the 20px gutter.
+- [x] Resize from 375 → 1100 → 1440 — verify the marquee remains full-bleed at every breakpoint and the bottom meta row keeps its gutter.
 
-- [ ] **Step 6: Manual visual verification — reduced motion**
+- [x] **Step 6: Manual visual verification — reduced motion**
 
 In Chrome devtools → Rendering tab → "Emulate CSS media feature `prefers-reduced-motion`" → set to "reduce". Reload the page:
-- [ ] Footer renders a single static "kevin shibuya" in cream-25% stroke.
-- [ ] No trace flash, no cross-fade, no marquee animation.
-- [ ] Visually matches the previous footer-big appearance (single static outline).
-- [ ] Same behavior on a project page — single static copy, no animation.
+- [x] Footer renders a single static "kevin shibuya" in cream-25% stroke.
+- [x] No trace flash, no marquee animation. *(No cross-fade to skip — simplified state machine.)*
+- [x] Visually matches the previous footer-big appearance (single static outline).
+- [x] Same behavior on a project page — single static copy, no animation.
 
-- [ ] **Step 7: Manual visual verification — i18n parity**
+- [x] **Step 7: Manual visual verification — i18n parity**
 
 Toggle the language pill in the nav (EN ↔ PT):
-- [ ] Footer marquee text remains "kevin shibuya" in both languages (the `footer.bigText` value is identical in en.json and pt.json).
-- [ ] Bottom meta row updates to the localized copyright/builtWith strings.
+- [x] Footer marquee text remains "kevin shibuya" in both languages (the `footer.bigText` value is identical in en.json and pt.json).
+- [x] Bottom meta row updates to the localized copyright/builtWith strings.
 
 Stop the dev server.
 
-- [ ] **Step 8: Final commit (if any tweaks were needed during verification)**
+- [x] **Step 8: Final commit (if any tweaks were needed during verification)**
 
-If verification surfaced any issues that required code changes, commit them now. Otherwise this step is a no-op:
-
-```bash
-git status
-# If clean, no commit needed.
-# If dirty, commit the tweaks with a fix message.
-```
+Commit `b8804b3` (`refactor(footer): cream stroke from start; fix marquee loop math`) landed during the verification pass — it removes the blue → cream cross-fade phase and adds `width: max-content` to fix the marquee wrap math. Spec doc was updated in the same commit to reflect the simpler design.
 
 - [ ] **Step 9: Tick the spec TODO checklist**
 
