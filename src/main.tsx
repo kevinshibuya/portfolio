@@ -15,6 +15,20 @@ if (typeof history !== 'undefined' && 'scrollRestoration' in history) {
   history.scrollRestoration = 'manual'
 }
 
+// sessionStorage persists across reloads in the same tab. On a hard reload
+// we want a fresh hero entrance from the top, so wipe the saved Home
+// scroll-Y. Only the back-forward and SPA-internal navs should preserve it.
+try {
+  const nav = performance.getEntriesByType?.('navigation')?.[0] as
+    | PerformanceNavigationTiming
+    | undefined
+  if (nav?.type === 'reload' || nav?.type === 'navigate') {
+    sessionStorage.removeItem('portfolio:home:scrollY')
+  }
+} catch {
+  // performance.getEntriesByType isn't critical — fall through silently.
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>

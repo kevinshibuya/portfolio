@@ -44,14 +44,34 @@ export function Home() {
       return
     }
     // Bypass the hero entrance BEFORE scroll restoration so the lock
-    // doesn't latch.
+    // doesn't latch and the user doesn't see the trace replay.
     bypassEntrance()
-    // Synchronous scroll before paint — must happen in useLayoutEffect.
-    window.scrollTo(0, y)
-    // immediate + force so Lenis snaps without lerping and ignores the
-    // mid-release entrance lock state.
-    scrollTo(y, { immediate: true, force: true })
-    sessionStorage.removeItem(STORAGE_KEY)
+
+    // Why polling: below-the-fold sections are <Suspense>-wrapped and lazy.
+    // On Home re-mount the Suspense fallback is ~100vh, so the document is
+    // only ~200vh tall when this effect runs. window.scrollTo(0, y) gets
+    // clamped to max-scroll (end of placeholder) and the user lands at the
+    // top of the first section instead of where they were. Re-apply the
+    // scroll on every frame until either the page is tall enough or we
+    // hit a sane timeout.
+    let attempts = 0
+    let cancelled = false
+    const maxAttempts = 60 // ~1s at 60fps
+    const tick = (): void => {
+      if (cancelled) return
+      window.scrollTo(0, y)
+      scrollTo(y, { immediate: true, force: true })
+      attempts++
+      if (window.scrollY < y && attempts < maxAttempts) {
+        requestAnimationFrame(tick)
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY)
+      }
+    }
+    tick()
+    return () => {
+      cancelled = true
+    }
   }, [bypassEntrance, scrollTo])
 
   // Continuously mirror Home's scrollY into sessionStorage. This is more
