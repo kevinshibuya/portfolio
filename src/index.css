@@ -870,18 +870,66 @@ strong {
   padding: 60px 80px 40px;
   border-top: 1px solid rgba(246, 249, 252, 0.08);
 }
-.footer-big {
-  font-size: clamp(80px, 18vw, 280px);
-  font-weight: 700;
-  line-height: 0.88;
-  letter-spacing: -0.06em;
-  text-transform: lowercase;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(246, 249, 252, 0.25);
-  margin: 0 0 48px;
-  white-space: nowrap;
+/* =========================================================================
+   FOOTER NAME MARQUEE
+   "kevin shibuya" stroke-dashoffset trace then infinite leftward marquee.
+   The trace and marquee both render in cream-25% — no color shift. Track
+   lives inside .footer (which has 80px LR padding); negative margin on the
+   container breaks out so the marquee runs edge-to-edge of the viewport
+   while the bottom meta row keeps its gutter.
+
+   Track sizing: width:max-content forces the track to size to its two
+   children, so translateX(-50%) translates by exactly one copy-width
+   (= seamless wrap). Without it, the track defaults to 100% of its parent
+   (~100vw) and -50% becomes -50vw, which doesn't line up with copy width
+   on most viewports → visible snap mid-loop.
+   ========================================================================= */
+.footer-marquee {
+  margin-left: -80px;
+  margin-right: -80px;
+  margin-bottom: 48px;
   overflow: hidden;
-  text-overflow: clip;
+}
+.footer-marquee-track {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  width: max-content;
+  font-size: clamp(80px, 18vw, 280px);
+}
+.footer-marquee-track-copy {
+  display: block;
+  flex-shrink: 0;
+  height: 1em;
+  width: auto;
+  overflow: visible;
+}
+.footer-marquee-glyph {
+  fill: transparent;
+  stroke: rgba(246, 249, 252, 0.25);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.footer-marquee-track--marquee {
+  animation: footer-marquee-scroll 45s linear infinite;
+  will-change: transform;
+}
+@keyframes footer-marquee-scroll {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Reset will-change too — under rmotion the --marquee class is still
+     applied (component initializes to phase='marquee'), so leaving the
+     base rule's will-change:transform active would waste a GPU layer
+     on a static element. */
+  .footer-marquee-track--marquee {
+    animation: none;
+    will-change: auto;
+  }
 }
 .footer-bottom {
   display: flex; justify-content: space-between; align-items: center;
@@ -902,6 +950,10 @@ strong {
   .nav, .hero, .section, .section--contact, .footer {
     padding-left: 40px;
     padding-right: 40px;
+  }
+  .footer-marquee {
+    margin-left: -40px;
+    margin-right: -40px;
   }
   /* 2-col grid auto-places into 3 rows (lg / sm sm / md) — drive shapes
      per-card so geometry doesn't depend on row-count. */
@@ -930,6 +982,10 @@ strong {
   .hero, .section, .section--contact, .footer {
     padding-left: 20px;
     padding-right: 20px;
+  }
+  .footer-marquee {
+    margin-left: -20px;
+    margin-right: -20px;
   }
   .hero { padding-top: 120px; }
   .hero-stats { gap: 32px; }

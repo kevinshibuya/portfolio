@@ -9,9 +9,11 @@ Two related changes to the page-end experience:
 
 1. **Project Detail pages** get the existing `Contact` and `Footer` components appended below the project content, lazy-loaded in the same pattern `Home.tsx` uses.
 
-2. **Footer-big** evolves from a static `<motion.div>` outline of "kevin shibuya" into an animated sequence: an ink-draw trace (two copies, sequential, drawn in blue), a coordinated cross-fade to cream-25% stroke, and an infinite leftward marquee of the now cream-outlined copies.
+2. **Footer-big** evolves from a static `<motion.div>` outline of "kevin shibuya" into an animated sequence: an ink-draw trace (two copies, sequential, drawn in cream-25% stroke from the start), then a direct handoff to an infinite leftward marquee of the same cream-outlined copies. No color cross-fade — the trace stroke and the resting marquee stroke are the same.
 
-The trace mechanic mirrors `HeroNameDrawing` (per-glyph `pathLength=1` + `stroke-dashoffset 1→0`) so the page-close visually rhymes with the page-open. It diverges in three meaningful ways: single-line layout (kevin and shibuya in the same SVG), no ink-fill (the trace ends as a stroked outline forever), and a CSS-keyframes marquee handoff after the cross-fade.
+The trace mechanic mirrors `HeroNameDrawing` (per-glyph `pathLength=1` + `stroke-dashoffset 1→0`) so the page-close visually rhymes with the page-open. It diverges in three meaningful ways: single-line layout (kevin and shibuya in the same SVG), no ink-fill (the trace ends as a stroked outline forever), and a CSS-keyframes marquee handoff after the trace completes.
+
+**Revised after visual verification (2026-05-03):** The original design called for a blue-400 trace that cross-faded to cream-25% before the marquee started. After seeing it on the page the cross-fade beat felt out of place against the dark footer section, so the trace was simplified to render in cream-25% from the start and skip the cross-fade phase entirely. The state machine collapses from four phases to three.
 
 ## Motivation
 
@@ -19,11 +21,12 @@ Project pages currently end at the live/source-code buttons — there is no clos
 
 The static footer-big "kevin shibuya" outline is one of the quieter elements on the dark closing section. Turning it into a slow, ambient marquee with a deliberate trace entrance gives the page a closing gesture that mirrors the hero's opening trace, without the noise of a fast or showy animation.
 
-## Locked decisions (from brainstorm Q&A)
+## Locked decisions (from brainstorm Q&A, revised after verification)
 
-- **Trace stroke color:** blue-400 trace → cross-fade to cream-25% before marquee starts. Echoes hero gesture; settles into a quiet textural state.
+- **Trace stroke:** cream-25% (`rgba(246, 249, 252, 0.25)`) at stroke-width 6 from the start. No cross-fade beat. *(Originally specced as blue-400 → cream-25% cross-fade; revised after visual verification because the color shift felt out of place against the dark section.)*
 - **Initial trace coverage:** always two copies, drawn sequentially (copy 1 fully, then copy 2). Marquee only starts after both copies have traced.
 - **Marquee speed:** medium / editorial (~45s per cycle).
+- **Marquee math:** track uses `width: max-content` so its own width equals the sum of the two copy widths. `translateX(-50%)` then translates by exactly one copy-width, producing a seamless wrap. Without `max-content` the track defaults to 100% of its parent (~100vw) and `-50%` becomes `-50vw`, which produces a visible mid-loop snap on most viewports.
 - **Layout:** full-bleed (marquee track breaks out of footer's 80px side padding via negative margin); bottom meta row stays padded.
 - **Trigger:** IntersectionObserver, threshold 0.3, plays once per component mount. Re-traces on fresh page navigation (Home → project page), not on scroll-up-and-back.
 - **Reduced motion:** static single copy, no trace, no marquee. Matches today's footer-big resting appearance.
@@ -72,16 +75,16 @@ The static footer-big "kevin shibuya" outline is one of the quieter elements on 
 
 ### State machine
 
-A single `useState<'idle' | 'tracing' | 'crossfade' | 'marquee'>` drives the visual.
+A single `useState<'idle' | 'tracing' | 'marquee'>` drives the visual.
 
 ```
-   IDLE  ──[in viewport ≥30%]──▶  TRACING  ──[copy 1 + copy 2 done]──▶  CROSSFADE  ──[650ms]──▶  MARQUEE (∞)
-                                                                                                       │
-                                                                          (reduced motion path) ───────┘
-                                                                          renders STATIC single copy
+   IDLE  ──[in viewport ≥30%]──▶  TRACING  ──[copy 1 + copy 2 + 50ms breath]──▶  MARQUEE (∞)
+                                                                                          │
+                                                                  (reduced motion) ───────┘
+                                                                  renders STATIC single copy
 ```
 
-Phase determines: which CSS class the path elements carry (governs stroke color + transition properties), whether the marquee CSS animation is applied to the track, and whether 1 or 2 copies render (reduced-motion only renders 1).
+Phase determines: whether the marquee CSS animation is applied to the track, and whether 1 or 2 copies render (reduced-motion only renders 1). All path elements carry the same `footer-marquee-glyph` class throughout — there is no class change driven by phase.
 
 ### Trigger
 
@@ -89,10 +92,10 @@ Phase determines: which CSS class the path elements carry (governs stroke color 
 
 ### Cleanup contract
 
-The single `useEffect` returns a cleanup that:
-- disconnects the IntersectionObserver
-- calls `cancelAnimationFrame` on the pre-trace RAF
-- clears all `setTimeout` IDs (copy-2-start timer, crossfade timer, marquee timer)
+The component owns three effects (idle observer, tracing driver, reduced-motion layout effect). Each returns a cleanup that:
+- disconnects the IntersectionObserver (idle effect)
+- calls `cancelAnimationFrame` on the pre-trace RAF (tracing effect)
+- clears the marquee `setTimeout` (tracing effect — safe no-op if the timer has already fired and triggered the phase change)
 
 Mid-trace unmount → no leaks. Mid-marquee unmount → CSS animation halts naturally with element removal.
 
@@ -113,7 +116,7 @@ viewBox: 0 -820 6990 1070
 - viewBox height breakdown: `NAME_ASCENT(820) + NAME_DESCENT(250) = 1070` units.
 - The shibuya period glyph (`'.'`) is intentionally excluded — footer text is "kevin shibuya", not "kevin shibuya."
 
-The SVG element has `height: 1em; width: auto; preserveAspectRatio: xMinYMid meet`. Width auto-scales from the viewBox aspect ratio. The marquee track lays out two copies with `display: flex; gap: 0` — the inter-copy gap is baked into each viewBox's right edge, so `translate3d(-50%, 0, 0)` produces a seamless wrap.
+The SVG element has `height: 1em; width: auto; preserveAspectRatio: xMinYMid meet`. Width auto-scales from the viewBox aspect ratio. The marquee track lays out two copies with `display: flex; gap: 0; width: max-content` — the inter-copy gap is baked into each viewBox's right edge, and `width: max-content` makes the track size to its children's combined width so `translate3d(-50%, 0, 0)` translates by exactly one copy-width and produces a seamless wrap.
 
 ## Timing constants
 
@@ -121,7 +124,7 @@ The SVG element has `height: 1em; width: auto; preserveAspectRatio: xMinYMid mee
 const STAGGER_MS              = 80    // per-glyph stagger inside a copy (matches hero)
 const TRACE_DUR_MS            = 800   // per-glyph dashoffset 1→0 (matches hero)
 const PAUSE_BETWEEN_COPIES_MS = 120   // breath between copy 1 finishing and copy 2 starting
-const CROSSFADE_DUR_MS        = 650   // blue → cream stroke fade (matches hero INK_FILL_DUR_MS)
+const MARQUEE_BREATH_MS       = 50    // pause after the last trace stroke before marquee scrolling
 ```
 
 Resulting timeline (t=0 when IntersectionObserver fires):
@@ -131,22 +134,15 @@ t=0       copy 1 starts tracing    (k → e → v → i → n → s → h → i 
 t=1680    copy 1 done              // (12 - 1) * 80 + 800
 t=1800    copy 2 starts tracing    // 120ms breath
 t=3480    copy 2 done
-t=3480    crossfade beat begins    (all 24 paths animate simultaneously)
-t=4130    crossfade done; phase flips to 'marquee'
-t=4130+   marquee CSS keyframes engaged
+t=3530    phase flips to 'marquee' // 50ms breath
+t=3530+   marquee CSS keyframes engaged
 ```
 
-## Stroke states
+## Stroke state
 
-| Phase     | Stroke color                        | Stroke width | Transition behavior                                                  |
-|-----------|-------------------------------------|--------------|----------------------------------------------------------------------|
-| TRACING   | `var(--blue-400)`                   | `12`         | `stroke-dashoffset` only, per-glyph, staggered.                      |
-| CROSSFADE | `rgba(246, 249, 252, 0.25)` (cream) | `6`          | 650ms ease, animates both stroke color and stroke-width on all paths simultaneously. |
-| MARQUEE   | `rgba(246, 249, 252, 0.25)` (cream) | `6`          | No path-level transitions; track gains the marquee transform animation. |
+The trace and marquee both render in `rgba(246, 249, 252, 0.25)` (cream-25%) at `stroke-width: 6`. There is no color or width transition between phases — only `stroke-dashoffset` animates (per-glyph, during TRACING). Fill is always `transparent`.
 
-Stroke-width thinning during the cross-fade gives the trace itself slightly more visual weight than the resting state — the line "settles" rather than just changing color. Fill is always `transparent`.
-
-`stroke-dashoffset` is `1` (hidden) at mount, transitions per-glyph to `0` during TRACING, and then stays at `0` for the rest of the component's lifetime. The CSS rule for the base `.footer-marquee-glyph` class declares dashoffset `1`; once a path's trace completes, its dashoffset is set imperatively to `0` and never modified again. The `--final` modifier (CROSSFADE / MARQUEE phases) does NOT include a dashoffset rule — the inline imperative `0` value persists through React reconciliation because we never write a new value to `path.style.strokeDashoffset` after the trace finishes.
+`stroke-dashoffset` is `1` (hidden) at mount, transitions per-glyph to `0` during TRACING, and then stays at `0` for the rest of the component's lifetime. The CSS rule for `.footer-marquee-glyph` declares dashoffset `1`; once a path's trace completes, its dashoffset is set imperatively to `0` and never modified again. No phase-conditional CSS class modifies the path styling.
 
 ## CSS
 
@@ -166,8 +162,8 @@ Stroke-width thinning during the cross-fade gives the trace itself slightly more
   display: flex;
   flex-wrap: nowrap;
   gap: 0;
+  width: max-content;          /* size to children for seamless -50% loop math */
   font-size: clamp(80px, 18vw, 280px);
-  line-height: 0.88;
 }
 .footer-marquee-track-copy {
   display: block;
@@ -179,21 +175,12 @@ Stroke-width thinning during the cross-fade gives the trace itself slightly more
 
 .footer-marquee-glyph {
   fill: transparent;
-  stroke: var(--blue-400);
-  stroke-width: 12;
+  stroke: rgba(246, 249, 252, 0.25);
+  stroke-width: 6;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-}
-.footer-marquee-glyph--final {
-  stroke: rgba(246, 249, 252, 0.25);
-  stroke-width: 6;
-}
-.footer-marquee-glyph--crossfade {
-  transition:
-    stroke 650ms cubic-bezier(0.22, 1, 0.36, 1),
-    stroke-width 650ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .footer-marquee-track--marquee {
@@ -206,7 +193,10 @@ Stroke-width thinning during the cross-fade gives the trace itself slightly more
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .footer-marquee-track--marquee { animation: none; }
+  .footer-marquee-track--marquee {
+    animation: none;
+    will-change: auto;
+  }
 }
 ```
 
@@ -214,12 +204,12 @@ Stroke-width thinning during the cross-fade gives the trace itself slightly more
 
 When `useReducedMotion()` returns `true`:
 
-- Initialize `phase` to `'marquee'` (skips IDLE / TRACING / CROSSFADE entirely).
+- Initialize `phase` to `'marquee'` (skips IDLE / TRACING entirely).
 - Render only ONE `NameCopy` (no second copy, no marquee row visually).
 - Skip `IntersectionObserver` setup entirely — the trace will never run, so there's nothing to trigger.
 - In a layout effect, imperatively set `pathLength=1`, `stroke-dasharray=1`, `stroke-dashoffset=0` on every path of the single rendered copy before first paint, so paths render in their final stroked state with no visible "draw" flash.
-- All paths carry the `footer-marquee-glyph footer-marquee-glyph--final` classes from mount (cream-25% stroke, stroke-width 6).
-- The `@media (prefers-reduced-motion: reduce)` rule suppresses the marquee keyframes animation on the `--marquee` track class as a defense-in-depth.
+- All paths carry the `footer-marquee-glyph` class from mount (cream-25% stroke, stroke-width 6 — same styling used in every phase).
+- The `@media (prefers-reduced-motion: reduce)` rule suppresses the marquee keyframes animation on the `--marquee` track class and resets `will-change` so a static element doesn't waste a GPU layer.
 
 Net result: a single static cream-stroked "kevin shibuya" — visually identical to today's `.footer-big`, with no motion of any kind.
 
@@ -261,12 +251,14 @@ vitest/jsdom doesn't run SVG layout, so the component feature-detects `getBBox` 
 
 ## TODO
 
-- [ ] Lazy-load `Contact` and `Footer` in `src/pages/ProjectDetail.tsx`, append below the live/source button row, wrap in `Suspense`, warm chunks at idle.
-- [ ] Create `src/components/ui/FooterNameMarquee.tsx` with the three-phase state machine, two `NameCopy` SVGs, IntersectionObserver trigger, full cleanup, reduced-motion guard, and a11y `sr-only h2`.
-- [ ] Add `.footer-marquee*` rules to `src/index.css` (full-bleed track, two-copy layout, glyph stroke states, marquee keyframes, reduced-motion override) and remove the old `.footer-big` rules now that the component is replaced.
-- [ ] Replace the `motion.div.footer-big` block in `src/components/layout/Footer.tsx` with `<FooterNameMarquee />`; bottom meta row unchanged.
-- [ ] `npm run build` produces a clean build (no TS errors, no warnings).
-- [ ] Visual verification on Home: trace (blue, sequential 2 copies), cross-fade, seamless marquee.
-- [ ] Visual verification on `/projects/<slug>`: Contact + Footer render below project content; trace plays on scroll-into-view; does not replay on scroll up/down within the same mount.
-- [ ] Visual verification at ≤720px viewport: full-bleed, trace + marquee still function.
-- [ ] Visual verification with `prefers-reduced-motion: reduce`: single static "kevin shibuya", no trace, no marquee.
+> The wording below reflects the original design. The trace color, cross-fade phase, and stroke-width transitions described in items 6 and elsewhere were dropped during verification — see "Locked decisions" above for what was actually shipped.
+
+- [x] Lazy-load `Contact` and `Footer` in `src/pages/ProjectDetail.tsx`, append below the live/source button row, wrap in `Suspense`, warm chunks at idle.
+- [x] Create `src/components/ui/FooterNameMarquee.tsx` with the three-phase state machine (`idle | tracing | marquee`), two `NameCopy` SVGs, IntersectionObserver trigger, full cleanup, reduced-motion guard, and a11y `sr-only h2`.
+- [x] Add `.footer-marquee*` rules to `src/index.css` (full-bleed track with `width: max-content`, two-copy layout, single cream-stroke glyph rule, marquee keyframes, reduced-motion override) and remove the old `.footer-big` rules now that the component is replaced.
+- [x] Replace the `motion.div.footer-big` block in `src/components/layout/Footer.tsx` with `<FooterNameMarquee />`; bottom meta row unchanged.
+- [x] `npm run build` produces a clean build (no TS errors, no warnings).
+- [x] Visual verification on Home: cream-25% trace (sequential 2 copies), seamless marquee wrap. *(No cross-fade beat — see revised "Locked decisions".)*
+- [x] Visual verification on `/projects/<slug>`: Contact + Footer render below project content; trace plays on scroll-into-view; does not replay on scroll up/down within the same mount.
+- [x] Visual verification at ≤720px viewport: full-bleed, trace + marquee still function.
+- [x] Visual verification with `prefers-reduced-motion: reduce`: single static "kevin shibuya", no trace, no marquee.
