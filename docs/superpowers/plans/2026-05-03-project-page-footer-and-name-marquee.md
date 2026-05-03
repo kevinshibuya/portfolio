@@ -516,7 +516,7 @@ npm run lint
 
 Expected: both pass (no TS or ESLint errors). (The build also picks up the new CSS via Vite's CSS pipeline.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/index.css
