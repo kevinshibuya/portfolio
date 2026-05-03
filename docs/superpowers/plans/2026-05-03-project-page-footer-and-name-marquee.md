@@ -532,7 +532,7 @@ git commit -m "feat(footer): marquee CSS — full-bleed track, glyph stroke stat
 **Files:**
 - Modify: `src/components/layout/Footer.tsx`
 
-- [ ] **Step 1: Replace the `motion.div.footer-big` block with `<FooterNameMarquee />`**
+- [x] **Step 1: Replace the `motion.div.footer-big` block with `<FooterNameMarquee />`**
 
 Replace the entire contents of `src/components/layout/Footer.tsx` with:
 
@@ -558,7 +558,7 @@ export function Footer() {
 
 (We drop the `motion` import and the `SPRINGS` import — neither is used after the replacement.)
 
-- [ ] **Step 2: Run typecheck and full unit suite**
+- [x] **Step 2: Run typecheck and full unit suite**
 
 ```bash
 npm run build
