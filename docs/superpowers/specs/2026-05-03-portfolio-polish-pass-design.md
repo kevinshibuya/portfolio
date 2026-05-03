@@ -270,8 +270,8 @@ The Contact rows' label transitions from upright to italic on hover, and the swa
 - [x] **(6.2)** Create `src/data/archive.ts` that normalises `projects` + `embeds` into `ArchiveItem[]`; export sorted by `sortDate` desc.
 - [x] **(6.3)** Build `src/components/ui/ArchiveDropdown.tsx` — controlled select with click-outside-close, keyboard nav, ARIA listbox.
 - [x] **(6.4)** Build `src/components/sections/Archive.tsx` with toolbar (search + 4 dropdowns + sort dropdown), active-filter chip strip, and per-row animated list.
-- [ ] **(6.5)** Replace `EmbedsGallery` import in `Home.tsx` with `Archive`; delete `EmbedsGallery.tsx` and dead `.embeds-*` / `.tbl-*` CSS.
-- [ ] **(6.6)** Update `Header.tsx` nav id `embeds` → `archive`; update i18n keys in `en.json` + `pt.json` from `sections.embeds.*` → `sections.archive.*` with new toolbar/sort sub-keys.
+- [x] **(6.5)** Replace `EmbedsGallery` import in `Home.tsx` with `Archive`; delete `EmbedsGallery.tsx` and dead `.embeds-*` / `.tbl-*` CSS.
+- [x] **(6.6)** Update `Header.tsx` nav id `embeds` → `archive`; update i18n keys in `en.json` + `pt.json` from `sections.embeds.*` → `sections.archive.*` with new toolbar/sort sub-keys.
 - [x] **(6.7)** Per-row `useInView` (or equivalent) animation so newly-added "show more" rows animate in correctly — no rows stuck at opacity 0.
 - [x] **(6.8)** Responsive column collapse (kind/type/editorial gone at 1100px; preview/date gone at 720px); verify at all three breakpoints.
 - [ ] **(7.1)** Wrap work-row body in `motion.div` inside `AnimatePresence` with height + opacity tween (~320ms).
