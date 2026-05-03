@@ -274,9 +274,9 @@ The Contact rows' label transitions from upright to italic on hover, and the swa
 - [x] **(6.6)** Update `Header.tsx` nav id `embeds` → `archive`; update i18n keys in `en.json` + `pt.json` from `sections.embeds.*` → `sections.archive.*` with new toolbar/sort sub-keys.
 - [x] **(6.7)** Per-row `useInView` (or equivalent) animation so newly-added "show more" rows animate in correctly — no rows stuck at opacity 0.
 - [x] **(6.8)** Responsive column collapse (kind/type/editorial gone at 1100px; preview/date gone at 720px); verify at all three breakpoints.
-- [ ] **(7.1)** Wrap work-row body in `motion.div` inside `AnimatePresence` with height + opacity tween (~320ms).
-- [ ] **(7.2)** Replace CSS chevron rotation with `motion.span animate={{ rotate }}` synced to body tween.
-- [ ] **(7.3)** Respect `prefersReducedMotion` (snap open/close, no tween).
+- [x] **(7.1)** Wrap work-row body in `motion.div` inside `AnimatePresence` with height + opacity tween (~320ms).
+- [x] **(7.2)** Replace CSS chevron rotation with `motion.span animate={{ rotate }}` synced to body tween.
+- [x] **(7.3)** Respect `prefersReducedMotion` (snap open/close, no tween).
 - [ ] **(7.4)** Verify smooth open/close, no layout flicker, no overlap with sibling rows.
 - [ ] **(8.1)** Replace `font-style: italic` swap on `.contact-label` hover with `transform: skewX(-10deg)` + matching transition.
 - [ ] **(8.2)** Set `transform-origin: 0 50%`; verify no horizontal drift and no clipping into adjacent column.
