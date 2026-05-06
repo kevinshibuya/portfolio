@@ -2698,12 +2698,12 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - Visual smoke check confirms Selected Work (4 cards in priority order), Archive (default `featured` sort with 5 highlights pinned), and `/projects/<slug>` (hero choreography, story when present, stack, optional routes, optional footnotes) all work.
 - All spec TODO checkboxes ticked.
 
-- [ ] **Step 1: Confirm no code references `p.featured`**
+- [x] **Step 1: Confirm no code references `p.featured`**
 
 Run: `grep -rn "\.featured" src/ tests/ 2>&1 | grep -v node_modules`
 Expected: Zero matches against the `Project.featured` field. Matches against `'featured'` as an `ArchiveItem.kind` are fine (those are string literals, not the field). Matches against `featured: true` in test fixtures are fine if they're for `ArchiveItem`. If any genuine `p.featured` references exist, fix them to use `p.highlight`.
 
-- [ ] **Step 2: Remove `featured` from `Project` type** — open `src/types/content.ts`, find the legacy line:
+- [x] **Step 2: Remove `featured` from `Project` type** — open `src/types/content.ts`, find the legacy line:
 
 ```ts
   // legacy — removed in task 10
@@ -2712,7 +2712,7 @@ Expected: Zero matches against the `Project.featured` field. Matches against `'f
 
 and delete both the comment and the field.
 
-- [ ] **Step 3: Run build, lint, tests**
+- [x] **Step 3: Run build, lint, tests**
 
 Run: `npm run build && npm run lint && npm run test:unit`
 Expected: PASS at every step.

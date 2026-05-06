@@ -426,23 +426,23 @@ Per CLAUDE.md, this is UI work, so visual verification stands in for unit tests.
 
 ## TODO
 
-- [ ] Extend `Project` in `src/types/content.ts` with `highlight`, `highlightOrder`, `tagline`, `stats`, `story`, `screenshots`, `routes`, `mockedServices`, `projectType`, plus add `Block`, `Bilingual`, `Stat`, `ScreenshotPair`, `RouteEntry`, `FigureSrc` types. Build still passes.
-- [ ] Rewrite `src/data/projects.ts` with all 8 snapshot-backed projects. Hand-curate bilingual `title`, `tagline`, `description`, `techStack`, `liveUrl`, `githubUrl`, `year`, optional `stats`, optional `story`. Set `highlight` + `highlightOrder` per the locked priority. Drop `interactive-embeds` and `editorial-cms`. Drop the `featured` field on the new entries.
-- [ ] Copy screenshots from `~/portfolio-snapshots/<slug>/screenshots/{desktop,mobile}/` into `public/images/projects/<slug>/{desktop,mobile}/` for at least the 5 highlights. Wire `coverImage` and `screenshots` arrays in each project entry.
-- [ ] Update `src/data/archive.ts`: carry `highlight` + `highlightOrder` onto `ArchiveItem`; export type updated. Existing sort behavior unchanged.
-- [ ] Add `featured` to `SortKey` union in `src/components/sections/Archive.tsx`; flip initial sort state to `'featured'`; add the `featured` sort branch (highlights by order, then everything else by date desc); add `archive.sort.featured` i18n key with both `en` and `pt` strings; render new option first in the sort dropdown.
-- [ ] Render highlight-row treatment in `ArchiveRow`: leading `★` glyph (aria-hidden) + class `archive-row--highlight`. Add `.archive-row--highlight` CSS rules to `src/index.css` (cream bg, 3px blue-400 inset stripe, hover stays cream, star color blue-400).
-- [ ] Update `src/components/sections/Projects.tsx`: filter to `highlight === true && (highlightOrder ?? 99) <= 4`, sort by `highlightOrder` asc.
-- [ ] Add 5 new motion variants to `src/utils/animations.ts`: `titleCharSplit`, `titleChar`, `taglineWordSplit`, `taglineWord`, `pullquoteStripe`, `pullquoteText`. Reduced-motion variants for each.
-- [ ] Create `src/components/projectDetail/inlineMarkdown.ts` with single-pass tokenizer for `**bold**`, `*italic*`, `[label](url)`. Returns `ReactNode[]`.
-- [ ] Create `src/components/projectDetail/blocks/{Paragraph,Heading,Pullquote,Divider,Figure,FigurePair,FigureGrid,StatRow,RouteList}.tsx`. Each owns its own `whileInView` reveal and reduced-motion fallback.
-- [ ] Create `src/components/projectDetail/BlockRenderer.tsx` — switch on `block.type`, pass `lang` and motion props.
-- [ ] Create `src/components/projectDetail/{Hero,Cover,StackSection,Footnotes}.tsx`. Hero owns the orchestrated mount choreography (back → eyebrow → title char-split → tagline word-stagger → CTAs → stats); Cover owns the cover-image scale-in revealing as the last hero step.
-- [ ] Rewrite `src/pages/ProjectDetail.tsx` as a thin orchestrator: pull project by slug, render the new sub-components in order, preserve existing Lenis scroll-reset + lazy `Contact` + `Footer` warming.
-- [ ] Add `.project-detail-*` CSS rules to `src/index.css`: hero typography (title clamp, tagline, eyebrow), cover styling, narrow story column (max-w-prose ~620px, centered), full-bleed breakouts (negative margin or `grid-column`), stat-row, pullquote (blue stripe), figure caption, route-list `<details>` styling.
-- [ ] Add `projectDetail.*` strings to `src/i18n/locales/{en,pt}.json` (back link, year label, stack label, routes label, notes label, etc.) plus `archive.sort.featured`.
-- [ ] Remove the legacy `featured` field from `Project` type once no code references it; remove from any leftover entries.
-- [ ] `npm run build` clean (no TS errors, no warnings).
+- [x] Extend `Project` in `src/types/content.ts` with `highlight`, `highlightOrder`, `tagline`, `stats`, `story`, `screenshots`, `routes`, `mockedServices`, `projectType`, plus add `Block`, `Bilingual`, `Stat`, `ScreenshotPair`, `RouteEntry`, `FigureSrc` types. Build still passes.
+- [x] Rewrite `src/data/projects.ts` with all 8 snapshot-backed projects. Hand-curate bilingual `title`, `tagline`, `description`, `techStack`, `liveUrl`, `githubUrl`, `year`, optional `stats`, optional `story`. Set `highlight` + `highlightOrder` per the locked priority. Drop `interactive-embeds` and `editorial-cms`. Drop the `featured` field on the new entries.
+- [x] Copy screenshots from `~/portfolio-snapshots/<slug>/screenshots/{desktop,mobile}/` into `public/images/projects/<slug>/{desktop,mobile}/` for at least the 5 highlights. Wire `coverImage` and `screenshots` arrays in each project entry.
+- [x] Update `src/data/archive.ts`: carry `highlight` + `highlightOrder` onto `ArchiveItem`; export type updated. Existing sort behavior unchanged.
+- [x] Add `featured` to `SortKey` union in `src/components/sections/Archive.tsx`; flip initial sort state to `'featured'`; add the `featured` sort branch (highlights by order, then everything else by date desc); add `archive.sort.featured` i18n key with both `en` and `pt` strings; render new option first in the sort dropdown.
+- [x] Render highlight-row treatment in `ArchiveRow`: leading `★` glyph (aria-hidden) + class `archive-row--highlight`. Add `.archive-row--highlight` CSS rules to `src/index.css` (cream bg, 3px blue-400 inset stripe, hover stays cream, star color blue-400).
+- [x] Update `src/components/sections/Projects.tsx`: filter to `highlight === true && (highlightOrder ?? 99) <= 4`, sort by `highlightOrder` asc.
+- [x] Add 5 new motion variants to `src/utils/animations.ts`: `titleCharSplit`, `titleChar`, `taglineWordSplit`, `taglineWord`, `pullquoteStripe`, `pullquoteText`. Reduced-motion variants for each.
+- [x] Create `src/components/projectDetail/inlineMarkdown.ts` with single-pass tokenizer for `**bold**`, `*italic*`, `[label](url)`. Returns `ReactNode[]`.
+- [x] Create `src/components/projectDetail/blocks/{Paragraph,Heading,Pullquote,Divider,Figure,FigurePair,FigureGrid,StatRow,RouteList}.tsx`. Each owns its own `whileInView` reveal and reduced-motion fallback.
+- [x] Create `src/components/projectDetail/BlockRenderer.tsx` — switch on `block.type`, pass `lang` and motion props.
+- [x] Create `src/components/projectDetail/{Hero,Cover,StackSection,Footnotes}.tsx`. Hero owns the orchestrated mount choreography (back → eyebrow → title char-split → tagline word-stagger → CTAs → stats); Cover owns the cover-image scale-in revealing as the last hero step.
+- [x] Rewrite `src/pages/ProjectDetail.tsx` as a thin orchestrator: pull project by slug, render the new sub-components in order, preserve existing Lenis scroll-reset + lazy `Contact` + `Footer` warming.
+- [x] Add `.project-detail-*` CSS rules to `src/index.css`: hero typography (title clamp, tagline, eyebrow), cover styling, narrow story column (max-w-prose ~620px, centered), full-bleed breakouts (negative margin or `grid-column`), stat-row, pullquote (blue stripe), figure caption, route-list `<details>` styling.
+- [x] Add `projectDetail.*` strings to `src/i18n/locales/{en,pt}.json` (back link, year label, stack label, routes label, notes label, etc.) plus `archive.sort.featured`.
+- [x] Remove the legacy `featured` field from `Project` type once no code references it; remove from any leftover entries.
+- [x] `npm run build` clean (no TS errors, no warnings).
 - [ ] Visual verification on `/`: Selected Work renders 4 cards in priority order; Archive defaults to `featured` with 5 highlights pinned + cream-stripe-star treatment; switching sort works.
 - [ ] Visual verification on `/projects/painel-da-reconstrucao`: hero choreography, story reveals on scroll, pullquote stripe-wipe, figure scale-in, stack chips, route list, footnote, Contact + Footer at bottom.
 - [ ] Visual verification on `/projects/OmniStack-9.0` (no canonical_url, learning project): hero CTAs adapt (only github or none), story still renders, no broken images.

@@ -96,8 +96,6 @@ export interface Project {
   // story
   story?: Block[]
 
-  // @deprecated — replaced by `highlight` + `highlightOrder`; removed in Task 10
-  featured?: boolean
 }
 
 export type EmbedType =
