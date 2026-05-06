@@ -167,8 +167,8 @@ export const projects: Project[] = [
       {
         type: 'paragraph',
         text: {
-          en: 'The interesting part was the vote-storage model: instead of counting docs in a subcollection at read time, each survey carries a `voteCounts` map and a `totalVotes` counter that get bumped via Firestore `increment()` together with the per-device write. That\'s what made the live progress bars cheap enough to drive from a public-facing widget without a server in front of Firestore.',
-          pt: 'A parte interessante foi o modelo de armazenamento dos votos: em vez de contar docs em subcoleção na leitura, cada survey carrega um mapa `voteCounts` e um contador `totalVotes` que são incrementados via `increment()` do Firestore junto com o registro por dispositivo. Foi o que tornou as barras de progresso ao vivo baratas o suficiente para um widget público sem servidor na frente do Firestore.',
+          en: 'The interesting part was the vote-storage model: instead of counting docs in a subcollection at read time, each survey carries a *voteCounts* map and a *totalVotes* counter that get bumped via a Firestore atomic increment together with the per-device write. That\'s what made the live progress bars cheap enough to drive from a public-facing widget without a server in front of Firestore.',
+          pt: 'A parte interessante foi o modelo de armazenamento dos votos: em vez de contar docs em subcoleção na leitura, cada survey carrega um mapa *voteCounts* e um contador *totalVotes* que são incrementados de forma atômica pelo Firestore junto com o registro por dispositivo. Foi o que tornou as barras de progresso ao vivo baratas o suficiente para um widget público sem servidor na frente do Firestore.',
         },
       },
     ],

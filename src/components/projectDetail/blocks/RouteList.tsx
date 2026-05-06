@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { useMotion } from '../../../context/MotionContext'
 import type { Block } from '../../../types/content'
 
@@ -14,6 +15,7 @@ export function RouteList({ block, lang: _lang }: Props) {
   // are not bilingual in the schema; underscore-prefix satisfies
   // tsconfig.app.json's noUnusedParameters: true.
   void _lang
+  const { t } = useTranslation()
   const { prefersReducedMotion } = useMotion()
   const Wrapper = block.collapsible ? 'details' : 'div'
 
@@ -28,7 +30,7 @@ export function RouteList({ block, lang: _lang }: Props) {
       <Wrapper>
         {block.collapsible && (
           <summary className="project-detail-route-list-summary">
-            {block.routes.length} routes
+            {t('projectDetail.routesCount', { count: block.routes.length })}
           </summary>
         )}
         <ul className="project-detail-route-list-items">

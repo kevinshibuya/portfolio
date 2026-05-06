@@ -27,6 +27,7 @@ export function Cover({ project, lang }: Props) {
           src={project.coverImage}
           alt={project.title[lang]}
           loading="eager"
+          fetchPriority="high"
           className="project-detail-cover-img"
         />
       ) : (
