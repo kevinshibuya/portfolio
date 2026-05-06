@@ -5,27 +5,97 @@ export interface WorkExperience {
   period: string
   description: { en: string[]; pt: string[] }
   technologies: string[]
-  highlight?: { en: string; pt: string }
+  highlight?: Bilingual
 }
 
 export type BentoSize = 'lg' | 'md' | 'sm'
 
+export type ProjectType = 'shipped' | 'learning'
+
+export interface Bilingual {
+  en: string
+  pt: string
+}
+
+export interface Stat {
+  value: string
+  label: Bilingual
+}
+
+export interface ScreenshotPair {
+  desktop?: string
+  mobile?: string
+  alt?: Bilingual
+  // Display label shown alongside the screenshot, e.g. "/dados-gerais".
+  // Distinct from `Project.routes` (full sitemap) — this is purely for caption text.
+  route?: string
+}
+
+export interface RouteEntry {
+  path: string
+  label: string
+}
+
+export interface FigureSrc {
+  src: string
+  alt?: Bilingual
+  caption?: Bilingual
+}
+
+export type Block =
+  | { type: 'paragraph'; text: Bilingual }
+  | { type: 'heading'; level: 2 | 3; text: Bilingual }
+  | { type: 'pullquote'; text: Bilingual; attribution?: string }
+  | { type: 'divider' }
+  | {
+      type: 'figure'
+      src: string
+      alt?: Bilingual
+      caption?: Bilingual
+      width: 'inset' | 'wide' | 'bleed'
+    }
+  | { type: 'figure-pair'; left: FigureSrc; right: FigureSrc }
+  | { type: 'figure-grid'; items: FigureSrc[] }
+  | { type: 'stat-row'; stats: Stat[] }
+  | { type: 'route-list'; routes: RouteEntry[]; collapsible?: boolean }
+
 export interface Project {
+  // identity
   id: string
   slug: string
-  title: { en: string; pt: string }
-  tagline?: { en: string; pt: string }
-  description: { en: string; pt: string }
-  techStack: string[]
+  title: Bilingual
   year: number
-  liveUrl?: string
-  githubUrl?: string
-  coverImage: string
-  images: string[]
-  featured: boolean
+
+  // ranking
+  highlight: boolean
+  highlightOrder?: number
+
+  // bento surface
   size?: BentoSize
   gradient?: string
   dark?: boolean
+
+  // hero copy
+  tagline?: Bilingual
+  description: Bilingual
+  stats?: Stat[]
+
+  // links + meta
+  liveUrl?: string
+  githubUrl?: string
+  techStack: string[]
+  projectType?: ProjectType
+  mockedServices?: string[]
+  routes?: RouteEntry[]
+
+  // visual
+  coverImage: string
+  images: string[]
+  screenshots?: ScreenshotPair[]
+
+  // story
+  story?: Block[]
+
 }
 
 export type EmbedType =
@@ -48,12 +118,10 @@ export interface Embed {
 
 export type ArchiveKind = 'featured' | 'editorial' | 'personal' | 'oss' | 'freelance'
 
-export type Bilingual = string | { en: string; pt: string }
-
 export interface ArchiveItem {
   id: string
   kind: ArchiveKind
-  title: Bilingual
+  title: string | Bilingual
   type?: EmbedType
   editorial?: string
   date: string
@@ -61,6 +129,8 @@ export interface ArchiveItem {
   href: string
   internal: boolean
   gradient: string
+  highlight?: boolean
+  highlightOrder?: number
 }
 
 export function resolveTitle(item: ArchiveItem, lang: 'en' | 'pt'): string {

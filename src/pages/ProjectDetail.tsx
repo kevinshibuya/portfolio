@@ -1,9 +1,14 @@
 import { Suspense, lazy, useEffect, useLayoutEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Tag } from '../components/ui/Tag'
 import { projects } from '../data/projects'
 import { useLenis } from '../hooks/useLenis'
+import { Hero } from '../components/projectDetail/Hero'
+import { Cover } from '../components/projectDetail/Cover'
+import { BlockRenderer } from '../components/projectDetail/BlockRenderer'
+import { StackSection } from '../components/projectDetail/StackSection'
+import { Footnotes } from '../components/projectDetail/Footnotes'
+import { RouteList } from '../components/projectDetail/blocks/RouteList'
 
 const Contact = lazy(() =>
   import('../components/sections/Contact').then((m) => ({ default: m.Contact }))
@@ -19,16 +24,10 @@ export function ProjectDetail() {
   const { scrollTo } = useLenis()
 
   useLayoutEffect(() => {
-    // Snap both native scroll and Lenis's internal target to 0 BEFORE
-    // first paint. duration: 0 alone still goes through one Lenis lerp
-    // tick, which the user reads as a visible scroll-to-top animation.
-    // immediate + force bypass the lerp; window.scrollTo handles the
-    // pre-Lenis-mount path.
     window.scrollTo(0, 0)
     scrollTo(0, { immediate: true, force: true })
   }, [scrollTo])
 
-  // Warm the lazy chunks at idle so the first scroll doesn't show a placeholder.
   useEffect(() => {
     const warm = () => {
       void import('../components/sections/Contact')
@@ -51,7 +50,12 @@ export function ProjectDetail() {
       <main>
         <section
           className="section"
-          style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+          style={{
+            minHeight: '60vh',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
         >
           <h1 className="section-title" style={{ marginBottom: '16px' }}>
             {t('projectDetail.notFound')}
@@ -69,106 +73,32 @@ export function ProjectDetail() {
 
   return (
     <main>
-      <section className="section" style={{ paddingTop: '160px' }}>
-        <Link
-          to="/"
-          className="btn btn--ghost"
-          style={{ marginBottom: '48px' }}
-        >
-          ← {t('projectDetail.back')}
-        </Link>
+      <section className="section">
+        <Hero project={project} lang={lang} />
+        <Cover project={project} lang={lang} />
 
-        <div
-          style={{
-            background: project.gradient ?? 'linear-gradient(145deg, #D4E5F2, #6A8CAA)',
-            borderRadius: '18px',
-            aspectRatio: '16 / 9',
-            marginBottom: '40px',
-            display: 'grid',
-            placeItems: 'center',
-            color: 'rgba(26, 21, 18, 0.2)',
-            fontFamily: 'var(--font-sans)',
-            fontWeight: 700,
-            textTransform: 'lowercase',
-            fontSize: 'clamp(32px, 4vw, 56px)',
-          }}
-        >
-          {project.title[lang]}
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'baseline',
-            justifyContent: 'space-between',
-            gap: '12px',
-            marginBottom: '24px',
-          }}
-        >
-          <h1 className="section-title" style={{ margin: 0 }}>
-            {project.title[lang]}
-          </h1>
-          <span
-            style={{
-              fontSize: '13px',
-              color: 'var(--bark)',
-              textTransform: 'lowercase',
-              letterSpacing: '0.08em',
-            }}
-          >
-            {t('projectDetail.year')}: {project.year}
-          </span>
-        </div>
-
-        <p className="section-desc" style={{ marginBottom: '32px' }}>
-          {project.description[lang]}
-        </p>
-
-        <div style={{ marginBottom: '32px' }}>
-          <h2
-            style={{
-              fontSize: '11px',
-              fontWeight: 600,
-              color: 'var(--blue-400)',
-              textTransform: 'lowercase',
-              letterSpacing: '0.15em',
-              marginBottom: '12px',
-            }}
-          >
-            {t('projectDetail.stack')}
-          </h2>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            {project.techStack.map((tech) => (
-              <Tag key={tech} label={tech.toLowerCase()} variant="pill" />
-            ))}
+        {project.story && project.story.length > 0 && (
+          <div className="project-detail-story">
+            <BlockRenderer blocks={project.story} lang={lang} />
           </div>
-        </div>
+        )}
 
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          {project.liveUrl && (
-            <a
-              href={project.liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn--primary"
-            >
-              {t('projectDetail.liveDemo')}
-              <span className="btn-arrow">→</span>
-            </a>
-          )}
-          {project.githubUrl && (
-            <a
-              href={project.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn--ghost"
-            >
-              {t('projectDetail.sourceCode')}
-              <span className="btn-arrow">→</span>
-            </a>
-          )}
-        </div>
+        <StackSection project={project} />
+
+        {project.routes && project.routes.length > 0 && (
+          <div className="project-detail-story">
+            <RouteList
+              block={{
+                type: 'route-list',
+                routes: project.routes,
+                collapsible: project.routes.length > 8,
+              }}
+              lang={lang}
+            />
+          </div>
+        )}
+
+        <Footnotes project={project} />
       </section>
 
       <Suspense fallback={<div style={{ minHeight: 200 }} aria-hidden />}>

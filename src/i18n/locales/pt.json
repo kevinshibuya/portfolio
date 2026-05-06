@@ -54,6 +54,7 @@
         "showMore": "mostrar mais"
       },
       "sort": {
+        "featured": "destaques",
         "newest": "mais recentes",
         "oldest": "mais antigos",
         "az": "a–z",
@@ -100,6 +101,7 @@
     "stack": "tecnologias",
     "liveDemo": "demo ao vivo",
     "sourceCode": "código fonte",
+    "notes": "notas",
     "notFound": "projeto não encontrado",
     "notFoundDescription": "o projeto que você está procurando não existe."
   }

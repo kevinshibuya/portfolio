@@ -22,6 +22,8 @@ function fromProjects(): ArchiveItem[] {
     href: `/projects/${p.slug}`,
     internal: true,
     gradient: p.gradient ?? 'linear-gradient(145deg, #D4E5F2, #6A8CAA)',
+    highlight: p.highlight,
+    highlightOrder: p.highlightOrder,
   }))
 }
 
@@ -72,3 +74,17 @@ export const archiveYears: number[] = [
 export const archiveKinds: ArchiveItem['kind'][] = [
   ...new Set(archive.map((i) => i.kind)),
 ].sort()
+
+// Sort comparator for the new "featured" archive sort key.
+// Highlights first (by highlightOrder asc, missing order = 99),
+// then non-highlights interleaved by sortDate desc.
+export function byFeatured(a: ArchiveItem, b: ArchiveItem): number {
+  const aIsH = a.kind === 'featured' && a.highlight === true
+  const bIsH = b.kind === 'featured' && b.highlight === true
+  if (aIsH && bIsH) {
+    return (a.highlightOrder ?? 99) - (b.highlightOrder ?? 99)
+  }
+  if (aIsH) return -1
+  if (bIsH) return 1
+  return b.sortDate - a.sortDate
+}

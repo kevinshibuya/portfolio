@@ -61,7 +61,7 @@
 - `npm run test:unit` passes (existing tests are unaffected; new fields are optional, new variants are pure additions).
 - No runtime behavior changes.
 
-- [ ] **Step 1: Extend `src/types/content.ts`** — add new types and optional fields. Replace the existing file content with:
+- [x] **Step 1: Extend `src/types/content.ts`** — add new types and optional fields. Replace the existing file content with:
 
 ```ts
 export interface WorkExperience {
@@ -205,7 +205,7 @@ export function resolveTitle(item: ArchiveItem, lang: 'en' | 'pt'): string {
 }
 ```
 
-- [ ] **Step 2: Run build to verify types compile**
+- [x] **Step 2: Run build to verify types compile**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. Existing entries in `src/data/projects.ts` still satisfy `Project` because `highlight` is the only new required field … wait — `highlight` is required. The current 4 entries lack it, so the build will fail at this step.
@@ -214,7 +214,7 @@ Fix in this same step: add a single `highlight: false` to each existing entry in
 
 Re-run `npm run build`. Expected: PASS.
 
-- [ ] **Step 3: Add motion variants to `src/utils/animations.ts`** — append the following inside the file, after the existing `staggerContainer` and `REDUCED_MOTION_VARIANT` exports (do not modify any existing exports):
+- [x] **Step 3: Add motion variants to `src/utils/animations.ts`** — append the following inside the file, after the existing `staggerContainer` and `REDUCED_MOTION_VARIANT` exports (do not modify any existing exports):
 
 ```ts
 import type { Variants as _Variants } from 'framer-motion'
@@ -273,12 +273,12 @@ export const pullquoteText: _Variants = {
 
 Note: The file already imports `Variants` at the top; you can drop the duplicate import alias if it conflicts. If the existing import is `import type { Variants, Transition } from 'framer-motion'`, just write the variants as `: Variants` instead of `: _Variants` and skip the alias import.
 
-- [ ] **Step 4: Run build + tests**
+- [x] **Step 4: Run build + tests**
 
 Run: `npm run build && npm run test:unit`
 Expected: build PASS, all unit tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/types/content.ts src/utils/animations.ts src/data/projects.ts
@@ -306,7 +306,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - New tests pass; existing tests unaffected.
 - Parser handles `**bold**`, `*italic*`, `[label](url)`, plain text, mixed sequences, unmatched markers (rendered as literal text), and empty input.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/projectDetail/inlineMarkdown.test.ts`:
 
@@ -362,12 +362,12 @@ describe('parseInline', () => {
 
 This test file uses TSX (React fragment syntax) but Vitest's default JSX runtime needs the file to be `.tsx`. Rename to `tests/unit/projectDetail/inlineMarkdown.test.tsx` instead — the harness already supports both.
 
-- [ ] **Step 2: Run test — confirm it fails for missing module**
+- [x] **Step 2: Run test — confirm it fails for missing module**
 
 Run: `npm run test:unit -- inlineMarkdown`
 Expected: FAIL — "Cannot find module '../../../src/components/projectDetail/inlineMarkdown'".
 
-- [ ] **Step 3: Implement the parser**
+- [x] **Step 3: Implement the parser**
 
 Create `src/components/projectDetail/inlineMarkdown.tsx`:
 
@@ -449,12 +449,12 @@ export function parseInline(input: string): ReactNode[] {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm run test:unit -- inlineMarkdown`
 Expected: PASS — all 8 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/projectDetail/inlineMarkdown.tsx tests/unit/projectDetail/inlineMarkdown.test.tsx
@@ -482,7 +482,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - `npm run build` passes.
 - `npm run dev` shows Selected Work with 4 cards in correct order at `http://localhost:5173`.
 
-- [ ] **Step 1: Rewrite `src/data/projects.ts`** — replace the file contents with all 8 projects. Bilingual content for `title`, `tagline`, `description` is the curator's primary authoring surface; the values below are the locked baseline (lowercased, editorial tone per the existing site's voice). PT translations are intentionally close to EN for now and can be polished in a separate authoring pass.
+- [x] **Step 1: Rewrite `src/data/projects.ts`** — replace the file contents with all 8 projects. Bilingual content for `title`, `tagline`, `description` is the curator's primary authoring surface; the values below are the locked baseline (lowercased, editorial tone per the existing site's voice). PT translations are intentionally close to EN for now and can be polished in a separate authoring pass.
 
 ```ts
 import type { Project } from '../types/content'
@@ -693,7 +693,7 @@ export const projects: Project[] = [
 
 Note: `coverImage: ''` and empty `images: []` are placeholders. Screenshots wire up in Task 9. The page will show a gradient cover until then — verified in the spec's "Cover" section.
 
-- [ ] **Step 2: Update Selected Work filter in `src/components/sections/Projects.tsx`** — replace this line (currently around line 21):
+- [x] **Step 2: Update Selected Work filter in `src/components/sections/Projects.tsx`** — replace this line (currently around line 21):
 
 ```ts
 const featured = projects.filter((p) => p.featured)
@@ -707,22 +707,22 @@ const featured = projects
   .sort((a, b) => (a.highlightOrder ?? 99) - (b.highlightOrder ?? 99))
 ```
 
-- [ ] **Step 3: Run build**
+- [x] **Step 3: Run build**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. The new entries all satisfy `Project` (highlight required; legacy `featured` field is still on the type but optional).
 
-- [ ] **Step 4: Run unit tests — note the archive test will fail at this step**
+- [x] **Step 4: Run unit tests — note the archive test will fail at this step**
 
 Run: `npm run test:unit`
 Expected: FAIL on `tests/unit/data/archive.test.ts` — `featuredCount` is now 8, not 4. This is correct behavior; we will update the test in Task 4.
 
-- [ ] **Step 5: Visual verification**
+- [x] **Step 5: Visual verification**
 
 Run: `npm run dev`. Open `http://localhost:5173/`.
 Expected: Selected Work section shows **4 bento cards** in this exact order: painel da reconstrução (large) · enquetes gzh (small) · ia na redação (small) · fotos do ano 2025 (medium). Cards link to `/projects/<slug>` (404 page until detail is rebuilt — that's fine for now). No console errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/data/projects.ts src/components/sections/Projects.tsx
@@ -756,7 +756,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - `tests/unit/data/archive.test.ts` is updated for the new project count and adds 3 cases for `byFeatured`.
 - `npm run test:unit` passes.
 
-- [ ] **Step 1: Extend `fromProjects()` in `src/data/archive.ts`** — find this block:
+- [x] **Step 1: Extend `fromProjects()` in `src/data/archive.ts`** — find this block:
 
 ```ts
 function fromProjects(): ArchiveItem[] {
@@ -792,7 +792,7 @@ function fromProjects(): ArchiveItem[] {
 }
 ```
 
-- [ ] **Step 2: Add the `byFeatured` comparator at the end of `src/data/archive.ts`** — append:
+- [x] **Step 2: Add the `byFeatured` comparator at the end of `src/data/archive.ts`** — append:
 
 ```ts
 // Sort comparator for the new "featured" archive sort key.
@@ -810,7 +810,7 @@ export function byFeatured(a: ArchiveItem, b: ArchiveItem): number {
 }
 ```
 
-- [ ] **Step 3: Update existing archive tests** — open `tests/unit/data/archive.test.ts`, change line 13 from:
+- [x] **Step 3: Update existing archive tests** — open `tests/unit/data/archive.test.ts`, change line 13 from:
 
 ```ts
 expect(featuredCount).toBe(4)
@@ -822,7 +822,7 @@ to:
 expect(featuredCount).toBe(8)
 ```
 
-- [ ] **Step 4: Add `byFeatured` tests** — append the following describe block to `tests/unit/data/archive.test.ts`:
+- [x] **Step 4: Add `byFeatured` tests** — append the following describe block to `tests/unit/data/archive.test.ts`:
 
 ```ts
 import { byFeatured } from '../../../src/data/archive'
@@ -872,17 +872,17 @@ describe('byFeatured', () => {
 })
 ```
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `npm run test:unit`
 Expected: PASS — all archive tests pass, including the 4 new `byFeatured` cases.
 
-- [ ] **Step 6: Run build**
+- [x] **Step 6: Run build**
 
 Run: `npm run build`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/data/archive.ts tests/unit/data/archive.test.ts
@@ -914,7 +914,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - All 5 highlights pin to the top in priority order.
 - `npm run build` passes; visual smoke at `/` shows correct ordering and styling.
 
-- [ ] **Step 1: Add `featured` to the SortKey union and flip default state in `src/components/sections/Archive.tsx`** — find these lines:
+- [x] **Step 1: Add `featured` to the SortKey union and flip default state in `src/components/sections/Archive.tsx`** — find these lines:
 
 ```ts
 type SortKey = 'newest' | 'oldest' | 'az' | 'za'
@@ -934,7 +934,7 @@ type SortKey = 'featured' | 'newest' | 'oldest' | 'az' | 'za'
 const [sort, setSort] = useState<SortKey>('featured')
 ```
 
-- [ ] **Step 2: Add the featured sort branch and import** — at the top of the file, change the `archive` import line from:
+- [x] **Step 2: Add the featured sort branch and import** — at the top of the file, change the `archive` import line from:
 
 ```ts
 import {
@@ -975,7 +975,7 @@ else if (sort === 'za')
   )
 ```
 
-- [ ] **Step 3: Add `featured` as the first sort option** — find the `sortOptions` useMemo and update to:
+- [x] **Step 3: Add `featured` as the first sort option** — find the `sortOptions` useMemo and update to:
 
 ```ts
 const sortOptions = useMemo(
@@ -990,7 +990,7 @@ const sortOptions = useMemo(
 )
 ```
 
-- [ ] **Step 4: Render highlight row treatment in `ArchiveRow`** — find the `ArchiveRow` function. The rendered `<Link>` and `<a>` currently have `className="archive-row"`. Update to add a conditional class and a leading star inside `inner`. Replace the entire `ArchiveRow` body with:
+- [x] **Step 4: Render highlight row treatment in `ArchiveRow`** — find the `ArchiveRow` function. The rendered `<Link>` and `<a>` currently have `className="archive-row"`. Update to add a conditional class and a leading star inside `inner`. Replace the entire `ArchiveRow` body with:
 
 ```tsx
 function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
@@ -1041,7 +1041,7 @@ function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
 }
 ```
 
-- [ ] **Step 5: Add CSS rules in `src/index.css`** — append these rules near the existing `.archive-row` rules (search for `.archive-row {` to find the section, add after the existing rules):
+- [x] **Step 5: Add CSS rules in `src/index.css`** — append these rules near the existing `.archive-row` rules (search for `.archive-row {` to find the section, add after the existing rules):
 
 ```css
 .archive-row--highlight {
@@ -1061,7 +1061,7 @@ function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
 
 If `--cream` and `--blue-400` aren't defined, look up the existing variable names in `:root` and substitute the right tokens (e.g. `#F6F9FC` and `#3A96E8`).
 
-- [ ] **Step 6: Add i18n strings**
+- [x] **Step 6: Add i18n strings**
 
 In `src/i18n/locales/en.json`, find the `sections.archive.sort` block and add `featured` as the first key:
 
@@ -1089,12 +1089,12 @@ In `src/i18n/locales/pt.json`, do the same:
 
 (Verify the existing PT keys for "newest"/"oldest" match what's in the file before saving — only add `featured`, don't reformat the rest.)
 
-- [ ] **Step 7: Run build + tests**
+- [x] **Step 7: Run build + tests**
 
 Run: `npm run build && npm run test:unit`
 Expected: PASS.
 
-- [ ] **Step 8: Visual verification**
+- [x] **Step 8: Visual verification**
 
 Run: `npm run dev`. Open `http://localhost:5173/`.
 
@@ -1106,7 +1106,7 @@ Verify:
 5. Hovering a non-highlight row still darkens to sand (current behavior preserved).
 6. Switching sort to "newest" mixes everything by date as before.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/components/sections/Archive.tsx src/index.css src/i18n/locales/en.json src/i18n/locales/pt.json
@@ -1152,7 +1152,7 @@ In `docs/superpowers/specs/2026-05-06-project-data-unification-and-detail-page-d
 - `BlockRenderer` exhaustively switches on `block.type`. TypeScript narrows correctly for each case.
 - `npm run build` passes (components are unused at this point — that's fine).
 
-- [ ] **Step 1: `src/components/projectDetail/blocks/Paragraph.tsx`**
+- [x] **Step 1: `src/components/projectDetail/blocks/Paragraph.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1186,7 +1186,7 @@ export function Paragraph({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 2: `src/components/projectDetail/blocks/Heading.tsx`**
+- [x] **Step 2: `src/components/projectDetail/blocks/Heading.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1217,7 +1217,7 @@ export function Heading({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 3: `src/components/projectDetail/blocks/Pullquote.tsx`**
+- [x] **Step 3: `src/components/projectDetail/blocks/Pullquote.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1260,7 +1260,7 @@ export function Pullquote({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 4: `src/components/projectDetail/blocks/Divider.tsx`**
+- [x] **Step 4: `src/components/projectDetail/blocks/Divider.tsx`**
 
 ```tsx
 export function Divider() {
@@ -1268,7 +1268,7 @@ export function Divider() {
 }
 ```
 
-- [ ] **Step 5: `src/components/projectDetail/blocks/Figure.tsx`**
+- [x] **Step 5: `src/components/projectDetail/blocks/Figure.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1308,7 +1308,7 @@ export function Figure({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 6: `src/components/projectDetail/blocks/FigurePair.tsx`**
+- [x] **Step 6: `src/components/projectDetail/blocks/FigurePair.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1355,7 +1355,7 @@ export function FigurePair({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 7: `src/components/projectDetail/blocks/FigureGrid.tsx`**
+- [x] **Step 7: `src/components/projectDetail/blocks/FigureGrid.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1415,7 +1415,7 @@ export function FigureGrid({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 8: `src/components/projectDetail/blocks/StatRow.tsx`**
+- [x] **Step 8: `src/components/projectDetail/blocks/StatRow.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1462,7 +1462,7 @@ export function StatRow({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 9: `src/components/projectDetail/blocks/RouteList.tsx`**
+- [x] **Step 9: `src/components/projectDetail/blocks/RouteList.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1514,7 +1514,7 @@ export function RouteList({ block, lang: _lang }: Props) {
 
 Note: `lang` is destructured into `_lang` and discarded with `void _lang` because tsconfig.app.json has `noUnusedParameters: true`. The `lang` prop stays in `Props` so `BlockRenderer` can pass it uniformly to every block component.
 
-- [ ] **Step 10: `src/components/projectDetail/BlockRenderer.tsx`**
+- [x] **Step 10: `src/components/projectDetail/BlockRenderer.tsx`**
 
 ```tsx
 import type { Block } from '../../types/content'
@@ -1568,12 +1568,12 @@ export function BlockRenderer({ blocks, lang }: Props) {
 }
 ```
 
-- [ ] **Step 11: Run build**
+- [x] **Step 11: Run build**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. Components are unused (warnings about unused exports are OK; they get used in Task 7+).
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 
 ```bash
 git add src/components/projectDetail/
@@ -1608,7 +1608,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - CSS additions cover all `.project-detail-*` classes referenced in Task 6 + 7.
 - `npm run build` passes.
 
-- [ ] **Step 1: `src/components/projectDetail/Hero.tsx`**
+- [x] **Step 1: `src/components/projectDetail/Hero.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1749,7 +1749,7 @@ export function Hero({ project, lang }: Props) {
 }
 ```
 
-- [ ] **Step 2: `src/components/projectDetail/Cover.tsx`**
+- [x] **Step 2: `src/components/projectDetail/Cover.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1792,7 +1792,7 @@ export function Cover({ project, lang }: Props) {
 }
 ```
 
-- [ ] **Step 3: `src/components/projectDetail/StackSection.tsx`**
+- [x] **Step 3: `src/components/projectDetail/StackSection.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1843,7 +1843,7 @@ export function StackSection({ project }: Props) {
 }
 ```
 
-- [ ] **Step 4: `src/components/projectDetail/Footnotes.tsx`**
+- [x] **Step 4: `src/components/projectDetail/Footnotes.tsx`**
 
 ```tsx
 import { useTranslation } from 'react-i18next'
@@ -1870,7 +1870,7 @@ export function Footnotes({ project }: Props) {
 }
 ```
 
-- [ ] **Step 5: Add CSS to `src/index.css`** — append the following block at the end of the file:
+- [x] **Step 5: Add CSS to `src/index.css`** — append the following block at the end of the file:
 
 ```css
 /* =====================================================================
@@ -2186,12 +2186,12 @@ export function Footnotes({ project }: Props) {
 
 If `--ink`, `--bark`, `--dust`, `--cream`, `--mist`, `--blue-400`, `--font-sans` aren't already defined as CSS variables, search `src/index.css` for the existing `:root` block and substitute the right names (the spec's color section lists the hex values: ink `#111822`, bark `#2A4060`, dust `#6A8CAA`, cream `#F6F9FC`, mist `#D4E5F2`, blue-400 `#3A96E8`).
 
-- [ ] **Step 6: Run build**
+- [x] **Step 6: Run build**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. Components are still unused; ProjectDetail.tsx hasn't been updated yet.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/components/projectDetail/Hero.tsx src/components/projectDetail/Cover.tsx src/components/projectDetail/StackSection.tsx src/components/projectDetail/Footnotes.tsx src/index.css
@@ -2227,7 +2227,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - Reduced-motion mode collapses all animations to instant fades.
 - 404 path still renders the existing not-found fallback.
 
-- [ ] **Step 1: Rewrite `src/pages/ProjectDetail.tsx`** — replace the file contents with:
+- [x] **Step 1: Rewrite `src/pages/ProjectDetail.tsx`** — replace the file contents with:
 
 ```tsx
 import { Suspense, lazy, useEffect, useLayoutEffect } from 'react'
@@ -2342,7 +2342,7 @@ export function ProjectDetail() {
 }
 ```
 
-- [ ] **Step 2: Add `projectDetail.notes` strings to i18n**
+- [x] **Step 2: Add `projectDetail.notes` strings to i18n**
 
 In `src/i18n/locales/en.json`, find the `projectDetail` block and add `notes`:
 
@@ -2376,7 +2376,7 @@ In `src/i18n/locales/pt.json`, do the same with PT translations:
 
 (Verify the existing PT projectDetail strings before saving — only add `notes` and don't reformat the rest.)
 
-- [ ] **Step 3: Run build + tests**
+- [x] **Step 3: Run build + tests**
 
 Run: `npm run build && npm run test:unit`
 Expected: PASS.
@@ -2422,7 +2422,7 @@ Verify:
 3. Stat row wraps to 2 rows of 2 if needed.
 4. No horizontal scroll.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/pages/ProjectDetail.tsx src/i18n/locales/en.json src/i18n/locales/pt.json
@@ -2457,7 +2457,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - At least one other highlight has at least 1 paragraph block authored.
 - Build passes; visual smoke on `/projects/painel-da-reconstrucao` shows the cover image (not gradient), hero, story, stack, route list (collapsible since 19 > 8), and Contact+Footer.
 
-- [ ] **Step 1: Copy screenshots from snapshots into `public/`** — run a one-time copy script. From the project root:
+- [x] **Step 1: Copy screenshots from snapshots into `public/`** — run a one-time copy script. From the project root:
 
 ```bash
 mkdir -p public/images/projects/painel-da-reconstrucao/desktop public/images/projects/painel-da-reconstrucao/mobile && \
@@ -2483,7 +2483,7 @@ cp ~/portfolio-snapshots/peleia-gre-nal/screenshots/mobile/*.png public/images/p
 
 Verify each `desktop/` directory has at least one `.png` file. If a snapshot lacks screenshots, that highlight will simply fall back to the gradient cover.
 
-- [ ] **Step 2: Update `painel-da-reconstrucao` entry in `src/data/projects.ts`** — add `coverImage`, `screenshots`, `routes`, `mockedServices`, and `story` fields. Replace the entry block (the first one) with:
+- [x] **Step 2: Update `painel-da-reconstrucao` entry in `src/data/projects.ts`** — add `coverImage`, `screenshots`, `routes`, `mockedServices`, and `story` fields. Replace the entry block (the first one) with:
 
 ```ts
 {
@@ -2611,7 +2611,7 @@ Verify each `desktop/` directory has at least one `.png` file. If a snapshot lac
 },
 ```
 
-- [ ] **Step 3: Wire `coverImage` for the other 4 highlights** — update each entry to set `coverImage` to its first desktop screenshot. Example for `enquetes-gzh`:
+- [x] **Step 3: Wire `coverImage` for the other 4 highlights** — update each entry to set `coverImage` to its first desktop screenshot. Example for `enquetes-gzh`:
 
 ```ts
 coverImage: '/images/projects/enquetes-gzh/desktop/01-embed-vote.png',
@@ -2623,7 +2623,7 @@ For `peleia-gre-nal`: `coverImage: '/images/projects/peleia-gre-nal/desktop/01-l
 
 If the actual filenames differ, run `ls public/images/projects/<slug>/desktop/` and use the first `.png` in alphabetical order.
 
-- [ ] **Step 4: Add a 1-paragraph `story` to `enquetes-gzh`** — minimum bar so at least 2 highlights demonstrate the story flow:
+- [x] **Step 4: Add a 1-paragraph `story` to `enquetes-gzh`** — minimum bar so at least 2 highlights demonstrate the story flow:
 
 ```ts
 story: [
@@ -2644,12 +2644,12 @@ story: [
 ],
 ```
 
-- [ ] **Step 5: Run build**
+- [x] **Step 5: Run build**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. Asset paths resolve at build time.
 
-- [ ] **Step 6: Visual verification on `/projects/painel-da-reconstrucao`** (full-feature)
+- [x] **Step 6: Visual verification on `/projects/painel-da-reconstrucao`** (full-feature)
 
 Run: `npm run dev`. Navigate to the page.
 Verify:
@@ -2661,11 +2661,11 @@ Verify:
 6. No footnotes (mockedServices is unset).
 7. Contact + Footer load on scroll.
 
-- [ ] **Step 7: Visual verification on `/projects/enquetes-gzh`**
+- [x] **Step 7: Visual verification on `/projects/enquetes-gzh`**
 
 Verify cover image renders, hero choreography plays, 2-paragraph story renders with `**Gauchazh (GZH)**` rendering as bold and `increment()` rendering as inline literal text (no markdown applied — that's the parser's expected behavior since backticks aren't a recognized mark).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add public/images/projects/ src/data/projects.ts
@@ -2698,12 +2698,12 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - Visual smoke check confirms Selected Work (4 cards in priority order), Archive (default `featured` sort with 5 highlights pinned), and `/projects/<slug>` (hero choreography, story when present, stack, optional routes, optional footnotes) all work.
 - All spec TODO checkboxes ticked.
 
-- [ ] **Step 1: Confirm no code references `p.featured`**
+- [x] **Step 1: Confirm no code references `p.featured`**
 
 Run: `grep -rn "\.featured" src/ tests/ 2>&1 | grep -v node_modules`
 Expected: Zero matches against the `Project.featured` field. Matches against `'featured'` as an `ArchiveItem.kind` are fine (those are string literals, not the field). Matches against `featured: true` in test fixtures are fine if they're for `ArchiveItem`. If any genuine `p.featured` references exist, fix them to use `p.highlight`.
 
-- [ ] **Step 2: Remove `featured` from `Project` type** — open `src/types/content.ts`, find the legacy line:
+- [x] **Step 2: Remove `featured` from `Project` type** — open `src/types/content.ts`, find the legacy line:
 
 ```ts
   // legacy — removed in task 10
@@ -2712,7 +2712,7 @@ Expected: Zero matches against the `Project.featured` field. Matches against `'f
 
 and delete both the comment and the field.
 
-- [ ] **Step 3: Run build, lint, tests**
+- [x] **Step 3: Run build, lint, tests**
 
 Run: `npm run build && npm run lint && npm run test:unit`
 Expected: PASS at every step.

@@ -11,6 +11,7 @@ import {
   archiveEditorials,
   archiveYears,
   archiveKinds,
+  byFeatured,
 } from '../../data/archive'
 import { resolveTitle } from '../../types/content'
 import type { ArchiveItem } from '../../types/content'
@@ -18,7 +19,7 @@ import type { ArchiveItem } from '../../types/content'
 const PAGE_SIZE = 12
 const STAGGER_MS = 40
 
-type SortKey = 'newest' | 'oldest' | 'az' | 'za'
+type SortKey = 'featured' | 'newest' | 'oldest' | 'az' | 'za'
 
 function normalize(s: string): string {
   // Strip combining diacritical marks (U+0300–U+036F) so 'saúde' matches 'saude'.
@@ -36,7 +37,7 @@ export function Archive() {
   const [type, setType] = useState<string>('all')
   const [editorial, setEditorial] = useState<string>('all')
   const [year, setYear] = useState<string>('all')
-  const [sort, setSort] = useState<SortKey>('newest')
+  const [sort, setSort] = useState<SortKey>('featured')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   // Debounce search by 150ms.
@@ -73,7 +74,8 @@ export function Archive() {
       const q = normalize(debouncedSearch)
       result = result.filter((i) => normalize(resolveTitle(i, lang)).includes(q))
     }
-    if (sort === 'newest') result = [...result].sort((a, b) => b.sortDate - a.sortDate)
+    if (sort === 'featured') result = [...result].sort(byFeatured)
+    else if (sort === 'newest') result = [...result].sort((a, b) => b.sortDate - a.sortDate)
     else if (sort === 'oldest') result = [...result].sort((a, b) => a.sortDate - b.sortDate)
     else if (sort === 'az')
       result = [...result].sort((a, b) =>
@@ -111,6 +113,7 @@ export function Archive() {
   )
   const sortOptions = useMemo(
     () => [
+      { value: 'featured', label: t('sections.archive.sort.featured') },
       { value: 'newest', label: t('sections.archive.sort.newest') },
       { value: 'oldest', label: t('sections.archive.sort.oldest') },
       { value: 'az', label: t('sections.archive.sort.az') },
@@ -235,15 +238,17 @@ function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
   const inView = useInView(ref, { once: true, amount: 0.2 })
   const num = String(idx + 1).padStart(2, '0')
   const title = resolveTitle(item, lang)
-  // Stagger per page so "show more" rows produce a fresh wave instead of all
-  // being clamped to the same max delay as the first page's tail rows.
+  const isHighlight = item.kind === 'featured' && item.highlight === true
   const delay = reduced ? 0 : Math.min((idx % PAGE_SIZE) * (STAGGER_MS / 1000), 0.4)
 
   const inner = (
     <>
       <span className="archive-num">{num}</span>
       <div className="archive-preview" style={{ background: item.gradient }} />
-      <span className="archive-title">{title}</span>
+      <span className="archive-title">
+        {isHighlight && <span className="archive-star" aria-hidden>★</span>}
+        {title}
+      </span>
       <span className="archive-kind">{item.kind}</span>
       <span className="archive-type">{item.type ? item.type.toLowerCase() : '—'}</span>
       <span className="archive-editorial">{item.editorial ?? '—'}</span>
@@ -258,14 +263,16 @@ function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
     transition: { duration: reduced ? 0 : 0.5, ease: [0.22, 1, 0.36, 1] as const, delay },
   }
 
+  const rowClass = `archive-row${isHighlight ? ' archive-row--highlight' : ''}`
+
   return (
     <motion.div ref={ref} className="archive-row-wrap" {...motionProps}>
       {item.internal ? (
-        <Link to={item.href} className="archive-row">
+        <Link to={item.href} className={rowClass}>
           {inner}
         </Link>
       ) : (
-        <a href={item.href} target="_blank" rel="noopener noreferrer" className="archive-row">
+        <a href={item.href} target="_blank" rel="noopener noreferrer" className={rowClass}>
           {inner}
         </a>
       )}

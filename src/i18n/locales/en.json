@@ -54,6 +54,7 @@
         "showMore": "show more"
       },
       "sort": {
+        "featured": "featured",
         "newest": "newest first",
         "oldest": "oldest first",
         "az": "a–z",
@@ -100,6 +101,9 @@
     "stack": "tech stack",
     "liveDemo": "live demo",
     "sourceCode": "source code",
+    "routesCount_one": "{{count}} route",
+    "routesCount_other": "{{count}} routes",
+    "notes": "notes",
     "notFound": "project not found",
     "notFoundDescription": "the project you're looking for doesn't exist."
   }

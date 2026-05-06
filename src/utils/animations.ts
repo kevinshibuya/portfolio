@@ -65,3 +65,54 @@ export const REDUCED_MOTION_VARIANT: Variants = {
   hidden:  { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.2, ease: 'easeOut' } },
 }
+
+// --- Project detail page variants ---
+
+export const titleCharSplit: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.03, delayChildren: 0.2 },
+  },
+}
+
+export const titleChar: Variants = {
+  hidden: { y: 40, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+  },
+}
+
+export const taglineWordSplit: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.04, delayChildren: 0.5 },
+  },
+}
+
+export const taglineWord: Variants = {
+  hidden: { y: 8, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+  },
+}
+
+export const pullquoteStripe: Variants = {
+  hidden: { scaleX: 0 },
+  visible: {
+    scaleX: 1,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  },
+}
+
+export const pullquoteText: Variants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, delay: 0.25, ease: [0.22, 1, 0.36, 1] },
+  },
+}
