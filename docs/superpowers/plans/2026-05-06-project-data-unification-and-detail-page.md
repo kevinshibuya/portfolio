@@ -2457,7 +2457,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - At least one other highlight has at least 1 paragraph block authored.
 - Build passes; visual smoke on `/projects/painel-da-reconstrucao` shows the cover image (not gradient), hero, story, stack, route list (collapsible since 19 > 8), and Contact+Footer.
 
-- [ ] **Step 1: Copy screenshots from snapshots into `public/`** — run a one-time copy script. From the project root:
+- [x] **Step 1: Copy screenshots from snapshots into `public/`** — run a one-time copy script. From the project root:
 
 ```bash
 mkdir -p public/images/projects/painel-da-reconstrucao/desktop public/images/projects/painel-da-reconstrucao/mobile && \
@@ -2483,7 +2483,7 @@ cp ~/portfolio-snapshots/peleia-gre-nal/screenshots/mobile/*.png public/images/p
 
 Verify each `desktop/` directory has at least one `.png` file. If a snapshot lacks screenshots, that highlight will simply fall back to the gradient cover.
 
-- [ ] **Step 2: Update `painel-da-reconstrucao` entry in `src/data/projects.ts`** — add `coverImage`, `screenshots`, `routes`, `mockedServices`, and `story` fields. Replace the entry block (the first one) with:
+- [x] **Step 2: Update `painel-da-reconstrucao` entry in `src/data/projects.ts`** — add `coverImage`, `screenshots`, `routes`, `mockedServices`, and `story` fields. Replace the entry block (the first one) with:
 
 ```ts
 {
@@ -2611,7 +2611,7 @@ Verify each `desktop/` directory has at least one `.png` file. If a snapshot lac
 },
 ```
 
-- [ ] **Step 3: Wire `coverImage` for the other 4 highlights** — update each entry to set `coverImage` to its first desktop screenshot. Example for `enquetes-gzh`:
+- [x] **Step 3: Wire `coverImage` for the other 4 highlights** — update each entry to set `coverImage` to its first desktop screenshot. Example for `enquetes-gzh`:
 
 ```ts
 coverImage: '/images/projects/enquetes-gzh/desktop/01-embed-vote.png',
@@ -2623,7 +2623,7 @@ For `peleia-gre-nal`: `coverImage: '/images/projects/peleia-gre-nal/desktop/01-l
 
 If the actual filenames differ, run `ls public/images/projects/<slug>/desktop/` and use the first `.png` in alphabetical order.
 
-- [ ] **Step 4: Add a 1-paragraph `story` to `enquetes-gzh`** — minimum bar so at least 2 highlights demonstrate the story flow:
+- [x] **Step 4: Add a 1-paragraph `story` to `enquetes-gzh`** — minimum bar so at least 2 highlights demonstrate the story flow:
 
 ```ts
 story: [
@@ -2644,12 +2644,12 @@ story: [
 ],
 ```
 
-- [ ] **Step 5: Run build**
+- [x] **Step 5: Run build**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. Asset paths resolve at build time.
 
-- [ ] **Step 6: Visual verification on `/projects/painel-da-reconstrucao`** (full-feature)
+- [x] **Step 6: Visual verification on `/projects/painel-da-reconstrucao`** (full-feature)
 
 Run: `npm run dev`. Navigate to the page.
 Verify:
@@ -2661,11 +2661,11 @@ Verify:
 6. No footnotes (mockedServices is unset).
 7. Contact + Footer load on scroll.
 
-- [ ] **Step 7: Visual verification on `/projects/enquetes-gzh`**
+- [x] **Step 7: Visual verification on `/projects/enquetes-gzh`**
 
 Verify cover image renders, hero choreography plays, 2-paragraph story renders with `**Gauchazh (GZH)**` rendering as bold and `increment()` rendering as inline literal text (no markdown applied — that's the parser's expected behavior since backticks aren't a recognized mark).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add public/images/projects/ src/data/projects.ts

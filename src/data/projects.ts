@@ -40,8 +40,89 @@ export const projects: Project[] = [
     ],
     projectType: 'shipped',
     liveUrl: 'https://gauchazh.clicrbs.com.br/especiais/painel-da-reconstrucao/',
-    coverImage: '',
+    coverImage: '/images/projects/painel-da-reconstrucao/desktop/01-dados-gerais.png',
     images: [],
+    screenshots: [
+      {
+        desktop: '/images/projects/painel-da-reconstrucao/desktop/01-dados-gerais.png',
+        mobile: '/images/projects/painel-da-reconstrucao/mobile/01-dados-gerais.png',
+        route: '/dados-gerais',
+      },
+      {
+        desktop: '/images/projects/painel-da-reconstrucao/desktop/02-caminho-dinheiro.png',
+        mobile: '/images/projects/painel-da-reconstrucao/mobile/02-caminho-dinheiro.png',
+        route: '/caminho-dinheiro',
+      },
+      {
+        desktop: '/images/projects/painel-da-reconstrucao/desktop/03-estradas-afetadas.png',
+        mobile: '/images/projects/painel-da-reconstrucao/mobile/03-estradas-afetadas.png',
+        route: '/estradas-afetadas',
+      },
+    ],
+    routes: [
+      { path: '/dados-gerais', label: 'Dados gerais' },
+      { path: '/caminho-dinheiro', label: 'Caminho do dinheiro' },
+      { path: '/estradas-afetadas', label: 'Estradas afetadas' },
+      { path: '/infraestrutura', label: 'Infraestrutura' },
+      { path: '/moradias', label: 'Moradias' },
+      { path: '/hospitais', label: 'Hospitais' },
+      { path: '/escolas-publicas', label: 'Escolas públicas' },
+      { path: '/ajudas-sociais', label: 'Ajudas sociais' },
+      { path: '/auxilios-cidadao', label: 'Auxílios ao cidadão' },
+      { path: '/empresas-beneficios', label: 'Empresas e benefícios' },
+      { path: '/credito-setor-produtivo', label: 'Crédito ao setor produtivo' },
+      { path: '/aeroporto-salgado-filho', label: 'Aeroporto Salgado Filho' },
+      { path: '/impacto-voos', label: 'Impacto nos voos' },
+      { path: '/acoes-contencao-e-prevencao', label: 'Ações de contenção e prevenção' },
+      { path: '/estado-recursos', label: 'Recursos do estado' },
+      { path: '/entenda-medidas', label: 'Entenda as medidas' },
+      { path: '/entenda-termos', label: 'Entenda os termos' },
+      { path: '/como-funciona', label: 'Como funciona' },
+      { path: '/leia-mais', label: 'Leia mais' },
+    ],
+    story: [
+      {
+        type: 'paragraph',
+        text: {
+          en: 'A long-running data dashboard for **GZH** (Grupo RBS, Rio Grande do Sul\'s largest news outlet) tracking every public and private real spent on reconstruction after the May 2024 floods that displaced hundreds of thousands of people across the state. Published as part of GZH\'s *especiais* editorial section under the "Pra Cima, RS" reconstruction coverage.',
+          pt: 'Um dashboard de longa duração para a **GZH** (Grupo RBS, maior veículo do Rio Grande do Sul) acompanhando cada real público e privado investido na reconstrução após as enchentes de maio de 2024 que deslocaram centenas de milhares de pessoas no estado. Publicado na seção *especiais* da GZH sob a cobertura "Pra Cima, RS".',
+        },
+      },
+      {
+        type: 'paragraph',
+        text: {
+          en: 'The project is a Next.js 14 App Router build that ships as a fully static export. It pulls a single denormalized JSON dataset (refreshed periodically by the newsroom) and recomputes its summary tables, segment breakdowns, and per-government cuts on the client through memoized selectors — so adding a new view is a routing-and-charting exercise rather than a backend change.',
+          pt: 'O projeto é um build Next.js 14 (App Router) que faz deploy como export estático completo. Ele consome um único dataset JSON desnormalizado (atualizado periodicamente pela redação) e recalcula tabelas de resumo, breakdowns por segmento e cortes por esfera de governo no cliente, com selectors memoizados — então adicionar uma nova view é exercício de roteamento e gráficos, não mudança de backend.',
+        },
+      },
+      {
+        type: 'figure-pair',
+        left: {
+          src: '/images/projects/painel-da-reconstrucao/desktop/01-dados-gerais.png',
+          alt: { en: 'Dados gerais — desktop', pt: 'Dados gerais — desktop' },
+          caption: { en: '/dados-gerais — desktop', pt: '/dados-gerais — desktop' },
+        },
+        right: {
+          src: '/images/projects/painel-da-reconstrucao/mobile/01-dados-gerais.png',
+          alt: { en: 'Dados gerais — mobile', pt: 'Dados gerais — mobile' },
+          caption: { en: '/dados-gerais — mobile', pt: '/dados-gerais — mobile' },
+        },
+      },
+      {
+        type: 'pullquote',
+        text: {
+          en: 'The interesting design pressure is keeping a heavy data product fast and legible inside a brand frame that has to match the rest of GZH.',
+          pt: 'A pressão de design interessante é manter um produto pesado de dados rápido e legível dentro de uma identidade que precisa combinar com o resto da GZH.',
+        },
+      },
+      {
+        type: 'paragraph',
+        text: {
+          en: 'There are 19 dedicated routes covering dimensions like infrastructure, housing, hospitals, schools, social aid, citizen aid, the Salgado Filho airport, road blockages, and flight impact — each with its own charting strategy across Highcharts, ApexCharts, Chart.js, and a Leaflet map of state and federal road closures.',
+          pt: 'São 19 rotas dedicadas cobrindo dimensões como infraestrutura, moradia, hospitais, escolas, ajuda social, auxílio ao cidadão, o aeroporto Salgado Filho, bloqueios em estradas e impacto nos voos — cada uma com sua própria estratégia de visualização entre Highcharts, ApexCharts, Chart.js e um mapa Leaflet de bloqueios em estradas estaduais e federais.',
+        },
+      },
+    ],
   },
   {
     id: 'enquetes-gzh',
@@ -73,8 +154,24 @@ export const projects: Project[] = [
     ],
     projectType: 'shipped',
     liveUrl: 'https://gauchazh.clicrbs.com.br/especiais/enquetes-gzh-backoffice',
-    coverImage: '',
+    coverImage: '/images/projects/enquetes-gzh/desktop/01-embed-vote.png',
     images: [],
+    story: [
+      {
+        type: 'paragraph',
+        text: {
+          en: 'A poll/survey system built for **Gauchazh (GZH)**, the digital newsroom of Grupo RBS. Two React apps share a single Firestore backend: a backoffice where the newsroom creates and manages polls, and a public embed widget journalists drop into articles via the GZH iframe loader.',
+          pt: 'Sistema de enquetes construído para a **Gauchazh (GZH)**, redação digital do Grupo RBS. Dois apps React compartilham um único backend Firestore: um backoffice para a redação criar e gerenciar enquetes, e um widget embed público que jornalistas inserem em artigos pelo loader de iframe da GZH.',
+        },
+      },
+      {
+        type: 'paragraph',
+        text: {
+          en: 'The interesting part was the vote-storage model: instead of counting docs in a subcollection at read time, each survey carries a `voteCounts` map and a `totalVotes` counter that get bumped via Firestore `increment()` together with the per-device write. That\'s what made the live progress bars cheap enough to drive from a public-facing widget without a server in front of Firestore.',
+          pt: 'A parte interessante foi o modelo de armazenamento dos votos: em vez de contar docs em subcoleção na leitura, cada survey carrega um mapa `voteCounts` e um contador `totalVotes` que são incrementados via `increment()` do Firestore junto com o registro por dispositivo. Foi o que tornou as barras de progresso ao vivo baratas o suficiente para um widget público sem servidor na frente do Firestore.',
+        },
+      },
+    ],
   },
   {
     id: 'ia-na-redacao',
@@ -95,7 +192,7 @@ export const projects: Project[] = [
     },
     techStack: ['React', 'Vite', 'TailwindCSS v4', 'Emotion'],
     projectType: 'shipped',
-    coverImage: '',
+    coverImage: '/images/projects/ia-na-redacao/desktop/01-landing.png',
     images: [],
   },
   {
@@ -117,7 +214,7 @@ export const projects: Project[] = [
     },
     techStack: ['React', 'TypeScript', 'Vite', 'TailwindCSS', 'Framer Motion'],
     projectType: 'shipped',
-    coverImage: '',
+    coverImage: '/images/projects/fotos-do-ano-2025/desktop/01-hero.png',
     images: [],
   },
   {
@@ -138,7 +235,7 @@ export const projects: Project[] = [
     },
     techStack: ['React', 'TypeScript', 'D3.js'],
     projectType: 'shipped',
-    coverImage: '',
+    coverImage: '/images/projects/peleia-gre-nal/desktop/01-intro.png',
     images: [],
   },
   {
