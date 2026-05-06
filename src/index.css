@@ -1183,6 +1183,19 @@ body[data-loader-state="loading"] {
 }
 .archive-row-wrap:last-child .archive-row { border-bottom: none; }
 .archive-row:hover { background: var(--sand); }
+.archive-row--highlight {
+  background: var(--cream);
+  box-shadow: inset 3px 0 0 var(--blue-400);
+}
+.archive-row--highlight:hover {
+  background: var(--cream);
+}
+.archive-star {
+  color: var(--blue-400);
+  margin-right: 6px;
+  font-size: 14px;
+  vertical-align: 1px;
+}
 .archive-num {
   font-size: 11px; font-weight: 500;
   color: var(--dust); letter-spacing: 0.04em;

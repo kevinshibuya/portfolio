@@ -54,6 +54,7 @@
         "showMore": "mostrar mais"
       },
       "sort": {
+        "featured": "destaques",
         "newest": "mais recentes",
         "oldest": "mais antigos",
         "az": "a–z",
