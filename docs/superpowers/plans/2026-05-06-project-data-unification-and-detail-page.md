@@ -61,7 +61,7 @@
 - `npm run test:unit` passes (existing tests are unaffected; new fields are optional, new variants are pure additions).
 - No runtime behavior changes.
 
-- [ ] **Step 1: Extend `src/types/content.ts`** — add new types and optional fields. Replace the existing file content with:
+- [x] **Step 1: Extend `src/types/content.ts`** — add new types and optional fields. Replace the existing file content with:
 
 ```ts
 export interface WorkExperience {
@@ -205,7 +205,7 @@ export function resolveTitle(item: ArchiveItem, lang: 'en' | 'pt'): string {
 }
 ```
 
-- [ ] **Step 2: Run build to verify types compile**
+- [x] **Step 2: Run build to verify types compile**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. Existing entries in `src/data/projects.ts` still satisfy `Project` because `highlight` is the only new required field … wait — `highlight` is required. The current 4 entries lack it, so the build will fail at this step.
@@ -214,7 +214,7 @@ Fix in this same step: add a single `highlight: false` to each existing entry in
 
 Re-run `npm run build`. Expected: PASS.
 
-- [ ] **Step 3: Add motion variants to `src/utils/animations.ts`** — append the following inside the file, after the existing `staggerContainer` and `REDUCED_MOTION_VARIANT` exports (do not modify any existing exports):
+- [x] **Step 3: Add motion variants to `src/utils/animations.ts`** — append the following inside the file, after the existing `staggerContainer` and `REDUCED_MOTION_VARIANT` exports (do not modify any existing exports):
 
 ```ts
 import type { Variants as _Variants } from 'framer-motion'
@@ -273,12 +273,12 @@ export const pullquoteText: _Variants = {
 
 Note: The file already imports `Variants` at the top; you can drop the duplicate import alias if it conflicts. If the existing import is `import type { Variants, Transition } from 'framer-motion'`, just write the variants as `: Variants` instead of `: _Variants` and skip the alias import.
 
-- [ ] **Step 4: Run build + tests**
+- [x] **Step 4: Run build + tests**
 
 Run: `npm run build && npm run test:unit`
 Expected: build PASS, all unit tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/types/content.ts src/utils/animations.ts src/data/projects.ts
@@ -306,7 +306,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - New tests pass; existing tests unaffected.
 - Parser handles `**bold**`, `*italic*`, `[label](url)`, plain text, mixed sequences, unmatched markers (rendered as literal text), and empty input.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/projectDetail/inlineMarkdown.test.ts`:
 
@@ -362,12 +362,12 @@ describe('parseInline', () => {
 
 This test file uses TSX (React fragment syntax) but Vitest's default JSX runtime needs the file to be `.tsx`. Rename to `tests/unit/projectDetail/inlineMarkdown.test.tsx` instead — the harness already supports both.
 
-- [ ] **Step 2: Run test — confirm it fails for missing module**
+- [x] **Step 2: Run test — confirm it fails for missing module**
 
 Run: `npm run test:unit -- inlineMarkdown`
 Expected: FAIL — "Cannot find module '../../../src/components/projectDetail/inlineMarkdown'".
 
-- [ ] **Step 3: Implement the parser**
+- [x] **Step 3: Implement the parser**
 
 Create `src/components/projectDetail/inlineMarkdown.tsx`:
 
@@ -449,7 +449,7 @@ export function parseInline(input: string): ReactNode[] {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm run test:unit -- inlineMarkdown`
 Expected: PASS — all 8 tests pass.
