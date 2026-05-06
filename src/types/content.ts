@@ -5,7 +5,7 @@ export interface WorkExperience {
   period: string
   description: { en: string[]; pt: string[] }
   technologies: string[]
-  highlight?: { en: string; pt: string }
+  highlight?: Bilingual
 }
 
 export type BentoSize = 'lg' | 'md' | 'sm'
@@ -26,6 +26,8 @@ export interface ScreenshotPair {
   desktop?: string
   mobile?: string
   alt?: Bilingual
+  // Display label shown alongside the screenshot, e.g. "/dados-gerais".
+  // Distinct from `Project.routes` (full sitemap) — this is purely for caption text.
   route?: string
 }
 
@@ -94,7 +96,7 @@ export interface Project {
   // story
   story?: Block[]
 
-  // legacy — removed in task 10
+  // @deprecated — replaced by `highlight` + `highlightOrder`; removed in Task 10
   featured?: boolean
 }
 
