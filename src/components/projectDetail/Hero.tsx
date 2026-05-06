@@ -55,16 +55,25 @@ export function Hero({ project, lang }: Props) {
       >
         {prefersReducedMotion
           ? title
-          : title.split('').map((ch, i) => (
-              <motion.span
-                key={i}
-                variants={titleChar}
-                style={{ display: 'inline-block', whiteSpace: ch === ' ' ? 'pre' : 'normal' }}
-                aria-hidden
-              >
-                {ch}
-              </motion.span>
-            ))}
+          : title.split(/(\s+)/).map((token, ti) => {
+              if (/^\s+$/.test(token)) return <span key={`sp-${ti}`}>{token}</span>
+              // Wrap each word in a nowrap span so its characters animate
+              // individually but never break mid-word.
+              return (
+                <span key={`w-${ti}`} className="project-detail-title-word">
+                  {token.split('').map((ch, ci) => (
+                    <motion.span
+                      key={ci}
+                      variants={titleChar}
+                      style={{ display: 'inline-block' }}
+                      aria-hidden
+                    >
+                      {ch}
+                    </motion.span>
+                  ))}
+                </span>
+              )
+            })}
       </motion.h1>
 
       {tagline && (

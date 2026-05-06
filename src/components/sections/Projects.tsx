@@ -73,18 +73,24 @@ function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
       : project.size === 'md'
         ? 'bento-card--md'
         : ''
-  const darkClass = project.dark ? ' is-dark' : ''
+  const hasImage = Boolean(project.coverImage && project.coverImage.length > 0)
+  // Image cards always render dark text-on-image regardless of project.dark.
+  const darkClass = hasImage || project.dark ? ' is-dark' : ''
+  const imageClass = hasImage ? ' has-image' : ''
+  const fallbackBg = project.gradient ?? 'linear-gradient(145deg, #D4E5F2, #6A8CAA)'
 
   return (
     <MotionLink
       variants={variants}
       to={`/projects/${project.slug}`}
-      className={`bento-card ${sizeClass}${darkClass}`}
-      style={{
-        background:
-          project.gradient ?? 'linear-gradient(145deg, #D4E5F2, #6A8CAA)',
-      }}
+      className={`bento-card ${sizeClass}${darkClass}${imageClass}`}
+      style={
+        hasImage
+          ? { backgroundImage: `url(${project.coverImage})` }
+          : { background: fallbackBg }
+      }
     >
+      {hasImage && <span className="bento-card-scrim" aria-hidden />}
       {project.tagline && (
         <span className="bento-desc-top">{project.tagline[lang]}</span>
       )}
