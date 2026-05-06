@@ -882,7 +882,7 @@ Expected: PASS — all archive tests pass, including the 4 new `byFeatured` case
 Run: `npm run build`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/data/archive.ts tests/unit/data/archive.test.ts
@@ -914,7 +914,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - All 5 highlights pin to the top in priority order.
 - `npm run build` passes; visual smoke at `/` shows correct ordering and styling.
 
-- [ ] **Step 1: Add `featured` to the SortKey union and flip default state in `src/components/sections/Archive.tsx`** — find these lines:
+- [x] **Step 1: Add `featured` to the SortKey union and flip default state in `src/components/sections/Archive.tsx`** — find these lines:
 
 ```ts
 type SortKey = 'newest' | 'oldest' | 'az' | 'za'
@@ -934,7 +934,7 @@ type SortKey = 'featured' | 'newest' | 'oldest' | 'az' | 'za'
 const [sort, setSort] = useState<SortKey>('featured')
 ```
 
-- [ ] **Step 2: Add the featured sort branch and import** — at the top of the file, change the `archive` import line from:
+- [x] **Step 2: Add the featured sort branch and import** — at the top of the file, change the `archive` import line from:
 
 ```ts
 import {
@@ -975,7 +975,7 @@ else if (sort === 'za')
   )
 ```
 
-- [ ] **Step 3: Add `featured` as the first sort option** — find the `sortOptions` useMemo and update to:
+- [x] **Step 3: Add `featured` as the first sort option** — find the `sortOptions` useMemo and update to:
 
 ```ts
 const sortOptions = useMemo(
@@ -990,7 +990,7 @@ const sortOptions = useMemo(
 )
 ```
 
-- [ ] **Step 4: Render highlight row treatment in `ArchiveRow`** — find the `ArchiveRow` function. The rendered `<Link>` and `<a>` currently have `className="archive-row"`. Update to add a conditional class and a leading star inside `inner`. Replace the entire `ArchiveRow` body with:
+- [x] **Step 4: Render highlight row treatment in `ArchiveRow`** — find the `ArchiveRow` function. The rendered `<Link>` and `<a>` currently have `className="archive-row"`. Update to add a conditional class and a leading star inside `inner`. Replace the entire `ArchiveRow` body with:
 
 ```tsx
 function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
@@ -1041,7 +1041,7 @@ function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
 }
 ```
 
-- [ ] **Step 5: Add CSS rules in `src/index.css`** — append these rules near the existing `.archive-row` rules (search for `.archive-row {` to find the section, add after the existing rules):
+- [x] **Step 5: Add CSS rules in `src/index.css`** — append these rules near the existing `.archive-row` rules (search for `.archive-row {` to find the section, add after the existing rules):
 
 ```css
 .archive-row--highlight {
@@ -1061,7 +1061,7 @@ function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
 
 If `--cream` and `--blue-400` aren't defined, look up the existing variable names in `:root` and substitute the right tokens (e.g. `#F6F9FC` and `#3A96E8`).
 
-- [ ] **Step 6: Add i18n strings**
+- [x] **Step 6: Add i18n strings**
 
 In `src/i18n/locales/en.json`, find the `sections.archive.sort` block and add `featured` as the first key:
 
@@ -1089,12 +1089,12 @@ In `src/i18n/locales/pt.json`, do the same:
 
 (Verify the existing PT keys for "newest"/"oldest" match what's in the file before saving — only add `featured`, don't reformat the rest.)
 
-- [ ] **Step 7: Run build + tests**
+- [x] **Step 7: Run build + tests**
 
 Run: `npm run build && npm run test:unit`
 Expected: PASS.
 
-- [ ] **Step 8: Visual verification**
+- [x] **Step 8: Visual verification**
 
 Run: `npm run dev`. Open `http://localhost:5173/`.
 
@@ -1106,7 +1106,7 @@ Verify:
 5. Hovering a non-highlight row still darkens to sand (current behavior preserved).
 6. Switching sort to "newest" mixes everything by date as before.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/components/sections/Archive.tsx src/index.css src/i18n/locales/en.json src/i18n/locales/pt.json
@@ -1152,7 +1152,7 @@ In `docs/superpowers/specs/2026-05-06-project-data-unification-and-detail-page-d
 - `BlockRenderer` exhaustively switches on `block.type`. TypeScript narrows correctly for each case.
 - `npm run build` passes (components are unused at this point — that's fine).
 
-- [ ] **Step 1: `src/components/projectDetail/blocks/Paragraph.tsx`**
+- [x] **Step 1: `src/components/projectDetail/blocks/Paragraph.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1186,7 +1186,7 @@ export function Paragraph({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 2: `src/components/projectDetail/blocks/Heading.tsx`**
+- [x] **Step 2: `src/components/projectDetail/blocks/Heading.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1217,7 +1217,7 @@ export function Heading({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 3: `src/components/projectDetail/blocks/Pullquote.tsx`**
+- [x] **Step 3: `src/components/projectDetail/blocks/Pullquote.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1260,7 +1260,7 @@ export function Pullquote({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 4: `src/components/projectDetail/blocks/Divider.tsx`**
+- [x] **Step 4: `src/components/projectDetail/blocks/Divider.tsx`**
 
 ```tsx
 export function Divider() {
@@ -1268,7 +1268,7 @@ export function Divider() {
 }
 ```
 
-- [ ] **Step 5: `src/components/projectDetail/blocks/Figure.tsx`**
+- [x] **Step 5: `src/components/projectDetail/blocks/Figure.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1308,7 +1308,7 @@ export function Figure({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 6: `src/components/projectDetail/blocks/FigurePair.tsx`**
+- [x] **Step 6: `src/components/projectDetail/blocks/FigurePair.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1355,7 +1355,7 @@ export function FigurePair({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 7: `src/components/projectDetail/blocks/FigureGrid.tsx`**
+- [x] **Step 7: `src/components/projectDetail/blocks/FigureGrid.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1415,7 +1415,7 @@ export function FigureGrid({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 8: `src/components/projectDetail/blocks/StatRow.tsx`**
+- [x] **Step 8: `src/components/projectDetail/blocks/StatRow.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1462,7 +1462,7 @@ export function StatRow({ block, lang }: Props) {
 }
 ```
 
-- [ ] **Step 9: `src/components/projectDetail/blocks/RouteList.tsx`**
+- [x] **Step 9: `src/components/projectDetail/blocks/RouteList.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1514,7 +1514,7 @@ export function RouteList({ block, lang: _lang }: Props) {
 
 Note: `lang` is destructured into `_lang` and discarded with `void _lang` because tsconfig.app.json has `noUnusedParameters: true`. The `lang` prop stays in `Props` so `BlockRenderer` can pass it uniformly to every block component.
 
-- [ ] **Step 10: `src/components/projectDetail/BlockRenderer.tsx`**
+- [x] **Step 10: `src/components/projectDetail/BlockRenderer.tsx`**
 
 ```tsx
 import type { Block } from '../../types/content'
@@ -1568,7 +1568,7 @@ export function BlockRenderer({ blocks, lang }: Props) {
 }
 ```
 
-- [ ] **Step 11: Run build**
+- [x] **Step 11: Run build**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. Components are unused (warnings about unused exports are OK; they get used in Task 7+).
