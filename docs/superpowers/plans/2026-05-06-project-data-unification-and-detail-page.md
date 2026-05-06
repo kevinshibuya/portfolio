@@ -454,7 +454,7 @@ export function parseInline(input: string): ReactNode[] {
 Run: `npm run test:unit -- inlineMarkdown`
 Expected: PASS — all 8 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/projectDetail/inlineMarkdown.tsx tests/unit/projectDetail/inlineMarkdown.test.tsx
@@ -482,7 +482,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - `npm run build` passes.
 - `npm run dev` shows Selected Work with 4 cards in correct order at `http://localhost:5173`.
 
-- [ ] **Step 1: Rewrite `src/data/projects.ts`** — replace the file contents with all 8 projects. Bilingual content for `title`, `tagline`, `description` is the curator's primary authoring surface; the values below are the locked baseline (lowercased, editorial tone per the existing site's voice). PT translations are intentionally close to EN for now and can be polished in a separate authoring pass.
+- [x] **Step 1: Rewrite `src/data/projects.ts`** — replace the file contents with all 8 projects. Bilingual content for `title`, `tagline`, `description` is the curator's primary authoring surface; the values below are the locked baseline (lowercased, editorial tone per the existing site's voice). PT translations are intentionally close to EN for now and can be polished in a separate authoring pass.
 
 ```ts
 import type { Project } from '../types/content'
@@ -693,7 +693,7 @@ export const projects: Project[] = [
 
 Note: `coverImage: ''` and empty `images: []` are placeholders. Screenshots wire up in Task 9. The page will show a gradient cover until then — verified in the spec's "Cover" section.
 
-- [ ] **Step 2: Update Selected Work filter in `src/components/sections/Projects.tsx`** — replace this line (currently around line 21):
+- [x] **Step 2: Update Selected Work filter in `src/components/sections/Projects.tsx`** — replace this line (currently around line 21):
 
 ```ts
 const featured = projects.filter((p) => p.featured)
@@ -707,22 +707,22 @@ const featured = projects
   .sort((a, b) => (a.highlightOrder ?? 99) - (b.highlightOrder ?? 99))
 ```
 
-- [ ] **Step 3: Run build**
+- [x] **Step 3: Run build**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. The new entries all satisfy `Project` (highlight required; legacy `featured` field is still on the type but optional).
 
-- [ ] **Step 4: Run unit tests — note the archive test will fail at this step**
+- [x] **Step 4: Run unit tests — note the archive test will fail at this step**
 
 Run: `npm run test:unit`
 Expected: FAIL on `tests/unit/data/archive.test.ts` — `featuredCount` is now 8, not 4. This is correct behavior; we will update the test in Task 4.
 
-- [ ] **Step 5: Visual verification**
+- [x] **Step 5: Visual verification**
 
 Run: `npm run dev`. Open `http://localhost:5173/`.
 Expected: Selected Work section shows **4 bento cards** in this exact order: painel da reconstrução (large) · enquetes gzh (small) · ia na redação (small) · fotos do ano 2025 (medium). Cards link to `/projects/<slug>` (404 page until detail is rebuilt — that's fine for now). No console errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/data/projects.ts src/components/sections/Projects.tsx
@@ -756,7 +756,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - `tests/unit/data/archive.test.ts` is updated for the new project count and adds 3 cases for `byFeatured`.
 - `npm run test:unit` passes.
 
-- [ ] **Step 1: Extend `fromProjects()` in `src/data/archive.ts`** — find this block:
+- [x] **Step 1: Extend `fromProjects()` in `src/data/archive.ts`** — find this block:
 
 ```ts
 function fromProjects(): ArchiveItem[] {
@@ -792,7 +792,7 @@ function fromProjects(): ArchiveItem[] {
 }
 ```
 
-- [ ] **Step 2: Add the `byFeatured` comparator at the end of `src/data/archive.ts`** — append:
+- [x] **Step 2: Add the `byFeatured` comparator at the end of `src/data/archive.ts`** — append:
 
 ```ts
 // Sort comparator for the new "featured" archive sort key.
@@ -810,7 +810,7 @@ export function byFeatured(a: ArchiveItem, b: ArchiveItem): number {
 }
 ```
 
-- [ ] **Step 3: Update existing archive tests** — open `tests/unit/data/archive.test.ts`, change line 13 from:
+- [x] **Step 3: Update existing archive tests** — open `tests/unit/data/archive.test.ts`, change line 13 from:
 
 ```ts
 expect(featuredCount).toBe(4)
@@ -822,7 +822,7 @@ to:
 expect(featuredCount).toBe(8)
 ```
 
-- [ ] **Step 4: Add `byFeatured` tests** — append the following describe block to `tests/unit/data/archive.test.ts`:
+- [x] **Step 4: Add `byFeatured` tests** — append the following describe block to `tests/unit/data/archive.test.ts`:
 
 ```ts
 import { byFeatured } from '../../../src/data/archive'
@@ -872,12 +872,12 @@ describe('byFeatured', () => {
 })
 ```
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `npm run test:unit`
 Expected: PASS — all archive tests pass, including the 4 new `byFeatured` cases.
 
-- [ ] **Step 6: Run build**
+- [x] **Step 6: Run build**
 
 Run: `npm run build`
 Expected: PASS.
