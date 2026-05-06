@@ -43,4 +43,12 @@ describe('parseInline', () => {
   it('does not treat ** as inline italic followed by another *', () => {
     expect(html('**a**')).toBe('<strong>a</strong>')
   })
+
+  it('does not italicise space-padded asterisks (e.g. "10* e 5* vezes")', () => {
+    expect(html('10* e 5* vezes')).toBe('10* e 5* vezes')
+  })
+
+  it('does not bold space-padded double-asterisks (e.g. "** lonely **")', () => {
+    expect(html('a ** padded ** b')).toBe('a ** padded ** b')
+  })
 })

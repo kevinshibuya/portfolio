@@ -4,8 +4,15 @@ import type { ReactNode } from 'react'
 // **bold**, *italic*, [label](url), and plain text. No nested marks. Unmatched
 // markers fall through as literal text.
 
-const BOLD = /^\*\*([^*]+?)\*\*/
-const ITALIC = /^\*([^*]+?)\*/
+// Bold/italic require a non-space, non-asterisk character at the inner edges.
+// Without that guard, stray asterisks in editorial prose like "10* e 5* vezes"
+// or "a ** padded ** b" would silently render as <em>/<strong>. The
+// (?:[^*]*?[^\s*])? form keeps single-char marks like *x* working.
+const BOLD = /^\*\*([^\s*](?:[^*]*?[^\s*])?)\*\*/
+const ITALIC = /^\*([^\s*](?:[^*]*?[^\s*])?)\*/
+
+// URLs with literal `)` aren't supported (e.g. Wikipedia titles like
+// `https://en.wikipedia.org/wiki/Foo_(bar)`); they fall through as literal text.
 const LINK = /^\[([^\]]+)\]\(([^)\s]+)\)/
 
 export function parseInline(input: string): ReactNode[] {
