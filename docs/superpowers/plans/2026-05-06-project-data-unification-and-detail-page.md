@@ -1573,7 +1573,7 @@ export function BlockRenderer({ blocks, lang }: Props) {
 Run: `npm run build`
 Expected: PASS — no TS errors. Components are unused (warnings about unused exports are OK; they get used in Task 7+).
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 
 ```bash
 git add src/components/projectDetail/
@@ -1608,7 +1608,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - CSS additions cover all `.project-detail-*` classes referenced in Task 6 + 7.
 - `npm run build` passes.
 
-- [ ] **Step 1: `src/components/projectDetail/Hero.tsx`**
+- [x] **Step 1: `src/components/projectDetail/Hero.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1749,7 +1749,7 @@ export function Hero({ project, lang }: Props) {
 }
 ```
 
-- [ ] **Step 2: `src/components/projectDetail/Cover.tsx`**
+- [x] **Step 2: `src/components/projectDetail/Cover.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1792,7 +1792,7 @@ export function Cover({ project, lang }: Props) {
 }
 ```
 
-- [ ] **Step 3: `src/components/projectDetail/StackSection.tsx`**
+- [x] **Step 3: `src/components/projectDetail/StackSection.tsx`**
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -1843,7 +1843,7 @@ export function StackSection({ project }: Props) {
 }
 ```
 
-- [ ] **Step 4: `src/components/projectDetail/Footnotes.tsx`**
+- [x] **Step 4: `src/components/projectDetail/Footnotes.tsx`**
 
 ```tsx
 import { useTranslation } from 'react-i18next'
@@ -1870,7 +1870,7 @@ export function Footnotes({ project }: Props) {
 }
 ```
 
-- [ ] **Step 5: Add CSS to `src/index.css`** — append the following block at the end of the file:
+- [x] **Step 5: Add CSS to `src/index.css`** — append the following block at the end of the file:
 
 ```css
 /* =====================================================================
@@ -2186,12 +2186,12 @@ export function Footnotes({ project }: Props) {
 
 If `--ink`, `--bark`, `--dust`, `--cream`, `--mist`, `--blue-400`, `--font-sans` aren't already defined as CSS variables, search `src/index.css` for the existing `:root` block and substitute the right names (the spec's color section lists the hex values: ink `#111822`, bark `#2A4060`, dust `#6A8CAA`, cream `#F6F9FC`, mist `#D4E5F2`, blue-400 `#3A96E8`).
 
-- [ ] **Step 6: Run build**
+- [x] **Step 6: Run build**
 
 Run: `npm run build`
 Expected: PASS — no TS errors. Components are still unused; ProjectDetail.tsx hasn't been updated yet.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/components/projectDetail/Hero.tsx src/components/projectDetail/Cover.tsx src/components/projectDetail/StackSection.tsx src/components/projectDetail/Footnotes.tsx src/index.css
@@ -2227,7 +2227,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - Reduced-motion mode collapses all animations to instant fades.
 - 404 path still renders the existing not-found fallback.
 
-- [ ] **Step 1: Rewrite `src/pages/ProjectDetail.tsx`** — replace the file contents with:
+- [x] **Step 1: Rewrite `src/pages/ProjectDetail.tsx`** — replace the file contents with:
 
 ```tsx
 import { Suspense, lazy, useEffect, useLayoutEffect } from 'react'
@@ -2342,7 +2342,7 @@ export function ProjectDetail() {
 }
 ```
 
-- [ ] **Step 2: Add `projectDetail.notes` strings to i18n**
+- [x] **Step 2: Add `projectDetail.notes` strings to i18n**
 
 In `src/i18n/locales/en.json`, find the `projectDetail` block and add `notes`:
 
@@ -2376,7 +2376,7 @@ In `src/i18n/locales/pt.json`, do the same with PT translations:
 
 (Verify the existing PT projectDetail strings before saving — only add `notes` and don't reformat the rest.)
 
-- [ ] **Step 3: Run build + tests**
+- [x] **Step 3: Run build + tests**
 
 Run: `npm run build && npm run test:unit`
 Expected: PASS.
@@ -2422,7 +2422,7 @@ Verify:
 3. Stat row wraps to 2 rows of 2 if needed.
 4. No horizontal scroll.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/pages/ProjectDetail.tsx src/i18n/locales/en.json src/i18n/locales/pt.json
