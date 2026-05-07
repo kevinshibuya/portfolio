@@ -42,6 +42,11 @@ export interface FigureSrc {
   caption?: Bilingual
 }
 
+export interface Mockups {
+  desktop: string
+  mobile: string
+}
+
 export type Block =
   | { type: 'paragraph'; text: Bilingual }
   | { type: 'heading'; level: 2 | 3; text: Bilingual }
@@ -58,6 +63,7 @@ export type Block =
   | { type: 'figure-grid'; items: FigureSrc[] }
   | { type: 'stat-row'; stats: Stat[] }
   | { type: 'route-list'; routes: RouteEntry[]; collapsible?: boolean }
+  | { type: 'mockup'; variant: 'desktop' | 'mobile' }
 
 export interface Project {
   // identity
@@ -90,6 +96,7 @@ export interface Project {
 
   // visual
   coverImage: string
+  mockups?: Mockups
   images: string[]
   screenshots?: ScreenshotPair[]
 

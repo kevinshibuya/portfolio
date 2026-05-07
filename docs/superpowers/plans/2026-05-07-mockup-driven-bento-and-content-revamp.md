@@ -270,7 +270,7 @@ git commit -m "feat(projects): remove ignite-feed-2024 and OmniStack-9.0"
 
 The new `mockup` variant in the `Block` union breaks `BlockRenderer`'s exhaustiveness check — combine the type addition with a temporary stub case in `BlockRenderer` (replaced with the real component in Task 9).
 
-- [ ] **Step 1: Add `Mockups` interface and `mockups?` field**
+- [x] **Step 1: Add `Mockups` interface and `mockups?` field**
 
 In `src/types/content.ts`, add this interface near the existing exports (alphabetically among `interface` declarations is fine):
 
@@ -287,7 +287,7 @@ In the same file, add `mockups?: Mockups` to the `Project` interface (place it a
 mockups?: Mockups
 ```
 
-- [ ] **Step 2: Add `mockup` variant to the `Block` discriminated union**
+- [x] **Step 2: Add `mockup` variant to the `Block` discriminated union**
 
 In `src/types/content.ts`, locate the `Block` union and append the new variant:
 
@@ -295,7 +295,7 @@ In `src/types/content.ts`, locate the `Block` union and append the new variant:
 | { type: 'mockup'; variant: 'desktop' | 'mobile' }
 ```
 
-- [ ] **Step 3: Add a temporary null stub for the `mockup` case in BlockRenderer**
+- [x] **Step 3: Add a temporary null stub for the `mockup` case in BlockRenderer**
 
 In `src/components/projectDetail/BlockRenderer.tsx`, add this case just before the `default` branch:
 
@@ -304,7 +304,7 @@ In `src/components/projectDetail/BlockRenderer.tsx`, add this case just before t
             return null  // replaced in Task 9 with the Mockup component
 ```
 
-- [ ] **Step 4: Verify tsc passes**
+- [x] **Step 4: Verify tsc passes**
 
 ```bash
 npm run build 2>&1 | tail -5

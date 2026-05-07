@@ -37,6 +37,8 @@ export function BlockRenderer({ blocks, lang }: Props) {
             return <StatRow key={i} block={block} lang={lang} />
           case 'route-list':
             return <RouteList key={i} block={block} lang={lang} />
+          case 'mockup':
+            return null  // replaced in Task 9 with the Mockup component
           default: {
             // Exhaustiveness guard
             const _exhaustive: never = block
