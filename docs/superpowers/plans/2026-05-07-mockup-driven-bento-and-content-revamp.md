@@ -208,7 +208,7 @@ file public/images/projects/painel-da-reconstrucao/mockups/desktop.webp
 
 Expected: `RIFF (little-endian) data, Web/P image, VP8 ...` or similar (a valid WebP).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/optimize-mockups.ts public/images/projects/*/mockups/*.webp
@@ -224,7 +224,7 @@ git commit -m "feat(scripts): sharp-based mockup optimizer + 14 WebP outputs"
 - Delete: `public/images/projects/ignite-feed-2024/`
 - Delete: `public/images/projects/OmniStack-9.0/`
 
-- [ ] **Step 1: Delete the asset directories**
+- [x] **Step 1: Delete the asset directories**
 
 ```bash
 rm -rf public/images/projects/ignite-feed-2024 public/images/projects/OmniStack-9.0
@@ -232,11 +232,11 @@ rm -rf public/images/projects/ignite-feed-2024 public/images/projects/OmniStack-
 
 Expected: directories gone.
 
-- [ ] **Step 2: Remove the two project entries from `src/data/projects.ts`**
+- [x] **Step 2: Remove the two project entries from `src/data/projects.ts`**
 
 Open `src/data/projects.ts`. Remove the entire object literal for `id: 'ignite-feed-2024'` and the entire object literal for `id: 'OmniStack-9.0'`. Adjust the array commas so the remaining 6 entries still parse.
 
-- [ ] **Step 3: Verify nothing else references those slugs**
+- [x] **Step 3: Verify nothing else references those slugs**
 
 ```bash
 grep -rn "ignite-feed-2024\|OmniStack-9.0" src/ tests/ scripts/ docs/ 2>/dev/null
@@ -244,7 +244,7 @@ grep -rn "ignite-feed-2024\|OmniStack-9.0" src/ tests/ scripts/ docs/ 2>/dev/nul
 
 Expected: no matches outside `docs/superpowers/specs/` and `docs/superpowers/plans/` (the spec and this plan reference them by name, that's fine).
 
-- [ ] **Step 4: Build and tests still pass**
+- [x] **Step 4: Build and tests still pass**
 
 ```bash
 npm run build 2>&1 | tail -5
