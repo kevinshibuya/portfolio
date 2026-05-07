@@ -79,7 +79,7 @@ export function ProjectDetail() {
 
         {project.story && project.story.length > 0 && (
           <div className="project-detail-story">
-            <BlockRenderer blocks={project.story} lang={lang} />
+            <BlockRenderer blocks={project.story} project={project} lang={lang} />
           </div>
         )}
 

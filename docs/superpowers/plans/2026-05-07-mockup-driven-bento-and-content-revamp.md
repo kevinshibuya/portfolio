@@ -771,7 +771,7 @@ git commit -m "feat(projects): load-time validator + tests for top-4 mockups"
 
 The `Mockup` block doesn't carry its own `src` — it pulls from `project.mockups[variant]`. The renderer needs access to `project`, so we thread it through `BlockRenderer`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/unit/projectDetail/blocks/Mockup.test.tsx`:
 
@@ -847,7 +847,7 @@ describe('Mockup block', () => {
 })
 ```
 
-- [ ] **Step 2: Run test — expect failure (component doesn't exist)**
+- [x] **Step 2: Run test — expect failure (component doesn't exist)**
 
 ```bash
 npx vitest run tests/unit/projectDetail/blocks/Mockup.test.tsx
@@ -855,7 +855,7 @@ npx vitest run tests/unit/projectDetail/blocks/Mockup.test.tsx
 
 Expected: FAIL with module-not-found error pointing at `Mockup.tsx`.
 
-- [ ] **Step 3: Create the `Mockup` component**
+- [x] **Step 3: Create the `Mockup` component**
 
 Create `src/components/projectDetail/blocks/Mockup.tsx`:
 
@@ -893,7 +893,7 @@ export function Mockup({ block, project, lang }: Props) {
 }
 ```
 
-- [ ] **Step 4: Run tests — expect pass**
+- [x] **Step 4: Run tests — expect pass**
 
 ```bash
 npx vitest run tests/unit/projectDetail/blocks/Mockup.test.tsx
@@ -901,7 +901,7 @@ npx vitest run tests/unit/projectDetail/blocks/Mockup.test.tsx
 
 Expected: 4 tests pass.
 
-- [ ] **Step 5: Update `BlockRenderer` to thread `project` and replace the stub**
+- [x] **Step 5: Update `BlockRenderer` to thread `project` and replace the stub**
 
 In `src/components/projectDetail/BlockRenderer.tsx`, replace the file contents with:
 
@@ -960,7 +960,7 @@ export function BlockRenderer({ blocks, project, lang }: Props) {
 }
 ```
 
-- [ ] **Step 6: Update the only caller to pass `project`**
+- [x] **Step 6: Update the only caller to pass `project`**
 
 In `src/pages/ProjectDetail.tsx`, find the line `<BlockRenderer blocks={project.story} lang={lang} />` (around line 82) and change it to:
 
@@ -968,7 +968,7 @@ In `src/pages/ProjectDetail.tsx`, find the line `<BlockRenderer blocks={project.
 <BlockRenderer blocks={project.story} project={project} lang={lang} />
 ```
 
-- [ ] **Step 7: Build + tests pass**
+- [x] **Step 7: Build + tests pass**
 
 ```bash
 npm run build 2>&1 | tail -5
