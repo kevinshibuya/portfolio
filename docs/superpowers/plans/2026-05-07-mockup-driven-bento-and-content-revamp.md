@@ -977,7 +977,7 @@ npm run test:unit 2>&1 | tail -5
 
 Expected: build succeeds; full test suite passes (existing tests still green; 4 new Mockup tests pass).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/components/projectDetail/blocks/Mockup.tsx src/components/projectDetail/BlockRenderer.tsx src/pages/ProjectDetail.tsx tests/unit/projectDetail/blocks/Mockup.test.tsx
@@ -992,7 +992,7 @@ git commit -m "feat(projectDetail): Mockup block component + threaded project pr
 - Create: `src/hooks/useCursorTilt.ts`
 - Create: `tests/unit/hooks/useCursorTilt.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/unit/hooks/useCursorTilt.test.ts`:
 
@@ -1103,7 +1103,7 @@ describe('useCursorTilt', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests — expect failure (hook doesn't exist)**
+- [x] **Step 2: Run tests — expect failure (hook doesn't exist)**
 
 ```bash
 npx vitest run tests/unit/hooks/useCursorTilt.test.ts
@@ -1111,7 +1111,7 @@ npx vitest run tests/unit/hooks/useCursorTilt.test.ts
 
 Expected: FAIL with module-not-found.
 
-- [ ] **Step 3: Implement the hook**
+- [x] **Step 3: Implement the hook**
 
 Create `src/hooks/useCursorTilt.ts`:
 
@@ -1186,7 +1186,7 @@ export function useCursorTilt(
 }
 ```
 
-- [ ] **Step 4: Run tests — expect pass**
+- [x] **Step 4: Run tests — expect pass**
 
 ```bash
 npx vitest run tests/unit/hooks/useCursorTilt.test.ts
