@@ -27,6 +27,7 @@ dist-ssr
 .claude/portfolio-handoff/
 .claude/design-system-handoff/
 Kevin.pdf
+projects_assets/
 
 # Scratch / drafts at repo root
 prompt.md
