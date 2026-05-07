@@ -1194,7 +1194,7 @@ npx vitest run tests/unit/hooks/useCursorTilt.test.ts
 
 Expected: 6 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/hooks/useCursorTilt.ts tests/unit/hooks/useCursorTilt.test.ts
