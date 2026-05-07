@@ -253,7 +253,7 @@ npm run test:unit 2>&1 | tail -5
 
 Expected: build succeeds; tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
