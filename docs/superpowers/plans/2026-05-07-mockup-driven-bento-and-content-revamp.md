@@ -1691,7 +1691,7 @@ npm run test:unit 2>&1 | tail -5
 
 Expected: build succeeds; tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/data/projects.ts
@@ -1704,7 +1704,7 @@ git commit -m "feat(projects): rewrite stories for 5 existing highlights + add s
 
 **Files:** none modified (verification only)
 
-- [ ] **Step 1: Start the dev server**
+- [x] **Step 1: Start the dev server**
 
 ```bash
 npm run dev
@@ -1743,7 +1743,7 @@ Confirm:
 - Mobile mockup figure renders between paragraph 2 and paragraph 3.
 - Existing screenshot figure-pairs / pullquote / route-list still render below paragraph 3 where applicable.
 
-- [ ] **Step 4: Verify deletions**
+- [x] **Step 4: Verify deletions**
 
 - `/projects/ignite-feed-2024` → resolves to the SPA fallback / not-found page.
 - `/projects/OmniStack-9.0` → same.
@@ -1766,7 +1766,7 @@ In Chrome DevTools → Device Toolbar → "iPhone 13" or any touch device emulat
 
 Repeat the bento hover test in Firefox and Safari (if available). Look specifically for blend-mode rendering parity — the luminosity-blended layer should look the same across browsers.
 
-- [ ] **Step 8: Lint and final test pass**
+- [x] **Step 8: Lint and final test pass**
 
 ```bash
 npm run lint 2>&1 | tail -10
@@ -1775,11 +1775,11 @@ npm run test:unit 2>&1 | tail -5
 
 Expected: lint passes (no new warnings); all unit tests pass.
 
-- [ ] **Step 9: Tick the corresponding spec TODO checkboxes**
+- [x] **Step 9: Tick the corresponding spec TODO checkboxes**
 
 In `docs/superpowers/specs/2026-05-07-mockup-driven-bento-and-content-revamp-design.md`, change `- [ ]` to `- [x]` for each TODO whose acceptance test passed in the steps above. Do **not** tick the code-review TODO (Task 14 covers that).
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add docs/superpowers/specs/2026-05-07-mockup-driven-bento-and-content-revamp-design.md

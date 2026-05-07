@@ -426,25 +426,25 @@ For each of `ignite-feed-2024` and `OmniStack-9.0`:
 
 Acceptance criteria — each box becomes `- [x]` only when both an automated check passes AND code review has approved that scope.
 
-- [ ] `Project` type has a `mockups?: Mockups` field; `Block` union includes the `mockup` variant.
-- [ ] Load-time validator throws if any Selected Work top-4 project lacks `mockups`.
-- [ ] `scripts/optimize-mockups.ts` exists, `npm run optimize:mockups` is wired in `package.json`, `sharp` is in `devDependencies`.
-- [ ] All 14 mockup WebP files exist under `public/images/projects/<slug>/mockups/` for the 7 highlights.
-- [ ] `useCursorTilt` hook exists with full unit-test coverage (computation, reduced-motion no-op, touch no-op, listener cleanup).
-- [ ] `MockupLayer` renders stacked tonal + color images; bottom layer uses luminosity blend, top layer fades on hover.
-- [ ] BentoCard renders correctly at `lg` (single mockup), `md` (dual mockup, text left), `sm` (single mockup); per-size insets applied.
-- [ ] Card-side hover (translateY -4px + shadow + ↗ translateX) is byte-equal to current production CSS.
-- [ ] Reduced-motion mode renders images in full color statically; no transforms; card-side lift disabled.
-- [ ] Touch viewport: images stay in card-toned state; tap navigates.
-- [ ] `Mockup` block renderer added to `BlockRenderer.tsx`; lazy-loads images; warns gracefully when `project.mockups` is undefined.
-- [ ] `projects.ts` updated with new ordering (Política→Fotos2025→Painel→Enquetes for top-4); `painel`'s `size` changes from `lg` to `sm`; `hotmart-bunde` is the new `lg`.
-- [ ] All 7 highlight stories begin with `{ type: 'mockup', variant: 'desktop' }` and contain `{ type: 'mockup', variant: 'mobile' }` between paragraphs 2 and 3.
-- [ ] All 7 highlight stories rewritten in EN+PT from new summaries (paragraphs 1-3 reflect summary structure; numbers preserved; library names preserved).
-- [ ] Stat rows added to Painel, Enquetes, Política, Peleia, Fotos 2024, Fotos 2025; IA na Redação has none.
-- [ ] `ignite-feed-2024` and `OmniStack-9.0` removed from `projects.ts`; their `public/images/projects/<slug>/` directories deleted.
-- [ ] `linha-do-tempo-covid` retains its existing story unchanged; remains in archive only.
-- [ ] `npm run build` passes.
-- [ ] `npm run lint` passes (no new warnings beyond existing).
-- [ ] `npm run test:unit` passes; new tests included in count.
+- [x] `Project` type has a `mockups?: Mockups` field; `Block` union includes the `mockup` variant.
+- [x] Load-time validator throws if any Selected Work top-4 project lacks `mockups`.
+- [x] `scripts/optimize-mockups.ts` exists, `npm run optimize:mockups` is wired in `package.json`, `sharp` is in `devDependencies`.
+- [x] All 14 mockup WebP files exist under `public/images/projects/<slug>/mockups/` for the 7 highlights.
+- [x] `useCursorTilt` hook exists with full unit-test coverage (computation, reduced-motion no-op, touch no-op, listener cleanup).
+- [x] `MockupLayer` renders stacked tonal + color images; bottom layer uses luminosity blend, top layer fades on hover.
+- [x] BentoCard renders correctly at `lg` (single mockup), `md` (dual mockup, text left), `sm` (single mockup); per-size insets applied.
+- [x] Card-side hover (translateY -4px + shadow + ↗ translateX) is byte-equal to current production CSS.
+- [x] Reduced-motion mode renders images in full color statically; no transforms; card-side lift disabled.
+- [x] Touch viewport: images stay in card-toned state; tap navigates.
+- [x] `Mockup` block renderer added to `BlockRenderer.tsx`; lazy-loads images; warns gracefully when `project.mockups` is undefined.
+- [x] `projects.ts` updated with new ordering (Política→Fotos2025→Painel→Enquetes for top-4); `painel`'s `size` changes from `lg` to `sm`; `hotmart-bunde` is the new `lg`.
+- [x] All 7 highlight stories begin with `{ type: 'mockup', variant: 'desktop' }` and contain `{ type: 'mockup', variant: 'mobile' }` between paragraphs 2 and 3.
+- [x] All 7 highlight stories rewritten in EN+PT from new summaries (paragraphs 1-3 reflect summary structure; numbers preserved; library names preserved).
+- [x] Stat rows added to Painel, Enquetes, Política, Peleia, Fotos 2024, Fotos 2025; IA na Redação has none.
+- [x] `ignite-feed-2024` and `OmniStack-9.0` removed from `projects.ts`; their `public/images/projects/<slug>/` directories deleted.
+- [x] `linha-do-tempo-covid` retains its existing story unchanged; remains in archive only.
+- [x] `npm run build` passes.
+- [x] `npm run lint` passes (no new warnings beyond existing).
+- [x] `npm run test:unit` passes; new tests included in count.
 - [ ] Manual verification on `npm run dev` (Chromium + Firefox + Safari): hover + reduced-motion + touch + all 7 detail pages.
 - [ ] `superpowers:requesting-code-review` dispatched and approved before merge.
