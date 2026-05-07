@@ -557,7 +557,7 @@ npm run build 2>&1 | tail -5
 
 Expected: build succeeds.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add public/images/projects/fotos-do-ano-2024 src/data/projects.ts
@@ -573,7 +573,7 @@ git commit -m "feat(projects): add fotos-do-ano-2024 highlight"
 
 The 5 existing highlights (`painel-da-reconstrucao`, `enquetes-gzh`, `ia-na-redacao`, `fotos-do-ano-2025`, `peleia-gre-nal`) need a `mockups: { desktop, mobile }` field added, ordering values updated, and `painel`'s size changed from `lg` to `sm`.
 
-- [ ] **Step 1: For each of the 5 existing highlights, add the `mockups` field**
+- [x] **Step 1: For each of the 5 existing highlights, add the `mockups` field**
 
 In `src/data/projects.ts`, add this field to each entry (insert just above the existing `images: []` line):
 
@@ -586,7 +586,7 @@ In `src/data/projects.ts`, add this field to each entry (insert just above the e
 
 Replace `<slug>` with each project's `id` value: `painel-da-reconstrucao`, `enquetes-gzh`, `ia-na-redacao`, `fotos-do-ano-2025`, `peleia-gre-nal`.
 
-- [ ] **Step 2: Apply the new ordering, sizes, and highlight values**
+- [x] **Step 2: Apply the new ordering, sizes, and highlight values**
 
 Update these fields on each project according to this table:
 
@@ -608,7 +608,7 @@ Notable changes:
 - `ia-na-redacao` was `highlightOrder: 3` → now `6`.
 - `linha-do-tempo-covid` was `highlightOrder: 6` → now `99` (sentinel that pushes it past the Selected Work cutoff). `highlight` flips to `false`.
 
-- [ ] **Step 3: Verify the build passes**
+- [x] **Step 3: Verify the build passes**
 
 ```bash
 npm run build 2>&1 | tail -5
@@ -616,7 +616,7 @@ npm run build 2>&1 | tail -5
 
 Expected: build succeeds.
 
-- [ ] **Step 4: Spot-check the data shape**
+- [x] **Step 4: Spot-check the data shape**
 
 ```bash
 npx tsx --eval "import('./src/data/projects.ts').then(m => console.table(m.projects.filter(p => p.highlight).map(p => ({ id: p.id, order: p.highlightOrder, size: p.size })).sort((a, b) => (a.order ?? 99) - (b.order ?? 99))))"

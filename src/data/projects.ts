@@ -7,8 +7,8 @@ export const projects: Project[] = [
     title: { en: 'painel da reconstrução', pt: 'painel da reconstrução' },
     year: 2024,
     highlight: true,
-    highlightOrder: 1,
-    size: 'lg',
+    highlightOrder: 3,
+    size: 'sm',
     gradient: 'linear-gradient(145deg, #A2D2FF, #3A96E8)',
     tagline: {
       en: 'federal flood recovery, mapped over 19 routes',
@@ -41,6 +41,10 @@ export const projects: Project[] = [
     projectType: 'shipped',
     liveUrl: 'https://gauchazh.clicrbs.com.br/especiais/painel-da-reconstrucao/',
     coverImage: '/images/projects/painel-da-reconstrucao/desktop/01-dados-gerais.png',
+    mockups: {
+      desktop: '/images/projects/painel-da-reconstrucao/mockups/desktop.webp',
+      mobile: '/images/projects/painel-da-reconstrucao/mockups/mobile.webp',
+    },
     images: [],
     screenshots: [
       {
@@ -130,7 +134,7 @@ export const projects: Project[] = [
     title: { en: 'enquetes gzh', pt: 'enquetes gzh' },
     year: 2026,
     highlight: true,
-    highlightOrder: 2,
+    highlightOrder: 4,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #C8D8F0, #8AAADA)',
     tagline: {
@@ -155,6 +159,10 @@ export const projects: Project[] = [
     projectType: 'shipped',
     liveUrl: 'https://gauchazh.clicrbs.com.br/especiais/enquetes-gzh-backoffice',
     coverImage: '/images/projects/enquetes-gzh/desktop/01-embed-vote.png',
+    mockups: {
+      desktop: '/images/projects/enquetes-gzh/mockups/desktop.webp',
+      mobile: '/images/projects/enquetes-gzh/mockups/mobile.webp',
+    },
     images: [],
     story: [
       {
@@ -179,7 +187,7 @@ export const projects: Project[] = [
     title: { en: 'ia na redação', pt: 'ia na redação' },
     year: 2025,
     highlight: true,
-    highlightOrder: 3,
+    highlightOrder: 6,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #DCF0FF, #6DB8FF)',
     tagline: {
@@ -193,6 +201,10 @@ export const projects: Project[] = [
     techStack: ['React', 'Vite', 'TailwindCSS v4', 'Emotion'],
     projectType: 'shipped',
     coverImage: '/images/projects/ia-na-redacao/desktop/01-landing.png',
+    mockups: {
+      desktop: '/images/projects/ia-na-redacao/mockups/desktop.webp',
+      mobile: '/images/projects/ia-na-redacao/mockups/mobile.webp',
+    },
     images: [],
     screenshots: [
       {
@@ -254,7 +266,7 @@ export const projects: Project[] = [
     title: { en: 'fotos do ano 2025', pt: 'fotos do ano 2025' },
     year: 2025,
     highlight: true,
-    highlightOrder: 4,
+    highlightOrder: 2,
     size: 'md',
     gradient: 'linear-gradient(145deg, #F4F8FE, #A2D2FF)',
     tagline: {
@@ -268,6 +280,10 @@ export const projects: Project[] = [
     techStack: ['React', 'TypeScript', 'Vite', 'TailwindCSS', 'Framer Motion'],
     projectType: 'shipped',
     coverImage: '/images/projects/fotos-do-ano-2025/desktop/01-hero.png',
+    mockups: {
+      desktop: '/images/projects/fotos-do-ano-2025/mockups/desktop.webp',
+      mobile: '/images/projects/fotos-do-ano-2025/mockups/mobile.webp',
+    },
     images: [],
     screenshots: [
       {
@@ -323,7 +339,8 @@ export const projects: Project[] = [
     title: { en: 'peleia gre-nal', pt: 'peleia gre-nal' },
     year: 2024,
     highlight: true,
-    highlightOrder: 5,
+    highlightOrder: 7,
+    size: 'sm',
     gradient: 'linear-gradient(145deg, #DCF0FF, #6DB8FF)',
     tagline: {
       en: 'the porto alegre derby, mapped',
@@ -336,6 +353,10 @@ export const projects: Project[] = [
     techStack: ['React', 'TypeScript', 'D3.js'],
     projectType: 'shipped',
     coverImage: '/images/projects/peleia-gre-nal/desktop/01-intro.png',
+    mockups: {
+      desktop: '/images/projects/peleia-gre-nal/mockups/desktop.webp',
+      mobile: '/images/projects/peleia-gre-nal/mockups/mobile.webp',
+    },
     images: [],
     screenshots: [
       {
@@ -389,8 +410,8 @@ export const projects: Project[] = [
     slug: 'linha-do-tempo-covid',
     title: { en: 'linha do tempo covid', pt: 'linha do tempo covid' },
     year: 2025,
-    highlight: true,
-    highlightOrder: 6,
+    highlight: false,
+    highlightOrder: 99,
     gradient: 'linear-gradient(145deg, #D4E5F2, #6A8CAA)',
     tagline: {
       en: 'five years of the pandemic, told year by year',
@@ -514,6 +535,7 @@ export const projects: Project[] = [
     year: 2024,
     highlight: true,
     highlightOrder: 5,
+    size: 'sm',
     gradient: 'linear-gradient(145deg, #FFD9C5, #E89B7A)',
     tagline: {
       en: 'eight viewpoints on the may 2024 floods',
