@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { projects } from '../data/projects'
 import { useLenis } from '../hooks/useLenis'
 import { Hero } from '../components/projectDetail/Hero'
-import { Cover } from '../components/projectDetail/Cover'
 import { BlockRenderer } from '../components/projectDetail/BlockRenderer'
 import { StackSection } from '../components/projectDetail/StackSection'
 import { Footnotes } from '../components/projectDetail/Footnotes'
@@ -75,7 +74,6 @@ export function ProjectDetail() {
     <main>
       <section className="section">
         <Hero project={project} lang={lang} />
-        <Cover project={project} lang={lang} />
 
         {project.story && project.story.length > 0 && (
           <div className="project-detail-story">
