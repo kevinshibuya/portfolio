@@ -772,7 +772,7 @@ strong {
   position: absolute;
   inset: 22% 8% 30% 8%;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   pointer-events: none;
   --cursor-tilt: none;
