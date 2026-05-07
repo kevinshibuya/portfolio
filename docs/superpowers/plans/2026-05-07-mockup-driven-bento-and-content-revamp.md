@@ -312,7 +312,7 @@ npm run build 2>&1 | tail -5
 
 Expected: `built in <Ns>`, no TypeScript errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/types/content.ts src/components/projectDetail/BlockRenderer.tsx
