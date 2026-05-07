@@ -328,7 +328,7 @@ git commit -m "feat(types): add Mockups + mockup block variant (renderer stub)"
 - Create: `public/images/projects/hotmart-bunde/desktop/01-hero.png`, `02-modulos.png`, `03-sobre.png`
 - Create: `public/images/projects/hotmart-bunde/mobile/01-hero.png`, `02-sobre.png`, `03-modulos.png`
 
-- [ ] **Step 1: Copy curated screenshots from the snapshot folder**
+- [x] **Step 1: Copy curated screenshots from the snapshot folder**
 
 ```bash
 mkdir -p public/images/projects/hotmart-bunde/desktop public/images/projects/hotmart-bunde/mobile
@@ -342,7 +342,7 @@ cp ~/portfolio-snapshots/hotmart-bunde/screenshots/mobile/03-modulos.png public/
 
 Expected: 6 PNG files copied.
 
-- [ ] **Step 2: Append the new entry to the `projects` array in `src/data/projects.ts`**
+- [x] **Step 2: Append the new entry to the `projects` array in `src/data/projects.ts`**
 
 Add this object literal as a new entry in the `projects` array. Place it after the last existing entry (it will get the correct `highlightOrder` in Task 7's reorder step):
 
@@ -423,7 +423,7 @@ Add this object literal as a new entry in the `projects` array. Place it after t
   },
 ```
 
-- [ ] **Step 3: Build passes**
+- [x] **Step 3: Build passes**
 
 ```bash
 npm run build 2>&1 | tail -5

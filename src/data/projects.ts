@@ -433,4 +433,78 @@ export const projects: Project[] = [
       },
     ],
   },
+  {
+    id: 'hotmart-bunde',
+    slug: 'hotmart-bunde',
+    title: { en: 'política essencial', pt: 'política essencial' },
+    year: 2026,
+    highlight: true,
+    highlightOrder: 1,
+    size: 'lg',
+    gradient: 'linear-gradient(145deg, #FFE5D9, #F4A582)',
+    tagline: {
+      en: 'scrapbook landing for a 50+ hour course',
+      pt: 'landing artesanal para um curso de 50+ horas',
+    },
+    description: {
+      en: "Sales landing page for Política Essencial, a Brazilian online course teaching political fundamentals from zero through 50+ hours of video lessons by 17 social-media communicators. Pure conversion funnel — no auth, no cart, no payment surface; checkout lives on Hotmart.",
+      pt: 'Landing page de vendas do Política Essencial, curso online brasileiro que ensina fundamentos políticos do zero em 50+ horas de vídeo-aulas conduzidas por 17 comunicadores de redes sociais. Funil puro de conversão — sem auth, carrinho, ou área de pagamento; checkout no Hotmart.',
+    },
+    stats: [
+      { value: '50+ hrs', label: { en: 'course content', pt: 'conteúdo do curso' } },
+      { value: '17', label: { en: 'communicators', pt: 'comunicadores' } },
+      { value: '1', label: { en: 'LP funnel', pt: 'funil único' } },
+    ],
+    techStack: ['React 18', 'TypeScript', 'Vite 6', 'TailwindCSS v4', 'Framer Motion', 'Lenis', 'Cloudflare Pages'],
+    projectType: 'shipped',
+    liveUrl: 'https://politicaessencial.com',
+    coverImage: '/images/projects/hotmart-bunde/desktop/01-hero.png',
+    mockups: {
+      desktop: '/images/projects/hotmart-bunde/mockups/desktop.webp',
+      mobile: '/images/projects/hotmart-bunde/mockups/mobile.webp',
+    },
+    images: [],
+    screenshots: [
+      {
+        desktop: '/images/projects/hotmart-bunde/desktop/01-hero.png',
+        mobile: '/images/projects/hotmart-bunde/mobile/01-hero.png',
+        route: 'hero',
+      },
+      {
+        desktop: '/images/projects/hotmart-bunde/desktop/02-modulos.png',
+        mobile: '/images/projects/hotmart-bunde/mobile/03-modulos.png',
+        route: 'módulos',
+      },
+      {
+        desktop: '/images/projects/hotmart-bunde/desktop/03-sobre.png',
+        mobile: '/images/projects/hotmart-bunde/mobile/02-sobre.png',
+        route: 'sobre',
+      },
+    ],
+    story: [
+      { type: 'mockup', variant: 'desktop' },
+      {
+        type: 'paragraph',
+        text: {
+          en: "A sales landing page for **Política Essencial**, a Brazilian online course teaching political fundamentals from zero through 50+ hours of video lessons taught by a roster of 17 social-media communicators. The page is the sole funnel: a visitor arrives, reads the pitch, scrolls through course modules and FAQ, and clicks through to Hotmart for checkout. The course itself is hosted on Hotmart, so the landing carries no auth, no cart, no payment surface — pure conversion copy and brand presentation. Live at [politicaessencial.com](https://politicaessencial.com).",
+          pt: 'Landing page de vendas do **Política Essencial**, curso online brasileiro que ensina fundamentos políticos do zero em 50+ horas de vídeo-aulas conduzidas por 17 comunicadores de redes sociais. A página é o funil único: o visitante chega, lê a oferta, navega pelos módulos e FAQ, e clica para o checkout no Hotmart. O curso fica hospedado no Hotmart, então a landing não tem auth, carrinho, ou área de pagamento — é puramente cópia de conversão e apresentação de marca. No ar em [politicaessencial.com](https://politicaessencial.com).',
+        },
+      },
+      {
+        type: 'paragraph',
+        text: {
+          en: 'The codebase is a single-page React 18 + TypeScript SPA built with **Vite 6** and styled with **TailwindCSS v4**. The visual identity is a custom scrapbook/collage system — paper textures, torn-edge dividers, washi-tape strips, photo cutouts, brush-stroke backgrounds, and a layered shadow vocabulary — all expressed as reusable Tailwind utility classes (`.paper-texture`, `.washi-tape-*`, `.torn-edge-*`, `.scrapbook-shadow`) and a small set of primitive components (`PaperCard`, `WashiTape`, `TornPaperSection`, `PhotoCutout`). Smooth scrolling runs through Lenis; section transitions and scroll reveals use Motion (Framer Motion). Deployed to Cloudflare Pages via Wrangler.',
+          pt: 'A base de código é uma SPA React 18 + TypeScript com **Vite 6** e **TailwindCSS v4**. A identidade visual é um sistema de scrapbook/colagem feito sob medida — texturas de papel, divisores rasgados, fitas washi, recortes fotográficos, fundos de pincelada e um vocabulário de sombras em camadas — expressos como classes utilitárias do Tailwind (`.paper-texture`, `.washi-tape-*`, `.torn-edge-*`, `.scrapbook-shadow`) e um pequeno conjunto de primitivos (`PaperCard`, `WashiTape`, `TornPaperSection`, `PhotoCutout`). Scroll suave via Lenis; transições e revelações via Motion (Framer Motion). Deploy em Cloudflare Pages via Wrangler.',
+        },
+      },
+      { type: 'mockup', variant: 'mobile' },
+      {
+        type: 'paragraph',
+        text: {
+          en: 'The notable piece is the hero professor-circles section: 17 instructor portraits orbit a centerpiece, with per-regime manual position overrides in `src/components/hero/professorOverrides.ts` and a `?edit=1` URL flag that turns the layout into an in-browser tuning mode for dragging circles into place. Edge wrinkles on paper elements are generated procedurally via a `wrinkledClipPath` utility plus a `useWrinkledEdges` hook, so each card\'s torn edge is unique. SEO is heavy and intentional — the document head ships *Organization*, *WebSite*, *WebPage*, *Course* (with `Offer` price and `CourseInstance` workload), and *FAQPage* JSON-LD blocks plus full Open Graph and Twitter Card metadata in pt-BR.',
+          pt: 'O detalhe notável é a seção hero dos círculos de professores: 17 retratos orbitando um centro, com posições manualmente sobrescritas por regime de breakpoint em `src/components/hero/professorOverrides.ts` e uma flag `?edit=1` na URL que transforma o layout em modo de ajuste no navegador, permitindo arrastar os círculos para a posição desejada. As bordas enrugadas dos elementos de papel são geradas proceduralmente via utility `wrinkledClipPath` e hook `useWrinkledEdges`, fazendo cada borda rasgada ser única. SEO é denso e intencional: a head inclui blocos JSON-LD de *Organization*, *WebSite*, *WebPage*, *Course* (com `Offer` de preço e `CourseInstance`), e *FAQPage*, mais Open Graph e Twitter Card completos em pt-BR.',
+        },
+      },
+    ],
+  },
 ]
