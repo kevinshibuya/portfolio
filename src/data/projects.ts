@@ -85,31 +85,27 @@ export const projects: Project[] = [
       { path: '/leia-mais', label: 'Leia mais' },
     ],
     story: [
+      { type: 'mockup', variant: 'desktop' },
       {
         type: 'paragraph',
         text: {
-          en: 'A long-running data dashboard for **GZH** (Grupo RBS, Rio Grande do Sul\'s largest news outlet) tracking every public and private real spent on reconstruction after the May 2024 floods that displaced hundreds of thousands of people across the state. Published as part of GZH\'s *especiais* editorial section under the "Pra Cima, RS" reconstruction coverage.',
-          pt: 'Um dashboard de longa duração para a **GZH** (Grupo RBS, maior veículo do Rio Grande do Sul) acompanhando cada real público e privado investido na reconstrução após as enchentes de maio de 2024 que deslocaram centenas de milhares de pessoas no estado. Publicado na seção *especiais* da GZH sob a cobertura "Pra Cima, RS".',
+          en: "A long-running data dashboard for **GZH** (Grupo RBS, Rio Grande do Sul's largest news outlet) tracking every public and private real spent on reconstruction after the May 2024 floods. Headline figures cover **R$ 129 billion** in promised funds, broken down across federal, state, and combined budgets and **19 dedicated routes** — housing, hospitals, public schools, social aid, citizen aid, credit for productive sectors, prevention works, the Salgado Filho airport, flight impact — each with its own charting strategy and a Leaflet map of state and federal road blockages.",
+          pt: 'Dashboard de longa duração para a **GZH** (Grupo RBS, maior veículo do Rio Grande do Sul) acompanhando cada real público e privado investido na reconstrução após as enchentes de maio de 2024. Os números de capa cobrem **R$ 129 bilhões** em recursos prometidos, segmentados por orçamentos federal, estadual e combinado em **19 rotas dedicadas** — moradias, hospitais, escolas públicas, ajudas sociais, auxílios ao cidadão, crédito ao setor produtivo, ações de prevenção, o aeroporto Salgado Filho, impacto nos voos — cada uma com sua estratégia de visualização própria, mais um mapa Leaflet de bloqueios em estradas estaduais e federais.',
         },
       },
       {
         type: 'paragraph',
         text: {
-          en: 'The project is a Next.js 14 App Router build that ships as a fully static export. It pulls a single denormalized JSON dataset (refreshed periodically by the newsroom) and recomputes its summary tables, segment breakdowns, and per-government cuts on the client through memoized selectors — so adding a new view is a routing-and-charting exercise rather than a backend change.',
-          pt: 'O projeto é um build Next.js 14 (App Router) que faz deploy como export estático completo. Ele consome um único dataset JSON desnormalizado (atualizado periodicamente pela redação) e recalcula tabelas de resumo, breakdowns por segmento e cortes por esfera de governo no cliente, com selectors memoizados — então adicionar uma nova view é exercício de roteamento e gráficos, não mudança de backend.',
+          en: "The frontend is a **Next.js 14** App Router project in TypeScript built with `output: 'export'` and deployed as static HTML/JS on Azion's edge — no Node runtime. The data layer is a single 488 KB `public/data.json` denormalized by the newsroom and fetched through `useDataFetching` (SWR-backed). UI primitives come from Mantine and NextUI; layout splits between SCSS Modules and Tailwind. Charts span three libraries off the same in-memory dataset — *Highcharts* (gauges, area time-series), *ApexCharts* (stacked bars), *Chart.js* (doughnuts). Apollo Client queries the GZH GraphQL endpoint to pull editorial articles tagged per segment (e.g. `moradias-painel`) into nine routes, paginated via `react-paginate`.",
+          pt: 'O frontend é um projeto **Next.js 14** App Router em TypeScript com `output: "export"` e deploy estático na edge da Azion — sem runtime Node. A camada de dados é um único `public/data.json` de 488 KB desnormalizado pela redação e consumido via hook `useDataFetching` (SWR por baixo). Primitivos de UI vêm de Mantine e NextUI; o layout divide entre SCSS Modules e Tailwind. Gráficos passam por três bibliotecas sobre o mesmo dataset em memória — *Highcharts* (gauges, séries temporais em área), *ApexCharts* (barras empilhadas), *Chart.js* (rosquinhas). Apollo Client consulta o GraphQL da GZH para puxar artigos taggeados por segmento (ex. `moradias-painel`) em nove rotas, com paginação via `react-paginate`.',
         },
       },
+      { type: 'mockup', variant: 'mobile' },
       {
-        type: 'figure-pair',
-        left: {
-          src: '/images/projects/painel-da-reconstrucao/desktop/01-dados-gerais.png',
-          alt: { en: 'Dados gerais — desktop', pt: 'Dados gerais — desktop' },
-          caption: { en: '/dados-gerais — desktop', pt: '/dados-gerais — desktop' },
-        },
-        right: {
-          src: '/images/projects/painel-da-reconstrucao/mobile/01-dados-gerais.png',
-          alt: { en: 'Dados gerais — mobile', pt: 'Dados gerais — mobile' },
-          caption: { en: '/dados-gerais — mobile', pt: '/dados-gerais — mobile' },
+        type: 'paragraph',
+        text: {
+          en: "The pattern that holds it together is the selector layer in `src/lib/utils.ts` — `calculateSumarioData`, `calculateRecursosData`, `calculateSegmentoData` reduce the flat JSON into the per-government, per-segment, and summary shapes each route consumes. Results are cached by `memoizedCalculation`, a `Map`-backed memoization keyed by call site so totals are not recomputed across re-renders. `useDataFetching` exposes those selectors alongside a `currentSegment` filter and a `DEFAULT_ESTADUAL_MANUAL_TOTAL` constant that lets editors hand-correct the state-level total without redeploying the static bundle.",
+          pt: 'O padrão que sustenta a peça é a camada de selectors em `src/lib/utils.ts` — `calculateSumarioData`, `calculateRecursosData`, `calculateSegmentoData` reduzem o JSON achatado para os formatos por esfera de governo, por segmento, e de sumário que cada rota consome. Os resultados são cacheados por `memoizedCalculation`, uma memoização ancorada em `Map` chaveada por call site, para que totais não sejam recalculados entre re-renders. `useDataFetching` expõe esses selectors ao lado de um filtro `currentSegment` e da constante `DEFAULT_ESTADUAL_MANUAL_TOTAL`, que permite editores corrigirem manualmente o total estadual sem novo deploy.',
         },
       },
       {
@@ -145,6 +141,11 @@ export const projects: Project[] = [
       en: 'Poll/survey system for GZH: a backoffice for the newsroom and an embed widget journalists drop into articles, sharing one Firestore backend.',
       pt: 'Sistema de enquetes para a GZH: um backoffice para a redação e um widget embed que jornalistas inserem em artigos, com backend único no Firestore.',
     },
+    stats: [
+      { value: '71', label: { en: 'polls', pt: 'enquetes' } },
+      { value: '760K+', label: { en: 'votes', pt: 'votos' } },
+      { value: 'realtime', label: { en: 'sync', pt: 'sync' } },
+    ],
     techStack: [
       'React 18',
       'TypeScript',
@@ -165,18 +166,27 @@ export const projects: Project[] = [
     },
     images: [],
     story: [
+      { type: 'mockup', variant: 'desktop' },
       {
         type: 'paragraph',
         text: {
-          en: 'A poll/survey system built for **Gauchazh (GZH)**, the digital newsroom of Grupo RBS. Two React apps share a single Firestore backend: a backoffice where the newsroom creates and manages polls, and a public embed widget journalists drop into articles via the GZH iframe loader.',
-          pt: 'Sistema de enquetes construído para a **Gauchazh (GZH)**, redação digital do Grupo RBS. Dois apps React compartilham um único backend Firestore: um backoffice para a redação criar e gerenciar enquetes, e um widget embed público que jornalistas inserem em artigos pelo loader de iframe da GZH.',
+          en: "**Enquetes GZH** is a live-voting system for *Gauchazh (GZH)*, the digital newsroom of Grupo RBS. It ships as two separate apps over a single Firestore backend: a **backoffice** where editors create polls, edit options, end live polls, and copy a CMS-ready embed snippet to the clipboard; and a **public embed widget** where a reader picks an option, confirms their vote, and watches progress bars and percentages update in real time. At capture time the system had **71 published polls** and **760,776 recorded votes**, with top polls in the 33k–144k-vote range.",
+          pt: '**Enquetes GZH** é um sistema de votação ao vivo para a *Gauchazh (GZH)*, redação digital do Grupo RBS. Sai como dois apps separados sobre um único backend Firestore: um **backoffice** onde editores criam enquetes, editam opções, encerram votações ao vivo, e copiam um snippet de embed pronto para o CMS; e um **widget de embed público** onde o leitor escolhe uma opção, confirma o voto, e vê barras e percentuais se atualizando em tempo real. Na captura, o sistema tinha **71 enquetes publicadas** e **760.776 votos registrados**, com as enquetes mais populares na faixa de 33k a 144k votos.',
         },
       },
       {
         type: 'paragraph',
         text: {
-          en: 'The interesting part was the vote-storage model: instead of counting docs in a subcollection at read time, each survey carries a *voteCounts* map and a *totalVotes* counter that get bumped via a Firestore atomic increment together with the per-device write. That\'s what made the live progress bars cheap enough to drive from a public-facing widget without a server in front of Firestore.',
-          pt: 'A parte interessante foi o modelo de armazenamento dos votos: em vez de contar docs em subcoleção na leitura, cada survey carrega um mapa *voteCounts* e um contador *totalVotes* que são incrementados de forma atômica pelo Firestore junto com o registro por dispositivo. Foi o que tornou as barras de progresso ao vivo baratas o suficiente para um widget público sem servidor na frente do Firestore.',
+          en: "Both apps are **React 18 + TypeScript + Vite (SWC)**, styled with Tailwind CSS on top of *shadcn/ui* + *Radix UI* primitives. They initialize a single named Firestore database (`db-enquetes-bbb-prd`) and deploy under `gauchazh.clicrbs.com.br/especiais/`. The backoffice authenticates via Firebase Auth Google OAuth popup, domain-locked to `@zerohora.com.br` and `@gruporbs.com.br`. The embed loads a poll by `?poll_id=` query parameter (falling back to the most recent survey) and drives live percentages via a Firestore `onSnapshot` subscription on the survey document — no aggregation at read time.",
+          pt: 'Ambos os apps são **React 18 + TypeScript + Vite (SWC)**, estilizados com Tailwind sobre primitivos *shadcn/ui* + *Radix UI*. Os dois inicializam um único banco Firestore nomeado (`db-enquetes-bbb-prd`) e fazem deploy sob `gauchazh.clicrbs.com.br/especiais/`. O backoffice autentica via Firebase Auth Google OAuth popup, restrito a domínios `@zerohora.com.br` e `@gruporbs.com.br`. O embed carrega uma enquete pelo query param `?poll_id=` (com fallback para a survey mais recente) e move percentuais ao vivo via assinatura `onSnapshot` do Firestore no documento — sem agregação na leitura.',
+        },
+      },
+      { type: 'mockup', variant: 'mobile' },
+      {
+        type: 'paragraph',
+        text: {
+          en: "Duplicate-vote detection uses a `localStorage` device ID as the Firestore document ID under `votes/{pollId}/userVotes/{deviceId}`, making the check an O(1) `getDoc` with no server round-trip for repeat visitors. A confirmed vote runs a single `updateDoc` that increments `voteCounts.{optionId}` and `totalVotes` atomically via Firestore `increment()`. Per-category UI theming (green for *Esporte*, yellow/pink for everything else, including distinct pulse keyframes on vote confirmation) is applied through inline styles rather than Tailwind class names — a deliberate workaround for Tailwind's build-time purge of dynamically constructed class strings.",
+          pt: 'A detecção de voto duplicado usa um device ID em `localStorage` como ID do documento Firestore sob `votes/{pollId}/userVotes/{deviceId}`, transformando o check em um `getDoc` O(1) sem round-trip ao servidor para visitantes recorrentes. Um voto confirmado dispara um único `updateDoc` que incrementa `voteCounts.{optionId}` e `totalVotes` atomicamente via `increment()` do Firestore. O theming por categoria (verde para *Esporte*, amarelo/rosa para o resto, com keyframes de pulse distintos na confirmação) é aplicado por inline styles em vez de classes Tailwind — workaround deliberado para o purge build-time do Tailwind sobre strings de classe construídas dinamicamente.',
         },
       },
     ],
@@ -224,38 +234,27 @@ export const projects: Project[] = [
       },
     ],
     story: [
+      { type: 'mockup', variant: 'desktop' },
       {
         type: 'paragraph',
         text: {
-          en: 'A special-feature page for **Grupo RBS / GZH** introducing how AI is being used inside their newsrooms. The site collects short video testimonials from journalists who use AI day-to-day — cleaning audio, generating captions, adapting TV reports for digital, drafting headlines, summarizing long documents — alongside opinion articles and the company\'s editorial guidelines for AI use.',
-          pt: 'Página especial do **Grupo RBS / GZH** apresentando como a IA está sendo usada dentro das redações. O site reúne depoimentos em vídeo de jornalistas que usam IA no dia a dia — limpando áudio, gerando legendas, adaptando reportagens de TV para o digital, redigindo títulos, resumindo documentos longos — ao lado de artigos de opinião e das diretrizes editoriais da empresa para o uso de IA.',
+          en: "An internal **Grupo RBS** resource — accessible only from the company network — where journalists across the newsroom share how they use AI in their daily production work. Past a 'Entrar no Curso' gate, users land on a dashboard with three tabs (VÍDEOS, ARTIGOS, DÚVIDAS): **seven short video testimonials** from named journalists covering audio cleanup, caption generation, TV-to-digital adaptation, radio-bulletin generation, and document summarization with NotebookLM; and **four long-form articles** including RBS's editorial AI guidelines and opinion pieces from the editorial board. Selecting any item opens a course-style player with a sidebar listing all content with per-item progress, a main panel showing the embedded `.mp4` or rendered article body, and `Anterior / Marcar como Concluído / Próximo` navigation.",
+          pt: 'Recurso interno do **Grupo RBS** — acessível apenas pela rede da empresa — onde jornalistas de toda a redação compartilham como usam IA no dia a dia. Após uma porta "Entrar no Curso", o usuário cai em um dashboard com três abas (VÍDEOS, ARTIGOS, DÚVIDAS): **sete depoimentos curtos em vídeo** de jornalistas nomeados cobrindo limpeza de áudio, geração de legendas, adaptação de matérias de TV para digital, geração de boletins de rádio, e resumos de documentos com NotebookLM; e **quatro artigos longos** incluindo as diretrizes editoriais de IA da RBS e opiniões do conselho editorial. Selecionar um item abre um player estilo curso com sidebar listando todos os conteúdos com progresso por item, painel principal exibindo o `.mp4` embedado ou o corpo do artigo, e navegação `Anterior / Marcar como Concluído / Próximo`.',
         },
       },
       {
         type: 'paragraph',
         text: {
-          en: 'The codebase is a JSON-driven React + Vite SPA. Course copy, the seven video entries (title, author, category, tags, duration), and the four long-form articles with structured paragraph/quote blocks all live in a single `course-content.json` file that the built bundle fetches at runtime. There is no backend — the site is purely static, with `.mp4` videos and `.webp` thumbnails served from `assets/`. Updating the page is editing one JSON file.',
-          pt: 'A base de código é uma SPA React + Vite movida por JSON. Os textos do curso, os sete vídeos (título, autor, categoria, tags, duração) e os quatro artigos longos com blocos estruturados de parágrafo/citação ficam todos em um único `course-content.json` que o bundle busca em runtime. Não há backend — o site é totalmente estático, com vídeos `.mp4` e thumbnails `.webp` servidos de `assets/`. Atualizar a página é editar um arquivo JSON.',
+          en: "The codebase is a **React + Vite SPA** deployed as a static build under the `/ia-na-redacao/` subpath on a Grupo RBS internal host. Styling is **Tailwind v4** with a small amount of Emotion CSS-in-JS. There is no backend and no client-side router; view transitions between the dashboard, video player, and article reader are managed entirely through component state (`useState`). All editorial content is served from `data/course-content.json`, fetched once at runtime via `fetch('/ia-na-redacao/data/course-content.json')`; video media is served as plain `.mp4` files with sibling `.webp` thumbnails under `assets/videos/`.",
+          pt: 'A base de código é uma **SPA React + Vite** com deploy estático sob o subpath `/ia-na-redacao/` em um host interno da Grupo RBS. Estilo em **Tailwind v4** com um pouco de Emotion CSS-in-JS. Não há backend nem roteador cliente; transições entre dashboard, player de vídeo, e leitor de artigo são geridas por state de componente (`useState`). Todo o conteúdo editorial vem de `data/course-content.json`, carregado uma vez em runtime via `fetch("/ia-na-redacao/data/course-content.json")`; vídeos são `.mp4` puros com thumbnails `.webp` em `assets/videos/`.',
         },
       },
-      {
-        type: 'figure-pair',
-        left: {
-          src: '/images/projects/ia-na-redacao/desktop/02-videos.png',
-          alt: { en: 'Course view — videos', pt: 'Visualização do curso — vídeos' },
-          caption: { en: 'course view — desktop', pt: 'visualização do curso — desktop' },
-        },
-        right: {
-          src: '/images/projects/ia-na-redacao/mobile/02-videos.png',
-          alt: { en: 'Course view — mobile', pt: 'Visualização do curso — mobile' },
-          caption: { en: 'course view — mobile', pt: 'visualização do curso — mobile' },
-        },
-      },
+      { type: 'mockup', variant: 'mobile' },
       {
         type: 'paragraph',
         text: {
-          en: 'The pattern that makes this work as a publishing surface is the *JSON-as-CMS* split — code ships once, editors push content updates without touching the bundle. The article schema is also worth noting: each article is a list of typed blocks (`paragraph`, `quote`) rather than a blob of HTML, which keeps the rendered layout consistent across pieces and lets editors mark pull-quotes structurally instead of styling them inline.',
-          pt: 'O padrão que faz isto funcionar como superfície de publicação é a separação *JSON-como-CMS* — o código sobe uma vez, os editores publicam atualizações de conteúdo sem tocar no bundle. Vale destacar o schema dos artigos: cada artigo é uma lista de blocos tipados (`paragraph`, `quote`) em vez de um bloco de HTML, o que mantém o layout consistente entre as peças e deixa os editores marcarem citações em destaque de forma estrutural em vez de estilizá-las inline.',
+          en: "`course-content.json` acts as the sole CMS layer: its `videos[]` schema carries id, title, duration, thumbnail, url, author, category, and tags; its `articles[]` schema replaces an HTML blob with an ordered `content[]` array of typed blocks — `paragraph` and `quote` — so the renderer can apply pull-quote styling structurally rather than through inline markup. The course shell (sidebar list + main panel + progress tracker) is a single shared layout reused for both the video player and the article reader, meaning progress tracking, completion marking, and sequential navigation work identically across content types. Adding content is editing one JSON file plus dropping media into `assets/videos/` — no code deploy.",
+          pt: 'O `course-content.json` funciona como única camada de CMS: o schema `videos[]` carrega id, título, duração, thumbnail, url, autor, categoria, e tags; o `articles[]` substitui um blob de HTML por um array ordenado `content[]` de blocos tipados — `paragraph` e `quote` — para o renderer aplicar estilo de citação estruturalmente em vez de inline. O shell do curso (sidebar + painel principal + progress tracker) é um layout único reusado tanto para o player de vídeo quanto para o leitor de artigo, então progresso, conclusão, e navegação sequencial funcionam igual entre tipos. Publicar conteúdo é editar um JSON e soltar mídia em `assets/videos/` — sem novo deploy de código.',
         },
       },
     ],
@@ -277,6 +276,11 @@ export const projects: Project[] = [
       en: 'Year-end photo retrospective for GZH — a curated longform of the most striking images of 2025, presented as an immersive scroll experience.',
       pt: 'Retrospectiva fotográfica de fim de ano para a GZH — um longform curado com as imagens mais marcantes de 2025, em uma experiência de scroll imersiva.',
     },
+    stats: [
+      { value: '8', label: { en: 'photographers', pt: 'fotógrafos' } },
+      { value: '2025', label: { en: 'retrospective', pt: 'retrospectiva' } },
+      { value: 'parallax', label: { en: 'driven', pt: 'driven' } },
+    ],
     techStack: ['React', 'TypeScript', 'Vite', 'TailwindCSS', 'Framer Motion'],
     projectType: 'shipped',
     coverImage: '/images/projects/fotos-do-ano-2025/desktop/01-hero.png',
@@ -303,32 +307,27 @@ export const projects: Project[] = [
       },
     ],
     story: [
+      { type: 'mockup', variant: 'desktop' },
       {
         type: 'paragraph',
         text: {
-          en: 'A long-form, scroll-driven editorial gallery built for **Zero Hora**\'s year-end photojournalism retrospective. Eight GZH photographers each get a dedicated section featuring a headline image, an embedded video testimonial, and a parallax-scattered grid of supporting photos. The page deploys under `/especiais/fotos-do-ano-2025/` as part of the publication\'s *especiais* subpath.',
-          pt: 'Uma galeria editorial longa, guiada por scroll, construída para a retrospectiva de fim de ano de fotojornalismo da **Zero Hora**. Oito fotógrafos da GZH ganham uma seção dedicada com uma imagem-título, um depoimento em vídeo e uma grid de fotos de apoio espalhada com parallax. A página é publicada em `/especiais/fotos-do-ano-2025/` dentro da subpasta *especiais* da publicação.',
+          en: "A scroll-driven editorial gallery shipped on **GZH (Gaúcha ZH)** for *Zero Hora*'s year-end **2025** photojournalism retrospective. **Each of eight staff photographers** gets a dedicated section: a full-width headline photo, a Brightcove video testimonial embed, a left-rail narrative bio, an Ari/Apa award badge where applicable, and a parallax grid of supporting images. Readers scroll linearly through all eight sections from a circular grayscale vignette hero; clicking any photo opens a keyboard-navigable fullscreen lightbox.",
+          pt: 'Galeria editorial guiada por scroll, no **GZH (Gaúcha ZH)** para a retrospectiva fotojornalística de fim de ano de **2025** da *Zero Hora*. **Cada um dos oito fotógrafos** do quadro fixo ganha uma seção dedicada: uma foto-título de borda a borda, um depoimento em vídeo embedado via Brightcove, uma biografia narrativa em coluna lateral, selos de prêmios Ari/Apa quando aplicáveis, e uma grid parallax de imagens de apoio. O leitor desce linearmente pelas oito seções a partir de um hero em vinheta circular em escala de cinza; clicar em qualquer foto abre um lightbox fullscreen com navegação por teclado.',
         },
       },
       {
         type: 'paragraph',
         text: {
-          en: 'The site is a single Vite + React app with no backend — every section reads from inline data and renders out of `public/assets/`. The interesting surface is the scroll choreography: each section uses Framer Motion\'s `useScroll` against a per-section ref and maps progress through `useTransform` to drive parallax depth, gradient reveals, image carousels, and a vignette-to-text title transition over the hero. Per-section squares are positioned via a deterministic generator (two columns, even vertical spacing, fixed speed multipliers) so layouts stay stable across renders while still feeling hand-placed.',
-          pt: 'O site é um único app Vite + React sem backend — cada seção lê dados inline e renderiza a partir de `public/assets/`. A parte interessante é a coreografia de scroll: cada seção usa `useScroll` do Framer Motion contra uma ref própria e mapeia o progresso por `useTransform` para conduzir profundidade de parallax, revelações de gradiente, carrosséis de imagens e a transição vinheta-para-título sobre o hero. As placas de cada seção são posicionadas por um gerador determinístico (duas colunas, espaçamento vertical uniforme, multiplicadores de velocidade fixos) para que os layouts fiquem estáveis entre renders e ainda assim pareçam feitos à mão.',
+          en: "The codebase is a no-backend SPA built with **Vite 6**, **React 18**, **TypeScript**, and the SWC compiler plugin. All copy and image manifests are co-located inline in `App.tsx` — one `<PhotographerSection>` instance per photographer — with static assets under `public/assets/MELHORES DO ANO/<photographer>/`. Brightcove player iframes are embedded directly so the React tree never owns the player lifecycle. Styling is **Tailwind CSS 3** via PostCSS with autoprefixer. Because the page deploys to a subpath rather than a domain root, `vite.config.ts` sets `base: '/especiais/fotos-do-ano-2025/'` and every asset reference is composed through `import.meta.env.BASE_URL`.",
+          pt: 'A base de código é uma SPA sem backend feita com **Vite 6**, **React 18**, **TypeScript**, e o plugin compilador SWC. Toda a copy e os manifestos de imagem ficam co-localizados em `App.tsx` — uma instância de `<PhotographerSection>` por fotógrafo — com assets estáticos em `public/assets/MELHORES DO ANO/<photographer>/`. Os iframes do Brightcove são embedados diretamente, então a árvore React nunca controla o ciclo de vida do player. Estilo em **Tailwind CSS 3** via PostCSS com autoprefixer. Como a página faz deploy em subpath e não em raiz de domínio, `vite.config.ts` define `base: "/especiais/fotos-do-ano-2025/"` e cada referência de asset passa por `import.meta.env.BASE_URL`.',
         },
       },
+      { type: 'mockup', variant: 'mobile' },
       {
-        type: 'figure',
-        src: '/images/projects/fotos-do-ano-2025/desktop/04-parallax-gallery.png',
-        alt: { en: 'Parallax photo grid', pt: 'Grid de fotos com parallax' },
-        caption: { en: 'a per-photographer parallax grid', pt: 'um grid de parallax por fotógrafo' },
-        width: 'wide',
-      },
-      {
-        type: 'pullquote',
+        type: 'paragraph',
         text: {
-          en: 'Motion\'s reduced-motion-aware animations keep the GPU on transforms and opacity only.',
-          pt: 'As animações conscientes de reduced-motion mantêm a GPU restrita a transforms e opacidade.',
+          en: "Scroll animation is driven entirely by **Motion (Framer Motion)** `useScroll` + `useTransform` bindings scoped per-section ref: `scrollYProgress` feeds `useTransform` calls that drive parallax Y-offsets, opacity reveals, image-width compression, and a sticky author-rail vertical drift — all on `transform` and `opacity` to stay on the GPU compositor thread. Supporting photos are laid out by a `generateSquares` helper that assigns deterministic two-column percentage positions with per-index speed multipliers from a fixed array, then memoized with `useMemo` so the position set is stable across scroll ticks. Thumbnail variants (`thumbs/` subdirectory) are derived at render time via a path-manipulation helper and used for the parallax grid; full-resolution images load only inside the lightbox.",
+          pt: 'A animação de scroll é guiada por inteiro por **Motion (Framer Motion)** `useScroll` + `useTransform` com escopo por ref de seção: `scrollYProgress` alimenta chamadas `useTransform` que conduzem offsets de parallax em Y, revelações por opacity, compressão de largura de imagem, e um drift vertical na coluna do autor sticky — tudo em `transform` e `opacity` para se manter na thread compositora da GPU. As fotos de apoio são distribuídas por um helper `generateSquares` que atribui posições percentuais determinísticas em duas colunas com multiplicadores de velocidade por índice de um array fixo, memoizadas via `useMemo` para o conjunto de posições ficar estável entre frames de scroll. Variantes de thumbnail (subdir `thumbs/`) são derivadas em tempo de render via helper de path e usadas no grid parallax; imagens em resolução cheia só carregam dentro do lightbox.',
         },
       },
     ],
@@ -350,6 +349,11 @@ export const projects: Project[] = [
       en: "An interactive piece on the Gre-Nal — Porto Alegre's historic football derby — built for GZH's sports editorial.",
       pt: 'Peça interativa sobre o Gre-Nal — o clássico histórico de Porto Alegre — construída para a editoria de esportes da GZH.',
     },
+    stats: [
+      { value: '10', label: { en: 'rounds', pt: 'rodadas' } },
+      { value: '56', label: { en: 'cards', pt: 'cartas' } },
+      { value: '2', label: { en: 'squads', pt: 'elencos' } },
+    ],
     techStack: ['React', 'TypeScript', 'D3.js'],
     projectType: 'shipped',
     coverImage: '/images/projects/peleia-gre-nal/desktop/01-intro.png',
@@ -376,31 +380,27 @@ export const projects: Project[] = [
       },
     ],
     story: [
+      { type: 'mockup', variant: 'desktop' },
       {
         type: 'paragraph',
         text: {
-          en: '**Peleia Gre-Nal** is a browser card game embedded inside Grupo RBS\' Gaúcha ZH portal. It is a simplified *Super Trunfo* (Top Trumps) duel between Grêmio and Internacional squads, where the reader picks a club, draws a player card, and chooses one stat — height, age, Gre-Nais played, Gre-Nais won — to face off against a "GZH" opponent across ten rounds.',
-          pt: 'O **Peleia Gre-Nal** é um card game de navegador embarcado no portal Gaúcha ZH do Grupo RBS. É um duelo simplificado de *Super Trunfo* entre os elencos do Grêmio e do Internacional: o leitor escolhe um clube, saca uma carta de jogador e escolhe um atributo — altura, idade, Gre-Nais jogados, Gre-Nais vencidos — para enfrentar um oponente "GZH" ao longo de dez rodadas.',
-        },
-      },
-      {
-        type: 'figure-pair',
-        left: {
-          src: '/images/projects/peleia-gre-nal/desktop/03-team-pick.png',
-          alt: { en: 'Team picker', pt: 'Seleção de time' },
-          caption: { en: 'team picker — desktop', pt: 'seleção de time — desktop' },
-        },
-        right: {
-          src: '/images/projects/peleia-gre-nal/desktop/04-combat.png',
-          alt: { en: 'Combat round', pt: 'Rodada de combate' },
-          caption: { en: 'combat round — desktop', pt: 'rodada de combate — desktop' },
+          en: "**Peleia Gre-Nal** is a browser-based card game published as an *especial* (long-form interactive) on Grupo RBS' Gaúcha ZH portal. It is a *Super Trunfo* (Top Trumps) duel themed around the Gre-Nal derby: the reader picks Grêmio or Internacional, then plays **10 rounds** in which they draw a player card and choose one of four stats — *Altura* (height), *Idade* (age), *Gre-Nais disputados* (derbies played), *Vitórias em Gre-Nais* (derbies won) — to compare against a 'GZH' opponent card. The higher stat wins the round; after ten rounds, a podium screen declares the winner.",
+          pt: '**Peleia Gre-Nal** é um card game de navegador publicado como *especial* (interativo longform) no portal Gaúcha ZH do Grupo RBS. É um duelo *Super Trunfo* tematizado pelo Gre-Nal: o leitor escolhe Grêmio ou Internacional e joga **10 rodadas** sacando uma carta de jogador e escolhendo um de quatro atributos — *Altura*, *Idade*, *Gre-Nais disputados*, *Vitórias em Gre-Nais* — para comparar contra uma carta "GZH". O maior atributo vence a rodada; depois de dez rodadas, uma tela de pódio declara o vencedor.',
         },
       },
       {
         type: 'paragraph',
         text: {
-          en: 'The interactive is a single-page React application built with Vite. The flow is a small state machine — intro → rules → team picker → ten alternating combat rounds → final result — animated with Framer Motion for the card flips and the *gangorra* (seesaw) momentum indicator that tilts toward whichever side is ahead. Player data ships as static assets: 56 athlete portraits in `assets/athletes/`, country flags, and stat icons. The game is purely client-side; there is no backend.',
-          pt: 'A peça é uma aplicação React de página única feita com Vite. O fluxo é uma pequena máquina de estado — intro → regras → seleção de time → dez rodadas de combate alternadas → resultado final — animada com Framer Motion para as viradas das cartas e para a *gangorra* de momentum que pende para o lado que está à frente. Os dados dos jogadores vêm como assets estáticos: 56 retratos de atletas em `assets/athletes/`, bandeiras de países e ícones de atributos. O jogo é puramente client-side; não há backend.',
+          en: "The app is a single-page **React** app bundled with **Vite** and styled with **Emotion**. React Router is present but the app is effectively single-route — game progression is a client-side state machine (intro → rules → team picker → 10 × {draw → stat-pick → result} → podium) with no URL transitions. **Framer Motion** drives card flips, screen transitions, and the *gangorra* (seesaw) momentum indicator. All roster data, player stats, and matchup logic ship as static client-side assets — no backend, no API calls. The asset bundle includes **56 athlete portraits**, 17 country-flag nationality badges, four stat icons, and bronze/silver/gold medal + podium illustrations.",
+          pt: 'O app é uma SPA **React** empacotada com **Vite** e estilizada com **Emotion**. React Router está presente mas o app é efetivamente single-route — a progressão do jogo é uma state machine client-side (intro → regras → seleção de time → 10 × {saca → escolhe atributo → resultado} → pódio) sem transições de URL. **Framer Motion** controla viradas de carta, transições de tela, e o indicador de momentum *gangorra*. Todos os dados de elenco, atributos de jogador, e lógica de comparação saem como assets estáticos client-side — sem backend, sem chamadas de API. O bundle inclui **56 retratos de atletas**, 17 selos de bandeira de nacionalidade, quatro ícones de atributos, e ilustrações de medalha bronze/prata/ouro + pódio.',
+        },
+      },
+      { type: 'mockup', variant: 'mobile' },
+      {
+        type: 'paragraph',
+        text: {
+          en: "The most distinctive piece is the *gangorra* — a score-delta momentum visualization that swaps between three pre-baked WebP illustrations (`gangorra-gremio`, `gangorra-inter`, `gangorra-empate`) via Framer Motion easing. Card-flip reveals are choreographed in two sequential phases — opponent card reveal first, then stat-row highlight on the winning attribute — producing a TV-style result read rather than a single-frame cut. A portrait-orientation gate (`rotate_phone.webp`) fires on small landscape viewports, enforcing the portrait-first layout.",
+          pt: 'A peça mais distintiva é a *gangorra* — uma visualização de momentum por diferença de pontos que troca entre três WebPs pré-renderizados (`gangorra-gremio`, `gangorra-inter`, `gangorra-empate`) via easing do Framer Motion. As viradas de carta são coreografadas em duas fases sequenciais — revelação da carta adversária primeiro, depois destaque na linha do atributo vencedor — produzindo uma leitura de resultado estilo TV em vez de corte de frame único. Uma porta de orientação retrato (`rotate_phone.webp`) dispara em viewports pequenos em paisagem, forçando o layout retrato.',
         },
       },
     ],

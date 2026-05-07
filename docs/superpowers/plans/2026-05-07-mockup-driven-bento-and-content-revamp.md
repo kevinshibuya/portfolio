@@ -1483,7 +1483,7 @@ kill $DEV_PID
 
 Expected: three `200` lines.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/sections/Projects.tsx src/index.css
@@ -1503,7 +1503,7 @@ For each project the source content is `~/portfolio-snapshots/<slug>/summary.md`
 
 The existing tail blocks (figure-pair from screenshots, pullquote, route-list, etc.) **stay** as-is below paragraph 3.
 
-- [ ] **Step 1: Refresh the `painel-da-reconstrucao` story**
+- [x] **Step 1: Refresh the `painel-da-reconstrucao` story**
 
 In `src/data/projects.ts`, locate the `painel-da-reconstrucao` entry. Replace its `story` array such that the *first three blocks* are the new mockup-hero + paragraphs 1-2, then a `mockup` mobile block, then paragraph 3, then the *existing* tail blocks (figure-pair etc.) untouched.
 
@@ -1540,7 +1540,7 @@ story: [
 
 The implementer will need to read the existing `painel-da-reconstrucao.story` array first to identify which existing blocks (the pullquote, the trailing paragraph, the route-list) to retain verbatim after the new paragraph 3. The intent is: keep the pullquote AND the existing route-list block; replace only the original paragraph + paragraph + figure-pair sequence at the start.
 
-- [ ] **Step 2: Refresh the `enquetes-gzh` story**
+- [x] **Step 2: Refresh the `enquetes-gzh` story**
 
 Replace the existing 2-paragraph story with this new sequence:
 
@@ -1572,7 +1572,7 @@ story: [
 ],
 ```
 
-- [ ] **Step 3: Refresh the `ia-na-redacao` story**
+- [x] **Step 3: Refresh the `ia-na-redacao` story**
 
 Replace its existing story with:
 
@@ -1606,7 +1606,7 @@ story: [
 
 Note: per the spec, `ia-na-redacao` does **not** get a stat row.
 
-- [ ] **Step 4: Refresh the `fotos-do-ano-2025` story**
+- [x] **Step 4: Refresh the `fotos-do-ano-2025` story**
 
 Replace its existing story with:
 
@@ -1638,7 +1638,7 @@ story: [
 ],
 ```
 
-- [ ] **Step 5: Refresh the `peleia-gre-nal` story**
+- [x] **Step 5: Refresh the `peleia-gre-nal` story**
 
 Replace its existing story with:
 
@@ -1670,7 +1670,7 @@ story: [
 ],
 ```
 
-- [ ] **Step 6: Add stat rows where missing**
+- [x] **Step 6: Add stat rows where missing**
 
 In `src/data/projects.ts`, ensure each of these projects has the stats listed below in their object literal (under the existing `description` field). If the project already has `stats`, replace it; otherwise insert it.
 
@@ -1682,7 +1682,7 @@ In `src/data/projects.ts`, ensure each of these projects has the stats listed be
 | `fotos-do-ano-2025` | `[{value:'8', label:{en:'photographers',pt:'fotógrafos'}}, {value:'2025', label:{en:'retrospective',pt:'retrospectiva'}}, {value:'parallax', label:{en:'driven',pt:'driven'}}]` |
 | `ia-na-redacao` | (no stat row — leave the field absent or undefined) |
 
-- [ ] **Step 7: Build + tests pass**
+- [x] **Step 7: Build + tests pass**
 
 ```bash
 npm run build 2>&1 | tail -5
