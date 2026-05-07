@@ -765,35 +765,6 @@ strong {
 .bento-card.is-dark .bento-cs { color: var(--cream); opacity: 0.85; }
 .bento-card:hover .bento-cs { transform: translateX(3px); }
 
-/* Image-backed cards: cover image with a top + bottom dark scrim so the
-   tagline (top) and title + case-study link (bottom) stay legible while
-   the image breathes through the middle. */
-.bento-card.has-image {
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  overflow: hidden;
-}
-.bento-card-scrim {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(17, 24, 34, 0.55) 0%,
-    rgba(17, 24, 34, 0.10) 30%,
-    rgba(17, 24, 34, 0.10) 60%,
-    rgba(17, 24, 34, 0.85) 100%
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-.bento-card.has-image .bento-desc-top,
-.bento-card.has-image .bento-bottom {
-  position: relative;
-  z-index: 1;
-}
-
 /* =========================================================================
    CONTACT (dark ink)
    ========================================================================= */
