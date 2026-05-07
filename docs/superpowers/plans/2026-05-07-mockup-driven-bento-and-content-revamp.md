@@ -44,7 +44,7 @@
 **Files:**
 - Modify: `package.json`
 
-- [ ] **Step 1: Install sharp as a devDependency**
+- [x] **Step 1: Install sharp as a devDependency**
 
 ```bash
 npm install --save-dev sharp@^0.33
@@ -52,7 +52,7 @@ npm install --save-dev sharp@^0.33
 
 Expected: `sharp` appears in `devDependencies`; `package-lock.json` updates.
 
-- [ ] **Step 2: Add npm script for the optimizer**
+- [x] **Step 2: Add npm script for the optimizer**
 
 Edit `package.json`'s `scripts` object to include:
 
@@ -62,7 +62,7 @@ Edit `package.json`'s `scripts` object to include:
 
 Place the entry alphabetically among existing scripts (after any existing `o*` entry, before `start` if present).
 
-- [ ] **Step 3: Verify tsx is already a devDependency**
+- [x] **Step 3: Verify tsx is already a devDependency**
 
 ```bash
 npm ls tsx
@@ -70,7 +70,7 @@ npm ls tsx
 
 Expected: prints a tsx version. If absent, install with `npm install --save-dev tsx`.
 
-- [ ] **Step 4: Verify build still passes**
+- [x] **Step 4: Verify build still passes**
 
 ```bash
 npm run build 2>&1 | tail -5
@@ -78,7 +78,7 @@ npm run build 2>&1 | tail -5
 
 Expected: `built in <Ns>` line, no TS errors, exit 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add package.json package-lock.json
@@ -93,7 +93,7 @@ git commit -m "chore(deps): add sharp + optimize:mockups script"
 - Create: `scripts/optimize-mockups.ts`
 - Create: `public/images/projects/<slug>/mockups/{desktop,mobile}.webp` × 7 (output)
 
-- [ ] **Step 1: Write the script**
+- [x] **Step 1: Write the script**
 
 Create `scripts/optimize-mockups.ts`:
 
@@ -184,7 +184,7 @@ main().catch((err) => {
 })
 ```
 
-- [ ] **Step 2: Run the script**
+- [x] **Step 2: Run the script**
 
 ```bash
 npm run optimize:mockups
@@ -192,7 +192,7 @@ npm run optimize:mockups
 
 Expected: prints a 14-row size table; each output file appears in `public/images/projects/<slug>/mockups/`; no failures; exit 0.
 
-- [ ] **Step 3: Verify outputs exist**
+- [x] **Step 3: Verify outputs exist**
 
 ```bash
 ls -la public/images/projects/*/mockups/*.webp | wc -l
@@ -200,7 +200,7 @@ ls -la public/images/projects/*/mockups/*.webp | wc -l
 
 Expected: `14`.
 
-- [ ] **Step 4: Spot-check one file**
+- [x] **Step 4: Spot-check one file**
 
 ```bash
 file public/images/projects/painel-da-reconstrucao/mockups/desktop.webp
