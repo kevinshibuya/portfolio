@@ -752,7 +752,7 @@ npm run build 2>&1 | tail -5
 
 Expected: build succeeds. If the validator throws, the build fails — that means one of the 4 top highlights actually lacks `mockups`. Debug by re-running Task 7's data updates.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/data/projects.ts tests/unit/data/projects.validator.test.ts
