@@ -765,6 +765,94 @@ strong {
 .bento-card.is-dark .bento-cs { color: var(--cream); opacity: 0.85; }
 .bento-card:hover .bento-cs { transform: translateX(3px); }
 
+/* Bento mockup layers ===================================================== */
+.bento-mockup-wrap {
+  position: absolute;
+  inset: 22% 8% 30% 8%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  --cursor-tilt: none;
+}
+.bento-card--lg .bento-mockup-wrap {
+  inset: 14% 6% 22% 6%;
+}
+.bento-card--md .bento-mockup-wrap {
+  inset: 14% 6% 22% 38%;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 14px;
+}
+.bento-mockup {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+.bento-card--md .bento-mockup--mobile {
+  flex: 0 0 auto;
+  max-width: 26%;
+}
+.bento-mockup-img {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transform: var(--cursor-tilt);
+  transform-origin: center center;
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+.bento-mockup-img--tonal {
+  filter: grayscale(1) brightness(1.05);
+  mix-blend-mode: luminosity;
+  opacity: 1;
+}
+.bento-mockup-img--color {
+  mix-blend-mode: normal;
+  opacity: 0;
+}
+.bento-card:hover .bento-mockup-img--color {
+  opacity: 1;
+}
+
+/* md text-column layout */
+.bento-card--md {
+  position: relative;
+}
+.bento-card--md .bento-text-col {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 38%;
+  height: 100%;
+}
+
+/* Reduced motion: disable layer crossfade and per-frame transforms — show
+   color image at rest, no animation. The card-side hover transitions are
+   already gated by the existing prefers-reduced-motion CSS elsewhere. */
+@media (prefers-reduced-motion: reduce) {
+  .bento-mockup-img--tonal { opacity: 0; }
+  .bento-mockup-img--color { opacity: 1; }
+  .bento-mockup-img { transition: none; transform: none; }
+}
+
+/* Touch (coarse pointer): keep the resting card-toned look — no hover-only
+   color reveal. Pairs with useCursorTilt's no-op on coarse pointers. */
+@media (pointer: coarse) {
+  .bento-card:hover .bento-mockup-img--color { opacity: 0; }
+}
+
 /* =========================================================================
    CONTACT (dark ink)
    ========================================================================= */

@@ -1209,7 +1209,7 @@ git commit -m "feat(hooks): useCursorTilt for bento mockup tracking"
 - Modify: `src/components/sections/Projects.tsx`
 - Modify: `src/index.css`
 
-- [ ] **Step 1: Replace `BentoCard` and add `MockupLayer` in `Projects.tsx`**
+- [x] **Step 1: Replace `BentoCard` and add `MockupLayer` in `Projects.tsx`**
 
 Replace the contents of `src/components/sections/Projects.tsx` with:
 
@@ -1367,7 +1367,7 @@ function MockupLayer({ src, alt, className }: MockupLayerProps) {
 }
 ```
 
-- [ ] **Step 2: Add bento-mockup CSS**
+- [x] **Step 2: Add bento-mockup CSS**
 
 In `src/index.css`, find the existing `.bento-card:hover .bento-cs { transform: translateX(3px); }` line. Insert the following CSS block immediately after it (before the next `=====` comment block):
 
@@ -1461,7 +1461,7 @@ In `src/index.css`, find the existing `.bento-card:hover .bento-cs { transform: 
 }
 ```
 
-- [ ] **Step 3: Build passes**
+- [x] **Step 3: Build passes**
 
 ```bash
 npm run build 2>&1 | tail -5
@@ -1469,7 +1469,7 @@ npm run build 2>&1 | tail -5
 
 Expected: build succeeds, no TS errors.
 
-- [ ] **Step 4: Manually verify with the dev server (smoke test)**
+- [x] **Step 4: Manually verify with the dev server (smoke test)**
 
 ```bash
 npm run dev &

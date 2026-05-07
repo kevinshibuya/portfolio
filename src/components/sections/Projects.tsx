@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion'
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useMotion } from '../../context/MotionContext'
+import { useCursorTilt } from '../../hooks/useCursorTilt'
 import { SectionHeading } from '../ui/SectionHeading'
 import { projects } from '../../data/projects'
 import {
@@ -67,30 +69,83 @@ interface BentoCardProps {
 }
 
 function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
+  const cardRef = useRef<HTMLAnchorElement>(null)
+  const wrapRef = useRef<HTMLDivElement>(null)
+  useCursorTilt(cardRef, wrapRef, { tilt: 10, scale: 1.08, shift: 8 })
+
   const sizeClass =
     project.size === 'lg'
       ? 'bento-card--lg'
       : project.size === 'md'
         ? 'bento-card--md'
         : ''
-  const darkClass = project.dark ? ' is-dark' : ''
+  const isDual = project.size === 'md'
   const background = project.gradient ?? 'linear-gradient(145deg, #D4E5F2, #6A8CAA)'
+
+  const tagline = project.tagline?.[lang]
+  const title = project.title[lang]
+  const desktopAlt = `${title} desktop mockup`
+  const mobileAlt = `${title} mobile mockup`
+
+  if (isDual) {
+    return (
+      <MotionLink
+        ref={cardRef}
+        variants={variants}
+        to={`/projects/${project.slug}`}
+        className={`bento-card ${sizeClass}`}
+        style={{ background }}
+      >
+        <div className="bento-text-col">
+          {tagline && <span className="bento-desc-top">{tagline}</span>}
+          <div className="bento-bottom">
+            <h3 className="bento-title">{title}</h3>
+            <span className="bento-cs">↗ {caseStudy}</span>
+          </div>
+        </div>
+        <div ref={wrapRef} className="bento-mockup-wrap bento-mockup-wrap--dual">
+          {project.mockups && (
+            <>
+              <MockupLayer src={project.mockups.desktop} alt={desktopAlt} />
+              <MockupLayer src={project.mockups.mobile} alt={mobileAlt} className="bento-mockup--mobile" />
+            </>
+          )}
+        </div>
+      </MotionLink>
+    )
+  }
 
   return (
     <MotionLink
+      ref={cardRef}
       variants={variants}
       to={`/projects/${project.slug}`}
-      className={`bento-card ${sizeClass}${darkClass}`}
+      className={`bento-card ${sizeClass}`}
       style={{ background }}
     >
-      {project.tagline && (
-        <span className="bento-desc-top">{project.tagline[lang]}</span>
-      )}
-
+      {tagline && <span className="bento-desc-top">{tagline}</span>}
+      <div ref={wrapRef} className="bento-mockup-wrap">
+        {project.mockups && <MockupLayer src={project.mockups.desktop} alt={desktopAlt} />}
+      </div>
       <div className="bento-bottom">
-        <h3 className="bento-title">{project.title[lang]}</h3>
+        <h3 className="bento-title">{title}</h3>
         <span className="bento-cs">↗ {caseStudy}</span>
       </div>
     </MotionLink>
+  )
+}
+
+interface MockupLayerProps {
+  src: string
+  alt: string
+  className?: string
+}
+
+function MockupLayer({ src, alt, className }: MockupLayerProps) {
+  return (
+    <span className={`bento-mockup ${className ?? ''}`}>
+      <img className="bento-mockup-img bento-mockup-img--tonal" src={src} alt="" aria-hidden />
+      <img className="bento-mockup-img bento-mockup-img--color" src={src} alt={alt} loading="lazy" decoding="async" />
+    </span>
   )
 }
