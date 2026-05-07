@@ -113,22 +113,24 @@ For `md`'s right-side image area: desktop fills the wider left of the pair (`fle
 
 All three sizes use `object-fit: contain` on the images so the native 1024×629 aspect is preserved. Empty card-color regions where the image area's aspect doesn't match 1.63:1 are intentional — the card's gradient fills them, and the transparent-background mockups blend into the gradient where the device frame doesn't draw.
 
-### Hover sequence (image only)
+### Hover sequence (visual outcome — image area only)
 
 ```
 at rest                            on hover
 ─────────────────                  ─────────────────
-filter: grayscale(1)               filter: grayscale(0)
-       brightness(1.05)                   brightness(1)
-mix-blend-mode: luminosity         mix-blend-mode: normal
+image reads as card-toned          image reads as full color
+(grayscale, blended into the       (no tint, normal blend)
+ gradient via luminosity)
 transform: identity                scale(1.08)
                                    rotateX(±10°) rotateY(±10°)
                                    translateX(±8px) translateY(±8px)
 ```
 
+This describes the visual outcome. The implementation achieves it via stacked layers (see [Color crossfade](#color-crossfade--stacked-layers) below), not by swapping `mix-blend-mode` — that property does not interpolate, so the literal CSS state of each layer never changes between rest and hover; only the top layer's `opacity` does.
+
 The card-side hover (production CSS, unchanged): `transform: translateY(-4px)`, `box-shadow: 0 20px 40px rgba(17, 24, 34, 0.08)`, `↗ case study` `transform: translateX(3px)`.
 
-Easing throughout: `cubic-bezier(0.22, 1, 0.36, 1)`. Filter / opacity transitions: 0.6s. Transform transitions: 0.55s.
+Easing throughout: `cubic-bezier(0.22, 1, 0.36, 1)`. Opacity transition (color crossfade): 0.6s. Transform transition (image scale + tilt + parallax return-to-rest): 0.55s.
 
 ### Color crossfade — stacked layers
 
@@ -161,18 +163,19 @@ interface CursorTiltOpts {
 
 function useCursorTilt(
   cardRef: RefObject<HTMLElement>,
-  imageRef: RefObject<HTMLElement>,
+  imageWrapRef: RefObject<HTMLElement>,
   opts: CursorTiltOpts
 ): void
 ```
 
 Behavior:
 
-- On `mount`, attaches one `mousemove` listener to `cardRef`. The listener computes `dx, dy` ∈ `[-1, 1]` from the cursor's position relative to the card center and writes `imageRef.current.style.transform` directly (single string concatenation, no React state).
-- On `mouseleave`, clears the inline transform so the CSS transition restores the resting state smoothly.
+- On `mount`, attaches one `mousemove` listener to `cardRef`. The listener computes `dx, dy` ∈ `[-1, 1]` from the cursor's position relative to the card center and writes the resulting transform string to a CSS custom property on `imageWrapRef.current` (e.g. `style.setProperty('--cursor-tilt', 'scale(1.08) rotateX(...)...')`). Both stacked `<img>` layers inside the wrapper read that variable via `transform: var(--cursor-tilt, none)` so the tilt and parallax apply identically to both.
+- The mousemove handler is RAF-throttled — at most one transform write per animation frame, regardless of how many native `mousemove` events fire. Prevents jank on slow machines and on high-frequency mice.
+- On `mouseleave`, clears the CSS variable (sets it to `none`) so the CSS transition on each `<img>` restores the resting state smoothly.
 - No-ops if `useMotion().prefersReducedMotion` is true.
 - No-ops if `window.matchMedia('(pointer: coarse)').matches` (touch devices).
-- Cleans up the listener on unmount.
+- Cleans up the listener and any pending RAF on unmount.
 
 Why hand-rolled: the rest of the codebase uses Framer Motion for declarative state transitions, not for per-mousemove cursor tracking. Introducing a `useMotionValue` + `useTransform` pair just for tilt would be the only place in the codebase doing per-mousemove Framer subscriptions. A small RAF-throttled hook is ~50 LOC, zero new dependencies, and easier to reason about.
 
@@ -230,7 +233,7 @@ function MockupLayer({ src, alt, className }: { src: string; alt: string; classN
 }
 ```
 
-The `MockupLayer` renders the stacked tonal + color pair. `md` calls it twice. The cursor-tilt hook's `imageRef` points to the wrapper `bento-mockup-wrap`, and the inline `transform` cascades to all `<img>` children via shared CSS (`.bento-mockup-wrap > * { transform: inherit }` is too brittle — instead the hook writes the transform to a CSS custom property on the wrapper, and each image reads it).
+The `MockupLayer` renders the stacked tonal + color pair. `md` calls it twice. The cursor-tilt hook's `imageWrapRef` points at `bento-mockup-wrap`. The hook writes the computed transform to a CSS custom property (`--cursor-tilt`) on that wrapper; each `<img>` inside applies `transform: var(--cursor-tilt, none)` so all stacked + paired images move together from a single source of truth.
 
 ### Reduced motion + touch fallback
 
@@ -407,7 +410,7 @@ For each of `ignite-feed-2024` and `OmniStack-9.0`:
 |---|---|
 | `mix-blend-mode: luminosity` rendering differs across browsers (especially on transparent-background images at hover boundary). | Stacked-layer crossfade avoids the blend-mode swap entirely; only the top layer's `opacity` transitions. Manual verification on Chromium / Firefox / Safari before sign-off. |
 | Large WebP files still bloat initial page weight (4 cards × 2 images × ~250 KB = ~2 MB above-the-fold). | `loading="lazy"` on detail-page mockups; bento mockups are above-the-fold so they load eagerly — accept the cost as the bento is the visual centerpiece. Optimize further only if Lighthouse flags it. |
-| `useCursorTilt` mousemove handler fires at native rate, causing jank on slow machines. | RAF-throttle inside the hook (one transform write per frame max). |
+| `useCursorTilt` mousemove handler fires at native rate, causing jank on slow machines or high-frequency mice. | RAF-throttle inside the hook (one transform write per frame max). Already specified in the hook's behavior section. |
 | Touch detection via `(pointer: coarse)` is incorrect on hybrid devices (laptops with touchscreens that also have a mouse). | `(pointer: coarse)` returns `false` when there's any fine pointer available, which is the right answer for hybrid devices — they get the desktop hover experience. Documented in the hook's tests. |
 | Story rewrite quality is hard to verify automatically. | Manual review of each rendered detail page during verification. The summaries are already written in the same voice; rewrite is a translation/condensation pass, not creative writing from scratch. |
 | Image optimization script breaks if a source PNG is added with unexpected color space or DPI. | `sharp` handles all common color spaces; the script logs the per-file metadata before encoding so any oddity is visible in the run output. |
