@@ -431,7 +431,7 @@ npm run build 2>&1 | tail -5
 
 Expected: build succeeds.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add public/images/projects/hotmart-bunde src/data/projects.ts
@@ -447,7 +447,7 @@ git commit -m "feat(projects): add hotmart-bunde (Política Essencial) highlight
 - Create: `public/images/projects/fotos-do-ano-2024/desktop/*.png`
 - Create: `public/images/projects/fotos-do-ano-2024/mobile/*.png`
 
-- [ ] **Step 1: Inspect what mobile screenshots are available**
+- [x] **Step 1: Inspect what mobile screenshots are available**
 
 ```bash
 ls ~/portfolio-snapshots/fotos-do-ano-2024/screenshots/mobile/
@@ -455,7 +455,7 @@ ls ~/portfolio-snapshots/fotos-do-ano-2024/screenshots/mobile/
 
 Note the filenames; if mobile pairs aren't present for every desktop screenshot, copy the closest match (e.g., reuse the same filename from `mobile/01-*.png`).
 
-- [ ] **Step 2: Copy curated screenshots**
+- [x] **Step 2: Copy curated screenshots**
 
 ```bash
 mkdir -p public/images/projects/fotos-do-ano-2024/desktop public/images/projects/fotos-do-ano-2024/mobile
@@ -470,7 +470,7 @@ done
 
 Expected: 3 desktop files + however many mobile files exist in the snapshot folder.
 
-- [ ] **Step 3: Append the new entry to `projects` in `src/data/projects.ts`**
+- [x] **Step 3: Append the new entry to `projects` in `src/data/projects.ts`**
 
 Place after the `hotmart-bunde` entry. Use this object literal:
 
@@ -549,7 +549,7 @@ Place after the `hotmart-bunde` entry. Use this object literal:
   },
 ```
 
-- [ ] **Step 4: Build passes**
+- [x] **Step 4: Build passes**
 
 ```bash
 npm run build 2>&1 | tail -5

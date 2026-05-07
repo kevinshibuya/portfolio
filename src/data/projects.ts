@@ -507,4 +507,76 @@ export const projects: Project[] = [
       },
     ],
   },
+  {
+    id: 'fotos-do-ano-2024',
+    slug: 'fotos-do-ano-2024',
+    title: { en: 'fotos do ano 2024', pt: 'fotos do ano 2024' },
+    year: 2024,
+    highlight: true,
+    highlightOrder: 5,
+    gradient: 'linear-gradient(145deg, #FFD9C5, #E89B7A)',
+    tagline: {
+      en: 'eight viewpoints on the may 2024 floods',
+      pt: 'oito olhares sobre as enchentes de maio de 2024',
+    },
+    description: {
+      en: "Year-end photojournalism retrospective for Zero Hora — eight staff photographers, each contributing one image from the May 2024 Rio Grande do Sul floods. Scroll-driven editorial gallery with sticky wordmark and embedded video testimonials.",
+      pt: 'Retrospectiva fotojornalística de fim de ano da Zero Hora — oito fotógrafos do quadro fixo, cada um com uma imagem das enchentes de maio de 2024 no Rio Grande do Sul. Galeria editorial guiada por scroll, com wordmark fixo e depoimentos em vídeo.',
+    },
+    stats: [
+      { value: '8', label: { en: 'photographers', pt: 'fotógrafos' } },
+      { value: '2024', label: { en: 'flood retrospective', pt: 'retrospectiva das enchentes' } },
+      { value: 'scroll', label: { en: 'driven', pt: 'driven' } },
+    ],
+    techStack: ['React', 'Vite', 'TailwindCSS', 'Framer Motion'],
+    projectType: 'shipped',
+    coverImage: '/images/projects/fotos-do-ano-2024/desktop/01-hero.png',
+    mockups: {
+      desktop: '/images/projects/fotos-do-ano-2024/mockups/desktop.webp',
+      mobile: '/images/projects/fotos-do-ano-2024/mockups/mobile.webp',
+    },
+    images: [],
+    screenshots: [
+      {
+        desktop: '/images/projects/fotos-do-ano-2024/desktop/01-hero.png',
+        mobile: '/images/projects/fotos-do-ano-2024/mobile/01-hero.png',
+        route: 'hero',
+      },
+      {
+        desktop: '/images/projects/fotos-do-ano-2024/desktop/02-photographer-section.png',
+        mobile: '/images/projects/fotos-do-ano-2024/mobile/02-photographer-section.png',
+        route: 'photographer',
+      },
+      {
+        desktop: '/images/projects/fotos-do-ano-2024/desktop/03-beira-rio-aerial.png',
+        mobile: '/images/projects/fotos-do-ano-2024/mobile/03-beira-rio-aerial.png',
+        route: 'beira-rio',
+      },
+    ],
+    story: [
+      { type: 'mockup', variant: 'desktop' },
+      {
+        type: 'paragraph',
+        text: {
+          en: "A scroll-driven editorial gallery shipped as **Zero Hora**'s year-end 2024 photojournalism retrospective. Readers land on a peach-pink gradient cover bearing the 'ZEROHORA — Fotos do ano 2024' wordmark, scroll through an intro by editor Ivan Pacheco, and into eight photographer sections — Mateus Bruxel, André Ávila, Duda Fortes, Jeff Botega, Renan Mattos, Ronaldo Bernardi, Camila Hermes, and Jonathan Heckler. Each photographer contributes one image from the May 2024 Rio Grande do Sul floods, making the page a collective first-person record of the disaster across eight viewpoints.",
+          pt: 'Galeria editorial guiada por scroll, lançada como retrospectiva fotojornalística de fim de ano da **Zero Hora** em 2024. O leitor entra por uma capa em gradiente pêssego com o wordmark "ZEROHORA — Fotos do ano 2024", passa por uma introdução do editor Ivan Pacheco, e desce por oito seções de fotógrafos — Mateus Bruxel, André Ávila, Duda Fortes, Jeff Botega, Renan Mattos, Ronaldo Bernardi, Camila Hermes, e Jonathan Heckler. Cada fotógrafo contribui com uma imagem das enchentes de maio de 2024 no Rio Grande do Sul, tornando a página um registro coletivo em primeira pessoa do desastre por oito ângulos.',
+        },
+      },
+      {
+        type: 'paragraph',
+        text: {
+          en: 'The deployed bundle is a Vite-built React SPA, statically exported and served under `/especiais/fotos-do-ano-2024/`. Each section pairs a featured flood photograph, a short first-person caption, an embedded HTML5 `<video>` testimonial pointing directly at `assets/<Photographer>.mp4`, and a black-and-white portrait headshot. Award badge PNGs (`selo_ari.png`, `selo_apa.png`) are composited over specific photos via absolute positioning. Typography is Hepta Slab via Google Fonts; analytics run through Google Tag Manager.',
+          pt: 'O bundle no ar é uma SPA React feita com Vite, com export estático sob `/especiais/fotos-do-ano-2024/`. Cada seção combina uma foto de destaque das enchentes, uma legenda curta em primeira pessoa, um depoimento em vídeo `<video>` HTML5 apontando direto para `assets/<Photographer>.mp4`, e um retrato em preto e branco. Selos de prêmios (`selo_ari.png`, `selo_apa.png`) são compostos sobre fotos específicas via posicionamento absoluto. Tipografia em Hepta Slab via Google Fonts; analytics via Google Tag Manager.',
+        },
+      },
+      { type: 'mockup', variant: 'mobile' },
+      {
+        type: 'paragraph',
+        text: {
+          en: "The defining piece is the scroll-driven sticky wordmark: 'ZEROHORA — Fotos do ano 2024' stays fixed over the hero, tracks scroll position, fades, repositions to each photographer panel's top-right kicker, and switches color from peach to white as dark-background photo panels slide underneath. The layout alternates full-bleed photographic panels with peach narrative panels containing first-person bios, portrait headshots, and inline video players — a rhythm that paces the disaster narrative without overwhelming it.",
+          pt: 'A peça central é o wordmark fixo guiado por scroll: "ZEROHORA — Fotos do ano 2024" se mantém preso sobre o hero, acompanha o scroll, esmaece, reposiciona-se para o canto superior direito de cada painel de fotógrafo, e muda de cor de pêssego para branco quando painéis de fundo escuro deslizam por baixo. O layout alterna painéis fotográficos de borda a borda com painéis narrativos pêssego contendo biografias em primeira pessoa, retratos, e players de vídeo inline — um ritmo que dá compasso à narrativa do desastre sem sobrecarregar.',
+        },
+      },
+    ],
+  },
 ]
