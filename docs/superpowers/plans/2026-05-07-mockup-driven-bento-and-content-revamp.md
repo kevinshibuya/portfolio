@@ -624,7 +624,7 @@ npx tsx --eval "import('./src/data/projects.ts').then(m => console.table(m.proje
 
 Expected: prints a 7-row table in order `1..7` matching the table above.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/data/projects.ts
