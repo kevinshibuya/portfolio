@@ -639,7 +639,7 @@ git commit -m "feat(projects): wire mockups, reorder highlights, demote painel s
 - Modify: `src/data/projects.ts`
 - Create: `tests/unit/data/projects.validator.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/data/projects.validator.test.ts`:
 
@@ -714,7 +714,7 @@ describe('projects validator', () => {
 })
 ```
 
-- [ ] **Step 2: Run test — expect failure (validator function doesn't exist in source yet)**
+- [x] **Step 2: Run test — expect failure (validator function doesn't exist in source yet)**
 
 ```bash
 npx vitest run tests/unit/data/projects.validator.test.ts
@@ -722,7 +722,7 @@ npx vitest run tests/unit/data/projects.validator.test.ts
 
 Expected: tests pass (the test file imports its own local `validate` function, which is the same shape as the one we'll add to `projects.ts`). This test verifies the *contract* of the validator. Step 4 below verifies the validator is wired into the actual data file.
 
-- [ ] **Step 3: Add the validator to `src/data/projects.ts`**
+- [x] **Step 3: Add the validator to `src/data/projects.ts`**
 
 At the very bottom of `src/data/projects.ts`, after the `projects` array literal (and any other exports), append:
 
@@ -744,7 +744,7 @@ At the very bottom of `src/data/projects.ts`, after the `projects` array literal
 }
 ```
 
-- [ ] **Step 4: Verify the live data passes the validator (no throw on import)**
+- [x] **Step 4: Verify the live data passes the validator (no throw on import)**
 
 ```bash
 npm run build 2>&1 | tail -5

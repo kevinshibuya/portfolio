@@ -602,3 +602,19 @@ export const projects: Project[] = [
     ],
   },
 ]
+
+// Module-load-time validator: every Selected Work top-4 highlight must
+// have both a desktop and mobile mockup. Catches regressions where someone
+// promotes a project to top-4 without generating its mockup assets.
+{
+  const selectedWork = projects.filter(
+    (p) => p.highlight && (p.highlightOrder ?? 99) <= 4
+  )
+  for (const p of selectedWork) {
+    if (!p.mockups?.desktop || !p.mockups?.mobile) {
+      throw new Error(
+        `Project "${p.id}" is a Selected Work highlight but is missing mockups`
+      )
+    }
+  }
+}
