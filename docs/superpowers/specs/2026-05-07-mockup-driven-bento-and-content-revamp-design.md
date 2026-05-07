@@ -447,4 +447,4 @@ Acceptance criteria — each box becomes `- [x]` only when both an automated che
 - [x] `npm run lint` passes (no new warnings beyond existing).
 - [x] `npm run test:unit` passes; new tests included in count.
 - [ ] Manual verification on `npm run dev` (Chromium + Firefox + Safari): hover + reduced-motion + touch + all 7 detail pages.
-- [ ] `superpowers:requesting-code-review` dispatched and approved before merge.
+- [x] `superpowers:requesting-code-review` dispatched and approved before merge.

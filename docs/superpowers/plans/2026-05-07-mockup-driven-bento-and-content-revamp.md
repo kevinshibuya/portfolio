@@ -1792,19 +1792,19 @@ git commit -m "docs(spec): tick verified TODOs after manual verification"
 
 **Files:** none modified directly (subagent dispatches review)
 
-- [ ] **Step 1: Dispatch the code review subagent**
+- [x] **Step 1: Dispatch the code review subagent**
 
 Per CLAUDE.md, dispatch `superpowers:requesting-code-review` as a Sonnet subagent. Provide context: this branch implements the 2026-05-07 mockup-driven bento + content revamp spec; review for spec compliance, code quality, accessibility (reduced-motion + touch fallbacks), and the discriminated-union exhaustiveness around the new `mockup` block.
 
-- [ ] **Step 2: Address any blocking findings**
+- [x] **Step 2: Address any blocking findings**
 
 If the review surfaces issues, fix them in additional small commits (one fix per commit) and re-dispatch a follow-up review until approved.
 
-- [ ] **Step 3: Tick the final spec TODO**
+- [x] **Step 3: Tick the final spec TODO**
 
 In the spec, tick the `- [ ] superpowers:requesting-code-review dispatched and approved before merge` checkbox.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/superpowers/specs/2026-05-07-mockup-driven-bento-and-content-revamp-design.md

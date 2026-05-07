@@ -144,8 +144,8 @@ interface MockupLayerProps {
 function MockupLayer({ src, alt, className }: MockupLayerProps) {
   return (
     <span className={`bento-mockup ${className ?? ''}`}>
-      <img className="bento-mockup-img bento-mockup-img--tonal" src={src} alt="" aria-hidden />
-      <img className="bento-mockup-img bento-mockup-img--color" src={src} alt={alt} loading="lazy" decoding="async" />
+      <img className="bento-mockup-img bento-mockup-img--tonal" src={src} alt="" aria-hidden="true" decoding="async" />
+      <img className="bento-mockup-img bento-mockup-img--color" src={src} alt={alt} decoding="async" />
     </span>
   )
 }
