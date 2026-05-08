@@ -106,7 +106,7 @@ function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
         <div ref={wrapRef} className="bento-mockup-wrap bento-mockup-wrap--dual">
           {project.mockups && (
             <>
-              <MockupLayer src={project.mockups.desktop} alt={desktopAlt} />
+              <MockupLayer src={project.mockups.desktopBento} alt={desktopAlt} />
               <MockupLayer src={project.mockups.mobile} alt={mobileAlt} className="bento-mockup--mobile" />
             </>
           )}
@@ -125,7 +125,7 @@ function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
     >
       {tagline && <span className="bento-desc-top">{tagline}</span>}
       <div ref={wrapRef} className="bento-mockup-wrap">
-        {project.mockups && <MockupLayer src={project.mockups.desktop} alt={desktopAlt} />}
+        {project.mockups && <MockupLayer src={project.mockups.desktopBento} alt={desktopAlt} />}
       </div>
       <div className="bento-bottom">
         <h3 className="bento-title">{title}</h3>

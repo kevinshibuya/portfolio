@@ -12,7 +12,7 @@ describe('archive', () => {
   it('contains all featured projects + all embeds', () => {
     const featuredCount = archive.filter((i) => i.kind === 'featured').length
     const editorialCount = archive.filter((i) => i.kind === 'editorial').length
-    expect(featuredCount).toBe(8)
+    expect(featuredCount).toBe(7)
     expect(editorialCount).toBeGreaterThan(100) // 142 in current CSV
   })
 

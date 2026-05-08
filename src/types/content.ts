@@ -43,8 +43,9 @@ export interface FigureSrc {
 }
 
 export interface Mockups {
-  desktop: string
-  mobile: string
+  desktop: string        // detail-page hero (target ≥2000px width)
+  desktopBento: string   // bento card (1024px native)
+  mobile: string         // shared (2000px)
 }
 
 export type Block =

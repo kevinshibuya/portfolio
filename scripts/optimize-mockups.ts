@@ -13,35 +13,58 @@ const SLUGS = [
   'peleia-gre-nal',
 ] as const
 
-type Kind = 'desktop' | 'mobile'
+type Variant = 'desktop' | 'desktop-bento' | 'mobile'
+
+interface VariantSpec {
+  kind: 'desktop' | 'mobile'  // which source PNG to read
+  outName: string             // filename written under <slug>/mockups/
+  maxEdge: number             // sharp resize cap
+}
+
+const VARIANTS: Record<Variant, VariantSpec> = {
+  // Detail-page hero: target 2000px width. Sources are currently 1024×629
+  // — withoutEnlargement keeps output at native resolution; re-export sources
+  // at ≥2000px to actually achieve the target.
+  'desktop':       { kind: 'desktop', outName: 'desktop.webp',       maxEdge: 2000 },
+  // Bento card: small enough that 1200 is plenty.
+  'desktop-bento': { kind: 'desktop', outName: 'desktop-bento.webp', maxEdge: 1200 },
+  // Mobile mockup: high-res source, 2000px gives crisp detail-page rendering.
+  'mobile':        { kind: 'mobile',  outName: 'mobile.webp',        maxEdge: 2000 },
+}
 
 const SOURCE_ROOT = resolve(homedir(), 'portfolio-snapshots')
 const OUTPUT_ROOT = resolve(process.cwd(), 'public', 'images', 'projects')
-const MAX_EDGE = 1600
-const QUALITY = 82
+const QUALITY = 90
 
 interface Result {
   slug: string
-  kind: Kind
+  variant: Variant
   src: string
   out: string
   srcSize: number
   outSize: number
+  outWidth: number
+  outHeight: number
 }
 
-async function optimize(slug: string, kind: Kind): Promise<Result> {
-  const src = join(SOURCE_ROOT, slug, 'mockups', `${kind}.png`)
-  const out = join(OUTPUT_ROOT, slug, 'mockups', `${kind}.webp`)
+async function optimize(slug: string, variant: Variant): Promise<Result> {
+  const spec = VARIANTS[variant]
+  const src = join(SOURCE_ROOT, slug, 'mockups', `${spec.kind}.png`)
+  const out = join(OUTPUT_ROOT, slug, 'mockups', spec.outName)
   if (!src.startsWith(SOURCE_ROOT + '/')) {
     throw new Error(`Refusing to read outside snapshot root: ${src}`)
   }
   await mkdir(dirname(out), { recursive: true })
-  await sharp(src)
-    .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: 'inside', withoutEnlargement: true })
+  const info = await sharp(src)
+    .resize({ width: spec.maxEdge, height: spec.maxEdge, fit: 'inside', withoutEnlargement: true })
     .webp({ quality: QUALITY, alphaQuality: QUALITY })
     .toFile(out)
   const [srcStat, outStat] = await Promise.all([stat(src), stat(out)])
-  return { slug, kind, src, out, srcSize: srcStat.size, outSize: outStat.size }
+  return {
+    slug, variant, src, out,
+    srcSize: srcStat.size, outSize: outStat.size,
+    outWidth: info.width, outHeight: info.height,
+  }
 }
 
 function fmt(bytes: number): string {
@@ -52,27 +75,28 @@ function fmt(bytes: number): string {
 
 async function main() {
   const results: Result[] = []
-  const failures: { slug: string; kind: Kind; error: unknown }[] = []
+  const failures: { slug: string; variant: Variant; error: unknown }[] = []
   for (const slug of SLUGS) {
-    for (const kind of ['desktop', 'mobile'] as const) {
+    for (const variant of Object.keys(VARIANTS) as Variant[]) {
       try {
-        results.push(await optimize(slug, kind))
+        results.push(await optimize(slug, variant))
       } catch (error) {
-        failures.push({ slug, kind, error })
+        failures.push({ slug, variant, error })
       }
     }
   }
-  console.log('\nslug                        kind     in        out       ratio')
-  console.log('─'.repeat(64))
+  console.log('\nslug                        variant         dims         in        out       ratio')
+  console.log('─'.repeat(82))
   for (const r of results) {
     const ratio = ((r.outSize / r.srcSize) * 100).toFixed(1) + '%'
+    const dims = `${r.outWidth}×${r.outHeight}`
     console.log(
-      `${r.slug.padEnd(28)}${r.kind.padEnd(9)}${fmt(r.srcSize).padEnd(10)}${fmt(r.outSize).padEnd(10)}${ratio}`
+      `${r.slug.padEnd(28)}${r.variant.padEnd(16)}${dims.padEnd(13)}${fmt(r.srcSize).padEnd(10)}${fmt(r.outSize).padEnd(10)}${ratio}`
     )
   }
   if (failures.length > 0) {
     console.error('\nFailures:')
-    for (const f of failures) console.error(`  ${f.slug} ${f.kind}: ${f.error}`)
+    for (const f of failures) console.error(`  ${f.slug} ${f.variant}: ${f.error}`)
     process.exit(1)
   }
   console.log(`\n${results.length} files optimized.`)

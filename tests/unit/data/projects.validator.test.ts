@@ -6,7 +6,7 @@ function validate(projects: Project[]): void {
     (p) => p.highlight && (p.highlightOrder ?? 99) <= 4
   )
   for (const p of selectedWork) {
-    if (!p.mockups?.desktop || !p.mockups?.mobile) {
+    if (!p.mockups?.desktop || !p.mockups?.desktopBento || !p.mockups?.mobile) {
       throw new Error(
         `Project "${p.id}" is a Selected Work highlight but is missing mockups`
       )
@@ -28,13 +28,13 @@ const baseProject = (overrides: Partial<Project>): Project => ({
 })
 
 describe('projects validator', () => {
-  it('passes when all selected-work highlights have mockups', () => {
+  it('passes when all selected-work highlights have all three mockups', () => {
     const projects = [
       baseProject({
         id: 'a',
         highlight: true,
         highlightOrder: 1,
-        mockups: { desktop: '/a/d.webp', mobile: '/a/m.webp' },
+        mockups: { desktop: '/a/d.webp', desktopBento: '/a/db.webp', mobile: '/a/m.webp' },
       }),
     ]
     expect(() => validate(projects)).not.toThrow()
@@ -53,7 +53,19 @@ describe('projects validator', () => {
         id: 'c',
         highlight: true,
         highlightOrder: 2,
-        mockups: { desktop: '/c/d.webp', mobile: '' },
+        mockups: { desktop: '/c/d.webp', desktopBento: '/c/db.webp', mobile: '' },
+      }),
+    ]
+    expect(() => validate(projects)).toThrow(/missing mockups/)
+  })
+
+  it('throws when a top-4 highlight is missing desktopBento', () => {
+    const projects = [
+      baseProject({
+        id: 'e',
+        highlight: true,
+        highlightOrder: 3,
+        mockups: { desktop: '/e/d.webp', desktopBento: '', mobile: '/e/m.webp' },
       }),
     ]
     expect(() => validate(projects)).toThrow(/missing mockups/)

@@ -43,6 +43,7 @@ export const projects: Project[] = [
     coverImage: '/images/projects/painel-da-reconstrucao/desktop/01-dados-gerais.png',
     mockups: {
       desktop: '/images/projects/painel-da-reconstrucao/mockups/desktop.webp',
+      desktopBento: '/images/projects/painel-da-reconstrucao/mockups/desktop-bento.webp',
       mobile: '/images/projects/painel-da-reconstrucao/mockups/mobile.webp',
     },
     images: [],
@@ -162,6 +163,7 @@ export const projects: Project[] = [
     coverImage: '/images/projects/enquetes-gzh/desktop/01-embed-vote.png',
     mockups: {
       desktop: '/images/projects/enquetes-gzh/mockups/desktop.webp',
+      desktopBento: '/images/projects/enquetes-gzh/mockups/desktop-bento.webp',
       mobile: '/images/projects/enquetes-gzh/mockups/mobile.webp',
     },
     images: [],
@@ -213,6 +215,7 @@ export const projects: Project[] = [
     coverImage: '/images/projects/ia-na-redacao/desktop/01-landing.png',
     mockups: {
       desktop: '/images/projects/ia-na-redacao/mockups/desktop.webp',
+      desktopBento: '/images/projects/ia-na-redacao/mockups/desktop-bento.webp',
       mobile: '/images/projects/ia-na-redacao/mockups/mobile.webp',
     },
     images: [],
@@ -286,6 +289,7 @@ export const projects: Project[] = [
     coverImage: '/images/projects/fotos-do-ano-2025/desktop/01-hero.png',
     mockups: {
       desktop: '/images/projects/fotos-do-ano-2025/mockups/desktop.webp',
+      desktopBento: '/images/projects/fotos-do-ano-2025/mockups/desktop-bento.webp',
       mobile: '/images/projects/fotos-do-ano-2025/mockups/mobile.webp',
     },
     images: [],
@@ -359,6 +363,7 @@ export const projects: Project[] = [
     coverImage: '/images/projects/peleia-gre-nal/desktop/01-intro.png',
     mockups: {
       desktop: '/images/projects/peleia-gre-nal/mockups/desktop.webp',
+      desktopBento: '/images/projects/peleia-gre-nal/mockups/desktop-bento.webp',
       mobile: '/images/projects/peleia-gre-nal/mockups/mobile.webp',
     },
     images: [],
@@ -406,55 +411,6 @@ export const projects: Project[] = [
     ],
   },
   {
-    id: 'linha-do-tempo-covid',
-    slug: 'linha-do-tempo-covid',
-    title: { en: 'linha do tempo covid', pt: 'linha do tempo covid' },
-    year: 2025,
-    highlight: false,
-    highlightOrder: 99,
-    gradient: 'linear-gradient(145deg, #D4E5F2, #6A8CAA)',
-    tagline: {
-      en: 'five years of the pandemic, told year by year',
-      pt: 'cinco anos da pandemia, contados ano a ano',
-    },
-    description: {
-      en: 'Interactive feature for Gaúcha ZH marking five years since the start of the COVID-19 pandemic — seven full-height tiles (2019–2025) that collapse into a per-year chronological timeline.',
-      pt: 'Especial interativo da Gaúcha ZH marcando cinco anos do início da pandemia de COVID-19 — sete blocos de altura total (2019–2025) que colapsam em uma linha do tempo cronológica por ano.',
-    },
-    techStack: ['React 18', 'TypeScript', 'Vite', 'TailwindCSS', 'Framer Motion'],
-    projectType: 'shipped',
-    coverImage: '/images/projects/linha-do-tempo-covid/desktop/01-home.png',
-    images: [],
-    screenshots: [
-      {
-        desktop: '/images/projects/linha-do-tempo-covid/desktop/01-home.png',
-        mobile: '/images/projects/linha-do-tempo-covid/mobile/01-home.png',
-        route: 'home',
-      },
-      {
-        desktop: '/images/projects/linha-do-tempo-covid/desktop/03-2021-timeline.png',
-        mobile: '/images/projects/linha-do-tempo-covid/mobile/03-2021-timeline.png',
-        route: 'timeline',
-      },
-    ],
-    story: [
-      {
-        type: 'paragraph',
-        text: {
-          en: 'A single-page interactive feature for **Gaúcha ZH** marking five years since the start of the COVID-19 pandemic. The landing screen is split into seven full-height vertical tiles, one per year from 2019 to 2025, each backed by a black-and-white photo from RBS / AFP archives. Clicking a tile collapses the strip to a thin selector and reveals a chronological timeline of milestones for that year — first WHO notice, first Brazilian case, vaccination rollout, end of the global health emergency.',
-          pt: 'Especial interativo de página única para a **Gaúcha ZH** marcando cinco anos do início da pandemia de COVID-19. A tela inicial é dividida em sete blocos verticais de altura total, um por ano de 2019 a 2025, cada um apoiado por uma foto em preto e branco dos arquivos da RBS / AFP. Clicar em um bloco colapsa a faixa em um seletor fino e revela uma linha do tempo cronológica dos marcos daquele ano — primeira nota da OMS, primeiro caso no Brasil, vacinação, fim da emergência sanitária global.',
-        },
-      },
-      {
-        type: 'paragraph',
-        text: {
-          en: 'The year strip is a flex row whose children grow on hover (`flex: 1.5` on the active tile, `0.9` on the others) and animate to a compact 80px-tall selector once a year is picked, with an `AnimatePresence` swap between timeline panels. The timeline panel itself is data-driven: a single `Record<string, TimelineEvent[]>` describes every date, paragraph, and image — editing the story is editing the array.',
-          pt: 'A faixa de anos é um flex row cujos filhos crescem no hover (`flex: 1.5` no bloco ativo, `0.9` nos demais) e animam até um seletor compacto de 80px de altura quando um ano é selecionado, com uma troca por `AnimatePresence` entre painéis. O painel em si é guiado por dados: um único `Record<string, TimelineEvent[]>` descreve cada data, parágrafo e imagem — editar a história é editar o array.',
-        },
-      },
-    ],
-  },
-  {
     id: 'hotmart-bunde',
     slug: 'hotmart-bunde',
     title: { en: 'política essencial', pt: 'política essencial' },
@@ -482,6 +438,7 @@ export const projects: Project[] = [
     coverImage: '/images/projects/hotmart-bunde/desktop/01-hero.png',
     mockups: {
       desktop: '/images/projects/hotmart-bunde/mockups/desktop.webp',
+      desktopBento: '/images/projects/hotmart-bunde/mockups/desktop-bento.webp',
       mobile: '/images/projects/hotmart-bunde/mockups/mobile.webp',
     },
     images: [],
@@ -555,6 +512,7 @@ export const projects: Project[] = [
     coverImage: '/images/projects/fotos-do-ano-2024/desktop/01-hero.png',
     mockups: {
       desktop: '/images/projects/fotos-do-ano-2024/mockups/desktop.webp',
+      desktopBento: '/images/projects/fotos-do-ano-2024/mockups/desktop-bento.webp',
       mobile: '/images/projects/fotos-do-ano-2024/mockups/mobile.webp',
     },
     images: [],
@@ -611,7 +569,7 @@ export const projects: Project[] = [
     (p) => p.highlight && (p.highlightOrder ?? 99) <= 4
   )
   for (const p of selectedWork) {
-    if (!p.mockups?.desktop || !p.mockups?.mobile) {
+    if (!p.mockups?.desktop || !p.mockups?.desktopBento || !p.mockups?.mobile) {
       throw new Error(
         `Project "${p.id}" is a Selected Work highlight but is missing mockups`
       )
