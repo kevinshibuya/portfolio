@@ -1084,7 +1084,23 @@ strong {
     aspect-ratio: auto;
   }
   .bento-card { aspect-ratio: 4 / 3; }
-  .bento-card--lg, .bento-card--md { grid-column: span 1; aspect-ratio: 4 / 3; }
+  /* Below 720px, lg + md fall back to the sm card layout — single mockup
+     centered, tagline top, title+CTA bottom — so the dual-mockup md split
+     and the oversized lg title don't crowd narrow viewports. */
+  .bento-card--lg, .bento-card--md {
+    grid-column: span 1;
+    aspect-ratio: 4 / 3;
+    padding: 20px;
+  }
+  .bento-card--lg .bento-title { font-size: 20px; }
+  .bento-card--lg .bento-mockup-wrap,
+  .bento-card--md .bento-mockup-wrap {
+    inset: 22% 8% 30% 8%;
+    flex-direction: row;
+    gap: 0;
+  }
+  .bento-card--md .bento-text-col { display: contents; }
+  .bento-card--md .bento-mockup--mobile { display: none; }
   .contact-row { grid-template-columns: 32px 1fr 24px; }
   .contact-meta { display: none; }
   .section-header { margin-bottom: 40px; }
