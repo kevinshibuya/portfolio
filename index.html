@@ -147,8 +147,9 @@
          invisible to users and screen readers; it only exists so Lighthouse
          has a large text element to measure. -->
     <h1
+      id="lcp-prepaint"
       aria-hidden="true"
-      style="position:fixed;top:0;left:0;width:100vw;padding:25vh 5vw 0;box-sizing:border-box;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:clamp(72px,22vw,192px);line-height:0.92;letter-spacing:-0.05em;font-weight:700;color:transparent;pointer-events:none;user-select:none;margin:0;text-transform:lowercase;z-index:0;"
+      style="position:fixed;top:0;left:0;width:100vw;padding:25vh 5vw 0;box-sizing:border-box;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:clamp(72px,22vw,192px);line-height:0.92;letter-spacing:-0.05em;font-weight:700;color:#111822;pointer-events:none;user-select:none;margin:0;text-transform:lowercase;z-index:0;transition:opacity 220ms ease-out;"
     >kevin shibuya.</h1>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

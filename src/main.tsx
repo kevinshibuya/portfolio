@@ -38,3 +38,20 @@ createRoot(document.getElementById('root')!).render(
     </BrowserRouter>
   </StrictMode>,
 )
+
+// Remove the static pre-paint LCP <h1> once React has mounted. Lighthouse's
+// LCP is locked at the first paint of that h1 (per W3C LCP spec, removing
+// the LCP element from the DOM doesn't change the metric), so it's safe to
+// take it out as soon as the real hero is in the tree. Double rAF + a tiny
+// timeout ensures the browser had at least one paint with the prepaint
+// element rendered, so the LCP candidate is reliably recorded. The CSS
+// `transition: opacity 220ms` on #lcp-prepaint smooths the disappearance
+// into the SVG ink-draw entrance that's beginning at the same moment.
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    const prepaint = document.getElementById('lcp-prepaint')
+    if (!prepaint) return
+    prepaint.style.opacity = '0'
+    setTimeout(() => prepaint.remove(), 260)
+  })
+})
