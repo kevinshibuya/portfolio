@@ -281,6 +281,86 @@ strong {
 }
 
 /* =========================================================================
+   LOADER + CURTAIN — paints at first frame from index.html, lifts via
+   main.tsx after React mounts + min-dwell. Two-panel split: top translates
+   up, bottom translates down. The .loader-mark "ks" sits at viewport center;
+   each panel clips its half via overflow:hidden so the mark appears to tear
+   along the seam when the panels separate.
+   ========================================================================= */
+html[data-loading='true'],
+body.is-loading {
+  overflow: hidden;
+}
+
+#loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  /* Below: each half handles its own background + mark clipping. */
+}
+
+.loader-half {
+  position: fixed;
+  left: 0;
+  width: 100vw;
+  height: 50vh;
+  background: #111822; /* ink — fallback hex; --ink token is loaded inside :root which may not be parsed yet for the loader's first paint */
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  /* transition target: transform. Default is identity (curtain in place). */
+  transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
+  will-change: transform;
+}
+
+.loader-half--top {
+  top: 0;
+  align-items: flex-end; /* mark grows from below — its bottom edge sits at the panel's bottom (the seam) */
+}
+
+.loader-half--bottom {
+  bottom: 0;
+  align-items: flex-start; /* mark grows from above — its top edge sits at the panel's top (the seam) */
+}
+
+.loader-mark {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: clamp(140px, 30vw, 320px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  text-transform: lowercase;
+  color: #F6F9FC; /* cream — fallback hex */
+  /* Both halves render the SAME mark; the parent panel's overflow:hidden +
+     align-items (flex-end vs flex-start) clips the appropriate half. The
+     mark itself overflows its panel so the visual reads as one continuous
+     "ks" straddling the horizontal seam. */
+  transform: translateY(50%); /* shift the mark down by half its own height so the seam cuts through its vertical center */
+}
+
+.loader-half--bottom .loader-mark {
+  transform: translateY(-50%); /* the bottom half clips the top of the mark; shift up so the visible portion is the bottom half of the glyph */
+}
+
+/* Curtain exit: triggered by main.tsx adding .loader--exit to #loader. */
+#loader.loader--exit .loader-half--top { transform: translateY(-100%); }
+#loader.loader--exit .loader-half--bottom { transform: translateY(100%); }
+
+/* Reduced motion: skip the slide; fade the whole loader out instead. */
+@media (prefers-reduced-motion: reduce) {
+  .loader-half {
+    transition: none;
+  }
+  #loader {
+    transition: opacity 150ms ease-out;
+  }
+  #loader.loader--exit {
+    opacity: 0;
+  }
+}
+
+/* =========================================================================
    HERO NAME DRAWING — SVG glyph paths animated as ink-trace + ink-fill.
    This component IS the hero title (it replaces the static <h1>).
    Each <path> is a glyph outline extracted from Plus Jakarta Sans Bold;

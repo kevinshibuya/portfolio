@@ -131,7 +131,7 @@ EOF
 
 After this task, the loader is visible at first paint but does not lift (no JS controller yet — comes in Task 3). The page will be "stuck" on the loader; that's expected. Verify visually that the loader renders correctly.
 
-- [ ] **Step 2.1: Replace `#lcp-prepaint` h1 in `index.html` with loader markup**
+- [x] **Step 2.1: Replace `#lcp-prepaint` h1 in `index.html` with loader markup**
 
 In `index.html`, find:
 
@@ -169,7 +169,7 @@ Replace with:
     </div>
 ```
 
-- [ ] **Step 2.2: Add `body.is-loading` toggle inline-script in `<head>`**
+- [x] **Step 2.2: Add `body.is-loading` toggle inline-script in `<head>`**
 
 Find the `</head>` line in `index.html`. Insert this `<script>` block immediately before it (after the font-preload link):
 
@@ -187,7 +187,7 @@ Find the `</head>` line in `index.html`. Insert this `<script>` block immediatel
 
 NOTE: at HTML parse time, `document.body` may not exist yet. The `document.body && (...)` guard handles that. As a backup, the inline script also sets a `data-loading` attribute on `<html>` (which DOES exist) so CSS can apply the lock via either hook.
 
-- [ ] **Step 2.3: Add loader CSS rules to `src/index.css`**
+- [x] **Step 2.3: Add loader CSS rules to `src/index.css`**
 
 Find the `.sr-only` rule block in `src/index.css` (currently around lines 273-281). Insert the following CSS block IMMEDIATELY AFTER `.sr-only`'s closing `}` (so the loader styles live near other "utility / overlay" rules):
 
@@ -274,7 +274,7 @@ body.is-loading {
 }
 ```
 
-- [ ] **Step 2.4: Build to confirm CSS parses cleanly**
+- [x] **Step 2.4: Build to confirm CSS parses cleanly**
 
 ```bash
 cd /Users/luizarazzera/Desktop/keki/dev/personal_projects/portfolio
@@ -283,7 +283,7 @@ npm run build 2>&1 | tail -10
 
 Expected: `✓ built in N.NNs`. The output bundle includes the new CSS rules.
 
-- [ ] **Step 2.5: Visual smoke test — loader renders correctly**
+- [x] **Step 2.5: Visual smoke test — loader renders correctly**
 
 ```bash
 cd /Users/luizarazzera/Desktop/keki/dev/personal_projects/portfolio
@@ -325,7 +325,7 @@ If you can view the screenshots, confirm:
 
 If something looks wrong (mark misaligned, wrong color, missing one half), inspect index.html and the CSS rules. Common issue: the mark's `translateY(50%)` and `translateY(-50%)` shifts are the trick that makes top/bottom halves appear continuous.
 
-- [ ] **Step 2.6: Commit**
+- [x] **Step 2.6: Commit**
 
 Tick steps 2.1–2.6 in this plan, then:
 

@@ -138,19 +138,32 @@
       type="font/woff2"
       crossorigin="anonymous"
     />
+    <script>
+      // Lock body scroll while the loader is up. Set BEFORE React parses so
+      // the document's initial render is already scroll-locked — prevents
+      // a one-frame flash of scrollable content underneath the curtain on
+      // very slow networks. main.tsx removes this class when it removes
+      // the loader element.
+      document.documentElement.dataset.loading = 'true'
+      document.body && (document.body.classList.add('is-loading'))
+    </script>
   </head>
   <body>
-    <!-- Static pre-paint LCP target. Renders at HTML-parse time (~TTFB+50ms)
-         so Lighthouse's LCP observer fires immediately on slow-4G mobile,
-         instead of waiting 4-5s for React to mount and the entrance gate to
-         clear. Transparent + aria-hidden + pointer-events:none means it's
-         invisible to users and screen readers; it only exists so Lighthouse
-         has a large text element to measure. -->
-    <h1
-      id="lcp-prepaint"
-      aria-hidden="true"
-      style="position:fixed;top:0;left:0;width:100vw;padding:25vh 5vw 0;box-sizing:border-box;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:clamp(72px,22vw,192px);line-height:0.92;letter-spacing:-0.05em;font-weight:700;color:#111822;pointer-events:none;user-select:none;margin:0;text-transform:lowercase;z-index:0;transition:opacity 220ms ease-out;"
-    >kevin shibuya.</h1>
+    <!-- LOADER + CURTAIN. The two .loader-half panels paint at first frame
+         on hard navigation; the .loader-mark inside each is the LCP candidate
+         (locked at first paint per W3C LCP spec, even after panels animate
+         away). Both halves carry the SAME mark positioned at the viewport's
+         vertical center; each panel's overflow:hidden clips its half so the
+         mark looks continuous across the seam. When main.tsx adds .loader--exit,
+         the panels translate apart and the mark "tears". -->
+    <div id="loader" aria-hidden="true">
+      <div class="loader-half loader-half--top">
+        <span class="loader-mark">ks</span>
+      </div>
+      <div class="loader-half loader-half--bottom">
+        <span class="loader-mark">ks</span>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
