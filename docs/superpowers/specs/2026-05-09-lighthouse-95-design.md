@@ -123,7 +123,7 @@ Acceptance criteria per batch. Tick only when the corresponding Lighthouse re-au
 - [x] **Batch 1 (SEO)**: mobile + desktop SEO scores reach 100. `index.html` contains description, canonical, OG, Twitter, JSON-LD; `public/robots.txt` and `public/sitemap.xml` are valid.
 - [x] **Batch 2 (A11y)**: mobile + desktop Accessibility scores reach 100. Lighthouse `color-contrast` audit reports zero failing elements; `label-content-name-mismatch` audit passes.
 - [x] **Batch 3 (LCP)**: Lighthouse runs without `NO_LCP`. Performance category produces a numeric score on both mobile and desktop. Hero ink-draw entrance visually unchanged (manual browser check at desktop + iphone-12).
-- [x] **Batch 4 (FCP)**: mobile FCP ≤ 1.5 s and Performance ≥ 95 on mobile. CLS stays at 0. No visible regression to bento layout.
+- [ ] **Batch 4 (FCP)**: mobile FCP ≤ 1.5 s and Performance ≥ 95 on mobile. CLS stays at 0. No visible regression to bento layout.
 - [ ] **Batch 5 (bundle, conditional)**: only ticked if executed — main JS chunk ≤ 350 KB raw / 110 KB gzip after route-level splitting.
 - [ ] **Batch 6 (final)**: mobile Lighthouse: Perf ≥ 95, A11y ≥ 95, BP = 100, SEO ≥ 95. Desktop: same four. Reports archived at `/tmp/lh-final/`.
 - [ ] **All**: `npm run build` passes; no console errors on `npm run dev`.
