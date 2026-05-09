@@ -760,7 +760,7 @@ EOF
 **Files:**
 - Modify: `docs/superpowers/specs/2026-05-09-loading-screen-design.md` (TODO checkboxes)
 
-- [ ] **Step 5.1: Run full Lighthouse audit, mobile + desktop, all four categories**
+- [x] **Step 5.1: Run full Lighthouse audit, mobile + desktop, all four categories**
 
 ```bash
 cd /Users/luizarazzera/Desktop/keki/dev/personal_projects/portfolio
@@ -807,7 +807,7 @@ If any score regressed below 95 vs the pre-loader state (Mobile 95 / 100 / 96 / 
 - Most likely regression vector: A11y (the loader's `.loader-mark` color contrast — cream `#F6F9FC` on ink `#111822` is ~14.6:1, well above AA, so this should pass; if Lighthouse flags it, double-check the actual computed colors in DevTools)
 - If LCP element ISN'T inside `#loader`: the loader markup or CSS isn't painting at first frame. Check that the inline `<head>` script runs before any render-blocking resource and that the loader CSS rules don't have typos.
 
-- [ ] **Step 5.2: Verify dev server still works**
+- [x] **Step 5.2: Verify dev server still works**
 
 ```bash
 cd /Users/luizarazzera/Desktop/keki/dev/personal_projects/portfolio
@@ -822,7 +822,7 @@ tail -10 /tmp/dev.log
 
 Expected: `dev OK`. No console errors related to the loader.
 
-- [ ] **Step 5.3: Verify reduced-motion behavior**
+- [x] **Step 5.3: Verify reduced-motion behavior**
 
 Run the audit with `prefers-reduced-motion: reduce` simulated:
 
@@ -866,7 +866,7 @@ Expected:
 
 The key check: the curtain should fade out via opacity rather than slide-apart. If the panels visibly slide, the `@media (prefers-reduced-motion: reduce)` block isn't taking effect — verify the CSS rules in `src/index.css`.
 
-- [ ] **Step 5.4: Tick spec TODOs that are genuinely met**
+- [x] **Step 5.4: Tick spec TODOs that are genuinely met**
 
 Open `docs/superpowers/specs/2026-05-09-loading-screen-design.md` and tick the boxes whose acceptance criterion was verified by the audits and visual checks above. Specifically:
 
@@ -881,7 +881,7 @@ grep -nE '^\- \[[ x]\]' /Users/luizarazzera/Desktop/keki/dev/personal_projects/p
 
 Look for any remaining `- [ ]` and only proceed if each is justified (or explain in your report).
 
-- [ ] **Step 5.5: Final commit + retro snapshot**
+- [x] **Step 5.5: Final commit + retro snapshot**
 
 Tick steps 5.1–5.5 in this plan, then:
 
@@ -908,7 +908,7 @@ git log --oneline main..HEAD | head -10
 
 (Replace the `<FILL>` placeholders with the ACTUAL numbers from Step 5.1's output.)
 
-- [ ] **Step 5.6: Hand off to user**
+- [x] **Step 5.6: Hand off to user**
 
 Report:
 - Final score table (mobile + desktop, all four categories)
