@@ -151,8 +151,8 @@ function MockupLayer({ src, alt, className }: MockupLayerProps) {
         aria-hidden="true"
         decoding="async"
         loading="lazy"
-        width="1600"
-        height="1000"
+        width="1200"
+        height="737"
       />
       <img
         className="bento-mockup-img bento-mockup-img--color"
@@ -160,8 +160,8 @@ function MockupLayer({ src, alt, className }: MockupLayerProps) {
         alt={alt}
         decoding="async"
         loading="lazy"
-        width="1600"
-        height="1000"
+        width="1200"
+        height="737"
       />
     </span>
   )
