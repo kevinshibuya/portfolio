@@ -248,7 +248,7 @@ EOF
 - Modify: `src/index.css:1178-1191` (.archive-dropdown-trigger)
 - Modify: `src/index.css:1229-1240` (.archive-search)
 
-- [ ] **Step 3.1: Bump `.archive-dropdown-trigger` to ≥ 44 px height**
+- [x] **Step 3.1: Bump `.archive-dropdown-trigger` to ≥ 44 px height**
 
 Replace the existing rule at `src/index.css:1178-1191`:
 
@@ -293,7 +293,7 @@ New:
 
 (Adding `min-height: 44px` floors the chip height; `align-items: center` keeps the label vertically centered. Padding-x bumped from 14 → 16 for proportional balance.)
 
-- [ ] **Step 3.2: Bump `.archive-search` to ≥ 44 px height**
+- [x] **Step 3.2: Bump `.archive-search` to ≥ 44 px height**
 
 Replace the existing rule at `src/index.css:1229-1240`:
 
@@ -332,14 +332,14 @@ New:
 }
 ```
 
-- [ ] **Step 3.3: Visually verify in the browser**
+- [x] **Step 3.3: Visually verify in the browser**
 
 Open `http://localhost:5173/#archive` at iPhone-12 emulation. Confirm:
 1. The search field ("search…") and the 5 dropdown chips (kind / type / editorial / year / sort) are all noticeably taller than before, but still pill-shaped and visually consistent.
 2. Tapping each dropdown still opens its panel under the trigger; the panel position adjusts to the new trigger height.
 3. The chips wrap across two rows the same way as before.
 
-- [ ] **Step 3.4: Run the build**
+- [x] **Step 3.4: Run the build**
 
 ```bash
 npm run build 2>&1 | tail -5
