@@ -123,7 +123,7 @@ npm run build 2>&1 | tail -10
 
 Expected: build succeeds with no TS or CSS errors. Output ends with `✓ built in <time>`.
 
-- [ ] **Step 1.5: Commit**
+- [x] **Step 1.5: Commit**
 
 ```bash
 git add src/index.css
@@ -134,6 +134,8 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 EOF
 )"
 ```
+
+**Fix-loop F (post-review):** code review of commit 452db2c flagged that the always-on 44 px floors made the desktop header row grow from 30 → 44 px. Resolved by wrapping the floors in a `@media (max-width: 720px)` block; desktop reverts to the original heights, mobile keeps the 44 × 44 tap target. Re-verified at 1280 + 390.
 
 ---
 
