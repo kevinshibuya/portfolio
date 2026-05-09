@@ -215,6 +215,15 @@ strong {
 }
 .nav-lang:hover { color: var(--ink); }
 
+@media (max-width: 720px) {
+  .nav-brand { min-height: 44px; }
+  .nav-lang {
+    min-width: 44px; min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0 12px;
+  }
+}
+
 /* =========================================================================
    HERO
    ========================================================================= */
@@ -1242,6 +1251,11 @@ body[data-loader-state="loading"] {
 .archive-search:focus { outline: none; border-color: var(--blue-400); }
 .archive-search::placeholder { color: var(--dust); text-transform: lowercase; }
 
+@media (max-width: 720px) {
+  .archive-search { min-height: 44px; padding: 11px 16px; }
+  .archive-dropdown-trigger { min-height: 44px; padding: 8px 16px; }
+}
+
 .archive-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .archive-chip {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1346,6 +1360,8 @@ body[data-loader-state="loading"] {
     padding: 14px 16px;
   }
   .archive-preview, .archive-date { display: none; }
+  /* Tighten the counter→list gap: utility is 96px desktop, ~32px mobile. */
+  .archive-list.section-spacing-content { margin-top: 32px; }
 }
 
 /* =====================================================================
@@ -1367,6 +1383,13 @@ body[data-loader-state="loading"] {
   transition: color 0.2s;
 }
 .project-detail-back:hover { color: var(--blue-400); }
+@media (max-width: 720px) {
+  .project-detail-back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
 
 .project-detail-eyebrow {
   display: block;
@@ -1604,6 +1627,14 @@ body[data-loader-state="loading"] {
   color: var(--blue-400);
   margin-bottom: 12px;
 }
+@media (max-width: 720px) {
+  .project-detail-route-list-summary {
+    /* Grow the box to >= 44px tap target via padding rather than flex,
+       so <summary>'s native disclosure marker (default list-item display)
+       isn't stripped on mobile. */
+    padding-block: 14px;
+  }
+}
 .project-detail-route-list-items {
   list-style: none;
   padding: 0;
@@ -1612,6 +1643,21 @@ body[data-loader-state="loading"] {
   grid-template-columns: 240px 1fr;
   row-gap: 6px;
   column-gap: 16px;
+}
+/* Tighter than the rest of the file's 720px mobile cutoff: the desktop grid
+   `240px 1fr` only overruns once the second track collapses below ~24px,
+   which happens at viewport widths under ~340px. 480px catches the small
+   phones without disturbing 600–720px tablets that have plenty of room. */
+@media (max-width: 480px) {
+  .project-detail-route-list-items {
+    grid-template-columns: 1fr;
+    /* `display: contents` flattens each <li> so cells flow path₁/label₁/
+       path₂/label₂. A uniform row-gap would blur pairs into each other,
+       so we tighten the gap and add inter-route spacing on the label. */
+    row-gap: 4px;
+    column-gap: 0;
+  }
+  .project-detail-route-label { margin-bottom: 10px; }
 }
 .project-detail-route-list-item { display: contents; }
 .project-detail-route-path {
