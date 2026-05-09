@@ -541,7 +541,7 @@ EOF
 
 This is the final wiring step that makes the hero entrance play CLEANLY after the curtain instead of under it. The existing `entranceBypassed` and `prefersReducedMotion` fast-paths run BEFORE the await so those flows don't change behavior.
 
-- [ ] **Step 4.1: Import `curtainGone` at the top of `HeroNameDrawing.tsx`**
+- [x] **Step 4.1: Import `curtainGone` at the top of `HeroNameDrawing.tsx`**
 
 In `src/components/ui/HeroNameDrawing.tsx`, find the existing imports near the top:
 
@@ -572,7 +572,7 @@ import {
 
 (Keeping `useMotion` and `curtainGone` on separate import lines keeps the diff small and grep-friendly. They both come from the same module, so a single combined import would also be valid if the codebase prefers that.)
 
-- [ ] **Step 4.2: Wrap the trace-animation kickoff in `curtainGone.then(...)`**
+- [x] **Step 4.2: Wrap the trace-animation kickoff in `curtainGone.then(...)`**
 
 In the same file, find the existing `useEffect` block (currently lines 35-118). The relevant section is the post-fast-paths animation kickoff (after the `if (prefersReducedMotion) { ... return }` block).
 
@@ -677,7 +677,7 @@ Replace with:
 
 Key change: the `requestAnimationFrame` and timer scheduling moved INSIDE `curtainGone.then(...)`. The cleanup return retains the same cancel logic but now also gates on the `cancelled` flag so a late curtain resolution doesn't kick off animations on an unmounted component.
 
-- [ ] **Step 4.3: Build to confirm types compile**
+- [x] **Step 4.3: Build to confirm types compile**
 
 ```bash
 cd /Users/luizarazzera/Desktop/keki/dev/personal_projects/portfolio
@@ -686,7 +686,7 @@ npm run build 2>&1 | tail -10
 
 Expected: `✓ built in N.NNs`, no TypeScript errors.
 
-- [ ] **Step 4.4: Visual smoke — full sequence loader → curtain lift → hero entrance**
+- [x] **Step 4.4: Visual smoke — full sequence loader → curtain lift → hero entrance**
 
 ```bash
 cd /Users/luizarazzera/Desktop/keki/dev/personal_projects/portfolio
@@ -728,7 +728,7 @@ Expected:
 
 The KEY visual check vs the prior task: in 03/04, the ink-draw should be visibly playing on cream — not already completed when the curtain lifts. Compare to /tmp/curtain-lift-screens/04-1200ms-after-curtain.png from Task 3 (where the entrance had already completed under the curtain).
 
-- [ ] **Step 4.5: Commit**
+- [x] **Step 4.5: Commit**
 
 Tick steps 4.1–4.5, then:
 

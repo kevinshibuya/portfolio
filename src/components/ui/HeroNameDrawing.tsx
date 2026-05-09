@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMotion } from '../../context/MotionContext'
+import { curtainGone } from '../../context/MotionContext'
 import {
   NAME_KEVIN,
   NAME_SHIBUYA,
@@ -86,31 +87,44 @@ export function HeroNameDrawing({ onComplete }: HeroNameDrawingProps) {
 
     const totalTrace = (allPaths.length - 1) * STAGGER_MS + TRACE_DUR_MS
 
-    const rafId = requestAnimationFrame(() => {
-      allPaths.forEach((p, i) => {
-        p.style.transition = `stroke-dashoffset ${TRACE_DUR_MS}ms cubic-bezier(0.65, 0, 0.35, 1) ${i * STAGGER_MS}ms`
-        p.style.strokeDashoffset = '0'
+    let cancelled = false
+    let rafId = 0
+    let fillTimer = 0
+    let completeTimer = 0
+
+    // Wait for the curtain in index.html to finish lifting before kicking
+    // off the trace. On bypassEntrance() / first-load resolve from main.tsx,
+    // the promise is already settled and this resolves on the next microtask.
+    void curtainGone.then(() => {
+      if (cancelled) return
+
+      rafId = requestAnimationFrame(() => {
+        allPaths.forEach((p, i) => {
+          p.style.transition = `stroke-dashoffset ${TRACE_DUR_MS}ms cubic-bezier(0.65, 0, 0.35, 1) ${i * STAGGER_MS}ms`
+          p.style.strokeDashoffset = '0'
+        })
       })
+
+      // After the trace completes, replace the per-path inline transition
+      // (currently scoped to stroke-dashoffset) with one that covers the
+      // properties the ink-fill will animate, then flip React state to
+      // apply the --ink / --ghost classes via JSX (so they survive any
+      // future re-renders without being wiped by React reconciliation).
+      fillTimer = window.setTimeout(() => {
+        const fillTransition = `fill ${INK_FILL_DUR_MS}ms cubic-bezier(0.22, 1, 0.36, 1), stroke ${INK_FILL_DUR_MS}ms cubic-bezier(0.22, 1, 0.36, 1), stroke-width ${INK_FILL_DUR_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`
+        allPaths.forEach((p) => {
+          p.style.transition = fillTransition
+        })
+        setInkFilled(true)
+      }, totalTrace + 100)
+
+      completeTimer = window.setTimeout(() => {
+        onComplete?.()
+      }, totalTrace + 100 + INK_FILL_DUR_MS)
     })
 
-    // After the trace completes, replace the per-path inline transition
-    // (currently scoped to stroke-dashoffset) with one that covers the
-    // properties the ink-fill will animate, then flip React state to
-    // apply the --ink / --ghost classes via JSX (so they survive any
-    // future re-renders without being wiped by React reconciliation).
-    const fillTimer = window.setTimeout(() => {
-      const fillTransition = `fill ${INK_FILL_DUR_MS}ms cubic-bezier(0.22, 1, 0.36, 1), stroke ${INK_FILL_DUR_MS}ms cubic-bezier(0.22, 1, 0.36, 1), stroke-width ${INK_FILL_DUR_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`
-      allPaths.forEach((p) => {
-        p.style.transition = fillTransition
-      })
-      setInkFilled(true)
-    }, totalTrace + 100)
-
-    const completeTimer = window.setTimeout(() => {
-      onComplete?.()
-    }, totalTrace + 100 + INK_FILL_DUR_MS)
-
     return () => {
+      cancelled = true
       cancelAnimationFrame(rafId)
       window.clearTimeout(fillTimer)
       window.clearTimeout(completeTimer)
