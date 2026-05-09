@@ -39,19 +39,58 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Remove the static pre-paint LCP <h1> once React has mounted. Lighthouse's
-// LCP is locked at the first paint of that h1 (per W3C LCP spec, removing
-// the LCP element from the DOM doesn't change the metric), so it's safe to
-// take it out as soon as the real hero is in the tree. Double rAF + a tiny
-// timeout ensures the browser had at least one paint with the prepaint
-// element rendered, so the LCP candidate is reliably recorded. The CSS
-// `transition: opacity 220ms` on #lcp-prepaint smooths the disappearance
-// into the SVG ink-draw entrance that's beginning at the same moment.
+// Curtain controller. The loader in index.html paints at first frame
+// (LCP candidate locked there). We lift the curtain when BOTH:
+//   (a) React has mounted and committed at least one paint (double rAF), AND
+//   (b) a minimum dwell has elapsed (so even instant React mounts on cached
+//       reloads still show the loader long enough to be perceived).
+// A 3 s hard fallback always lifts the curtain even if React stalls.
+//
+// After lifting:
+//   1. .loader--exit class triggers the CSS transitions (panels slide apart
+//      over 600 ms, or 150 ms opacity fade under prefers-reduced-motion).
+//   2. setTimeout removes the loader element from the DOM.
+//   3. resolveCurtain() flips the MotionContext signal that HeroNameDrawing
+//      awaits before starting its trace animation.
+const reduceMotion = (() => {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches }
+  catch { return false }
+})()
+const MIN_DWELL_MS = reduceMotion ? 200 : 600
+const MAX_WAIT_MS = 3000
+const TRANSITION_MS = reduceMotion ? 150 : 600
+
+const loaderEl = document.getElementById('loader')
+const startedAt = performance.now()
+let lifted = false
+
+const liftCurtain = (): void => {
+  if (lifted) return
+  lifted = true
+  if (loaderEl) {
+    loaderEl.classList.add('loader--exit')
+    window.setTimeout(() => {
+      loaderEl.remove()
+      document.body.classList.remove('is-loading')
+      delete document.documentElement.dataset.loading
+      void import('./context/MotionContext').then((m) => m.resolveCurtain())
+    }, TRANSITION_MS + 50)
+  } else {
+    // No loader element (defensive): still resolve the curtain so the hero
+    // entrance doesn't stall in a misconfigured deploy.
+    void import('./context/MotionContext').then((m) => m.resolveCurtain())
+  }
+}
+
+// Hard fallback — always lift within MAX_WAIT, no matter what.
+window.setTimeout(liftCurtain, MAX_WAIT_MS)
+
+// Schedule the normal lift: after React has painted at least once
+// (double rAF) AND min-dwell has elapsed.
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
-    const prepaint = document.getElementById('lcp-prepaint')
-    if (!prepaint) return
-    prepaint.style.opacity = '0'
-    setTimeout(() => prepaint.remove(), 260)
+    const elapsed = performance.now() - startedAt
+    const remaining = Math.max(0, MIN_DWELL_MS - elapsed)
+    window.setTimeout(liftCurtain, remaining)
   })
 })

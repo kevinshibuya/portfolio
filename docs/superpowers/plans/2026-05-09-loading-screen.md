@@ -366,7 +366,7 @@ EOF
 
 After this task, the loader appears at first paint, then lifts after `min-dwell + React-mount` (capped at 3 s fallback). Hero plays UNDER the curtain because HeroNameDrawing isn't waiting for `curtainGone` yet (that's Task 4).
 
-- [ ] **Step 3.1: Replace the existing rAF h1-removal block with the curtain controller**
+- [x] **Step 3.1: Replace the existing rAF h1-removal block with the curtain controller**
 
 In `src/main.tsx`, find the existing block at lines 42-57:
 
@@ -453,7 +453,7 @@ The dynamic `import('./context/MotionContext')` keeps `resolveCurtain` from crea
 
 Use the Edit tool with the exact old_string above and the new replacement.
 
-- [ ] **Step 3.2: Build to confirm types compile**
+- [x] **Step 3.2: Build to confirm types compile**
 
 ```bash
 cd /Users/luizarazzera/Desktop/keki/dev/personal_projects/portfolio
@@ -462,7 +462,7 @@ npm run build 2>&1 | tail -10
 
 Expected: `✓ built in N.NNs`, no errors.
 
-- [ ] **Step 3.3: Visual smoke — loader appears, lifts, hero plays under**
+- [x] **Step 3.3: Visual smoke — loader appears, lifts, hero plays under**
 
 ```bash
 cd /Users/luizarazzera/Desktop/keki/dev/personal_projects/portfolio
@@ -504,7 +504,7 @@ Expected timeline (desktop):
 
 Confirm the curtain visibly slides apart (not snapping or fading). If the panels jump rather than transition smoothly, check that the CSS `transition: transform 600ms cubic-bezier(...)` on `.loader-half` is intact and that the transform values (`-100%` / `+100%`) are reaching the elements (inspect `getComputedStyle(...).transform` via DevTools if needed).
 
-- [ ] **Step 3.4: Commit**
+- [x] **Step 3.4: Commit**
 
 Tick steps 3.1–3.4, then:
 
