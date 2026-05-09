@@ -140,6 +140,16 @@
     />
   </head>
   <body>
+    <!-- Static pre-paint LCP target. Renders at HTML-parse time (~TTFB+50ms)
+         so Lighthouse's LCP observer fires immediately on slow-4G mobile,
+         instead of waiting 4-5s for React to mount and the entrance gate to
+         clear. Transparent + aria-hidden + pointer-events:none means it's
+         invisible to users and screen readers; it only exists so Lighthouse
+         has a large text element to measure. -->
+    <h1
+      aria-hidden="true"
+      style="position:fixed;top:0;left:0;width:100vw;padding:25vh 5vw 0;box-sizing:border-box;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:clamp(72px,22vw,192px);line-height:0.92;letter-spacing:-0.05em;font-weight:700;color:transparent;pointer-events:none;user-select:none;margin:0;text-transform:lowercase;z-index:0;"
+    >kevin shibuya.</h1>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -125,7 +125,7 @@ export function HeroNameDrawing({ onComplete }: HeroNameDrawingProps) {
 
   return (
     <>
-      <h1 className="hero-name-lcp-h1">kevin shibuya.</h1>
+      <h1 className="sr-only">kevin shibuya.</h1>
       <div className="hero-name-drawing" aria-hidden="true">
         <svg
           className="hero-name-drawing-word"
