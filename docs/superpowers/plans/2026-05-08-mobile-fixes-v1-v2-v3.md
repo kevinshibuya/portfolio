@@ -61,7 +61,7 @@ Expected last line resembles: `=== 46 entries written to /tmp/mobile-audit-v3/fi
 
 **Why these together:** both live in the fixed top header (`Header.tsx`). The header row is centered with `align-items: center`, so making the children taller is absorbed without re-layout.
 
-- [ ] **Step 1.1: Bump `.nav-lang` to a 44 × 44 px hit area**
+- [x] **Step 1.1: Bump `.nav-lang` to a 44 × 44 px hit area**
 
 Replace the existing rule at `src/index.css:209-216`:
 
@@ -91,7 +91,7 @@ New:
 .nav-lang:hover { color: var(--ink); }
 ```
 
-- [ ] **Step 1.2: Bump `.nav-brand` to a 44 px-tall hit area**
+- [x] **Step 1.2: Bump `.nav-brand` to a 44 px-tall hit area**
 
 Replace the existing rule at `src/index.css:151`:
 
@@ -108,14 +108,14 @@ New:
 }
 ```
 
-- [ ] **Step 1.3: Visually verify in the browser**
+- [x] **Step 1.3: Visually verify in the browser**
 
 Open `http://localhost:5173/` in a browser at iPhone-12 emulation (DevTools 390 × 844). Confirm:
 1. The `PT` button in the top-right is now noticeably easier to tap; the visible glyph is unchanged.
 2. The `ks` brand mark + "kevin shibuya" text on the left look unchanged in size.
 3. Header total height is still 54–56 px (the brand was already 30 px, the new 44 px floor sits inside the header's existing padding).
 
-- [ ] **Step 1.4: Run the typecheck + build**
+- [x] **Step 1.4: Run the typecheck + build**
 
 ```bash
 npm run build 2>&1 | tail -10
