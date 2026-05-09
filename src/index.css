@@ -1064,6 +1064,16 @@ strong {
     aspect-ratio: 2 / 1;
   }
   .bento-card--lg { grid-row: auto; }
+}
+
+/* Skills steps down 3 → 2 → 1 col across desktop / tablet / mobile.
+   Kept on its own breakpoints (1024, 480) rather than the 1100 page-padding
+   break so tablets in the 720–1023 band get a 2-col layout instead of the
+   single tall column they had before. */
+@media (max-width: 1023px) {
+  .skills-grid { grid-template-columns: repeat(2, 1fr); gap: 48px; max-width: 720px; }
+}
+@media (max-width: 480px) {
   .skills-grid { grid-template-columns: 1fr; gap: 40px; max-width: 560px; }
 }
 
