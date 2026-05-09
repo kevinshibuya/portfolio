@@ -145,7 +145,7 @@ EOF
 - Modify: `src/index.css:1359-1369` (.project-detail-back)
 - Modify: `src/index.css:1599-1606` (.project-detail-route-list-summary)
 
-- [ ] **Step 2.1: Bump `.project-detail-back` to a 44 px-tall hit area**
+- [x] **Step 2.1: Bump `.project-detail-back` to a 44 px-tall hit area**
 
 Replace the existing rule at `src/index.css:1359-1368`:
 
@@ -181,7 +181,7 @@ New:
 
 (Switching `inline-block` → `inline-flex` lets `align-items: center` vertically center the arrow + label inside the 44 px box. The link's visual position is unchanged.)
 
-- [ ] **Step 2.2: Bump `.project-detail-route-list-summary` to a 44 px-tall hit area**
+- [x] **Step 2.2: Bump `.project-detail-route-list-summary` to a 44 px-tall hit area**
 
 Replace the existing rule at `src/index.css:1599-1606`:
 
@@ -212,13 +212,13 @@ New:
 }
 ```
 
-- [ ] **Step 2.3: Visually verify in the browser**
+- [x] **Step 2.3: Visually verify in the browser**
 
 Navigate to `http://localhost:5173/projects/painel-da-reconstrucao` at iPhone-12 emulation. Confirm:
 1. "← back to projects" sits flush at the top with a comfortable tap area; the text position is unchanged.
 2. Tap the "▸ 19 ROUTES" expander — it expands the route list. The expander row is taller than before but the chevron and label still align.
 
-- [ ] **Step 2.4: Run the build**
+- [x] **Step 2.4: Run the build**
 
 ```bash
 npm run build 2>&1 | tail -5
@@ -226,7 +226,7 @@ npm run build 2>&1 | tail -5
 
 Expected: build succeeds.
 
-- [ ] **Step 2.5: Commit**
+- [x] **Step 2.5: Commit**
 
 ```bash
 git add src/index.css

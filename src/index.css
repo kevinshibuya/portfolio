@@ -1376,6 +1376,13 @@ body[data-loader-state="loading"] {
   transition: color 0.2s;
 }
 .project-detail-back:hover { color: var(--blue-400); }
+@media (max-width: 720px) {
+  .project-detail-back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
 
 .project-detail-eyebrow {
   display: block;
@@ -1612,6 +1619,13 @@ body[data-loader-state="loading"] {
   text-transform: uppercase;
   color: var(--blue-400);
   margin-bottom: 12px;
+}
+@media (max-width: 720px) {
+  .project-detail-route-list-summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
 }
 .project-detail-route-list-items {
   list-style: none;
