@@ -238,6 +238,8 @@ EOF
 )"
 ```
 
+**Fix-loop F (post-review):** code review of commit 362c007 caught that `display: flex` on `<summary>` strips the native disclosure marker on mobile (Chrome / Safari / Firefox treat `<summary>` as `list-item` by default; `flex` overrides that). Replaced the mobile flex/center approach with `padding-block: 14px` so the 44 px tap target is met without disturbing the marker. Re-verified at 1280 + 390.
+
 ---
 
 ## Task 3: V3 — Tap target polish on archive toolbar
