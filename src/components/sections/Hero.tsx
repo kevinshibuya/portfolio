@@ -114,11 +114,13 @@ export function Hero() {
             </div>
           </RevealOnView>
 
-          <RevealOnView recipe="fadeUp" delay={0.18} gate={true}>
-            <p className="hero-desc max-w-[640px]">
-              <Trans i18nKey="hero.description" components={{ strong: <strong /> }} />
-            </p>
-          </RevealOnView>
+          {/* hero-desc is the LCP element on mobile — render it without
+              a Framer Motion wrapper so it paints on first JS-free frame.
+              The RevealOnView fade-up would keep it opacity:0 until the
+              animation library executes, pushing LCP to 5 s+. */}
+          <p className="hero-desc max-w-[640px]">
+            <Trans i18nKey="hero.description" components={{ strong: <strong /> }} />
+          </p>
 
           <RevealOnView recipe="scaleIn" delay={0.36} gate={gate}>
             <div className="hero-cta">
