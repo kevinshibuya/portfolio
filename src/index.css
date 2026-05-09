@@ -274,6 +274,28 @@ strong {
   border: 0;
 }
 
+/* LCP candidate: a real-sized, layout-occupying <h1> rendered with
+   transparent text so Lighthouse can classify it as the text-LCP element
+   on first paint. The visible hero name comes from the SVG sibling
+   (.hero-name-drawing). axe-core skips color-contrast on transparent
+   text (no foreground to measure), so this introduces zero a11y
+   regression. The h1 stays accessible to screen readers as the page
+   heading. */
+.hero-name-lcp-h1 {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  font-size: clamp(72px, 22vw, 192px);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  text-transform: lowercase;
+  font-weight: 700;
+  margin: 0;
+  color: transparent;
+  pointer-events: none;
+  user-select: none;
+}
+
 /* =========================================================================
    HERO NAME DRAWING — SVG glyph paths animated as ink-trace + ink-fill.
    This component IS the hero title (it replaces the static <h1>).

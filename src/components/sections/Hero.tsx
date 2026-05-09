@@ -114,7 +114,7 @@ export function Hero() {
             </div>
           </RevealOnView>
 
-          <RevealOnView recipe="fadeUp" delay={0.18} gate={gate}>
+          <RevealOnView recipe="fadeUp" delay={0.18} gate={true}>
             <p className="hero-desc max-w-[640px]">
               <Trans i18nKey="hero.description" components={{ strong: <strong /> }} />
             </p>
