@@ -31,7 +31,7 @@ Why no component changes: every issue is purely a layout/sizing concern. The `Ar
 
 ## Pre-flight (one-time, do once before Task 1)
 
-- [ ] **Step P1: Start the dev server in the background**
+- [x] **Step P1: Start the dev server in the background**
 
 ```bash
 npm run dev > /tmp/vite-dev.log 2>&1 &
@@ -41,7 +41,7 @@ echo "ready"
 
 Expected: prints `ready` once Vite responds 200 on `/`.
 
-- [ ] **Step P2: Capture baseline measurements**
+- [x] **Step P2: Capture baseline measurements**
 
 Run the audit so we have a before-snapshot to compare against later:
 
@@ -545,7 +545,7 @@ EOF
 
 **Files:** none modified (this task only ticks the remaining spec TODOs and runs the full audit suite).
 
-- [ ] **Step 6.1: Run the unit tests**
+- [x] **Step 6.1: Run the unit tests**
 
 ```bash
 npm run test:unit 2>&1 | tail -10
@@ -553,7 +553,7 @@ npm run test:unit 2>&1 | tail -10
 
 Expected: `Tests <N>/<N> passed`. Currently 64/64 — should remain green since no component or test files were touched.
 
-- [ ] **Step 6.2: Run the lint check**
+- [x] **Step 6.2: Run the lint check**
 
 ```bash
 npm run lint 2>&1 | tail -10
@@ -561,7 +561,7 @@ npm run lint 2>&1 | tail -10
 
 Expected: zero errors.
 
-- [ ] **Step 6.3: Run the production build**
+- [x] **Step 6.3: Run the production build**
 
 ```bash
 npm run build 2>&1 | tail -10
@@ -569,7 +569,7 @@ npm run build 2>&1 | tail -10
 
 Expected: `✓ built in <time>` with no warnings beyond the usual chunk-size info.
 
-- [ ] **Step 6.4: Run the full mobile audit script**
+- [x] **Step 6.4: Run the full mobile audit script**
 
 ```bash
 node /tmp/mobile-audit/audit3.mjs 2>&1 | tail -3
@@ -600,7 +600,7 @@ Expected:
 
 If either is non-zero, identify which selector still fails and revisit Tasks 1–5.
 
-- [ ] **Step 6.5: Tick the remaining spec TODOs**
+- [x] **Step 6.5: Tick the remaining spec TODOs**
 
 In `docs/superpowers/specs/2026-05-08-mobile-audit-findings.md`, set these lines under `## TODO` to `- [x]`:
 
@@ -613,7 +613,7 @@ In `docs/superpowers/specs/2026-05-08-mobile-audit-findings.md`, set these lines
 
 (V1 and V2 were ticked in their respective tasks.)
 
-- [ ] **Step 6.6: Stop the dev server**
+- [x] **Step 6.6: Stop the dev server**
 
 ```bash
 kill %1 2>/dev/null; jobs -l
@@ -621,7 +621,7 @@ kill %1 2>/dev/null; jobs -l
 
 Expected: no jobs listed afterward.
 
-- [ ] **Step 6.7: Commit the spec ticks**
+- [x] **Step 6.7: Commit the spec ticks**
 
 ```bash
 git add docs/superpowers/specs/2026-05-08-mobile-audit-findings.md
@@ -633,7 +633,7 @@ EOF
 )"
 ```
 
-- [ ] **Step 6.8: Hand off to `superpowers:finishing-a-development-branch`**
+- [x] **Step 6.8: Hand off to `superpowers:finishing-a-development-branch`**
 
 The branch now has six commits implementing V1+V2+V3 plus the spec tick. Invoke the finishing skill to choose how to land them on `main` (merge locally vs. PR).
 
