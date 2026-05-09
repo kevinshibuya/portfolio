@@ -33,7 +33,7 @@
 
 This task is purely additive — no existing behavior changes. After this task, `curtainGone` is exported and can be awaited, but nothing calls `resolveCurtain()` yet. (That comes in Task 3.) Pre-resolution for the bypass case happens at module init since `_entranceBypassed` is false until `bypassEntrance()` is invoked, but we ALSO add a check in `bypassEntrance()` itself so the promise resolves the moment a back-nav from project detail happens.
 
-- [ ] **Step 1.1: Add module-scope curtain promise + resolver after `resolveEntrance` declaration**
+- [x] **Step 1.1: Add module-scope curtain promise + resolver after `resolveEntrance` declaration**
 
 In `src/context/MotionContext.tsx`, after line 35 (the `resolveEntrance` arrow function), add:
 
@@ -52,7 +52,7 @@ const resolveCurtain: Resolver = () => _resolveCurtain?.()
 
 Use the Edit tool with old_string ending at `const resolveEntrance: Resolver = () => _resolveEntrance?.()` and new_string adding the block above immediately after it (preserve the blank line between blocks).
 
-- [ ] **Step 1.2: Pre-resolve `_curtainGone` when `bypassEntrance()` is called**
+- [x] **Step 1.2: Pre-resolve `_curtainGone` when `bypassEntrance()` is called**
 
 In the existing `bypassEntrance` function (around line 62-66), add a `resolveCurtain()` call alongside the existing `resolveEntrance()`:
 
@@ -78,7 +78,7 @@ Replace with:
   }
 ```
 
-- [ ] **Step 1.3: Export `curtainGone` and `resolveCurtain` from the module**
+- [x] **Step 1.3: Export `curtainGone` and `resolveCurtain` from the module**
 
 At the bottom of `src/context/MotionContext.tsx`, after the existing `useMotion` function declaration, add:
 
@@ -91,7 +91,7 @@ export const curtainGone = _curtainGone
 export { resolveCurtain }
 ```
 
-- [ ] **Step 1.4: Build to confirm types and exports compile**
+- [x] **Step 1.4: Build to confirm types and exports compile**
 
 ```bash
 cd /Users/luizarazzera/Desktop/keki/dev/personal_projects/portfolio
@@ -100,7 +100,7 @@ npm run build 2>&1 | tail -10
 
 Expected: `✓ built in N.NNs`, no errors. The chunk-size warning is informational.
 
-- [ ] **Step 1.5: Commit**
+- [x] **Step 1.5: Commit**
 
 Tick `- [ ]` → `- [x]` for steps 1.1–1.5 in this plan file, then commit:
 

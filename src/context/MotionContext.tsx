@@ -34,6 +34,17 @@ const _entranceDone: Promise<void> = new Promise<void>((res) => {
 })
 const resolveEntrance: Resolver = () => _resolveEntrance?.()
 
+// Module-scoped curtain handshake. The static loader in index.html paints
+// at first frame (LCP target). main.tsx calls resolveCurtain() after the
+// curtain transition finishes lifting; HeroNameDrawing awaits curtainGone
+// before kicking off the SVG trace animation, so the ink-draw plays on a
+// clean cream stage rather than under the curtain.
+let _resolveCurtain: Resolver | null = null
+const _curtainGone: Promise<void> = new Promise<void>((res) => {
+  _resolveCurtain = res
+})
+const resolveCurtain: Resolver = () => _resolveCurtain?.()
+
 // Module-scoped flag is the survive-everything source of truth (StrictMode
 // double-mount, MotionProvider remount). The provider also mirrors it in
 // state so calling bypassEntrance() triggers a context re-render and
@@ -63,6 +74,10 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     _entranceBypassed = true
     setBypassed(true)
     resolveEntrance()
+    // Back-nav from project detail: there's no full reload, so the loader
+    // never rendered. Pre-resolve the curtain so HeroNameDrawing's await
+    // in this scenario doesn't stall.
+    resolveCurtain()
   }
 
   const value = useMemo<MotionContextValue>(
@@ -88,3 +103,9 @@ export function useMotion(): MotionContextValue {
   if (!v) throw new Error('useMotion must be used within MotionProvider')
   return v
 }
+
+// Module-level exports for non-React consumers (main.tsx) and for components
+// that need to await curtain handoff (HeroNameDrawing) without going through
+// the React context. Mirrors the `_entranceDone` accessor pattern.
+export const curtainGone = _curtainGone
+export { resolveCurtain }
