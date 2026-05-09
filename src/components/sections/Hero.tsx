@@ -106,7 +106,7 @@ export function Hero() {
                   }}
                   role="button"
                   tabIndex={0}
-                  aria-label="cycle role"
+                  aria-label={`cycle role — currently ${activeRole}`}
                 >
                   {activeRole}
                 </motion.span>

@@ -35,7 +35,7 @@
   --color-mist:        #D4E5F2;
   --color-ink:         #111822;
   --color-bark:        #2A4060;
-  --color-dust:        #6A8CAA;
+  --color-dust:        #4A6A88;
 
   --color-blue-50:     #F4F8FE;
   --color-blue-100:    #DCF0FF;
@@ -57,7 +57,7 @@
   --mist:     #D4E5F2;
   --ink:      #111822;
   --bark:     #2A4060;
-  --dust:     #6A8CAA;
+  --dust:     #4A6A88;
 
   --blue-50:  #F4F8FE;
   --blue-100: #DCF0FF;
@@ -208,7 +208,7 @@ strong {
 }
 .nav-lang {
   font-size: 11px; font-weight: 600;
-  color: var(--blue-400);
+  color: var(--ink);
   letter-spacing: 0.15em;
   padding: 4px 0;
   transition: color 0.2s;
@@ -349,7 +349,7 @@ strong {
 .hero-role {
   font-size: clamp(24px, 2.6vw, 40px);
   font-weight: 600;
-  color: var(--blue-400);
+  color: var(--ink);
   text-transform: lowercase;
   letter-spacing: -0.02em;
   border-bottom: 2px solid var(--blue-200);
@@ -466,7 +466,7 @@ strong {
 }
 .section-index {
   font-size: 11px; font-weight: 600;
-  color: var(--blue-400);
+  color: var(--blue-500);
   text-transform: lowercase;
   letter-spacing: 0.15em;
   display: block;
@@ -484,7 +484,7 @@ strong {
 .section-title em {
   font-style: italic;
   font-weight: 400;
-  color: var(--blue-400);
+  color: var(--blue-500);
 }
 .section-desc {
   font-size: 17px;
@@ -1032,7 +1032,7 @@ strong {
   padding-top: 24px;
   border-top: 1px solid rgba(246, 249, 252, 0.08);
   font-size: 11px;
-  color: rgba(246, 249, 252, 0.4);
+  color: var(--mist);
   text-transform: lowercase;
   letter-spacing: 0.04em;
   flex-wrap: wrap;
