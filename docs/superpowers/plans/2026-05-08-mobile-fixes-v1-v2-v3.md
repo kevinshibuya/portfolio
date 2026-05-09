@@ -347,7 +347,7 @@ npm run build 2>&1 | tail -5
 
 Expected: build succeeds.
 
-- [ ] **Step 3.5: Commit**
+- [x] **Step 3.5: Commit**
 
 ```bash
 git add src/index.css
@@ -368,7 +368,7 @@ EOF
 
 **Why this approach:** `.archive-list` inherits `margin-top: 96px` from the `.section-spacing-content` utility class (defined at `src/index.css:489`). Overriding that utility globally would affect every section. Scoping the override to `#archive .archive-list.section-spacing-content` inside the existing 720 px media query keeps the change tight.
 
-- [ ] **Step 4.1: Add the archive-list mobile override**
+- [x] **Step 4.1: Add the archive-list mobile override**
 
 Find the block at `src/index.css:1342-1349`:
 
@@ -398,13 +398,13 @@ Replace it with:
 }
 ```
 
-- [ ] **Step 4.2: Visually verify in the browser**
+- [x] **Step 4.2: Visually verify in the browser**
 
 Open `http://localhost:5173/#archive` at iPhone-12. Confirm:
 1. The "169 items" counter sits about a thumb's width above the first row of the list (was previously a noticeable empty band).
 2. Typing in the search field shrinks the counter+list block proportionally — the gap stays tight as the count drops.
 
-- [ ] **Step 4.3: Probe the gap with Playwright**
+- [x] **Step 4.3: Probe the gap with Playwright**
 
 Run this one-shot probe (writes to /tmp, no project files touched):
 
@@ -434,11 +434,11 @@ const { chromium } = require('/Users/luizarazzera/Desktop/keki/dev/personal_proj
 
 Expected: each line prints a gap **≤ 40 px** (target ~32). If still 96, the override didn't take — check that the rule lives inside the `(max-width: 720px)` block.
 
-- [ ] **Step 4.4: Tick V1 in the spec**
+- [x] **Step 4.4: Tick V1 in the spec**
 
 Open `docs/superpowers/specs/2026-05-08-mobile-audit-findings.md` and change the V1 line under `## TODO` from `- [ ]` to `- [x]`.
 
-- [ ] **Step 4.5: Commit**
+- [x] **Step 4.5: Commit**
 
 ```bash
 git add src/index.css docs/superpowers/specs/2026-05-08-mobile-audit-findings.md

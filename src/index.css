@@ -1360,6 +1360,8 @@ body[data-loader-state="loading"] {
     padding: 14px 16px;
   }
   .archive-preview, .archive-date { display: none; }
+  /* Tighten the counter→list gap: utility is 96px desktop, ~32px mobile. */
+  .archive-list.section-spacing-content { margin-top: 32px; }
 }
 
 /* =====================================================================
