@@ -90,6 +90,6 @@ Acceptance criteria for each verified problem. Tick only when its corresponding 
 - [ ] **V3-a (a11y critical)**: `.project-detail-route-list-summary` reaches ≥ 44 px height on every mobile viewport.
 - [ ] **V3-b (HIG polish)**: `.archive-search`, `.archive-dropdown-trigger` (×5), `.nav-brand` all reach ≥ 44 px height on every mobile viewport.
 - [x] **V1**: `.archive-list` top sits ≤ 40 px below `.archive-count` on every mobile viewport (currently 96 px).
-- [ ] **V2**: zero `.project-detail-route-label` elements report `right > viewport-width` at the 320 viewport (currently 19).
+- [x] **V2**: zero `.project-detail-route-label` elements report `right > viewport-width` at the 320 viewport (currently 19).
 - [ ] **All**: `npm run build`, `npm run test:unit`, and `npm run lint` pass after the edits.
 - [ ] **All**: full re-run of `/tmp/mobile-audit/audit3.mjs` shows zero overflow offenders and zero tap-target violations across home + both detail pages × 3 viewports.

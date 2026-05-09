@@ -1644,6 +1644,21 @@ body[data-loader-state="loading"] {
   row-gap: 6px;
   column-gap: 16px;
 }
+/* Tighter than the rest of the file's 720px mobile cutoff: the desktop grid
+   `240px 1fr` only overruns once the second track collapses below ~24px,
+   which happens at viewport widths under ~340px. 480px catches the small
+   phones without disturbing 600–720px tablets that have plenty of room. */
+@media (max-width: 480px) {
+  .project-detail-route-list-items {
+    grid-template-columns: 1fr;
+    /* `display: contents` flattens each <li> so cells flow path₁/label₁/
+       path₂/label₂. A uniform row-gap would blur pairs into each other,
+       so we tighten the gap and add inter-route spacing on the label. */
+    row-gap: 4px;
+    column-gap: 0;
+  }
+  .project-detail-route-label { margin-bottom: 10px; }
+}
 .project-detail-route-list-item { display: contents; }
 .project-detail-route-path {
   font-family: ui-monospace, monospace;

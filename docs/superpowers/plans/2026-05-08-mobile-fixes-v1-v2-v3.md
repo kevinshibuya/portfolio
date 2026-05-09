@@ -459,7 +459,7 @@ EOF
 
 **Why a 480 px breakpoint:** at 375 the 240 px-fixed first column still leaves ~79 px for labels, and the labels gracefully wrap inside that. At 320 the second column collapses to ~24 px, forcing labels to overflow. 480 px is the standard "small phone" breakpoint that catches both 320 and the 360 px-class devices that exist in the wild.
 
-- [ ] **Step 5.1: Add the small-viewport media query for the route-list grid**
+- [x] **Step 5.1: Add the small-viewport media query for the route-list grid**
 
 Find the existing rule at `src/index.css:1607-1615`:
 
@@ -489,14 +489,14 @@ Add this new media query block immediately after that rule (around `src/index.cs
 
 (`row-gap` bumped from 6 → 14 px because each route now occupies two grid rows — the path on top, the label below — and 6 px would visually merge consecutive routes. The `display: contents` on `.project-detail-route-list-item` keeps each `<li>`'s two children placed by the parent grid; in single-column mode that means path-label-path-label flowing top-to-bottom.)
 
-- [ ] **Step 5.2: Visually verify at 320 px**
+- [x] **Step 5.2: Visually verify at 320 px**
 
 Open `http://localhost:5173/projects/painel-da-reconstrucao` at iPhone-SE (375) and again at a 320-wide custom emulation. Confirm:
 1. At 320: the route list is one column. Each route shows its `/path` (blue monospace) on top, the human label below. No horizontal cropping.
 2. At 375: still one column (since 375 < 480). Same vertical pairing. No regression on readability.
 3. At 390 / 768 / desktop: still two columns (240 px + 1fr). Original layout preserved.
 
-- [ ] **Step 5.3: Probe overflow with Playwright**
+- [x] **Step 5.3: Probe overflow with Playwright**
 
 ```bash
 node -e "
@@ -523,11 +523,11 @@ const { chromium } = require('/Users/luizarazzera/Desktop/keki/dev/personal_proj
 
 Expected output: `overflowing labels at 320: 0`. Previously was 19.
 
-- [ ] **Step 5.4: Tick V2 in the spec**
+- [x] **Step 5.4: Tick V2 in the spec**
 
 Open `docs/superpowers/specs/2026-05-08-mobile-audit-findings.md` and change the V2 line under `## TODO` from `- [ ]` to `- [x]`.
 
-- [ ] **Step 5.5: Commit**
+- [x] **Step 5.5: Commit**
 
 ```bash
 git add src/index.css docs/superpowers/specs/2026-05-08-mobile-audit-findings.md
