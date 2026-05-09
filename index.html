@@ -2,10 +2,133 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>kevin shibuya — interactive developer</title>
+
+    <meta
+      name="description"
+      content="Interactive developer building data-driven journalism, infographics, and scrollytelling — bilingual (EN/PT) full-stack work in React, TypeScript, GSAP, and React Three Fiber."
+    />
+    <meta
+      name="keywords"
+      content="interactive developer, data visualization, scrollytelling, data journalism, infographics, react, typescript, gsap, react three fiber, brazil, bilingual, kevin shibuya"
+    />
+    <meta name="author" content="Kevin Shibuya" />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="canonical" href="https://kevinshibuya.dev/" />
+
+    <!-- THEME -->
+    <meta name="theme-color" content="#F6F9FC" />
+    <meta name="color-scheme" content="light" />
+
+    <!-- FAVICON / ICONS (binary files deferred — paths only) -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- APPLE / MOBILE -->
+    <meta name="apple-mobile-web-app-title" content="kevin shibuya" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="application-name" content="kevin shibuya" />
+    <meta name="msapplication-TileColor" content="#F6F9FC" />
+    <meta name="msapplication-TileImage" content="/web-app-manifest-192x192.png" />
+
+    <!-- OPEN GRAPH / FACEBOOK -->
+    <meta property="og:type" content="profile" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="pt_BR" />
+    <meta property="og:site_name" content="kevin shibuya" />
+    <meta property="og:title" content="kevin shibuya — interactive developer" />
+    <meta
+      property="og:description"
+      content="Interactive developer building data-driven journalism, infographics, and scrollytelling — bilingual (EN/PT) full-stack work in React, TypeScript, GSAP, and R3F."
+    />
+    <meta property="og:url" content="https://kevinshibuya.dev/" />
+    <meta property="og:image" content="https://kevinshibuya.dev/og.png" />
+    <meta property="og:image:secure_url" content="https://kevinshibuya.dev/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="kevin shibuya — interactive developer portfolio"
+    />
+
+    <!-- TWITTER / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:domain" content="kevinshibuya.dev" />
+    <meta name="twitter:title" content="kevin shibuya — interactive developer" />
+    <meta
+      name="twitter:description"
+      content="Interactive developer building data-driven journalism, infographics, and scrollytelling — bilingual (EN/PT) full-stack work in React, TypeScript, GSAP, and R3F."
+    />
+    <meta name="twitter:url" content="https://kevinshibuya.dev/" />
+    <meta name="twitter:image" content="https://kevinshibuya.dev/og.png" />
+    <meta
+      name="twitter:image:alt"
+      content="kevin shibuya — interactive developer portfolio"
+    />
+
+    <!-- STRUCTURED DATA -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://kevinshibuya.dev/#person",
+            "name": "Kevin Shibuya",
+            "url": "https://kevinshibuya.dev/",
+            "image": "https://kevinshibuya.dev/og.png",
+            "jobTitle": "Interactive Developer",
+            "description": "Full-stack developer specialising in interactive journalism, data visualisation, and scrollytelling. Bilingual (EN/PT).",
+            "email": "hello@kevinshibuya.com",
+            "sameAs": [
+              "https://github.com/kevinshibuya",
+              "https://linkedin.com/in/kevinshibuya"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://kevinshibuya.dev/#website",
+            "url": "https://kevinshibuya.dev/",
+            "name": "kevin shibuya",
+            "description": "Interactive developer portfolio — data journalism, infographics, scrollytelling.",
+            "publisher": { "@id": "https://kevinshibuya.dev/#person" },
+            "inLanguage": ["en", "pt-BR"]
+          },
+          {
+            "@type": "ProfilePage",
+            "@id": "https://kevinshibuya.dev/#webpage",
+            "url": "https://kevinshibuya.dev/",
+            "name": "kevin shibuya — interactive developer",
+            "isPartOf": { "@id": "https://kevinshibuya.dev/#website" },
+            "about": { "@id": "https://kevinshibuya.dev/#person" },
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "https://kevinshibuya.dev/og.png",
+              "width": 1200,
+              "height": 630
+            },
+            "inLanguage": "en"
+          }
+        ]
+      }
+    </script>
+
     <!-- Preload the regular variable font so it lands during HTML parse — keeps
-         font-display: block from delaying first paint on slow mobile networks.
+         font-display: swap from delaying first paint on slow mobile networks.
          WOFF2 variant is ~65% smaller than the TTF source and is used by every
          supported browser (Edge 14+, all evergreen). -->
     <link
@@ -15,7 +138,6 @@
       type="font/woff2"
       crossorigin="anonymous"
     />
-    <title>kevin shibuya — interactive developer</title>
   </head>
   <body>
     <div id="root"></div>

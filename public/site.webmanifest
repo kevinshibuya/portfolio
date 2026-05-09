@@ -1,0 +1,23 @@
+{
+  "name": "kevin shibuya",
+  "short_name": "kevin shibuya",
+  "description": "Interactive developer portfolio — data journalism, infographics, scrollytelling.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F6F9FC",
+  "theme_color": "#F6F9FC",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

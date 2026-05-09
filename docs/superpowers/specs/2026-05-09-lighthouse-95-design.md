@@ -120,7 +120,7 @@ All Lighthouse work commits land on `feat/lighthouse-95`.
 
 Acceptance criteria per batch. Tick only when the corresponding Lighthouse re-audit confirms the delta AND code review approves.
 
-- [ ] **Batch 1 (SEO)**: mobile + desktop SEO scores reach 100. `index.html` contains description, canonical, OG, Twitter, JSON-LD; `public/robots.txt` and `public/sitemap.xml` are valid.
+- [x] **Batch 1 (SEO)**: mobile + desktop SEO scores reach 100. `index.html` contains description, canonical, OG, Twitter, JSON-LD; `public/robots.txt` and `public/sitemap.xml` are valid.
 - [ ] **Batch 2 (A11y)**: mobile + desktop Accessibility scores reach 100. Lighthouse `color-contrast` audit reports zero failing elements; `label-content-name-mismatch` audit passes.
 - [ ] **Batch 3 (LCP)**: Lighthouse runs without `NO_LCP`. Performance category produces a numeric score on both mobile and desktop. Hero ink-draw entrance visually unchanged (manual browser check at desktop + iphone-12).
 - [ ] **Batch 4 (FCP)**: mobile FCP ≤ 1.5 s and Performance ≥ 95 on mobile. CLS stays at 0. No visible regression to bento layout.
