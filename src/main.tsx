@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import './i18n'
 import './index.css'
 import App from './App.tsx'
-import { MotionProvider } from './context/MotionContext'
+import { MotionProvider, resolveCurtain } from './context/MotionContext'
 
 // Take ownership of scroll restoration so the browser doesn't fight our
 // per-route handling: full reload starts at top + plays the hero entrance
@@ -58,6 +58,9 @@ const reduceMotion = (() => {
 })()
 const MIN_DWELL_MS = reduceMotion ? 200 : 600
 const MAX_WAIT_MS = 3000
+// MUST match .loader-half transition-duration in src/index.css (and the
+// reduced-motion #loader opacity transition there). If the CSS changes,
+// update this number too — otherwise the loader is removed mid-transition.
 const TRANSITION_MS = reduceMotion ? 150 : 600
 
 const loaderEl = document.getElementById('loader')
@@ -72,13 +75,13 @@ const liftCurtain = (): void => {
     window.setTimeout(() => {
       loaderEl.remove()
       document.body.classList.remove('is-loading')
-      delete document.documentElement.dataset.loading
-      void import('./context/MotionContext').then((m) => m.resolveCurtain())
+      document.documentElement.removeAttribute('data-loading')
+      resolveCurtain()
     }, TRANSITION_MS + 50)
   } else {
     // No loader element (defensive): still resolve the curtain so the hero
     // entrance doesn't stall in a misconfigured deploy.
-    void import('./context/MotionContext').then((m) => m.resolveCurtain())
+    resolveCurtain()
   }
 }
 

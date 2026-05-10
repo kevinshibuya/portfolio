@@ -187,9 +187,9 @@ Acceptance criteria. Tick only when manually verified at desktop + mobile (real 
 - [x] Two-panel split animation: top panel translates -100% Y, bottom panel translates +100% Y, both over ~600 ms with the bezier ease. The "ks" tears at the horizontal seam.
 - [x] Curtain lifts when React has mounted AND ≥600 ms has elapsed since first JS execution (verified by reading current performance timing during a manual reload).
 - [x] After the curtain finishes, the SVG ink-draw entrance plays cleanly on the cream background (no overlap of curtain + entrance; no flash of un-styled hero).
-- [ ] Hard fallback: if React stalls past 3 s, the curtain still lifts (verified by simulating a network throttle that prevents bundle download).
+- [x] Hard fallback: if React stalls past 3 s, the curtain still lifts (verified by simulating a network throttle that prevents bundle download).
 - [x] `prefers-reduced-motion: reduce` users see a 150 ms opacity fade instead of the slide; min dwell shortens to 200 ms (verified via DevTools rendering emulation).
-- [ ] SPA back-navigation from `/projects/:slug` to `/` does NOT show the loader (verified: in-tab back goes straight to home).
+- [x] SPA back-navigation from `/projects/:slug` to `/` does NOT show the loader (verified: in-tab back goes straight to home).
 - [x] `body { overflow: hidden }` is in effect during the loader; restored after the loader is removed.
 - [x] Lighthouse mobile + desktop both ≥95 on Performance, A11y, BP, SEO. Mobile LCP ≤ current 2.2 s (likely improvement; LCP candidate is now an explicit large branded element).
 - [x] `npm run build` passes; no console errors on `npm run dev`.
