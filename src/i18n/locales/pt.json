@@ -103,6 +103,7 @@
     "sourceCode": "código fonte",
     "notes": "notas",
     "notFound": "projeto não encontrado",
-    "notFoundDescription": "o projeto que você está procurando não existe."
+    "notFoundDescription": "o projeto que você está procurando não existe.",
+    "scroll": "rolar"
   }
 }

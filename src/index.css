@@ -1468,6 +1468,30 @@ body[data-loader-state="loading"] {
   margin-bottom: 32px;
 }
 
+/* Scroll cue — sits between hero and first story block while user is at
+   scroll 0; fades out the moment they start scrolling so the first
+   mockup's reveal trigger isn't competing for attention. */
+.scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 48px auto 96px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--dust);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  user-select: none;
+  pointer-events: none;
+}
+.scroll-cue-arrow {
+  display: block;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--blue-400);
+}
+
 .project-detail-back {
   display: inline-block;
   margin-bottom: 48px;

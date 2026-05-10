@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { projects } from '../data/projects'
 import { useLenis } from '../hooks/useLenis'
 import { Hero } from '../components/projectDetail/Hero'
+import { ScrollCue } from '../components/projectDetail/ScrollCue'
 import { BlockRenderer } from '../components/projectDetail/BlockRenderer'
 import { StackSection } from '../components/projectDetail/StackSection'
 import { Footnotes } from '../components/projectDetail/Footnotes'
@@ -76,9 +77,12 @@ export function ProjectDetail() {
         <Hero project={project} lang={lang} />
 
         {project.story && project.story.length > 0 && (
-          <div className="project-detail-story">
-            <BlockRenderer blocks={project.story} project={project} lang={lang} />
-          </div>
+          <>
+            <ScrollCue />
+            <div className="project-detail-story">
+              <BlockRenderer blocks={project.story} project={project} lang={lang} />
+            </div>
+          </>
         )}
 
         <StackSection project={project} />
