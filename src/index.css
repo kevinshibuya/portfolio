@@ -1470,13 +1470,24 @@ body[data-loader-state="loading"] {
 
 /* Scroll cue — sits between hero and first story block while user is at
    scroll 0; fades out the moment they start scrolling so the first
-   mockup's reveal trigger isn't competing for attention. */
+   mockup's reveal trigger isn't competing for attention. The slot owns
+   the layout space so AnimatePresence-driven unmount of the cue itself
+   doesn't shift the content below. */
+.scroll-cue-slot {
+  position: relative;
+  height: 144px;
+  margin: 0;
+  pointer-events: none;
+}
 .scroll-cue {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  margin: 48px auto 96px;
   font-size: 10px;
   font-weight: 600;
   color: var(--dust);

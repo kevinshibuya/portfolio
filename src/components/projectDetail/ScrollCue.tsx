@@ -23,34 +23,35 @@ export function ScrollCue() {
   }, [])
 
   return (
-    <AnimatePresence>
-      {!dismissed && (
-        <motion.div
-          className="scroll-cue"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{
-            duration: 0.4,
-            delay: APPEAR_DELAY_S,
-            ease: EASE,
-          }}
-          aria-hidden
-        >
-          <span className="scroll-cue-label">{t('projectDetail.scroll')}</span>
-          <motion.span
-            className="scroll-cue-arrow"
-            animate={prefersReducedMotion ? { y: 0 } : { y: [0, 6, 0] }}
-            transition={
-              prefersReducedMotion
-                ? { duration: 0 }
-                : { duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: APPEAR_DELAY_S }
-            }
+    <div className="scroll-cue-slot" aria-hidden>
+      <AnimatePresence>
+        {!dismissed && (
+          <motion.div
+            className="scroll-cue"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: 0.4,
+              delay: APPEAR_DELAY_S,
+              ease: EASE,
+            }}
           >
-            ↓
-          </motion.span>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            <span className="scroll-cue-label">{t('projectDetail.scroll')}</span>
+            <motion.span
+              className="scroll-cue-arrow"
+              animate={prefersReducedMotion ? { y: 0 } : { y: [0, 6, 0] }}
+              transition={
+                prefersReducedMotion
+                  ? { duration: 0 }
+                  : { duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: APPEAR_DELAY_S }
+              }
+            >
+              ↓
+            </motion.span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
