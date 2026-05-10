@@ -104,7 +104,7 @@ export function ProjectDetail() {
       </section>
 
       <Suspense fallback={<div style={{ minHeight: 200 }} aria-hidden />}>
-        <Contact />
+        <Contact showSectionIndex={false} />
         <Footer />
       </Suspense>
     </main>
