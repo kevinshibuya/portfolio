@@ -1568,7 +1568,7 @@ body[data-loader-state="loading"] {
   display: block;
 }
 .project-detail-cover-fallback {
-  color: rgba(26, 21, 18, 0.2);
+  color: rgba(17, 24, 34, 0.2);
   font-family: var(--font-sans);
   font-weight: 700;
   text-transform: lowercase;
