@@ -418,7 +418,8 @@ export const projects: Project[] = [
     highlight: true,
     highlightOrder: 1,
     size: 'lg',
-    gradient: 'linear-gradient(145deg, #C8D8F0, #6DB8FF)',
+    dark: true,
+    gradient: 'linear-gradient(145deg, #2A4060, #111822)',
     tagline: {
       en: 'scrapbook landing for a 50+ hour course',
       pt: 'landing artesanal para um curso de 50+ horas',

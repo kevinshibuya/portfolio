@@ -79,6 +79,7 @@ function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
       : project.size === 'md'
         ? 'bento-card--md'
         : ''
+  const cardClass = `bento-card ${sizeClass}${project.dark ? ' is-dark' : ''}`.trim()
   const isDual = project.size === 'md'
   const background = project.gradient ?? 'linear-gradient(145deg, #D4E5F2, #6A8CAA)'
 
@@ -93,7 +94,7 @@ function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
         ref={cardRef}
         variants={variants}
         to={`/projects/${project.slug}`}
-        className={`bento-card ${sizeClass}`}
+        className={cardClass}
         style={{ background }}
       >
         <div className="bento-text-col">
@@ -120,7 +121,7 @@ function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
       ref={cardRef}
       variants={variants}
       to={`/projects/${project.slug}`}
-      className={`bento-card ${sizeClass}`}
+      className={cardClass}
       style={{ background }}
     >
       {tagline && <span className="bento-desc-top">{tagline}</span>}
