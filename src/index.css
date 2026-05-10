@@ -1401,7 +1401,7 @@ body[data-loader-state="loading"] {
   box-shadow: inset 3px 0 0 var(--blue-400);
 }
 .archive-row--highlight:hover {
-  background: var(--cream);
+  background: var(--sand);
 }
 .archive-star {
   color: var(--blue-400);
