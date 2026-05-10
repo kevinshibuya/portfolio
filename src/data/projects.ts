@@ -418,7 +418,7 @@ export const projects: Project[] = [
     highlight: true,
     highlightOrder: 1,
     size: 'lg',
-    gradient: 'linear-gradient(145deg, #FFE5D9, #F4A582)',
+    gradient: 'linear-gradient(145deg, #C8D8F0, #6DB8FF)',
     tagline: {
       en: 'scrapbook landing for a 50+ hour course',
       pt: 'landing artesanal para um curso de 50+ horas',
@@ -493,7 +493,7 @@ export const projects: Project[] = [
     highlight: true,
     highlightOrder: 5,
     size: 'sm',
-    gradient: 'linear-gradient(145deg, #FFD9C5, #E89B7A)',
+    gradient: 'linear-gradient(145deg, #DCF0FF, #A2D2FF)',
     tagline: {
       en: 'eight viewpoints on the may 2024 floods',
       pt: 'oito olhares sobre as enchentes de maio de 2024',
