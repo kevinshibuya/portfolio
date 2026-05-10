@@ -32,7 +32,7 @@ export function BlockRenderer({ blocks, project, lang }: Props) {
           variants={variants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2, margin: '0px 0px -10% 0px' }}
+          viewport={{ once: true, amount: 0.3, margin: '0px 0px -25% 0px' }}
         >
           {renderBlock(block, project, lang)}
         </motion.div>
