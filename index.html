@@ -138,6 +138,48 @@
       type="font/woff2"
       crossorigin="anonymous"
     />
+    <!-- Critical loader CSS, inlined so the dark ink curtain paints with the
+         first frame of HTML — before the Vite-bundled stylesheet arrives. Without
+         this, the loader markup renders as two unstyled divs ("ks ks" stacked
+         in the top-left on a white body) for a few hundred ms on slow networks.
+         The same rules live in src/index.css so editor tooling stays consistent;
+         the cascade is a no-op once the bundled sheet replaces them. -->
+    <style>
+      html[data-loading='true'], body.is-loading { overflow: hidden; }
+      @font-face {
+        font-family: 'Plus Jakarta Sans';
+        src: url('/fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2-variations'),
+             url('/fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2');
+        font-weight: 200 800;
+        font-style: normal;
+        font-display: swap;
+      }
+      #loader { position: fixed; inset: 0; z-index: 9999; pointer-events: none; }
+      .loader-half {
+        position: fixed; left: 0; width: 100vw; height: 50vh;
+        background: #111822; overflow: hidden;
+        display: flex; justify-content: center;
+        transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
+        will-change: transform;
+      }
+      .loader-half--top    { top: 0;    align-items: flex-end;   }
+      .loader-half--bottom { bottom: 0; align-items: flex-start; }
+      .loader-mark {
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-size: clamp(140px, 30vw, 320px);
+        font-weight: 700; line-height: 1; letter-spacing: -0.05em;
+        text-transform: lowercase; color: #F6F9FC;
+        transform: translateY(50%);
+      }
+      .loader-half--bottom .loader-mark { transform: translateY(-50%); }
+      #loader.loader--exit .loader-half--top    { transform: translateY(-100%); }
+      #loader.loader--exit .loader-half--bottom { transform: translateY(100%);  }
+      @media (prefers-reduced-motion: reduce) {
+        .loader-half { transition: none; }
+        #loader { transition: opacity 150ms ease-out; }
+        #loader.loader--exit { opacity: 0; }
+      }
+    </style>
     <script>
       // Lock body scroll while the loader is up. Set BEFORE React parses so
       // the document's initial render is already scroll-locked — prevents
