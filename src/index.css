@@ -159,11 +159,25 @@ strong {
   width: 30px; height: 30px;
   border-radius: 8px;
   background: var(--ink);
-  color: var(--blue-200);
-  display: grid; place-items: center;
-  font-size: 12px; font-weight: 700;
+  color: var(--cream);
+  font-size: 14px; font-weight: 700;
   text-transform: lowercase;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
+  /* line-height matches the tile height so the single line of text is
+     vertically centered without flex — that way the dot can keep its
+     real text baseline (vertical-align: baseline) instead of getting
+     shoved to the cross-axis center by a flex container. */
+  line-height: 30px;
+  text-align: center;
+  white-space: nowrap;
+}
+.nav-mark__dot {
+  display: inline-block;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--blue-400);
+  vertical-align: baseline;
+  margin-left: 1px;
 }
 .nav-brand-text {
   font-size: 13px; font-weight: 500; color: var(--ink);
@@ -282,10 +296,19 @@ strong {
 
 /* =========================================================================
    LOADER + CURTAIN — paints at first frame from index.html, lifts via
-   main.tsx after React mounts + min-dwell. Two-panel split: top translates
-   up, bottom translates down. The .loader-mark "ks" sits at viewport center;
-   each panel clips its half via overflow:hidden so the mark appears to tear
-   along the seam when the panels separate.
+   main.tsx after React mounts + min-dwell.
+
+   Structure: two solid ink .loader-half panels + three text spans that
+   each render "ks" + a styled blue dot ("ks." brand mark). The
+   .loader-mark--whole is visible at first paint and serves as the LCP
+   candidate; the two tear-halves are visibility:hidden clip-pathed copies
+   positioned at the same pixel coordinates. On .loader--exit the
+   whole-mark flips hidden, the halves flip visible (pixel-identical
+   swap), and each half translates ±50vh with its panel — the mark
+   appears to tear horizontally as the curtain opens.
+
+   Same rules are inlined in index.html so the curtain paints with the
+   first byte of HTML, before this bundled stylesheet arrives.
    ========================================================================= */
 html[data-loading='true'],
 body.is-loading {
@@ -297,7 +320,9 @@ body.is-loading {
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  /* Below: each half handles its own background + mark clipping. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .loader-half {
@@ -305,24 +330,13 @@ body.is-loading {
   left: 0;
   width: 100vw;
   height: 50vh;
-  background: #111822; /* ink — fallback hex; --ink token is loaded inside :root which may not be parsed yet for the loader's first paint */
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  /* transition target: transform. Default is identity (curtain in place). */
+  background: #111822; /* ink — fallback hex; --ink token may not be parsed yet for the loader's first paint */
   transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
   will-change: transform;
 }
 
-.loader-half--top {
-  top: 0;
-  align-items: flex-end; /* mark grows from below — its bottom edge sits at the panel's bottom (the seam) */
-}
-
-.loader-half--bottom {
-  bottom: 0;
-  align-items: flex-start; /* mark grows from above — its top edge sits at the panel's top (the seam) */
-}
+.loader-half--top    { top: 0;    }
+.loader-half--bottom { bottom: 0; }
 
 .loader-mark {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -332,24 +346,52 @@ body.is-loading {
   letter-spacing: -0.05em;
   text-transform: lowercase;
   color: #F6F9FC; /* cream — fallback hex */
-  /* Both halves render the SAME mark; the parent panel's overflow:hidden +
-     align-items (flex-end vs flex-start) clips the appropriate half. The
-     mark itself overflows its panel so the visual reads as one continuous
-     "ks" straddling the horizontal seam. */
-  transform: translateY(50%); /* shift the mark down by half its own height so the seam cuts through its vertical center */
+  white-space: nowrap;
 }
 
-.loader-half--bottom .loader-mark {
-  transform: translateY(-50%); /* the bottom half clips the top of the mark; shift up so the visible portion is the bottom half of the glyph */
+.loader-mark__dot {
+  display: inline-block;
+  width: 0.18em;
+  height: 0.18em;
+  border-radius: 50%;
+  background: #3A96E8; /* --blue-400 — fallback hex */
+  vertical-align: baseline;
+  margin-left: 0.02em;
 }
+
+.loader-mark--whole {
+  position: relative;
+  z-index: 1; /* sits above the .loader-half panels */
+}
+
+.loader-mark--top,
+.loader-mark--bottom {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  visibility: hidden; /* hidden so they aren't counted as LCP candidates */
+  transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
+}
+
+.loader-mark--top    { clip-path: inset(0 0 50% 0); } /* keep only the top half */
+.loader-mark--bottom { clip-path: inset(50% 0 0 0); } /* keep only the bottom half */
 
 /* Curtain exit: triggered by main.tsx adding .loader--exit to #loader. */
-#loader.loader--exit .loader-half--top { transform: translateY(-100%); }
-#loader.loader--exit .loader-half--bottom { transform: translateY(100%); }
+#loader.loader--exit .loader-half--top    { transform: translateY(-100%); }
+#loader.loader--exit .loader-half--bottom { transform: translateY(100%);  }
+#loader.loader--exit .loader-mark--whole  { visibility: hidden; }
+#loader.loader--exit .loader-mark--top,
+#loader.loader--exit .loader-mark--bottom { visibility: visible; }
+#loader.loader--exit .loader-mark--top    { transform: translate(-50%, calc(-50% - 50vh)); }
+#loader.loader--exit .loader-mark--bottom { transform: translate(-50%, calc(-50% + 50vh)); }
 
 /* Reduced motion: skip the slide; fade the whole loader out instead. */
 @media (prefers-reduced-motion: reduce) {
-  .loader-half {
+  .loader-half,
+  .loader-mark--top,
+  .loader-mark--bottom {
     transition: none;
   }
   #loader {

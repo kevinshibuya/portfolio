@@ -63,7 +63,7 @@ export function Header() {
     >
       <div className="nav-inner">
         <a href="#top" className="nav-brand" onClick={go("top")}>
-          <span className="nav-mark">ks</span>
+          <span className="nav-mark">ks<span className="nav-mark__dot" aria-hidden="true" /></span>
           {/* <span className="nav-brand-text">kevin shibuya</span> */}
         </a>
 

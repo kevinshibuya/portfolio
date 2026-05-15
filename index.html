@@ -143,11 +143,21 @@
       crossorigin="anonymous"
     />
     <!-- Critical loader CSS, inlined so the dark ink curtain paints with the
-         first frame of HTML — before the Vite-bundled stylesheet arrives. Without
-         this, the loader markup renders as two unstyled divs ("ks ks" stacked
-         in the top-left on a white body) for a few hundred ms on slow networks.
-         The same rules live in src/index.css so editor tooling stays consistent;
-         the cascade is a no-op once the bundled sheet replaces them. -->
+         first frame of HTML — before the Vite-bundled stylesheet arrives.
+         Mirrors src/index.css; the cascade is a no-op once the bundled sheet
+         replaces them.
+
+         Structure & LCP trick: at first paint there's a single
+         .loader-mark--whole text span centered in the viewport ("ks" + a
+         styled blue dot), sitting on top of two solid ink panels. Its
+         bounding rect is what Chrome's LCP algorithm measures, so LCP
+         locks here before React boots. Two extra tear-half siblings render
+         the same markup; they're clipped via clip-path to top/bottom halves
+         and visibility:hidden at first paint so they don't count as LCP
+         candidates. On exit, the whole-mark flips visibility:hidden and
+         the two halves flip visibility:visible (pixel-identical swap) then
+         translate ±50vh with the panels — re-creating the tear effect
+         while keeping the whole-mark's LCP timestamp locked. -->
     <style>
       html[data-loading='true'], body.is-loading { overflow: hidden; }
       @font-face {
@@ -158,28 +168,53 @@
         font-style: normal;
         font-display: swap;
       }
-      #loader { position: fixed; inset: 0; z-index: 9999; pointer-events: none; }
+      #loader {
+        position: fixed; inset: 0; z-index: 9999;
+        pointer-events: none;
+        display: flex; align-items: center; justify-content: center;
+      }
       .loader-half {
         position: fixed; left: 0; width: 100vw; height: 50vh;
-        background: #111822; overflow: hidden;
-        display: flex; justify-content: center;
+        background: #111822;
         transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
         will-change: transform;
       }
-      .loader-half--top    { top: 0;    align-items: flex-end;   }
-      .loader-half--bottom { bottom: 0; align-items: flex-start; }
+      .loader-half--top    { top: 0;    }
+      .loader-half--bottom { bottom: 0; }
       .loader-mark {
         font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
         font-size: clamp(140px, 30vw, 320px);
         font-weight: 700; line-height: 1; letter-spacing: -0.05em;
         text-transform: lowercase; color: #F6F9FC;
-        transform: translateY(50%);
+        white-space: nowrap;
       }
-      .loader-half--bottom .loader-mark { transform: translateY(-50%); }
+      .loader-mark__dot {
+        display: inline-block;
+        width: 0.18em; height: 0.18em;
+        border-radius: 50%;
+        background: #3A96E8; /* --blue-400 — fallback hex */
+        vertical-align: baseline;
+        margin-left: 0.02em;
+      }
+      .loader-mark--whole { position: relative; z-index: 1; }
+      .loader-mark--top,
+      .loader-mark--bottom {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2; visibility: hidden;
+        transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
+      }
+      .loader-mark--top    { clip-path: inset(0 0 50% 0); }
+      .loader-mark--bottom { clip-path: inset(50% 0 0 0); }
       #loader.loader--exit .loader-half--top    { transform: translateY(-100%); }
       #loader.loader--exit .loader-half--bottom { transform: translateY(100%);  }
+      #loader.loader--exit .loader-mark--whole  { visibility: hidden; }
+      #loader.loader--exit .loader-mark--top,
+      #loader.loader--exit .loader-mark--bottom { visibility: visible; }
+      #loader.loader--exit .loader-mark--top    { transform: translate(-50%, calc(-50% - 50vh)); }
+      #loader.loader--exit .loader-mark--bottom { transform: translate(-50%, calc(-50% + 50vh)); }
       @media (prefers-reduced-motion: reduce) {
-        .loader-half { transition: none; }
+        .loader-half, .loader-mark--top, .loader-mark--bottom { transition: none; }
         #loader { transition: opacity 150ms ease-out; }
         #loader.loader--exit { opacity: 0; }
       }
@@ -195,20 +230,21 @@
     </script>
   </head>
   <body>
-    <!-- LOADER + CURTAIN. The two .loader-half panels paint at first frame
-         on hard navigation; the .loader-mark inside each is the LCP candidate
-         (locked at first paint per W3C LCP spec, even after panels animate
-         away). Both halves carry the SAME mark positioned at the viewport's
-         vertical center; each panel's overflow:hidden clips its half so the
-         mark looks continuous across the seam. When main.tsx adds .loader--exit,
-         the panels translate apart and the mark "tears". -->
+    <!-- LOADER + CURTAIN. Two ink .loader-half panels paint at first frame;
+         the .loader-mark--whole text span on top of them is the LCP
+         candidate (locked at first paint per W3C LCP spec, before React
+         mounts). The two tear-half siblings render the same "ks." markup
+         — they're visibility:hidden so they don't count as LCP candidates
+         until exit. When main.tsx adds .loader--exit, the whole-mark
+         hides, the two halves become visible at the exact same pixel
+         position (instant, invisible swap) and then animate ±50vh with
+         their panels, re-creating the tear effect. -->
     <div id="loader" aria-hidden="true">
-      <div class="loader-half loader-half--top">
-        <span class="loader-mark">ks</span>
-      </div>
-      <div class="loader-half loader-half--bottom">
-        <span class="loader-mark">ks</span>
-      </div>
+      <div class="loader-half loader-half--top"></div>
+      <div class="loader-half loader-half--bottom"></div>
+      <span class="loader-mark loader-mark--whole">ks<span class="loader-mark__dot"></span></span>
+      <span class="loader-mark loader-mark--top" aria-hidden="true">ks<span class="loader-mark__dot"></span></span>
+      <span class="loader-mark loader-mark--bottom" aria-hidden="true">ks<span class="loader-mark__dot"></span></span>
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
