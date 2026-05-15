@@ -26,7 +26,7 @@ No test files: this project has no automated copy tests. Verification is **visua
 **Files:**
 - Modify: `src/i18n/locales/en.json` (keys `hero.roles[0..3]`, `hero.description`, `hero.stats.years`, `hero.stats.embeds`, `hero.stats.projects`)
 
-- [ ] **Step 1: Replace `hero.roles` array**
+- [x] **Step 1: Replace `hero.roles` array**
 
 In `src/i18n/locales/en.json`, find:
 
@@ -50,7 +50,7 @@ Replace with:
     ],
 ```
 
-- [ ] **Step 2: Replace `hero.description`**
+- [x] **Step 2: Replace `hero.description`**
 
 Find:
 
@@ -64,7 +64,7 @@ Replace with:
     "description": "i take <strong>rough ideas</strong> to <strong>polished, shipped products</strong> — design, engineering, and clear communication, in one person.",
 ```
 
-- [ ] **Step 3: Replace `hero.stats` labels**
+- [x] **Step 3: Replace `hero.stats` labels**
 
 Find:
 
@@ -86,7 +86,7 @@ Replace with:
     }
 ```
 
-- [ ] **Step 4: Verify JSON is valid**
+- [x] **Step 4: Verify JSON is valid**
 
 Run: `node -e "JSON.parse(require('fs').readFileSync('src/i18n/locales/en.json','utf8')); console.log('OK')"`
 Expected output: `OK`

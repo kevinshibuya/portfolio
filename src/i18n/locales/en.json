@@ -13,20 +13,20 @@
     "name2": "shibuya.",
     "rolePrefix": "i am an",
     "roles": [
-      "interactive storyteller",
-      "fullstack developer",
-      "system architect",
-      "data journalist"
+      "interactive developer",
+      "design-engineer",
+      "product builder",
+      "data storyteller"
     ],
-    "description": "<strong>full-stack developer</strong> specializing in interactive journalism and digital experiences — transforming <strong>data and narratives</strong> into engaging <strong>visual stories.</strong>",
+    "description": "i take <strong>rough ideas</strong> to <strong>polished, shipped products</strong> — design, engineering, and clear communication, in one person.",
     "cta": {
       "collaborate": "collaborate",
       "resume": "resume"
     },
     "stats": {
-      "years": "years of experience",
-      "embeds": "interactives published",
-      "projects": "featured projects"
+      "years": "years shipping",
+      "embeds": "interactives shipped",
+      "projects": "case studies"
     }
   },
   "sections": {
