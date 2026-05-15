@@ -29,9 +29,13 @@
     <meta name="theme-color" content="#F6F9FC" />
     <meta name="color-scheme" content="light" />
 
-    <!-- FAVICON / ICONS (binary files deferred — paths only) -->
+    <!-- FAVICON / ICONS (binary files deferred — paths only).
+         SVG favicon link intentionally omitted: the current /favicon.svg is a
+         base64-PNG-wrapped-in-SVG (~1.2 MB) so referencing it would have the
+         browser pull a megabyte of raster bytes for the tab icon. The .ico
+         + 96×96 PNG cover every modern browser; re-export favicon.svg as a
+         true vector if you want to add the SVG line back. -->
     <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
