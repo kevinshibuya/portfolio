@@ -5,9 +5,9 @@
     "experience": "experience",
     "skills": "skills",
     "contact": "contact",
-    "available": "open for new projects"
+    "available": "open to work"
   },
-  "lang": "PT",
+  "lang": "EN",
   "hero": {
     "name1": "kevin",
     "name2": "shibuya.",
@@ -18,7 +18,7 @@
       "product builder",
       "data storyteller"
     ],
-    "description": "i take <strong>rough ideas</strong> to <strong>polished, shipped products</strong> — design, engineering, and clear communication, in one person.",
+    "description": "i take <strong>rough ideas</strong> to <strong>shipped products</strong>. end-to-end, solo.",
     "cta": {
       "collaborate": "collaborate",
       "resume": "resume"
@@ -34,14 +34,14 @@
       "index": "01 · featured",
       "label": "",
       "title": "selected <em>work.</em>",
-      "description": "recent work taken end-to-end. brief → shipped → in the wild.",
+      "description": "work i've taken from brief to ship.",
       "caseStudy": "case study"
     },
     "archive": {
       "index": "02 · everything",
       "label": "",
       "title": "the <em>archive.</em>",
-      "description": "every interactive, product, and experiment i've shipped. searchable.",
+      "description": "everything i've shipped, searchable.",
       "toolbar": {
         "search": "search…",
         "kind": "kind",
@@ -65,14 +65,14 @@
       "index": "03 · experience",
       "label": "",
       "title": "work <em>history.</em>",
-      "description": "seven years shipping for newsrooms, agencies, and product teams — work seen by millions.",
+      "description": "seven years shipping. work seen by millions.",
       "award": "★ award"
     },
     "skills": {
       "index": "04 · expertise",
       "label": "",
       "title": "skills &amp; tools.",
-      "description": "the stack i use to take ideas from brief to ship — fast, without cutting craft.",
+      "description": "my stack — fast, without cutting craft.",
       "frontend": "frontend",
       "backend": "backend & tools",
       "expertise": "expertise"
@@ -81,7 +81,7 @@
       "index": "05",
       "label": "get in touch",
       "title": "let's <em>build.</em>",
-      "subtitle": "have a project, a rough idea, or a brief that needs a builder? tell me about it.",
+      "subtitle": "got a project or rough idea? let's talk.",
       "links": {
         "email": "send mail",
         "linkedin": "linkedin",

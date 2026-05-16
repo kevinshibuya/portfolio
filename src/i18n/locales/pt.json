@@ -5,9 +5,9 @@
     "experience": "experiência",
     "skills": "habilidades",
     "contact": "contato",
-    "available": "aberto para novos projetos"
+    "available": "aberto a projetos"
   },
-  "lang": "EN",
+  "lang": "PT",
   "hero": {
     "name1": "kevin",
     "name2": "shibuya.",
@@ -18,7 +18,7 @@
       "criador de produtos",
       "contador de histórias de dados"
     ],
-    "description": "eu levo <strong>ideias cruas</strong> a <strong>produtos prontos e polidos</strong> — design, engenharia e comunicação clara, numa pessoa só.",
+    "description": "eu levo <strong>ideias cruas</strong> a <strong>produtos prontos</strong>. ponta a ponta, sozinho.",
     "cta": {
       "collaborate": "colaborar",
       "resume": "currículo"
@@ -34,14 +34,14 @@
       "index": "01 · destaques",
       "label": "",
       "title": "trabalhos <em>selecionados.</em>",
-      "description": "trabalhos recentes feitos ponta a ponta. do briefing à entrega — no ar.",
+      "description": "trabalhos que levei do briefing à entrega.",
       "caseStudy": "estudo de caso"
     },
     "archive": {
       "index": "02 · arquivo",
       "label": "",
       "title": "o <em>arquivo.</em>",
-      "description": "todo interativo, produto e experimento que entreguei. pesquisável.",
+      "description": "tudo que entreguei, pesquisável.",
       "toolbar": {
         "search": "buscar…",
         "kind": "tipo",
@@ -65,14 +65,14 @@
       "index": "03 · experiência",
       "label": "",
       "title": "experiência <em>profissional.</em>",
-      "description": "sete anos entregando para redações, agências e times de produto — trabalhos vistos por milhões.",
+      "description": "sete anos entregando. trabalhos vistos por milhões.",
       "award": "★ prêmio"
     },
     "skills": {
       "index": "04 · conhecimentos",
       "label": "",
       "title": "habilidades &amp; ferramentas.",
-      "description": "as ferramentas que uso para levar ideias do briefing à entrega — rápido, sem cortar acabamento.",
+      "description": "meu stack — rápido, sem cortar acabamento.",
       "frontend": "frontend",
       "backend": "backend & ferramentas",
       "expertise": "especialidades"
@@ -81,7 +81,7 @@
       "index": "05",
       "label": "entre em contato",
       "title": "vamos <em>construir.</em>",
-      "subtitle": "tem um projeto, uma ideia ainda crua ou um briefing precisando de um builder? me conta.",
+      "subtitle": "tem um projeto ou ideia? bora conversar.",
       "links": {
         "email": "enviar e-mail",
         "linkedin": "linkedin",
