@@ -18,7 +18,7 @@
       "criador de produtos",
       "narrador de dados"
     ],
-    "description": "<strong>ideias cruas → produtos prontos.</strong> ponta a ponta, sozinho.",
+    "description": "<strong>do esboço ao produto final.</strong> um time de um homem só.",
     "cta": {
       "collaborate": "colaborar",
       "resume": "currículo"
@@ -33,15 +33,15 @@
     "projects": {
       "index": "01 · destaques",
       "label": "",
-      "title": "trabalhos <em>selecionados.</em>",
-      "description": "trabalhos que levei do briefing à entrega.",
+      "title": "obras <em>em foco.</em>",
+      "description": "do briefing à entrega.",
       "caseStudy": "estudo de caso"
     },
     "archive": {
       "index": "02 · arquivo",
       "label": "",
       "title": "o <em>arquivo.</em>",
-      "description": "tudo que entreguei, pesquisável.",
+      "description": "tudo o que entreguei. pode buscar.",
       "toolbar": {
         "search": "buscar…",
         "kind": "tipo",
@@ -64,15 +64,15 @@
     "work": {
       "index": "03 · experiência",
       "label": "",
-      "title": "experiência <em>profissional.</em>",
-      "description": "sete anos entregando. trabalhos vistos por milhões.",
+      "title": "minha <em>carreira.</em>",
+      "description": "sete anos entregando. visto por milhões.",
       "award": "★ prêmio"
     },
     "skills": {
       "index": "04 · conhecimentos",
       "label": "",
-      "title": "habilidades &amp; ferramentas.",
-      "description": "meu stack — rápido, sem cortar acabamento.",
+      "title": "meu <em>arsenal.</em>",
+      "description": "meu stack — rápido, sem abrir mão do capricho.",
       "frontend": "frontend",
       "backend": "backend & ferramentas",
       "expertise": "especialidades"
@@ -80,7 +80,7 @@
     "contact": {
       "index": "05",
       "label": "entre em contato",
-      "title": "vamos <em>construir.</em>",
+      "title": "vamos <em>criar.</em>",
       "subtitle": "tem um projeto ou ideia? bora conversar.",
       "links": {
         "email": "enviar e-mail",
@@ -92,7 +92,7 @@
   },
   "footer": {
     "copyright": "© {{year}} kevin shibuya — todos os direitos reservados",
-    "builtWith": "feito com react, typescript & cuidado",
+    "builtWith": "feito com react, typescript & capricho",
     "bigText": "kevin shibuya"
   },
   "projectDetail": {
