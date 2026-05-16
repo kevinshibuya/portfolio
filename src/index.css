@@ -1253,6 +1253,20 @@ body.is-loading {
   .section-header { margin-bottom: 40px; }
   .section { padding: 100px 20px; }
   .hero-accent-mount { display: none; }
+
+  /* Hero typography — desktop values read bookish on a 6" screen.
+     Drop description from "novel body" (17/1.75) to "informative
+     caption" (15/1.55), soften strong from 700 → 600, open the
+     role/prefix hierarchy gap, and compress inter-block rhythm
+     ~25% so the hero feels composed instead of scroll-y. */
+  .hero-role-line { margin-top: 28px; gap: 12px; }
+  .hero-role-prefix { font-size: 18px; }
+  .hero-role { font-size: 22px; border-bottom-width: 1px; }
+  .hero-desc { font-size: 15px; line-height: 1.55; }
+  .hero-desc strong { font-weight: 600; }
+  .hero-main .hero-name + .hero-supplementary { margin-top: 32px; }
+  .hero-supplementary .hero-role-line + .hero-desc { margin-top: 20px; }
+  .hero-supplementary .hero-desc + .hero-cta { margin-top: 32px; }
 }
 
 /* =========================================================================
