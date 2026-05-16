@@ -34,7 +34,7 @@
       "index": "01 · featured",
       "label": "",
       "title": "selected <em>work.</em>",
-      "description": "work i've taken from brief to ship.",
+      "description": "i've taken these from brief to ship.",
       "caseStudy": "case study"
     },
     "archive": {
@@ -65,13 +65,13 @@
       "index": "03 · experience",
       "label": "",
       "title": "work <em>history.</em>",
-      "description": "seven years shipping. work seen by millions.",
+      "description": "seven years shipping. seen by millions.",
       "award": "★ award"
     },
     "skills": {
       "index": "04 · expertise",
       "label": "",
-      "title": "skills &amp; tools.",
+      "title": "skills &amp; <em>tools.</em>",
       "description": "my stack — fast, without cutting craft.",
       "frontend": "frontend",
       "backend": "backend & tools",
