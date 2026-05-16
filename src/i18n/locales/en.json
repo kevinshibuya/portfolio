@@ -5,7 +5,7 @@
     "experience": "experience",
     "skills": "skills",
     "contact": "contact",
-    "available": "available for projects"
+    "available": "open for new projects"
   },
   "lang": "PT",
   "hero": {
@@ -34,14 +34,14 @@
       "index": "01 · featured",
       "label": "",
       "title": "selected <em>work.</em>",
-      "description": "asymmetric grid of my most important recent projects.",
+      "description": "recent work taken end-to-end. brief → shipped → in the wild.",
       "caseStudy": "case study"
     },
     "archive": {
       "index": "02 · everything",
       "label": "",
       "title": "the <em>archive.</em>",
-      "description": "everything I've shipped — interactives, projects, experiments.",
+      "description": "every interactive, product, and experiment i've shipped. searchable.",
       "toolbar": {
         "search": "search…",
         "kind": "kind",
@@ -65,14 +65,14 @@
       "index": "03 · experience",
       "label": "",
       "title": "work <em>history.</em>",
-      "description": "seven years across newsrooms, agencies, and product teams — building interactive experiences for millions.",
+      "description": "seven years shipping for newsrooms, agencies, and product teams — work seen by millions.",
       "award": "★ award"
     },
     "skills": {
       "index": "04 · expertise",
       "label": "",
       "title": "skills &amp; tools.",
-      "description": "a toolkit built around building fast, building right, and building with care.",
+      "description": "the stack i use to take ideas from brief to ship — fast, without cutting craft.",
       "frontend": "frontend",
       "backend": "backend & tools",
       "expertise": "expertise"
@@ -81,7 +81,7 @@
       "index": "05",
       "label": "get in touch",
       "title": "let's <em>build.</em>",
-      "subtitle": "have a project in mind or just want to say hi? i'd love to hear from you.",
+      "subtitle": "have a project, a rough idea, or a brief that needs a builder? tell me about it.",
       "links": {
         "email": "send mail",
         "linkedin": "linkedin",

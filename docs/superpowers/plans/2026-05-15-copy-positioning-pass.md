@@ -105,42 +105,42 @@ git commit -m "feat(copy): builder-first hero copy (EN)"
 **Files:**
 - Modify: `src/i18n/locales/en.json` (keys `nav.available`, `sections.projects.description`, `sections.archive.description`, `sections.work.description`, `sections.skills.description`, `sections.contact.subtitle`)
 
-- [ ] **Step 1: Replace `nav.available`**
+- [x] **Step 1: Replace `nav.available`**
 
 Find: `"available": "available for projects"`
 Replace with: `"available": "open for new projects"`
 
-- [ ] **Step 2: Replace `sections.projects.description`**
+- [x] **Step 2: Replace `sections.projects.description`**
 
 Find: `"description": "asymmetric grid of my most important recent projects.",`
 Replace with: `"description": "recent work taken end-to-end. brief → shipped → in the wild.",`
 
-- [ ] **Step 3: Replace `sections.archive.description`**
+- [x] **Step 3: Replace `sections.archive.description`**
 
 Find: `"description": "everything I've shipped — interactives, projects, experiments.",`
 Replace with: `"description": "every interactive, product, and experiment i've shipped. searchable.",`
 
-- [ ] **Step 4: Replace `sections.work.description`**
+- [x] **Step 4: Replace `sections.work.description`**
 
 Find: `"description": "seven years across newsrooms, agencies, and product teams — building interactive experiences for millions.",`
 Replace with: `"description": "seven years shipping for newsrooms, agencies, and product teams — work seen by millions.",`
 
-- [ ] **Step 5: Replace `sections.skills.description`**
+- [x] **Step 5: Replace `sections.skills.description`**
 
 Find: `"description": "a toolkit built around building fast, building right, and building with care.",`
 Replace with: `"description": "the stack i use to take ideas from brief to ship — fast, without cutting craft.",`
 
-- [ ] **Step 6: Replace `sections.contact.subtitle`**
+- [x] **Step 6: Replace `sections.contact.subtitle`**
 
 Find: `"subtitle": "have a project in mind or just want to say hi? i'd love to hear from you.",`
 Replace with: `"subtitle": "have a project, a rough idea, or a brief that needs a builder? tell me about it.",`
 
-- [ ] **Step 7: Verify JSON is valid**
+- [x] **Step 7: Verify JSON is valid**
 
 Run: `node -e "JSON.parse(require('fs').readFileSync('src/i18n/locales/en.json','utf8')); console.log('OK')"`
 Expected: `OK`
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/i18n/locales/en.json
