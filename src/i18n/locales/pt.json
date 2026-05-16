@@ -5,7 +5,7 @@
     "experience": "experiência",
     "skills": "habilidades",
     "contact": "contato",
-    "available": "disponível para projetos"
+    "available": "aberto para novos projetos"
   },
   "lang": "EN",
   "hero": {
@@ -34,14 +34,14 @@
       "index": "01 · destaques",
       "label": "",
       "title": "trabalhos <em>selecionados.</em>",
-      "description": "grade assimétrica dos meus projetos recentes mais importantes.",
+      "description": "trabalhos recentes feitos ponta a ponta. do briefing à entrega — no ar.",
       "caseStudy": "estudo de caso"
     },
     "archive": {
       "index": "02 · arquivo",
       "label": "",
       "title": "o <em>arquivo.</em>",
-      "description": "tudo que eu já publiquei — interativos, projetos, experimentos.",
+      "description": "todo interativo, produto e experimento que entreguei. pesquisável.",
       "toolbar": {
         "search": "buscar…",
         "kind": "tipo",
@@ -65,14 +65,14 @@
       "index": "03 · experiência",
       "label": "",
       "title": "experiência <em>profissional.</em>",
-      "description": "sete anos entre redações, agências e equipes de produto — construindo experiências interativas para milhões.",
+      "description": "sete anos entregando para redações, agências e times de produto — trabalhos vistos por milhões.",
       "award": "★ prêmio"
     },
     "skills": {
       "index": "04 · conhecimentos",
       "label": "",
       "title": "habilidades &amp; ferramentas.",
-      "description": "um kit construído em torno de construir rápido, construir certo e construir com cuidado.",
+      "description": "as ferramentas que uso para levar ideias do briefing à entrega — rápido, sem cortar acabamento.",
       "frontend": "frontend",
       "backend": "backend & ferramentas",
       "expertise": "especialidades"
@@ -81,7 +81,7 @@
       "index": "05",
       "label": "entre em contato",
       "title": "vamos <em>construir.</em>",
-      "subtitle": "tem um projeto em mente ou só quer dizer oi? adoraria ouvir de você.",
+      "subtitle": "tem um projeto, uma ideia ainda crua ou um briefing precisando de um builder? me conta.",
       "links": {
         "email": "enviar e-mail",
         "linkedin": "linkedin",
