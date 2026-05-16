@@ -154,7 +154,7 @@ git commit -m "feat(copy): sharpen nav + section + contact copy (EN)"
 **Files:**
 - Modify: `src/i18n/locales/pt.json` (keys `hero.roles[0..3]`, `hero.description`, `hero.stats.years`, `hero.stats.embeds`, `hero.stats.projects`)
 
-- [ ] **Step 1: Replace `hero.roles` array**
+- [x] **Step 1: Replace `hero.roles` array**
 
 Find:
 
@@ -178,7 +178,7 @@ Replace with:
     ],
 ```
 
-- [ ] **Step 2: Replace `hero.description`**
+- [x] **Step 2: Replace `hero.description`**
 
 Find:
 
@@ -192,7 +192,7 @@ Replace with:
     "description": "eu levo <strong>ideias cruas</strong> a <strong>produtos prontos e polidos</strong> — design, engenharia e comunicação clara, numa pessoa só.",
 ```
 
-- [ ] **Step 3: Replace `hero.stats` labels**
+- [x] **Step 3: Replace `hero.stats` labels**
 
 Find:
 
@@ -214,12 +214,12 @@ Replace with:
     }
 ```
 
-- [ ] **Step 4: Verify JSON is valid**
+- [x] **Step 4: Verify JSON is valid**
 
 Run: `node -e "JSON.parse(require('fs').readFileSync('src/i18n/locales/pt.json','utf8')); console.log('OK')"`
 Expected: `OK`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/i18n/locales/pt.json

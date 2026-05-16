@@ -13,20 +13,20 @@
     "name2": "shibuya.",
     "rolePrefix": "sou um",
     "roles": [
-      "contador de histórias",
-      "desenvolvedor fullstack",
-      "arquiteto de sistemas",
-      "jornalista de dados"
+      "desenvolvedor interativo",
+      "designer-desenvolvedor",
+      "criador de produtos",
+      "contador de histórias de dados"
     ],
-    "description": "<strong>desenvolvedor full-stack</strong> especializado em jornalismo interativo e experiências digitais — transformando <strong>dados e narrativas</strong> em <strong>histórias visuais envolventes.</strong>",
+    "description": "eu levo <strong>ideias cruas</strong> a <strong>produtos prontos e polidos</strong> — design, engenharia e comunicação clara, numa pessoa só.",
     "cta": {
       "collaborate": "colaborar",
       "resume": "currículo"
     },
     "stats": {
-      "years": "anos de experiência",
-      "embeds": "interativos publicados",
-      "projects": "projetos em destaque"
+      "years": "anos entregando",
+      "embeds": "interativos entregues",
+      "projects": "estudos de caso"
     }
   },
   "sections": {
