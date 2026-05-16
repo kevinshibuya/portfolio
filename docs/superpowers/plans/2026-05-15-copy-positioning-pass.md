@@ -281,14 +281,14 @@ git commit -m "feat(copy): sharpen nav + section + contact copy (PT)"
 
 **Files:** none modified — verification only.
 
-- [ ] **Step 1: Run a production build**
+- [x] **Step 1: Run a production build**
 
 Run: `npm run build`
 Expected: exit code 0. No TypeScript errors, no missing-translation warnings.
 
 If build fails on a missing translation key, that's a sign one of the previous tasks deleted a key it shouldn't have. Fix by restoring the key and re-running.
 
-- [ ] **Step 2: Eyeball the built bundle for the new copy**
+- [x] **Step 2: Eyeball the built bundle for the new copy**
 
 Run:
 
