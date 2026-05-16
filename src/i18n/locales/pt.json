@@ -34,7 +34,7 @@
       "index": "01 · destaques",
       "label": "",
       "title": "obras <em>em foco.</em>",
-      "description": "tirei essas do briefing à entrega.",
+      "description": "highlights pessoais. do briefing à entrega.",
       "caseStudy": "estudo de caso"
     },
     "archive": {
@@ -72,7 +72,7 @@
       "index": "04 · conhecimentos",
       "label": "",
       "title": "meu <em>arsenal.</em>",
-      "description": "meu stack — rápido, sem abrir mão do capricho.",
+      "description": "o stack — rápido, sem abrir mão do capricho.",
       "frontend": "frontend",
       "backend": "backend & ferramentas",
       "expertise": "especialidades"
