@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useLayoutEffect } from 'react'
 import { Hero } from '../components/sections/Hero'
 import { useLenis } from '../hooks/useLenis'
 import { useMotion } from '../context/MotionContext'
+import { resetPageMeta } from '../utils/pageMeta'
 
 // Below-the-fold sections lazy-load so the main JS chunk only carries Hero
 // (the LCP target). After Hero mounts, an idle callback warms the chunks so
@@ -112,6 +113,14 @@ export function Home() {
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Restore the homepage title + meta description on mount, in case the
+  // user is coming back from a project detail page where they were swapped
+  // out. Captured-once-then-restored is enough; we don't translate the
+  // homepage title per language (the static one in index.html stands).
+  useEffect(() => {
+    resetPageMeta()
   }, [])
 
   // Warm the lazy chunks at idle so the first scroll doesn't show a placeholder.

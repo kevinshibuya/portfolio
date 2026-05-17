@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { projects } from '../data/projects'
 import { useLenis } from '../hooks/useLenis'
+import { setPageMeta, resetPageMeta } from '../utils/pageMeta'
 import { Hero } from '../components/projectDetail/Hero'
 import { ScrollCue } from '../components/projectDetail/ScrollCue'
 import { StackSection } from '../components/projectDetail/StackSection'
@@ -45,6 +46,15 @@ export function ProjectDetail() {
   }, [])
 
   const project = projects.find((p) => p.slug === slug)
+
+  useEffect(() => {
+    if (!project) return
+    setPageMeta(
+      `${project.title[lang]} — kevin shibuya`,
+      project.description[lang],
+    )
+    return resetPageMeta
+  }, [project, lang])
 
   if (!project) {
     return (
