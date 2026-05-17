@@ -9,6 +9,10 @@ import { BlockRenderer } from '../components/projectDetail/BlockRenderer'
 import { StackSection } from '../components/projectDetail/StackSection'
 import { Footnotes } from '../components/projectDetail/Footnotes'
 import { RouteList } from '../components/projectDetail/blocks/RouteList'
+import { Pitch } from '../components/projectDetail/Pitch'
+import { MockupFrame } from '../components/projectDetail/MockupFrame'
+import { WhatShippedRow } from '../components/projectDetail/WhatShippedRow'
+import { TrickCard } from '../components/projectDetail/TrickCard'
 
 const Contact = lazy(() =>
   import('../components/sections/Contact').then((m) => ({ default: m.Contact }))
@@ -75,32 +79,59 @@ export function ProjectDetail() {
     <main>
       <section className="section">
         <Hero project={project} lang={lang} />
+        <ScrollCue />
 
-        {project.story && project.story.length > 0 && (
+        {project.pitch ? (
+          /* Editorial digest path — new structured layout for highlights */
           <>
-            <ScrollCue />
-            <div className="project-detail-story">
-              <BlockRenderer blocks={project.story} project={project} lang={lang} />
-            </div>
+            <Pitch text={project.pitch} lang={lang} />
+            {project.mockups?.desktop && (
+              <MockupFrame
+                src={project.mockups.desktop}
+                variant="desktop"
+                alt={`${project.title[lang]} desktop mockup`}
+              />
+            )}
+            {project.mockups?.mobile && project.whatShipped && (
+              <WhatShippedRow
+                mobileSrc={project.mockups.mobile}
+                text={project.whatShipped}
+                lang={lang}
+                alt={`${project.title[lang]} mobile mockup`}
+              />
+            )}
+            {project.trick && (
+              <TrickCard
+                trick={project.trick}
+                stack={project.techStack}
+                lang={lang}
+              />
+            )}
+          </>
+        ) : (
+          /* Legacy story path — kept for any non-highlight detail page */
+          <>
+            {project.story && project.story.length > 0 && (
+              <div className="project-detail-story">
+                <BlockRenderer blocks={project.story} project={project} lang={lang} />
+              </div>
+            )}
+            <StackSection project={project} />
+            {project.routes && project.routes.length > 0 && (
+              <div className="project-detail-story">
+                <RouteList
+                  block={{
+                    type: 'route-list',
+                    routes: project.routes,
+                    collapsible: project.routes.length > 8,
+                  }}
+                  lang={lang}
+                />
+              </div>
+            )}
+            <Footnotes project={project} />
           </>
         )}
-
-        <StackSection project={project} />
-
-        {project.routes && project.routes.length > 0 && (
-          <div className="project-detail-story">
-            <RouteList
-              block={{
-                type: 'route-list',
-                routes: project.routes,
-                collapsible: project.routes.length > 8,
-              }}
-              lang={lang}
-            />
-          </div>
-        )}
-
-        <Footnotes project={project} />
       </section>
 
       <Suspense fallback={<div style={{ minHeight: 200 }} aria-hidden />}>
