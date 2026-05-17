@@ -28,12 +28,12 @@ export const projects: Project[] = [
       pt: 'um *painel de dados* de longa duração para a GZH, que acompanha cada real gasto na recuperação das enchentes do rio grande do sul.',
     },
     whatShipped: {
-      en: "a next.js 14 app router project in typescript, built with `output: 'export'` and deployed as static html on azion's edge — no node runtime. one 488 KB `public/data.json`, denormalized by the newsroom, feeds 19 routes through `useDataFetching` (SWR-backed). UI primitives from mantine and nextui.",
-      pt: "projeto next.js 14 app router em typescript, com `output: 'export'` e deploy estático na edge da azion — sem runtime node. um `public/data.json` de 488 KB, denormalizado pela redação, alimenta 19 rotas via `useDataFetching` (SWR por baixo). primitivos de UI vêm de mantine e nextui.",
+      en: "a next.js 14 app router project in typescript, exported as static html and served on azion's edge — no node runtime. one 488 KB JSON, denormalized by the newsroom, feeds 19 routes through a tiny SWR-backed data layer. UI primitives from mantine and nextui.",
+      pt: "projeto next.js 14 app router em typescript, exportado como html estático e hospedado na edge da azion — sem runtime node. um único JSON de 488 KB, denormalizado pela redação, alimenta 19 rotas por uma camada de dados enxuta baseada em SWR. primitivos de UI vêm de mantine e nextui.",
     },
     trick: {
-      en: 'the *selector layer* in `src/lib/utils.ts` — `calculateSumarioData`, `calculateRecursosData`, `calculateSegmentoData` — reduces the flat JSON into per-government, per-segment, and summary shapes each route consumes. results cache through `memoizedCalculation`, a `Map`-backed memoization keyed by call site. *three charting libraries* — highcharts, apexcharts, chart.js — share the same in-memory dataset.',
-      pt: 'a *camada de selectors* em `src/lib/utils.ts` — `calculateSumarioData`, `calculateRecursosData`, `calculateSegmentoData` — reduz o JSON achatado em recortes por esfera, por segmento e de sumário. resultados cacheiam via `memoizedCalculation`, memoização ancorada em `Map` chaveada por call site. *três libs de chart* — highcharts, apexcharts, chart.js — sobre o mesmo dataset em memória.',
+      en: 'a *selector layer* reduces the flat JSON into per-government, per-segment, and summary slices that each route consumes, all memoized so the same calculation never runs twice across a session. *three charting libraries* — highcharts, apexcharts, chart.js — share the same in-memory dataset, picked per chart type rather than per page.',
+      pt: 'uma *camada de selectors* reduz o JSON achatado em recortes por esfera, por segmento e de sumário que cada rota consome — tudo memoizado, então o mesmo cálculo nunca roda duas vezes na mesma sessão. *três libs de chart* — highcharts, apexcharts, chart.js — compartilham o mesmo dataset em memória, escolhidas por tipo de gráfico em vez de por página.',
     },
     techStack: [
       'Next.js 14',
@@ -87,12 +87,12 @@ export const projects: Project[] = [
       pt: 'dois *apps em tempo real* sobre um firestore — um backoffice para a redação e um widget público que jornalistas inserem em matérias.',
     },
     whatShipped: {
-      en: 'two apps over one firestore: a *backoffice* where editors create polls and copy embed snippets, and a *public widget* where readers vote and watch percentages update live. backoffice authenticates via google oauth locked to `@gruporbs.com.br`; embed loads any poll by `?poll_id=` and streams via firestore `onSnapshot`.',
-      pt: 'dois apps sobre um firestore: um *backoffice* onde editores criam enquetes e copiam snippets de embed, e um *widget público* onde leitores votam e veem percentuais ao vivo. backoffice autentica via google oauth restrito a `@gruporbs.com.br`; embed carrega qualquer enquete por `?poll_id=` e transmite via `onSnapshot` do firestore.',
+      en: 'two apps over one firestore: a *backoffice* where editors create polls and copy embed snippets, and a *public widget* where readers vote and watch percentages update live. backoffice access is locked to grupo rbs google accounts; the embed loads any poll by id and streams updates straight from firestore.',
+      pt: 'dois apps sobre um firestore: um *backoffice* onde editores criam enquetes e copiam snippets de embed, e um *widget público* onde leitores votam e veem percentuais ao vivo. o backoffice é restrito a contas google do grupo rbs; o embed carrega qualquer enquete por id e transmite as atualizações direto do firestore.',
     },
     trick: {
-      en: 'duplicate-vote detection uses a `localStorage` device ID as the firestore *document ID* under `votes/{pollId}/userVotes/{deviceId}` — making the check an *O(1) `getDoc`* with zero server round-trip for repeat visitors. a confirmed vote commits via one `updateDoc` that increments `voteCounts.{optionId}` and `totalVotes` atomically through firestore\'s `increment()`.',
-      pt: 'a detecção de voto duplicado usa um device id em `localStorage` como *id do documento* firestore em `votes/{pollId}/userVotes/{deviceId}` — virando um check *`getDoc` O(1)* sem round-trip para visitantes recorrentes. um voto confirmado dispara um único `updateDoc` que incrementa `voteCounts.{optionId}` e `totalVotes` atomicamente via `increment()` do firestore.',
+      en: 'duplicate-vote detection uses a device id stored in `localStorage` as the *firestore document id itself* — so checking whether someone has voted is a single *O(1)* lookup against a known key, not a query. a confirmed vote then commits as one atomic write that increments the option tally and the running total together, so the public widget never sees a half-counted state.',
+      pt: 'a detecção de voto duplicado usa um device id em `localStorage` como *id do próprio documento* no firestore — então verificar se alguém já votou é uma leitura *O(1)* contra uma chave conhecida, não uma query. um voto confirmado é uma única escrita atômica que incrementa o contador da opção e o total geral juntos, então o widget público nunca enxerga um estado parcialmente contado.',
     },
     techStack: [
       'React 18',
@@ -138,12 +138,12 @@ export const projects: Project[] = [
       pt: 'um *hub interno do grupo rbs* onde jornalistas compartilham como usam ia no dia a dia — sete vídeos curtos, quatro artigos longos, sem backend.',
     },
     whatShipped: {
-      en: 'a react + vite spa deployed as a static build on a private rbs host. all editorial content comes from one `course-content.json` fetched at runtime; navigation between dashboard, video player, and article reader runs purely on `useState` — no backend, no client-side router. tailwind v4 with a touch of emotion.',
-      pt: 'spa react + vite com build estático em host privado da rbs. todo o conteúdo editorial vem de um `course-content.json` carregado em runtime; navegação entre dashboard, player de vídeo e leitor de artigo roda em pura `useState` — sem backend, sem roteador. tailwind v4 com um toque de emotion.',
+      en: 'a react + vite spa deployed as a static build on a private rbs host. all editorial content comes from a single JSON file fetched at runtime; navigation between dashboard, video player, and article reader runs purely on react state — no backend, no client-side router. tailwind v4 with a touch of emotion.',
+      pt: 'spa react + vite com build estático em host privado da rbs. todo o conteúdo editorial vem de um único arquivo JSON carregado em runtime; a navegação entre dashboard, player de vídeo e leitor de artigo roda em estado react puro — sem backend, sem roteador. tailwind v4 com um toque de emotion.',
     },
     trick: {
-      en: '*one shared course shell* — sidebar list + main panel + progress tracker — backs both the video player and the article reader. `articles[]` swap an HTML blob for an ordered `content[]` array of typed blocks (`paragraph`, `quote`) so the renderer applies pull-quote styling *structurally*. publishing is one JSON edit plus dropping media into `assets/videos/`.',
-      pt: '*um único shell de curso* — sidebar + painel principal + progress tracker — atende o player de vídeo e o leitor de artigo. `articles[]` trocam um blob de HTML por um array `content[]` de blocos tipados (`paragraph`, `quote`), então o renderer aplica estilo de citação *estruturalmente*. publicar é editar um JSON e soltar mídia em `assets/videos/`.',
+      en: '*one shared course shell* — sidebar list, main panel, progress tracker — backs both the video player and the article reader. articles ship as ordered arrays of typed blocks (paragraphs, pull-quotes) rather than HTML strings, so styling is applied *structurally* by the renderer instead of leaking into the copy. publishing is one JSON edit plus dropping media into the assets folder.',
+      pt: '*um único shell de curso* — sidebar, painel principal e progress tracker — atende tanto o player de vídeo quanto o leitor de artigo. os artigos chegam como arrays ordenados de blocos tipados (parágrafos, citações em destaque) em vez de strings de HTML, então o estilo é aplicado *estruturalmente* pelo renderer, sem vazar para a copy. publicar é editar um JSON e soltar a mídia na pasta de assets.',
     },
     projectType: 'shipped',
     coverImage: '/images/projects/ia-na-redacao/desktop/01-landing.png',
@@ -181,12 +181,12 @@ export const projects: Project[] = [
       pt: 'a *retrospectiva fotográfica* de fim de ano da GZH — oito fotógrafos do quadro, oito seções guiadas por scroll, um lightbox fullscreen.',
     },
     whatShipped: {
-      en: 'a no-backend single-page app built with vite 6, react 18, typescript, and SWC. all copy and image manifests are co-located inline in `App.tsx` — one `<PhotographerSection>` per photographer. brightcove iframes embed directly so the react tree never owns the player lifecycle.',
-      pt: 'spa sem backend feita com vite 6, react 18, typescript e SWC. toda a copy e os manifestos de imagem ficam inline em `App.tsx` — um `<PhotographerSection>` por fotógrafo. iframes do brightcove embedam direto, então a árvore react nunca controla o ciclo do player.',
+      en: 'a no-backend single-page app built with vite 6, react 18, typescript, and SWC. all copy and image manifests live inline in one source file — one section component per photographer. brightcove iframes embed directly so the react tree never owns the player lifecycle.',
+      pt: 'spa sem backend feita com vite 6, react 18, typescript e SWC. toda a copy e os manifestos de imagem ficam inline num único arquivo — um componente de seção por fotógrafo. iframes do brightcove embedam direto, então a árvore react nunca controla o ciclo do player.',
     },
     trick: {
-      en: "scroll is driven entirely by *motion's `useScroll` + `useTransform`* hooks scoped per-section ref. `scrollYProgress` feeds transforms that drive parallax y-offsets, opacity reveals, image-width compression, and a sticky author-rail drift — all on `transform` and `opacity` to stay on the GPU compositor. parallax thumbnail positions are deterministic and memoized across scroll ticks.",
-      pt: 'o scroll é guiado por inteiro por *`useScroll` + `useTransform` do motion*, com escopo por ref de seção. `scrollYProgress` alimenta transforms que conduzem offsets de parallax em y, revelações por opacity, compressão de largura e drift vertical da coluna do autor — tudo em `transform` e `opacity` para ficar na GPU. posições de thumbnail são determinísticas e memoizadas entre frames de scroll.',
+      en: "scroll is driven entirely by *motion's scroll hooks*, scoped per-section. one progress value feeds the parallax y-offsets, opacity reveals, image-width compression, and the sticky author-rail drift — all on `transform` and `opacity` so the work stays on the GPU compositor. parallax thumbnail positions are deterministic and memoized across scroll ticks.",
+      pt: 'o scroll é guiado por inteiro pelos *hooks de scroll do motion*, com escopo por seção. um único valor de progresso alimenta os offsets de parallax, as revelações por opacidade, a compressão de largura e o drift vertical da coluna do autor — tudo em `transform` e `opacity` para o trabalho ficar na GPU. as posições dos thumbnails são determinísticas e memoizadas entre frames de scroll.',
     },
     techStack: ['React', 'TypeScript', 'Vite', 'TailwindCSS', 'Framer Motion'],
     projectType: 'shipped',
@@ -270,12 +270,12 @@ export const projects: Project[] = [
       pt: 'uma *landing artesanal* para um curso de 50+ horas de fundamentos políticos — funil puro de conversão, sem auth, sem carrinho, sem pagamento.',
     },
     whatShipped: {
-      en: 'a react 18 + vite 6 + typescript spa on cloudflare pages, styled with tailwind v4. the entire scrapbook system — paper textures, washi tape, torn edges, layered shadows — is expressed as utility classes (`.paper-texture`, `.washi-tape-*`, `.torn-edge-*`) plus a small set of primitives (`PaperCard`, `WashiTape`, `TornPaperSection`).',
-      pt: 'spa react 18 + vite 6 + typescript no cloudflare pages, com tailwind v4. o sistema scrapbook todo — texturas de papel, fitas washi, bordas rasgadas, sombras em camadas — é expresso como classes utilitárias (`.paper-texture`, `.washi-tape-*`, `.torn-edge-*`) mais um pequeno conjunto de primitivos (`PaperCard`, `WashiTape`, `TornPaperSection`).',
+      en: 'a react + vite spa on cloudflare pages, styled with tailwind v4. the entire scrapbook visual language — paper textures, washi tape, torn edges, layered shadows, hand-cut portrait cutouts — is composed from a small toolkit of utility primitives, so each section reads like a different page of a physical zine. checkout, professor data, and copy all live in-repo as static assets — no CMS, no auth, no backend.',
+      pt: 'spa react + vite no cloudflare pages, com tailwind v4. toda a linguagem visual de scrapbook — texturas de papel, fitas washi, bordas rasgadas, sombras em camadas, retratos recortados à mão — é montada a partir de um pequeno conjunto de primitivos utilitários, então cada seção parece uma página diferente de uma fanzine impressa. checkout, dados dos professores e copy ficam todos no repo como assets estáticos — sem CMS, sem auth, sem backend.',
     },
     trick: {
-      en: 'the hero professor-circles section — *17 instructor portraits orbiting a centerpiece* — uses per-regime manual position overrides in `src/components/hero/professorOverrides.ts`. a *`?edit=1` url flag* turns the layout into an in-browser tuning mode for dragging circles into place. edge wrinkles on paper elements are generated procedurally via a `wrinkledClipPath` utility, so each card\'s torn edge is unique.',
-      pt: 'a seção hero dos círculos de professores — *17 retratos orbitando um centro* — usa overrides manuais por regime em `src/components/hero/professorOverrides.ts`. uma *flag `?edit=1` na url* transforma o layout em modo de ajuste no navegador, arrastando círculos para a posição desejada. bordas enrugadas dos elementos de papel são geradas proceduralmente via `wrinkledClipPath`, então cada borda rasgada é única.',
+      en: "the whole funnel is *one page*: clicking any CTA opens hotmart's checkout *inside an in-page modal* — readers never leave the domain, so the context-switch that usually kills conversion is gone. every personalized communicator link (`?ref=<slug>`) rearranges the hero so that professor becomes the *centerpiece* with the other 16 orbiting them, auto-applies their coupon, and forwards their slug to hotmart's producer analytics so commissions split cleanly. result: a near-perfect *core web vitals* score (97% good LCP, 640 ms page load) and *1.3k visitors in two weeks* on pure SEO — the page hadn't even been posted to social yet.",
+      pt: 'o funil inteiro é *uma página só*: clicar em qualquer CTA abre o checkout do hotmart *num modal sobre a própria página* — o leitor nunca sai do domínio, então a quebra de contexto que costuma matar a conversão desaparece. cada link personalizado de comunicador (`?ref=<slug>`) rearranja a hero para colocar aquele professor no *centro*, com os outros 16 orbitando, aplica o cupom dele automaticamente e encaminha o slug para o analytics de produtor do hotmart — comissão dividida corretamente. resultado: *core web vitals* quase perfeitos (97% de LCP bom, 640 ms de carregamento) e *1.3k visitantes em duas semanas* só por SEO — a página ainda nem tinha ido para as redes sociais.',
     },
     techStack: ['React 18', 'TypeScript', 'Vite 6', 'TailwindCSS v4', 'Framer Motion', 'Lenis', 'Cloudflare Pages'],
     projectType: 'shipped',
@@ -315,8 +315,8 @@ export const projects: Project[] = [
       pt: 'a *retrospectiva fotográfica 2024* da zero hora — oito fotógrafos do quadro, uma imagem de cada das enchentes de maio, contada como um único registro em primeira pessoa.',
     },
     whatShipped: {
-      en: 'a vite-built react spa, statically exported and served under `/especiais/fotos-do-ano-2024/`. each section pairs a featured flood photograph, a first-person caption from the photographer, an embedded HTML5 `<video>` testimonial pointing at `assets/<Photographer>.mp4`, and a black-and-white portrait headshot. typography in hepta slab via google fonts.',
-      pt: 'spa react com vite, exportada estaticamente e servida sob `/especiais/fotos-do-ano-2024/`. cada seção combina uma foto-destaque das enchentes, uma legenda em primeira pessoa do fotógrafo, um depoimento `<video>` HTML5 apontando para `assets/<Photographer>.mp4`, e um retrato em preto-e-branco. tipografia em hepta slab via google fonts.',
+      en: 'a vite-built react spa, statically exported and served under `/especiais/fotos-do-ano-2024/`. each section pairs a featured flood photograph, a first-person caption from the photographer, an embedded video testimonial from that same photographer, and a black-and-white portrait headshot. typography in hepta slab via google fonts.',
+      pt: 'spa react com vite, exportada estaticamente e servida sob `/especiais/fotos-do-ano-2024/`. cada seção combina uma foto-destaque das enchentes, uma legenda em primeira pessoa, um depoimento em vídeo do próprio fotógrafo e um retrato em preto-e-branco. tipografia em hepta slab via google fonts.',
     },
     trick: {
       en: "the *scroll-driven sticky wordmark* — 'ZEROHORA — fotos do ano 2024' — stays fixed over the hero, tracks scroll position, fades, repositions to each photographer panel's top-right kicker, and *switches color from peach to white* as dark-background photo panels slide underneath. the layout alternates full-bleed photographic panels with peach narrative panels to pace the disaster narrative.",
