@@ -403,7 +403,7 @@ git commit -m "feat(projectDetail): Pitch display-type lead with word-split reve
 
 Shared framing for both desktop and mobile mockups. Constrains width and centers, fixing the off-axis bleed where the current `--wide` figure stretches the rotated-phones photo edge-to-edge.
 
-- [ ] **Step 1: Create the component file**
+- [x] **Step 1: Create the component file**
 
 Create `src/components/projectDetail/MockupFrame.tsx` with this content:
 
@@ -439,13 +439,13 @@ export function MockupFrame({ src, variant, alt }: Props) {
 }
 ```
 
-- [ ] **Step 2: Verify typecheck passes**
+- [x] **Step 2: Verify typecheck passes**
 
 Run: `npx tsc -b`
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/projectDetail/MockupFrame.tsx
@@ -461,7 +461,7 @@ git commit -m "feat(projectDetail): MockupFrame — centered, max-width-constrai
 
 2-col layout: mobile mockup left, eyebrow + short sentence right. Stacks on `<768px`.
 
-- [ ] **Step 1: Create the component file**
+- [x] **Step 1: Create the component file**
 
 Create `src/components/projectDetail/WhatShippedRow.tsx` with this content:
 
@@ -517,13 +517,13 @@ export function WhatShippedRow({ mobileSrc, text, lang, alt }: Props) {
 }
 ```
 
-- [ ] **Step 2: Verify typecheck passes**
+- [x] **Step 2: Verify typecheck passes**
 
 Run: `npx tsc -b`
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/projectDetail/WhatShippedRow.tsx
@@ -539,7 +539,7 @@ git commit -m "feat(projectDetail): WhatShippedRow — mobile mockup + concise p
 
 Single sand-bg card. Two stacked rows separated by a mist divider: "the trick" body + "stack" tech pills. Lifts the `Tag` pill styling from `StackSection`.
 
-- [ ] **Step 1: Create the component file**
+- [x] **Step 1: Create the component file**
 
 Create `src/components/projectDetail/TrickCard.tsx` with this content:
 
@@ -594,7 +594,7 @@ export function TrickCard({ trick, stack, lang }: Props) {
 }
 ```
 
-- [ ] **Step 2: Verify typecheck passes**
+- [x] **Step 2: Verify typecheck passes**
 
 Run: `npx tsc -b`
 
