@@ -1383,7 +1383,7 @@ body[data-loader-state="loading"] {
   grid-template-columns: 48px 240px 1fr;
   column-gap: 24px;
   align-items: start;
-  padding: 96px 0;
+  padding: 56px 0;
   border-bottom: 1px solid var(--mist);
 }
 /* Stagger wraps each .stats-row in a motion.div, so .stats-row:first-child
