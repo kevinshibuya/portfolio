@@ -215,6 +215,16 @@ strong {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-avail:hover {
+  color: var(--blue-500);
+  border-color: var(--blue-300);
+  background: var(--blue-50);
 }
 .nav-avail-dot {
   width: 7px; height: 7px; border-radius: 50%;
@@ -701,7 +711,7 @@ body.is-loading {
   display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
   flex-wrap: wrap;
 }
-.work-company {
+.work-role-title {
   font-size: 24px; font-weight: 500;
   color: var(--ink);
   margin: 0;
@@ -709,8 +719,8 @@ body.is-loading {
   letter-spacing: -0.02em;
   transition: color 0.3s;
 }
-.work-row-head:hover .work-company,
-.work-row.is-open .work-company { color: var(--blue-400); }
+.work-row-head:hover .work-role-title,
+.work-row.is-open .work-role-title { color: var(--blue-400); }
 .work-period {
   font-size: 11px;
   color: var(--bark);
@@ -719,11 +729,38 @@ body.is-loading {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.work-role {
+.work-byline {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.work-byline-text {
   font-size: 13px;
-  color: var(--blue-400);
   text-transform: lowercase;
   letter-spacing: 0.02em;
+  color: var(--dust);
+}
+.work-company {
+  color: var(--periwinkle-300);
+  font-weight: 600;
+}
+.work-byline-sep { color: var(--dust); opacity: 0.6; }
+.work-location { color: var(--dust); }
+.work-mode-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  background: var(--blue-50);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--bark);
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.work-mode-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--periwinkle-300);
 }
 .work-toggle {
   font-size: 24px;

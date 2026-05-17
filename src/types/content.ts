@@ -1,8 +1,12 @@
+export type WorkMode = 'in-person' | 'remote'
+
 export interface WorkExperience {
   id: number
   company: string
   role: { en: string; pt: string }
-  period: string
+  period: Bilingual
+  location?: string
+  workMode?: WorkMode
   description: { en: string[]; pt: string[] }
   technologies: string[]
   highlight?: Bilingual

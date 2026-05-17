@@ -42,10 +42,26 @@ export function WorkExperience() {
                 <span className="work-num">{num}</span>
                 <div className="work-main">
                   <div className="work-title-line">
-                    <h3 className="work-company">{exp.company.toLowerCase()}</h3>
-                    <span className="work-period">{exp.period}</span>
+                    <h3 className="work-role-title">{exp.role[lang].toLowerCase()}</h3>
+                    <span className="work-period">{exp.period[lang]}</span>
                   </div>
-                  <span className="work-role">{exp.role[lang].toLowerCase()}</span>
+                  <div className="work-byline">
+                    <span className="work-byline-text">
+                      <span className="work-company">{exp.company.toLowerCase()}</span>
+                      {exp.location && (
+                        <>
+                          <span className="work-byline-sep"> · </span>
+                          <span className="work-location">{exp.location.toLowerCase()}</span>
+                        </>
+                      )}
+                    </span>
+                    {exp.workMode && (
+                      <span className="work-mode-pill">
+                        <span className="work-mode-dot" aria-hidden="true" />
+                        {t(`sections.work.modes.${exp.workMode}`)}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <motion.span
                   className="work-toggle"
