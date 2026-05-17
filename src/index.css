@@ -1382,7 +1382,7 @@ body[data-loader-state="loading"] {
   display: grid;
   grid-template-columns: 48px 240px 1fr;
   column-gap: 24px;
-  align-items: baseline;
+  align-items: center;
   padding: 28px 0;
   border-bottom: 1px solid var(--mist);
 }
