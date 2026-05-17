@@ -419,7 +419,7 @@ GSAP isn't installed in the project despite the CLAUDE.md stack notes. Using Fra
 - [x] Rename WhatShippedRow → MobileTrickRow (new prop shape, tilt-settle + word-stagger animation)
 - [x] Delete TrickCard component
 - [x] Update ProjectDetail.tsx flow + re-import StackSection
-- [ ] Expand whatShipped + trick copy for all 7 highlights
-- [ ] `npm run build` and `npm run test:unit` pass
-- [ ] Visual check by user
-- [ ] Lighthouse on `npm run preview` ≥95
+- [x] Expand whatShipped + trick copy for all 7 highlights
+- [x] `npm run build` and `npm run test:unit` pass
+- [ ] Visual check by user *(deferred)*
+- [ ] Lighthouse on `npm run preview` ≥95 *(deferred)*
