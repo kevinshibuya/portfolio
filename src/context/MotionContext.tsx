@@ -108,4 +108,5 @@ export function useMotion(): MotionContextValue {
 // that need to await curtain handoff (HeroNameDrawing) without going through
 // the React context. Mirrors the `_entranceDone` accessor pattern.
 export const curtainGone = _curtainGone
-export { resolveCurtain }
+export const entranceDone = _entranceDone
+export { resolveCurtain, resolveEntrance }

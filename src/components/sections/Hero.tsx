@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState, type ComponentType, type LazyExoticComponent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Trans, useTranslation } from 'react-i18next'
 import { useLenis } from '../../hooks/useLenis'
@@ -7,7 +7,11 @@ import { RevealOnView } from '../ui/RevealOnView'
 import { HeroAccentSilhouette } from '../canvas/HeroAccentSilhouette'
 import { HeroNameDrawing } from '../ui/HeroNameDrawing'
 
-const HeroAccent3D = lazy(() => import('../canvas/HeroAccent3D'))
+// The R3F accent chunk is ~240 KiB minified and competes for the main thread
+// during LCP if imported on mount. Defer the dynamic import until the hero
+// entrance animation finishes — the silhouette covers the same bounding box
+// in the meantime, so the swap is invisible from the user's perspective.
+type HeroAccent3DLazy = LazyExoticComponent<ComponentType<unknown>>
 
 const ROLE_DURATION_MS = 5000
 
@@ -25,6 +29,21 @@ export function Hero() {
     entranceDone
       .then(() => { if (!cancelled) setGate(true) })
       .catch(() => {})
+    return () => { cancelled = true }
+  }, [entranceDone])
+
+  // HeroAccent3D import is held in state and only created after entranceDone
+  // settles — keeps the heavy R3F chunk off the LCP critical path. The
+  // .catch() branch loads anyway so a rejected promise doesn't strand us on
+  // the silhouette forever.
+  const [HeroAccent3D, setHeroAccent3D] = useState<HeroAccent3DLazy | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    const load = (): void => {
+      if (cancelled) return
+      setHeroAccent3D(() => lazy(() => import('../canvas/HeroAccent3D')) as HeroAccent3DLazy)
+    }
+    entranceDone.then(load).catch(load)
     return () => { cancelled = true }
   }, [entranceDone])
 
@@ -143,9 +162,13 @@ export function Hero() {
       </div>
 
       <RevealOnView recipe="fadeUp" delay={0.6} gate={gate} className="hero-accent-mount">
-        <Suspense fallback={<HeroAccentSilhouette />}>
-          <HeroAccent3D />
-        </Suspense>
+        {HeroAccent3D ? (
+          <Suspense fallback={<HeroAccentSilhouette />}>
+            <HeroAccent3D />
+          </Suspense>
+        ) : (
+          <HeroAccentSilhouette />
+        )}
       </RevealOnView>
     </section>
   )
