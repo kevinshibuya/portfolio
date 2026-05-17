@@ -2050,6 +2050,7 @@ body[data-loader-state="loading"] {
   font-weight: 500;
   line-height: 1.4;
   color: var(--bark);
+  text-align: justify;
 }
 .project-detail-pitch::before {
   content: "";
@@ -2093,6 +2094,7 @@ body[data-loader-state="loading"] {
   line-height: 1.6;
   color: var(--ink);
   margin: 0;
+  text-align: justify;
 }
 
 /* MobileTrickRow — mobile mockup left, trick prose right; stacks at <720px */
@@ -2126,6 +2128,7 @@ body[data-loader-state="loading"] {
   line-height: 1.6;
   color: var(--ink);
   margin: 0;
+  text-align: justify;
 }
 
 .project-detail-footnotes {
