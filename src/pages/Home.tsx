@@ -1,4 +1,5 @@
-import { Suspense, lazy, useEffect, useLayoutEffect } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Hero } from '../components/sections/Hero'
 import { useLenis } from '../hooks/useLenis'
 import { useMotion } from '../context/MotionContext'
@@ -35,8 +36,60 @@ const STORAGE_KEY = 'portfolio:home:scrollY'
 export function Home() {
   const { scrollTo } = useLenis()
   const { bypassEntrance } = useMotion()
+  const location = useLocation()
+  // Capture location.state once at mount via a ref so it doesn't appear in the
+  // effect's dep array. Calling navigate(replace) to clear the state instead
+  // would mutate location.state, re-fire the effect, and cancel the in-flight
+  // ResizeObserver before the target section mounts.
+  const navTargetRef = useRef<string | undefined>(
+    (location.state as { scrollToId?: string } | null)?.scrollToId,
+  )
 
   useLayoutEffect(() => {
+    // Header off-route nav hands us a target section via location.state.
+    // Section is lazy-loaded, so poll the document for the element to mount
+    // (ResizeObserver as document height grows) before scrolling. Clear the
+    // saved scrollY so it doesn't fight us.
+    const targetId = navTargetRef.current
+    if (targetId) {
+      navTargetRef.current = undefined
+      sessionStorage.removeItem(STORAGE_KEY)
+      bypassEntrance()
+
+      let cancelled = false
+      let observer: ResizeObserver | null = null
+      let timeoutId: number | null = null
+
+      const cleanup = (): void => {
+        cancelled = true
+        observer?.disconnect()
+        if (timeoutId !== null) window.clearTimeout(timeoutId)
+      }
+
+      const apply = (): boolean => {
+        if (cancelled) return false
+        const el = document.getElementById(targetId)
+        if (!el) return false
+        scrollTo(`#${targetId}`, { duration: 0.8 })
+        return true
+      }
+
+      if (apply()) {
+        cleanup()
+        return
+      }
+
+      if (typeof ResizeObserver !== 'undefined') {
+        observer = new ResizeObserver(() => {
+          if (cancelled) return
+          if (apply()) cleanup()
+        })
+        observer.observe(document.documentElement)
+      }
+      timeoutId = window.setTimeout(cleanup, 1500)
+      return cleanup
+    }
+
     const raw = sessionStorage.getItem(STORAGE_KEY)
     if (!raw) return
     const y = parseInt(raw, 10)

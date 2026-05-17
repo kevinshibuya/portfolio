@@ -52,7 +52,13 @@ export function Header() {
 
   const go = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault();
-    scrollTo(`#${id}`, { duration: 1.2 });
+    if (location.pathname === "/") {
+      scrollTo(`#${id}`, { duration: 1.2 });
+    } else {
+      // Off-home (e.g. /projects/:slug): the target section isn't in the DOM,
+      // so route home and hand the target to Home via location.state.
+      navigate("/", { state: { scrollToId: id } });
+    }
   };
 
   const toggleLanguage = (): void => {
