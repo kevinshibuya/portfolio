@@ -9,7 +9,7 @@ import {
   taglineWord,
   REDUCED_MOTION_VARIANT,
 } from '../../utils/animations'
-import { StatRow } from './blocks/StatRow'
+import { StatRow } from './StatRow'
 import type { Project } from '../../types/content'
 
 interface Props {
@@ -137,7 +137,7 @@ export function Hero({ project, lang }: Props) {
           animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.75, ease: EASE }}
         >
-          <StatRow block={{ type: 'stat-row', stats: project.stats }} lang={lang} />
+          <StatRow stats={project.stats} lang={lang} />
         </motion.div>
       )}
     </header>

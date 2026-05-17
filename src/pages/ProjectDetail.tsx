@@ -5,10 +5,7 @@ import { projects } from '../data/projects'
 import { useLenis } from '../hooks/useLenis'
 import { Hero } from '../components/projectDetail/Hero'
 import { ScrollCue } from '../components/projectDetail/ScrollCue'
-import { BlockRenderer } from '../components/projectDetail/BlockRenderer'
 import { StackSection } from '../components/projectDetail/StackSection'
-import { Footnotes } from '../components/projectDetail/Footnotes'
-import { RouteList } from '../components/projectDetail/blocks/RouteList'
 import { Pitch } from '../components/projectDetail/Pitch'
 import { MockupFrame } from '../components/projectDetail/MockupFrame'
 import { WhatShipped } from '../components/projectDetail/WhatShipped'
@@ -81,54 +78,26 @@ export function ProjectDetail() {
         <Hero project={project} lang={lang} />
         <ScrollCue />
 
-        {project.pitch ? (
-          /* Editorial digest v3 — Pitch / MockupFrame / WhatShipped / MobileTrickRow / StackSection */
-          <>
-            <Pitch text={project.pitch} lang={lang} />
-            {project.mockups?.desktop && (
-              <MockupFrame
-                src={project.mockups.desktop}
-                variant="desktop"
-                alt={`${project.title[lang]} desktop mockup`}
-              />
-            )}
-            {project.whatShipped && (
-              <WhatShipped text={project.whatShipped} lang={lang} />
-            )}
-            {project.mockups?.mobile && project.trick && (
-              <MobileTrickRow
-                mobileSrc={project.mockups.mobile}
-                trick={project.trick}
-                lang={lang}
-                alt={`${project.title[lang]} mobile mockup`}
-              />
-            )}
-            <StackSection project={project} />
-          </>
-        ) : (
-          /* Legacy story path — kept for any non-highlight detail page */
-          <>
-            {project.story && project.story.length > 0 && (
-              <div className="project-detail-story">
-                <BlockRenderer blocks={project.story} project={project} lang={lang} />
-              </div>
-            )}
-            <StackSection project={project} />
-            {project.routes && project.routes.length > 0 && (
-              <div className="project-detail-story">
-                <RouteList
-                  block={{
-                    type: 'route-list',
-                    routes: project.routes,
-                    collapsible: project.routes.length > 8,
-                  }}
-                  lang={lang}
-                />
-              </div>
-            )}
-            <Footnotes project={project} />
-          </>
+        <Pitch text={project.pitch} lang={lang} />
+        {project.mockups?.desktop && (
+          <MockupFrame
+            src={project.mockups.desktop}
+            variant="desktop"
+            alt={`${project.title[lang]} desktop mockup`}
+          />
         )}
+        {project.whatShipped && (
+          <WhatShipped text={project.whatShipped} lang={lang} />
+        )}
+        {project.mockups?.mobile && project.trick && (
+          <MobileTrickRow
+            mobileSrc={project.mockups.mobile}
+            trick={project.trick}
+            lang={lang}
+            alt={`${project.title[lang]} mobile mockup`}
+          />
+        )}
+        <StackSection project={project} />
       </section>
 
       <Suspense fallback={<div style={{ minHeight: 200 }} aria-hidden />}>

@@ -52,13 +52,11 @@ export const projects: Project[] = [
     ],
     projectType: 'shipped',
     liveUrl: 'https://gauchazh.clicrbs.com.br/especiais/painel-da-reconstrucao/',
-    coverImage: '/images/projects/painel-da-reconstrucao/desktop/01-dados-gerais.png',
     mockups: {
       desktop: '/images/projects/painel-da-reconstrucao/mockups/desktop.webp',
       desktopBento: '/images/projects/painel-da-reconstrucao/mockups/desktop-bento.webp',
       mobile: '/images/projects/painel-da-reconstrucao/mockups/mobile.webp',
     },
-    images: [],
   },
   {
     id: 'enquetes-gzh',
@@ -107,13 +105,11 @@ export const projects: Project[] = [
     ],
     projectType: 'shipped',
     liveUrl: 'https://gauchazh.clicrbs.com.br/especiais/enquetes-gzh-backoffice',
-    coverImage: '/images/projects/enquetes-gzh/desktop/01-embed-vote.png',
     mockups: {
       desktop: '/images/projects/enquetes-gzh/mockups/desktop.webp',
       desktopBento: '/images/projects/enquetes-gzh/mockups/desktop-bento.webp',
       mobile: '/images/projects/enquetes-gzh/mockups/mobile.webp',
     },
-    images: [],
   },
   {
     id: 'ia-na-redacao',
@@ -146,13 +142,11 @@ export const projects: Project[] = [
       pt: '*um único shell de curso* — lista lateral, painel principal e barra de progresso — serve ao mesmo tempo o player de vídeo e o leitor de artigo, então adicionar um novo formato editorial vira um novo tipo de bloco, não uma nova tela. os artigos chegam como arrays ordenados de blocos tipados (parágrafos, citações em destaque) em vez de blobs de HTML, então o estilo é aplicado *estruturalmente* pelo renderer, sem se misturar ao conteúdo.',
     },
     projectType: 'shipped',
-    coverImage: '/images/projects/ia-na-redacao/desktop/01-landing.png',
     mockups: {
       desktop: '/images/projects/ia-na-redacao/mockups/desktop.webp',
       desktopBento: '/images/projects/ia-na-redacao/mockups/desktop-bento.webp',
       mobile: '/images/projects/ia-na-redacao/mockups/mobile.webp',
     },
-    images: [],
   },
   {
     id: 'fotos-do-ano-2025',
@@ -190,13 +184,11 @@ export const projects: Project[] = [
     },
     techStack: ['React', 'TypeScript', 'Vite', 'TailwindCSS', 'Framer Motion'],
     projectType: 'shipped',
-    coverImage: '/images/projects/fotos-do-ano-2025/desktop/01-hero.png',
     mockups: {
       desktop: '/images/projects/fotos-do-ano-2025/mockups/desktop.webp',
       desktopBento: '/images/projects/fotos-do-ano-2025/mockups/desktop-bento.webp',
       mobile: '/images/projects/fotos-do-ano-2025/mockups/mobile.webp',
     },
-    images: [],
   },
   {
     id: 'peleia-gre-nal',
@@ -234,13 +226,11 @@ export const projects: Project[] = [
     },
     techStack: ['React', 'TypeScript', 'D3.js'],
     projectType: 'shipped',
-    coverImage: '/images/projects/peleia-gre-nal/desktop/01-intro.png',
     mockups: {
       desktop: '/images/projects/peleia-gre-nal/mockups/desktop.webp',
       desktopBento: '/images/projects/peleia-gre-nal/mockups/desktop-bento.webp',
       mobile: '/images/projects/peleia-gre-nal/mockups/mobile.webp',
     },
-    images: [],
   },
   {
     id: 'hotmart-bunde',
@@ -280,13 +270,11 @@ export const projects: Project[] = [
     techStack: ['React 18', 'TypeScript', 'Vite 6', 'TailwindCSS v4', 'Framer Motion', 'Lenis', 'Cloudflare Pages'],
     projectType: 'shipped',
     liveUrl: 'https://politicaessencial.com',
-    coverImage: '/images/projects/hotmart-bunde/desktop/01-hero.png',
     mockups: {
       desktop: '/images/projects/hotmart-bunde/mockups/desktop.webp',
       desktopBento: '/images/projects/hotmart-bunde/mockups/desktop-bento.webp',
       mobile: '/images/projects/hotmart-bunde/mockups/mobile.webp',
     },
-    images: [],
   },
   {
     id: 'fotos-do-ano-2024',
@@ -324,13 +312,11 @@ export const projects: Project[] = [
     },
     techStack: ['React', 'Vite', 'TailwindCSS', 'Framer Motion'],
     projectType: 'shipped',
-    coverImage: '/images/projects/fotos-do-ano-2024/desktop/01-hero.png',
     mockups: {
       desktop: '/images/projects/fotos-do-ano-2024/mockups/desktop.webp',
       desktopBento: '/images/projects/fotos-do-ano-2024/mockups/desktop-bento.webp',
       mobile: '/images/projects/fotos-do-ano-2024/mockups/mobile.webp',
     },
-    images: [],
   },
 ]
 

@@ -26,49 +26,11 @@ export interface Stat {
   label: Bilingual
 }
 
-export interface ScreenshotPair {
-  desktop?: string
-  mobile?: string
-  alt?: Bilingual
-  // Display label shown alongside the screenshot, e.g. "/dados-gerais".
-  // Distinct from `Project.routes` (full sitemap) — this is purely for caption text.
-  route?: string
-}
-
-export interface RouteEntry {
-  path: string
-  label: string
-}
-
-export interface FigureSrc {
-  src: string
-  alt?: Bilingual
-  caption?: Bilingual
-}
-
 export interface Mockups {
   desktop: string        // detail-page hero (target ≥2000px width)
   desktopBento: string   // bento card (1024px native)
   mobile: string         // shared (2000px)
 }
-
-export type Block =
-  | { type: 'paragraph'; text: Bilingual }
-  | { type: 'heading'; level: 2 | 3; text: Bilingual }
-  | { type: 'pullquote'; text: Bilingual; attribution?: string }
-  | { type: 'divider' }
-  | {
-      type: 'figure'
-      src: string
-      alt?: Bilingual
-      caption?: Bilingual
-      width: 'inset' | 'wide' | 'bleed'
-    }
-  | { type: 'figure-pair'; left: FigureSrc; right: FigureSrc }
-  | { type: 'figure-grid'; items: FigureSrc[] }
-  | { type: 'stat-row'; stats: Stat[] }
-  | { type: 'route-list'; routes: RouteEntry[]; collapsible?: boolean }
-  | { type: 'mockup'; variant: 'desktop' | 'mobile' }
 
 export interface Project {
   // identity
@@ -91,8 +53,8 @@ export interface Project {
   description: Bilingual
   stats?: Stat[]
 
-  // editorial digest (highlight projects)
-  pitch?: Bilingual
+  // editorial digest (required — every detail page renders this digest)
+  pitch: Bilingual
   whatShipped?: Bilingual
   trick?: Bilingual
 
@@ -101,18 +63,9 @@ export interface Project {
   githubUrl?: string
   techStack: string[]
   projectType?: ProjectType
-  mockedServices?: string[]
-  routes?: RouteEntry[]
 
   // visual
-  coverImage: string
   mockups?: Mockups
-  images: string[]
-  screenshots?: ScreenshotPair[]
-
-  // story
-  story?: Block[]
-
 }
 
 export type EmbedType =

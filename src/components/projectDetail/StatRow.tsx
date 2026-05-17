@@ -1,16 +1,14 @@
 import { motion } from 'framer-motion'
-import { useMotion } from '../../../context/MotionContext'
-import { staggerContainer, STAGGER_PRESETS } from '../../../utils/animations'
-import type { Block } from '../../../types/content'
-
-type StatRowBlock = Extract<Block, { type: 'stat-row' }>
+import { useMotion } from '../../context/MotionContext'
+import { staggerContainer, STAGGER_PRESETS } from '../../utils/animations'
+import type { Stat } from '../../types/content'
 
 interface Props {
-  block: StatRowBlock
+  stats: Stat[]
   lang: 'en' | 'pt'
 }
 
-export function StatRow({ block, lang }: Props) {
+export function StatRow({ stats, lang }: Props) {
   const { prefersReducedMotion } = useMotion()
   return (
     <motion.dl
@@ -20,7 +18,7 @@ export function StatRow({ block, lang }: Props) {
       viewport={{ once: true, amount: 0.4 }}
       variants={prefersReducedMotion ? { hidden: {}, visible: {} } : staggerContainer(STAGGER_PRESETS.statValues)}
     >
-      {block.stats.map((s, i) => (
+      {stats.map((s, i) => (
         <motion.div
           key={i}
           className="project-detail-stat"
