@@ -123,9 +123,9 @@ interface Props { text: Bilingual; lang: 'en' | 'pt' }
 ```
 
 - Typography: PJ Sans 600, `clamp(28px, 4vw, 56px)`, line-height 1.1, lowercase, `color: text-ink`.
-- Renders inline markdown for `*em*` → `<em class="text-accent italic">` (reuse `inlineMarkdown` helper if it exists; check current usage in `Paragraph.tsx`).
-- Enter animation: word-split fade-up via existing `taglineWordSplit` variants. Respects `prefersReducedMotion`.
-- Container: max-width matches the existing `.project-detail-story` rhythm (typically ~720-820px on desktop).
+- Renders inline markdown via the shared `parseInline` helper. Plan extends `parseInline` to support inline `` `code` `` so technical terms (`?edit=1`, `localStorage`, etc.) render correctly across Pitch / WhatShipped / Trick.
+- Enter animation: single fade-up (700ms, ease `[0.22, 1, 0.36, 1]`), respects `prefersReducedMotion`. Word-split was considered but collides with the multi-word italic accents the drafted copy relies on (`*data dashboard*`, `*real-time apps*`).
+- Container: max-width 880px to match the mockup band rhythm.
 
 #### `src/components/projectDetail/MockupFrame.tsx`
 
@@ -230,7 +230,7 @@ All enter animations use ease `[0.22, 1, 0.36, 1]`. Each new component respects 
 
 | Component | Animation | Trigger |
 |---|---|---|
-| Pitch | Word-split fade-up (reuse `taglineWordSplit`) | `whileInView` once, amount 0.4 |
+| Pitch | Single fade-up, 700ms (word-split conflicted with multi-word `*em*` accents) | `whileInView` once, amount 0.4 |
 | MockupFrame | Fade-up + scale 0.96→1, 600ms | `whileInView` once, amount 0.3 |
 | WhatShippedRow | Stagger: image first, text +120ms | `whileInView` once, amount 0.3 |
 | TrickCard | Fade-up, 500ms | `whileInView` once, amount 0.3 |
