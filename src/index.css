@@ -1666,7 +1666,10 @@ body[data-loader-state="loading"] {
    doesn't shift the content below. */
 .scroll-cue-slot {
   position: relative;
-  height: 0;
+  /* Owns ~96px of layout space so the absolutely-positioned cue (top: 48px,
+     ~30px tall) doesn't overlap whatever sits below it. The cue only fades
+     opacity (never unmounts), so claiming layout height costs nothing. */
+  height: 96px;
   pointer-events: none;
 }
 .scroll-cue {
