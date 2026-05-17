@@ -121,7 +121,7 @@ export const projects: Project[] = [
     title: { en: 'ia na redação', pt: 'ia na redação' },
     year: 2025,
     highlight: true,
-    highlightOrder: 6,
+    highlightOrder: 4,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #DCF0FF, #6DB8FF)',
     tagline: {
@@ -129,21 +129,21 @@ export const projects: Project[] = [
       pt: 'como a ia está mudando a redação',
     },
     description: {
-      en: 'A special-feature page for Grupo RBS introducing how AI is being used inside their newsrooms — video testimonials from journalists, opinion articles, and the editorial guidelines.',
-      pt: 'Página especial do Grupo RBS mostrando como a IA já está sendo usada dentro das redações — depoimentos em vídeo de jornalistas, artigos de opinião e as diretrizes editoriais que orientam esse uso.',
+      en: 'A special-feature page for Grupo RBS introducing how AI is being used inside their newsrooms — video testimonials from journalists, opinion articles, and the editorial guidelines that frame the use. Shipped as an MVP to validate internal adoption before scaling into a full platform.',
+      pt: 'Página especial do Grupo RBS mostrando como a IA já está sendo usada dentro das redações — depoimentos em vídeo de jornalistas, artigos de opinião e as diretrizes editoriais que orientam esse uso. Lançado como MVP para validar a adoção interna antes de investir numa evolução maior.',
     },
     techStack: ['React', 'Vite', 'TailwindCSS v4', 'Emotion'],
     pitch: {
-      en: 'an *internal grupo rbs hub* where journalists share how they actually use ai — seven video testimonials, four long-form articles, no backend.',
-      pt: 'um *hub interno do grupo rbs* onde os próprios jornalistas contam como usam ia no dia a dia — sete vídeos curtos, quatro artigos longos, sem backend.',
+      en: 'an *internal grupo rbs hub* where journalists share how they actually use ai — built as an MVP to measure newsroom adoption before scaling into a full editorial platform.',
+      pt: 'um *hub interno do grupo rbs* onde os próprios jornalistas contam como usam ia no dia a dia — construído como um MVP para medir a adoção da redação antes de evoluir para uma plataforma editorial completa.',
     },
     whatShipped: {
-      en: 'a react + vite spa deployed as a static build on a private rbs host. all editorial content comes from a single JSON file fetched at runtime; navigation between dashboard, video player, and article reader runs purely on react state — no backend, no client-side router. tailwind v4 with a touch of emotion.',
-      pt: 'spa react + vite com build estático servida num host privado da rbs. todo o conteúdo editorial vem de um único arquivo JSON buscado em runtime; a navegação entre dashboard, player de vídeo e leitor de artigo é tudo estado de react — sem backend, sem roteador no cliente. tailwind v4 com um toque de emotion.',
+      en: 'a react + vite spa deployed as a static build on a private rbs host, supporting both video testimonials and long-form articles inside the same editorial shell. content is published from a single JSON file so the newsroom can keep iterating on the format while the MVP proves its value. tailwind v4 with a touch of emotion.',
+      pt: 'spa react + vite com build estático servida num host privado da rbs, com suporte tanto a depoimentos em vídeo quanto a artigos longos dentro do mesmo shell editorial. o conteúdo é publicado a partir de um único arquivo JSON, então a redação consegue continuar iterando no formato enquanto o MVP prova seu valor. tailwind v4 com um toque de emotion.',
     },
     trick: {
-      en: '*one shared course shell* — sidebar list, main panel, progress tracker — backs both the video player and the article reader. articles ship as ordered arrays of typed blocks (paragraphs, pull-quotes) rather than HTML strings, so styling is applied *structurally* by the renderer instead of leaking into the copy. publishing is one JSON edit plus dropping media into the assets folder.',
-      pt: '*um único shell de curso* — lista lateral, painel principal e barra de progresso — serve ao mesmo tempo o player de vídeo e o leitor de artigo. os artigos chegam como arrays ordenados de blocos tipados (parágrafos, citações em destaque) em vez de blobs de HTML, então o estilo é aplicado *estruturalmente* pelo renderer, sem se misturar ao conteúdo. publicar é editar um JSON e jogar a mídia na pasta de assets.',
+      en: '*one shared course shell* — sidebar list, main panel, progress tracker — backs both the video player and the article reader, so adding a new editorial format becomes a new block type rather than a new screen. articles ship as ordered arrays of typed blocks (paragraphs, pull-quotes) rather than HTML strings, so styling is applied *structurally* by the renderer instead of leaking into the copy.',
+      pt: '*um único shell de curso* — lista lateral, painel principal e barra de progresso — serve ao mesmo tempo o player de vídeo e o leitor de artigo, então adicionar um novo formato editorial vira um novo tipo de bloco, não uma nova tela. os artigos chegam como arrays ordenados de blocos tipados (parágrafos, citações em destaque) em vez de blobs de HTML, então o estilo é aplicado *estruturalmente* pelo renderer, sem se misturar ao conteúdo.',
     },
     projectType: 'shipped',
     coverImage: '/images/projects/ia-na-redacao/desktop/01-landing.png',
@@ -160,7 +160,7 @@ export const projects: Project[] = [
     title: { en: 'fotos do ano 2025', pt: 'fotos do ano 2025' },
     year: 2025,
     highlight: true,
-    highlightOrder: 4,
+    highlightOrder: 6,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #F4F8FE, #A2D2FF)',
     tagline: {
