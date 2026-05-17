@@ -324,7 +324,7 @@ Run: `npm run build`
 
 Expected: build succeeds. No new components reference these classes yet, so this is purely additive CSS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/index.css
