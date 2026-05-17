@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { useInView } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { heroStats } from '../../data/stats'
+import { Link } from 'react-router-dom'
+import { statsReceipt, type StatRow } from '../../data/stats'
 import { useMotion } from '../../context/MotionContext'
 import { Stagger } from '../ui/Stagger'
 import { STAGGER_PRESETS } from '../../utils/animations'
 
 interface CountUpProps {
   target: number
+  suffix: string
   durationMs?: number
 }
 
-function CountUp({ target, durationMs = 1400 }: CountUpProps) {
+function CountUp({ target, suffix, durationMs = 1400 }: CountUpProps) {
   const { prefersReducedMotion } = useMotion()
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true, amount: 0.6 })
@@ -34,33 +36,80 @@ function CountUp({ target, durationMs = 1400 }: CountUpProps) {
     return () => cancelAnimationFrame(raf)
   }, [inView, target, durationMs, prefersReducedMotion])
 
-  return <span ref={ref}>{display}</span>
+  return (
+    <span ref={ref}>
+      {display}
+      {suffix}
+    </span>
+  )
+}
+
+/**
+ * Detect whether a pre-formatted stat value is "pure numeric" — i.e.
+ * digits plus an optional trailing `+`. Examples:
+ *   "7+"        -> { numeric: 7, suffix: "+" }
+ *   "250+"      -> { numeric: 250, suffix: "+" }
+ *   "R$ 129B"   -> null (not pure numeric)
+ *   "760k"      -> null (suffix has letters, not just "+")
+ */
+function parsePureNumeric(
+  value: string,
+): { numeric: number; suffix: string } | null {
+  const match = /^(\d+)(\+?)$/.exec(value)
+  if (!match) return null
+  return { numeric: parseInt(match[1], 10), suffix: match[2] }
+}
+
+function ReceiptRow({ row, index }: { row: StatRow; index: number }) {
+  const { t } = useTranslation()
+  const num = String(index + 1).padStart(2, '0')
+  const pure = parsePureNumeric(row.value)
+
+  return (
+    <div className="stats-row">
+      <span className="stats-row-num">{num}</span>
+      <span className="stats-row-value">
+        {pure ? (
+          <CountUp target={pure.numeric} suffix={pure.suffix} />
+        ) : (
+          row.value
+        )}
+      </span>
+      <span className="stats-row-ann">
+        {t(row.annotationKey)}
+        {row.caseStudy && (
+          <Link
+            to={`/projects/${row.caseStudy.slug}`}
+            className="stats-row-link"
+          >
+            {t(row.caseStudy.labelKey)}
+          </Link>
+        )}
+      </span>
+    </div>
+  )
 }
 
 export function Stats() {
   const { t } = useTranslation()
 
-  const parsed = heroStats.map((s) => ({
-    n: parseInt(String(s.value).replace(/\D+/g, ''), 10) || 0,
-    suffix: String(s.value).replace(/[\d\s]+/g, ''),
-    labelKey: s.labelKey,
-  }))
-
   return (
     <section id="stats" className="stats">
       <div className="stats-inner">
+        <div className="stats-heading-col">
+          <span className="stats-eyebrow">{t('stats.eyebrow')}</span>
+          <h2
+            className="section-title"
+            dangerouslySetInnerHTML={{ __html: t('stats.heading') }}
+          />
+        </div>
         <Stagger
           recipe="stampIn"
           stagger={STAGGER_PRESETS.statValues}
-          className="stats-grid"
+          className="stats-rows"
         >
-          {parsed.map((s) => (
-            <div key={s.labelKey} className="stats-item">
-              <span className="hero-stat-v">
-                <CountUp target={s.n} />{s.suffix}
-              </span>
-              <span className="hero-stat-l">{t(s.labelKey)}</span>
-            </div>
+          {statsReceipt.map((row, i) => (
+            <ReceiptRow key={row.annotationKey} row={row} index={i} />
           ))}
         </Stagger>
       </div>
