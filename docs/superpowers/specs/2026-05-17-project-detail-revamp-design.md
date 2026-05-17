@@ -257,16 +257,16 @@ All enter animations use ease `[0.22, 1, 0.36, 1]`. Each new component respects 
 
 ## TODO
 
-- [ ] Add `pitch`, `whatShipped`, `trick` to the `Project` interface in `src/types/content.ts`
-- [ ] Add drafted copy to all 7 highlight projects in `src/data/projects.ts` (painel, enquetes, ia-na-redacao, fotos-2025, peleia, hotmart-bunde, fotos-2024)
-- [ ] Drop `story`, `routes`, `screenshots` from those same 7 entries
-- [ ] Build `src/components/projectDetail/Pitch.tsx`
-- [ ] Build `src/components/projectDetail/MockupFrame.tsx`
-- [ ] Build `src/components/projectDetail/WhatShippedRow.tsx`
-- [ ] Build `src/components/projectDetail/TrickCard.tsx`
-- [ ] Rewrite `src/pages/ProjectDetail.tsx` flow per spec
-- [ ] Remove `Footnotes` invocation from `ProjectDetail.tsx` (file stays)
-- [ ] `npm run build` passes
-- [ ] Visual check: all 7 highlight pages, desktop + mobile viewport, in `npm run dev`
-- [ ] Visual check: `prefers-reduced-motion` disables transforms on new components
-- [ ] Lighthouse run on `npm run preview` — performance ≥95
+- [x] Add `pitch`, `whatShipped`, `trick` to the `Project` interface in `src/types/content.ts`
+- [x] Add drafted copy to all 7 highlight projects in `src/data/projects.ts` (painel, enquetes, ia-na-redacao, fotos-2025, peleia, hotmart-bunde, fotos-2024)
+- [x] Drop `story`, `routes`, `screenshots` from those same 7 entries
+- [x] Build `src/components/projectDetail/Pitch.tsx`
+- [x] Build `src/components/projectDetail/MockupFrame.tsx`
+- [x] Build `src/components/projectDetail/WhatShippedRow.tsx`
+- [x] Build `src/components/projectDetail/TrickCard.tsx`
+- [x] Rewrite `src/pages/ProjectDetail.tsx` flow per spec
+- [x] Remove `Footnotes` invocation from `ProjectDetail.tsx` (file stays)
+- [x] `npm run build` passes
+- [ ] Visual check: all 7 highlight pages, desktop + mobile viewport, in `npm run dev` *(deferred to user)*
+- [ ] Visual check: `prefers-reduced-motion` disables transforms on new components *(deferred to user)*
+- [ ] Lighthouse run on `npm run preview` — performance ≥95 *(deferred to user)*
