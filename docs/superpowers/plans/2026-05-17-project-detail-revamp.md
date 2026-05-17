@@ -387,7 +387,7 @@ Run: `npx tsc -b`
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/projectDetail/Pitch.tsx
