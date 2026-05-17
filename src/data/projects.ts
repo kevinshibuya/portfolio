@@ -266,8 +266,8 @@ export const projects: Project[] = [
       { value: '1', label: { en: 'LP funnel', pt: 'funil único' } },
     ],
     pitch: {
-      en: 'a *scrapbook landing* for a 50+ hour political-fundamentals course — pure conversion funnel, no auth, no cart, no payment surface.',
-      pt: 'uma *landing artesanal* para um curso de 50+ horas de fundamentos políticos — funil puro de conversão, sem auth, sem carrinho, sem pagamento.',
+      en: "an *in-page sales funnel* for a 50+ hour political-fundamentals course — hotmart's checkout opens inside a modal so readers never leave, and each communicator's referral link rewrites the hero around them.",
+      pt: 'um *funil de vendas numa página só* para um curso de 50+ horas de fundamentos políticos — o checkout do hotmart abre num modal, o leitor nunca sai, e cada link de referência de comunicador reescreve a hero em torno dele.',
     },
     whatShipped: {
       en: 'a react + vite spa on cloudflare pages, styled with tailwind v4. the entire scrapbook visual language — paper textures, washi tape, torn edges, layered shadows, hand-cut portrait cutouts — is composed from a small toolkit of utility primitives, so each section reads like a different page of a physical zine. checkout, professor data, and copy all live in-repo as static assets — no CMS, no auth, no backend.',
