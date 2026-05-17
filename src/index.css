@@ -2012,27 +2012,27 @@ body[data-loader-state="loading"] {
 }
 
 /* ============================================================
-   Editorial digest — Pitch / MockupFrame / WhatShippedRow / TrickCard
-   Used on highlight project detail pages. Shares <em>/<strong>/<code>
-   visual treatment with .project-detail-paragraph.
+   Editorial digest v3 — Pitch / MockupFrame / WhatShipped / MobileTrickRow
+   Used on highlight project detail pages.
+   Tech stack lives in the legacy .project-detail-stack-* rules above.
    ============================================================ */
 
-/* Shared inline tokens */
+/* Shared inline tokens — match .project-detail-paragraph treatment */
 .project-detail-pitch em,
 .project-detail-what-shipped-text em,
-.project-detail-trick-body em {
+.project-detail-mobile-trick-text em {
   color: var(--blue-400);
   font-style: italic;
 }
 .project-detail-pitch strong,
 .project-detail-what-shipped-text strong,
-.project-detail-trick-body strong {
+.project-detail-mobile-trick-text strong {
   font-weight: 600;
   color: var(--ink);
 }
 .project-detail-pitch code,
 .project-detail-what-shipped-text code,
-.project-detail-trick-body code,
+.project-detail-mobile-trick-text code,
 .project-detail-paragraph code {
   background: var(--sand);
   color: var(--bark);
@@ -2042,25 +2042,31 @@ body[data-loader-state="loading"] {
   font-size: 0.92em;
 }
 
-/* Pitch — display-type lead */
+/* Pitch — option C: deck-style lead with blue rule above */
 .project-detail-pitch {
-  max-width: 880px;
-  margin: 48px auto 40px;
-  font-size: clamp(28px, 4vw, 56px);
-  font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
-  text-transform: lowercase;
-  color: var(--ink);
+  max-width: 680px;
+  margin: 32px auto 64px;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--bark);
+}
+.project-detail-pitch::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 2px;
+  background: var(--blue-400);
+  margin: 0 0 20px;
 }
 
 /* MockupFrame — framed, centered, max-width constrained */
 .project-detail-mockup-frame {
-  margin: 32px auto 40px;
+  margin: 64px auto 80px;  /* more breathing room between mockup zones */
   display: block;
 }
 .project-detail-mockup-frame--desktop { max-width: 880px; }
-.project-detail-mockup-frame--mobile  { max-width: 360px; }
+.project-detail-mockup-frame--mobile  { max-width: 320px; }
 .project-detail-mockup-frame img {
   width: 100%;
   height: auto;
@@ -2069,23 +2075,10 @@ body[data-loader-state="loading"] {
   object-fit: contain;
 }
 
-/* WhatShippedRow — 2-col: mobile mockup + short prose */
+/* WhatShipped — full-width prose block above the mobile mockup */
 .project-detail-what-shipped {
-  max-width: 880px;
-  margin: 48px auto;
-  display: grid;
-  grid-template-columns: minmax(0, 360px) 1fr;
-  gap: 48px;
-  align-items: center;
-}
-@media (max-width: 720px) {
-  .project-detail-what-shipped {
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
-}
-.project-detail-what-shipped .project-detail-mockup-frame {
-  margin: 0;
+  max-width: 720px;
+  margin: 80px auto 32px;
 }
 .project-detail-what-shipped-label {
   font-size: 11px;
@@ -2097,23 +2090,30 @@ body[data-loader-state="loading"] {
 }
 .project-detail-what-shipped-text {
   font-size: 17px;
-  line-height: 1.5;
+  line-height: 1.6;
   color: var(--ink);
   margin: 0;
 }
 
-/* TrickCard — single card combining trick prose + tech pills */
-.project-detail-trick {
+/* MobileTrickRow — mobile mockup left, trick prose right; stacks at <720px */
+.project-detail-mobile-trick {
   max-width: 880px;
-  margin: 48px auto 64px;
-  background: var(--sand);
-  border-radius: 18px;
-  padding: 32px;
+  margin: 32px auto 96px;
+  display: grid;
+  grid-template-columns: minmax(0, 320px) 1fr;
+  gap: 64px;
+  align-items: center;
 }
 @media (max-width: 720px) {
-  .project-detail-trick { padding: 24px; }
+  .project-detail-mobile-trick {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
 }
-.project-detail-trick-label {
+.project-detail-mobile-trick .project-detail-mockup-frame {
+  margin: 0;
+}
+.project-detail-mobile-trick-label {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -2121,21 +2121,11 @@ body[data-loader-state="loading"] {
   color: var(--blue-400);
   margin: 0 0 12px;
 }
-.project-detail-trick-body {
+.project-detail-mobile-trick-text {
   font-size: 17px;
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--ink);
   margin: 0;
-}
-.project-detail-trick-divider {
-  border: 0;
-  border-top: 1px solid var(--mist);
-  margin: 24px 0;
-}
-.project-detail-trick-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
 }
 
 .project-detail-footnotes {
