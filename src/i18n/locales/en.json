@@ -29,6 +29,18 @@
       "projects": "case studies"
     }
   },
+  "stats": {
+    "heading": "the work, in <em>numbers.</em>",
+    "eyebrow": "selected metrics —",
+    "receipt": {
+      "years": "years shipping interactives, from first commit to today.",
+      "interactives": "interactives published across gauchazh.",
+      "reconstruction": "in reconstruction spend tracked —",
+      "reconstruction_cta": "painel da reconstrução",
+      "votes": "live votes registered —",
+      "votes_cta": "enquetes gzh"
+    }
+  },
   "sections": {
     "projects": {
       "index": "01 · featured",

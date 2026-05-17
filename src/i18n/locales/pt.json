@@ -29,6 +29,18 @@
       "projects": "estudos de caso"
     }
   },
+  "stats": {
+    "heading": "o trabalho, em <em>números.</em>",
+    "eyebrow": "métricas selecionadas —",
+    "receipt": {
+      "years": "anos entregando interativos, do primeiro commit até hoje.",
+      "interactives": "interativos publicados na gauchazh.",
+      "reconstruction": "em recursos da reconstrução acompanhados —",
+      "reconstruction_cta": "painel da reconstrução",
+      "votes": "votos ao vivo registrados —",
+      "votes_cta": "enquetes gzh"
+    }
+  },
   "sections": {
     "projects": {
       "index": "01 · destaques",
