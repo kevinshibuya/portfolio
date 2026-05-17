@@ -1383,11 +1383,16 @@ body[data-loader-state="loading"] {
   grid-template-columns: 48px 240px 1fr;
   column-gap: 24px;
   align-items: start;
-  padding: 72px 0;
+  padding: 96px 0;
   border-bottom: 1px solid var(--mist);
 }
-.stats-row:first-child { padding-top: 0; }
-.stats-row:last-child { border-bottom: none; padding-bottom: 0; }
+/* Stagger wraps each .stats-row in a motion.div, so .stats-row:first-child
+   would (incorrectly) match every row. Target the wrapper instead. */
+.stats-rows > :first-child .stats-row { padding-top: 0; }
+.stats-rows > :last-child .stats-row {
+  padding-bottom: 0;
+  border-bottom: none;
+}
 .stats-row-num {
   font-size: 13px;
   font-weight: 600;
