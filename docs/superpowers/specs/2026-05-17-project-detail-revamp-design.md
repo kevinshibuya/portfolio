@@ -412,7 +412,7 @@ GSAP isn't installed in the project despite the CLAUDE.md stack notes. Using Fra
 ### v3 TODO
 
 - [ ] Spec amendment committed (this section)
-- [ ] CSS rewrite (drop trick, restyle pitch + what-shipped, add mobile-trick)
+- [x] CSS rewrite (drop trick, restyle pitch + what-shipped, add mobile-trick)
 - [ ] Update Pitch component (cinematic fade + blur)
 - [ ] Update MockupFrame component (scroll-tied scale + parallax for desktop; tilt-settle entrance for mobile)
 - [ ] Create WhatShipped component
