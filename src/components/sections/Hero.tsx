@@ -1,7 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Trans, useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { useLenis } from '../../hooks/useLenis'
 import { useMotion } from '../../context/MotionContext'
 import { RevealOnView } from '../ui/RevealOnView'
@@ -130,10 +129,14 @@ export function Hero() {
                 {t('hero.cta.collaborate')}
                 <span className="btn-arrow">→</span>
               </a>
-              <Link to="/resume" className="btn btn--ghost">
+              <a
+                href={`/cv-${lang === 'pt' ? 'pt' : 'en'}.pdf`}
+                download
+                className="btn btn--ghost"
+              >
                 {t('hero.cta.resume')}
                 <span className="btn-arrow">↓</span>
-              </Link>
+              </a>
             </div>
           </RevealOnView>
         </div>

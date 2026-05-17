@@ -12,7 +12,7 @@ export const socialLinks: SocialLink[] = [
   },
   {
     platform: 'linkedin',
-    url: 'https://linkedin.com/in/kevinshibuya',
+    url: 'https://linkedin.com/in/kevin-shibuya',
     label: 'LinkedIn',
   },
 ]

@@ -11,6 +11,7 @@ interface ContactRowData {
   label: string
   meta: string
   href: string
+  download?: boolean
 }
 
 function getSocialUrl(platform: string): string {
@@ -25,7 +26,9 @@ interface ContactProps {
 }
 
 export function Contact({ showSectionIndex = true }: ContactProps = {}) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language === 'pt' ? 'pt' : 'en'
+  const cvFile = `cv-${lang}.pdf`
 
   const rows: ContactRowData[] = [
     {
@@ -37,8 +40,11 @@ export function Contact({ showSectionIndex = true }: ContactProps = {}) {
     {
       num: '02',
       label: t('sections.contact.links.linkedin'),
-      meta: 'in/kevinshibuya',
-      href: getSocialUrl('linkedin'),
+      meta: 'in/kevin-shibuya',
+      href:
+        lang === 'pt'
+          ? `${getSocialUrl('linkedin')}/?locale=pt`
+          : getSocialUrl('linkedin'),
     },
     {
       num: '03',
@@ -49,8 +55,9 @@ export function Contact({ showSectionIndex = true }: ContactProps = {}) {
     {
       num: '04',
       label: t('sections.contact.links.resume'),
-      meta: 'kevin-shibuya.pdf',
-      href: '/resume',
+      meta: cvFile,
+      href: `/${cvFile}`,
+      download: true,
     },
   ]
 
@@ -80,13 +87,14 @@ export function Contact({ showSectionIndex = true }: ContactProps = {}) {
   )
 }
 
-function ContactRow({ num, label, meta, href }: ContactRowData) {
+function ContactRow({ num, label, meta, href, download }: ContactRowData) {
   const isExternal = href.startsWith('http')
   return (
     <a
       href={href}
       target={isExternal ? '_blank' : undefined}
       rel={isExternal ? 'noopener noreferrer' : undefined}
+      download={download ? '' : undefined}
       className="contact-row"
     >
       <span className="contact-num">{num}</span>
