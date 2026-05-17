@@ -15,6 +15,10 @@ const ITALIC = /^\*([^\s*](?:[^*]*?[^\s*])?)\*/
 // `https://en.wikipedia.org/wiki/Foo_(bar)`); they fall through as literal text.
 const LINK = /^\[([^\]]+)\]\(([^)\s]+)\)/
 
+// Inline code: `text`. Inner edges require non-backtick characters to keep
+// stray backticks ("`" used as a fancy quote) rendering as literal.
+const CODE = /^`([^`]+)`/
+
 export function parseInline(input: string): ReactNode[] {
   if (!input) return []
 
@@ -48,6 +52,16 @@ export function parseInline(input: string): ReactNode[] {
         flushBuffer()
         out.push(<em key={key++}>{mI[1]}</em>)
         i += mI[0].length
+        continue
+      }
+    }
+
+    if (ch === '`') {
+      const mC = rest.match(CODE)
+      if (mC) {
+        flushBuffer()
+        out.push(<code key={key++}>{mC[1]}</code>)
+        i += mC[0].length
         continue
       }
     }

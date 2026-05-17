@@ -51,4 +51,25 @@ describe('parseInline', () => {
   it('does not bold space-padded double-asterisks (e.g. "** lonely **")', () => {
     expect(html('a ** padded ** b')).toBe('a ** padded ** b')
   })
+
+  it('renders `code` as <code>', () => {
+    expect(html('use `?edit=1` flag')).toBe(
+      'use <code>?edit=1</code> flag'
+    )
+  })
+
+  it('handles backticks alongside bold, italic, and link', () => {
+    expect(html('**A** `code` *italic* [link](https://x.test)')).toBe(
+      '<strong>A</strong> <code>code</code> <em>italic</em> <a href="https://x.test" target="_blank" rel="noopener noreferrer" class="prose-link">link</a>'
+    )
+  })
+
+  it('treats unmatched backtick as literal', () => {
+    expect(html('a `missing close')).toBe('a `missing close')
+  })
+
+  it('does not parse code inside an already-matched bold span', () => {
+    // Bold matches first; the backticks inside are literal.
+    expect(html('**`literal`**')).toBe('<strong>`literal`</strong>')
+  })
 })
