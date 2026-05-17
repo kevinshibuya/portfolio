@@ -30,14 +30,6 @@ export const statsReceipt: StatRow[] = [
     annotationKey: 'stats.receipt.years',
   },
   {
-    value: '760k',
-    annotationKey: 'stats.receipt.votes',
-    caseStudy: {
-      slug: 'enquetes-gzh',
-      labelKey: 'stats.receipt.votes_cta',
-    },
-  },
-  {
     value: '250+',
     annotationKey: 'stats.receipt.interactives',
   },
@@ -47,6 +39,14 @@ export const statsReceipt: StatRow[] = [
     caseStudy: {
       slug: 'painel-da-reconstrucao',
       labelKey: 'stats.receipt.reconstruction_cta',
+    },
+  },
+  {
+    value: '760k',
+    annotationKey: 'stats.receipt.votes',
+    caseStudy: {
+      slug: 'enquetes-gzh',
+      labelKey: 'stats.receipt.votes_cta',
     },
   },
 ]
