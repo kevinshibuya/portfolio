@@ -270,3 +270,156 @@ All enter animations use ease `[0.22, 1, 0.36, 1]`. Each new component respects 
 - [ ] Visual check: all 7 highlight pages, desktop + mobile viewport, in `npm run dev` *(deferred to user)*
 - [ ] Visual check: `prefers-reduced-motion` disables transforms on new components *(deferred to user)*
 - [ ] Lighthouse run on `npm run preview` — performance ≥95 *(deferred to user)*
+
+---
+
+## v3 amendment (2026-05-17 — after first visual review)
+
+After a full visual pass, the user flagged five issues with v2:
+
+1. The two mockups sit too close together with not enough breathing room.
+2. `whatShipped` should sit **above** the mobile mockup as a full-width prose block, not beside it.
+3. The "trick" prose should take the slot beside the mobile mockup that `whatShipped` used to occupy.
+4. The tech stack should be its own section, not bundled inside a `TrickCard`.
+5. The copy is too tight after the rewrite — needs to expand.
+6. The Pitch typography (large heavy lowercase) competes with the hero title, which uses the same treatment at a larger size.
+7. Section entrances should feel cinematic.
+
+### New flow (replaces the v2 flow)
+
+```
+Hero
+ScrollCue
+Pitch                        ← option C typography (see below)
+MockupFrame variant=desktop
+WhatShipped                  ← NEW: full-width prose, eyebrow + paragraph
+MobileTrickRow               ← RENAMED from WhatShippedRow: mobile mockup left, trick prose right
+StackSection                 ← re-imported (lives in src/components/projectDetail/StackSection.tsx)
+```
+
+### Component delta
+
+| Component | v2 status | v3 status |
+|---|---|---|
+| `Pitch` | exists | KEEP, update typography + animation |
+| `MockupFrame` | exists | KEEP, add variant-aware scroll-tied animation (desktop) + tilt-settle (mobile) |
+| `WhatShippedRow` | exists | RENAME to `MobileTrickRow`. New prop shape: takes `trick: Bilingual` instead of `text: Bilingual`. Eyebrow label switches to `projectDetail.trick` |
+| `WhatShipped` | — | CREATE: full-width prose section (eyebrow `projectDetail.whatShipped` + paragraph) |
+| `TrickCard` | exists | DELETE — replaced by `MobileTrickRow` + standalone `StackSection` |
+| `StackSection` | unused on highlights | RE-IMPORT in `ProjectDetail.tsx` after `MobileTrickRow` |
+
+### Pitch typography — option C
+
+```css
+.project-detail-pitch {
+  max-width: 680px;
+  margin: 32px auto 64px;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--bark);            /* slightly softer than ink */
+  text-transform: none;          /* drop the lowercase enforcement — let proper nouns render naturally */
+}
+.project-detail-pitch::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 2px;
+  background: var(--blue-400);
+  margin: 0 0 20px;
+}
+```
+
+This creates contrast against the bold display hero title. Proper nouns ("GZH", "Política Essencial") now render with their authored casing.
+
+### Expanded copy (replaces v2 drafted copy for `whatShipped` and `trick`)
+
+Pitch stays as written in the original spec. Length targets shift:
+- `whatShipped`: was ~14-20 words, now ~40-50 words
+- `trick`: was ~18-28 words, now ~45-55 words
+
+Drafted expansions for all 7 highlights:
+
+**painel-da-reconstrucao**
+- **whatShipped.en:** "a next.js 14 app router project in typescript, built with `output: 'export'` and deployed as static html on azion's edge — no node runtime. one 488 KB `public/data.json`, denormalized by the newsroom, feeds 19 routes through `useDataFetching` (SWR-backed). UI primitives from mantine and nextui."
+- **whatShipped.pt:** "projeto next.js 14 app router em typescript, com `output: 'export'` e deploy estático na edge da azion — sem runtime node. um `public/data.json` de 488 KB, denormalizado pela redação, alimenta 19 rotas via `useDataFetching` (SWR por baixo). primitivos de UI vêm de mantine e nextui."
+- **trick.en:** "the *selector layer* in `src/lib/utils.ts` — `calculateSumarioData`, `calculateRecursosData`, `calculateSegmentoData` — reduces the flat JSON into per-government, per-segment, and summary shapes each route consumes. results cache through `memoizedCalculation`, a `Map`-backed memoization keyed by call site. *three charting libraries* — highcharts, apexcharts, chart.js — share the same in-memory dataset."
+- **trick.pt:** "a *camada de selectors* em `src/lib/utils.ts` — `calculateSumarioData`, `calculateRecursosData`, `calculateSegmentoData` — reduz o JSON achatado em recortes por esfera, por segmento e de sumário. resultados cacheiam via `memoizedCalculation`, memoização ancorada em `Map` chaveada por call site. *três libs de chart* — highcharts, apexcharts, chart.js — sobre o mesmo dataset em memória."
+
+**enquetes-gzh**
+- **whatShipped.en:** "two apps over one firestore: a *backoffice* where editors create polls and copy embed snippets, and a *public widget* where readers vote and watch percentages update live. backoffice authenticates via google oauth locked to `@gruporbs.com.br`; embed loads any poll by `?poll_id=` and streams via firestore `onSnapshot`."
+- **whatShipped.pt:** "dois apps sobre um firestore: um *backoffice* onde editores criam enquetes e copiam snippets de embed, e um *widget público* onde leitores votam e veem percentuais ao vivo. backoffice autentica via google oauth restrito a `@gruporbs.com.br`; embed carrega qualquer enquete por `?poll_id=` e transmite via `onSnapshot` do firestore."
+- **trick.en:** "duplicate-vote detection uses a `localStorage` device ID as the firestore *document ID* under `votes/{pollId}/userVotes/{deviceId}` — making the check an *O(1) `getDoc`* with zero server round-trip for repeat visitors. a confirmed vote commits via one `updateDoc` that increments `voteCounts.{optionId}` and `totalVotes` atomically through firestore's `increment()`."
+- **trick.pt:** "a detecção de voto duplicado usa um device id em `localStorage` como *id do documento* firestore em `votes/{pollId}/userVotes/{deviceId}` — virando um check *`getDoc` O(1)* sem round-trip para visitantes recorrentes. um voto confirmado dispara um único `updateDoc` que incrementa `voteCounts.{optionId}` e `totalVotes` atomicamente via `increment()` do firestore."
+
+**ia-na-redacao**
+- **whatShipped.en:** "a react + vite spa deployed as a static build on a private rbs host. all editorial content comes from one `course-content.json` fetched at runtime; navigation between dashboard, video player, and article reader runs purely on `useState` — no backend, no client-side router. tailwind v4 with a touch of emotion."
+- **whatShipped.pt:** "spa react + vite com build estático em host privado da rbs. todo o conteúdo editorial vem de um `course-content.json` carregado em runtime; navegação entre dashboard, player de vídeo e leitor de artigo roda em pura `useState` — sem backend, sem roteador. tailwind v4 com um toque de emotion."
+- **trick.en:** "*one shared course shell* — sidebar list + main panel + progress tracker — backs both the video player and the article reader. `articles[]` swap an HTML blob for an ordered `content[]` array of typed blocks (`paragraph`, `quote`) so the renderer applies pull-quote styling *structurally*. publishing is one JSON edit plus dropping media into `assets/videos/`."
+- **trick.pt:** "*um único shell de curso* — sidebar + painel principal + progress tracker — atende o player de vídeo e o leitor de artigo. `articles[]` trocam um blob de HTML por um array `content[]` de blocos tipados (`paragraph`, `quote`), então o renderer aplica estilo de citação *estruturalmente*. publicar é editar um JSON e soltar mídia em `assets/videos/`."
+
+**fotos-do-ano-2025**
+- **whatShipped.en:** "a no-backend single-page app built with vite 6, react 18, typescript, and SWC. all copy and image manifests are co-located inline in `App.tsx` — one `<PhotographerSection>` per photographer. brightcove iframes embed directly so the react tree never owns the player lifecycle."
+- **whatShipped.pt:** "spa sem backend feita com vite 6, react 18, typescript e SWC. toda a copy e os manifestos de imagem ficam inline em `App.tsx` — um `<PhotographerSection>` por fotógrafo. iframes do brightcove embedam direto, então a árvore react nunca controla o ciclo do player."
+- **trick.en:** "scroll is driven entirely by *motion's `useScroll` + `useTransform`* hooks scoped per-section ref. `scrollYProgress` feeds transforms that drive parallax y-offsets, opacity reveals, image-width compression, and a sticky author-rail drift — all on `transform` and `opacity` to stay on the GPU compositor. parallax thumbnail positions are deterministic and memoized across scroll ticks."
+- **trick.pt:** "o scroll é guiado por inteiro por *`useScroll` + `useTransform` do motion*, com escopo por ref de seção. `scrollYProgress` alimenta transforms que conduzem offsets de parallax em y, revelações por opacity, compressão de largura e drift vertical da coluna do autor — tudo em `transform` e `opacity` para ficar na GPU. posições de thumbnail são determinísticas e memoizadas entre frames de scroll."
+
+**peleia-gre-nal**
+- **whatShipped.en:** "a single-route react + vite spa with emotion styling. game progression is a *client-side state machine* (intro → rules → team picker → 10 × {draw → stat-pick → result} → podium) with no URL transitions. all roster data, player stats, and matchup logic ship as static assets — 56 athlete portraits, four stat icons, podium illustrations."
+- **whatShipped.pt:** "spa react + vite de rota única com emotion. a progressão do jogo é uma *state machine no cliente* (intro → regras → seleção → 10 × {saca → escolhe atributo → resultado} → pódio) sem transições de URL. todos os dados de elenco, atributos e lógica de comparação saem como assets estáticos — 56 retratos, quatro ícones, ilustrações de pódio."
+- **trick.en:** "the *gangorra* — a score-delta momentum visualization — swaps between three pre-baked webp illustrations via framer motion easing. card-flip reveals are choreographed in *two sequential phases*: opponent card reveal first, then stat-row highlight on the winning attribute — producing a TV-style result read rather than a single-frame cut. a portrait-orientation gate enforces vertical layout."
+- **trick.pt:** "a *gangorra* — visualização de momentum por diferença de pontos — alterna entre três webps pré-renderizados via easing do framer motion. as viradas de carta são coreografadas em *duas fases sequenciais*: revelação da carta adversária primeiro, depois destaque no atributo vencedor — leitura estilo TV em vez de corte de frame único. uma porta de orientação retrato força o layout vertical."
+
+**hotmart-bunde**
+- **whatShipped.en:** "a react 18 + vite 6 + typescript spa on cloudflare pages, styled with tailwind v4. the entire scrapbook system — paper textures, washi tape, torn edges, layered shadows — is expressed as utility classes (`.paper-texture`, `.washi-tape-*`, `.torn-edge-*`) plus a small set of primitives (`PaperCard`, `WashiTape`, `TornPaperSection`)."
+- **whatShipped.pt:** "spa react 18 + vite 6 + typescript no cloudflare pages, com tailwind v4. o sistema scrapbook todo — texturas de papel, fitas washi, bordas rasgadas, sombras em camadas — é expresso como classes utilitárias (`.paper-texture`, `.washi-tape-*`, `.torn-edge-*`) mais um pequeno conjunto de primitivos (`PaperCard`, `WashiTape`, `TornPaperSection`)."
+- **trick.en:** "the hero professor-circles section — *17 instructor portraits orbiting a centerpiece* — uses per-regime manual position overrides in `src/components/hero/professorOverrides.ts`. a *`?edit=1` url flag* turns the layout into an in-browser tuning mode for dragging circles into place. edge wrinkles on paper elements are generated procedurally via a `wrinkledClipPath` utility, so each card's torn edge is unique."
+- **trick.pt:** "a seção hero dos círculos de professores — *17 retratos orbitando um centro* — usa overrides manuais por regime em `src/components/hero/professorOverrides.ts`. uma *flag `?edit=1` na url* transforma o layout em modo de ajuste no navegador, arrastando círculos para a posição desejada. bordas enrugadas dos elementos de papel são geradas proceduralmente via `wrinkledClipPath`, então cada borda rasgada é única."
+
+**fotos-do-ano-2024**
+- **whatShipped.en:** "a vite-built react spa, statically exported and served under `/especiais/fotos-do-ano-2024/`. each section pairs a featured flood photograph, a first-person caption from the photographer, an embedded HTML5 `<video>` testimonial pointing at `assets/<Photographer>.mp4`, and a black-and-white portrait headshot. typography in hepta slab via google fonts."
+- **whatShipped.pt:** "spa react com vite, exportada estaticamente e servida sob `/especiais/fotos-do-ano-2024/`. cada seção combina uma foto-destaque das enchentes, uma legenda em primeira pessoa do fotógrafo, um depoimento `<video>` HTML5 apontando para `assets/<Photographer>.mp4`, e um retrato em preto-e-branco. tipografia em hepta slab via google fonts."
+- **trick.en:** "the *scroll-driven sticky wordmark* — 'ZEROHORA — fotos do ano 2024' — stays fixed over the hero, tracks scroll position, fades, repositions to each photographer panel's top-right kicker, and *switches color from peach to white* as dark-background photo panels slide underneath. the layout alternates full-bleed photographic panels with peach narrative panels to pace the disaster narrative."
+- **trick.pt:** "o *wordmark fixo guiado por scroll* — 'ZEROHORA — fotos do ano 2024' — fica preso sobre o hero, acompanha o scroll, esmaece, reposiciona-se no canto superior direito de cada painel e *muda de cor de pêssego para branco* quando painéis de fundo escuro passam por baixo. o layout alterna painéis fotográficos de borda a borda com painéis narrativos pêssego para dar compasso à narrativa."
+
+### Cinematic animation plan
+
+GSAP isn't installed in the project despite the CLAUDE.md stack notes. Using Framer Motion's `useScroll` + `useTransform` for scroll-tied effects — identical visual outcome with zero new deps. All animations respect `prefersReducedMotion`.
+
+| Component | Entrance | Scroll-tied |
+|---|---|---|
+| Pitch | Fade-up 32px + blur 6px → 0, 1000ms ease `[0.22, 1, 0.36, 1]` | — |
+| MockupFrame `variant=desktop` | Fade-up 24px + scale 0.94 → 1, 700ms | `useScroll` per ref: scale 0.96 → 1.02 across enter; `y` parallax -20 → 20 |
+| WhatShipped | Fade-up 24px, 800ms | — |
+| MobileTrickRow (mockup) | Rotate `-3deg → 0` + slide-up 24px, 1000ms back-ease | — |
+| MobileTrickRow (trick text) | Fade-up 16px, 700ms, delay 200ms after mockup | — |
+| StackSection (existing) | Pill cascade left-to-right, 40ms stagger | — |
+
+### CSS delta
+
+**Drop:**
+- All `.project-detail-trick*` selectors (TrickCard gone)
+- The current `.project-detail-what-shipped` grid (was 2-col mobile + text)
+
+**Add:**
+- `.project-detail-what-shipped` — full-width prose block (max-width 720px, centered)
+- `.project-detail-mobile-trick` — 2-col grid (mobile mockup left, trick text right; stacks at <720px)
+
+**Keep but update:**
+- `.project-detail-pitch` — option C styling (see Pitch typography block above)
+- `.project-detail-mockup-frame--*` — unchanged
+
+### v3 TODO
+
+- [ ] Spec amendment committed (this section)
+- [ ] CSS rewrite (drop trick, restyle pitch + what-shipped, add mobile-trick)
+- [ ] Update Pitch component (cinematic fade + blur)
+- [ ] Update MockupFrame component (scroll-tied scale + parallax for desktop; tilt-settle entrance for mobile)
+- [ ] Create WhatShipped component
+- [ ] Rename WhatShippedRow → MobileTrickRow (new prop shape, tilt-settle + word-stagger animation)
+- [ ] Delete TrickCard component
+- [ ] Update ProjectDetail.tsx flow + re-import StackSection
+- [ ] Expand whatShipped + trick copy for all 7 highlights
+- [ ] `npm run build` and `npm run test:unit` pass
+- [ ] Visual check by user
+- [ ] Lighthouse on `npm run preview` ≥95
