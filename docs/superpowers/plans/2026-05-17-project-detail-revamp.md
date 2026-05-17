@@ -616,7 +616,7 @@ git commit -m "feat(projectDetail): TrickCard — trick prose + stack pills in o
 
 Render the four new components when the three new fields are present. When absent (current state; will be true for all 7 highlights until Task 9 lands), fall back to the existing `BlockRenderer` + `StackSection` + `RouteList` + `Footnotes` flow. This zero-risk migration means the page never breaks between tasks.
 
-- [ ] **Step 1: Replace the main render block**
+- [x] **Step 1: Replace the main render block**
 
 In `src/pages/ProjectDetail.tsx`, locate the JSX inside `return ( <main> ... </main> )` (starts around line 74). Replace from `<section className="section">` through its closing `</section>` (lines 76-104) with:
 
@@ -679,7 +679,7 @@ In `src/pages/ProjectDetail.tsx`, locate the JSX inside `return ( <main> ... </m
       </section>
 ```
 
-- [ ] **Step 2: Add the four new component imports**
+- [x] **Step 2: Add the four new component imports**
 
 At the top of the file, add these imports after the existing project-detail imports (around line 11). Keep the existing imports — they're still needed for the fallback path.
 
@@ -694,13 +694,13 @@ The `ScrollCue` import was already wrapped in the legacy `{project.story && ...}
 
 **Note:** Step 1's JSX already shows `<ScrollCue />` rendering unconditionally between `<Hero>` and the conditional. The original code only rendered it when `project.story?.length > 0`. The new behavior matches the spec.
 
-- [ ] **Step 3: Verify typecheck and build pass**
+- [x] **Step 3: Verify typecheck and build pass**
 
 Run: `npx tsc -b && npm run build`
 
 Expected: both succeed. Visually, all 7 highlight pages still render via the legacy fallback path because no project has `pitch` yet.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/pages/ProjectDetail.tsx
@@ -718,7 +718,7 @@ For each of the 7 highlights — `painel-da-reconstrucao`, `enquetes-gzh`, `ia-n
 
 Copy is verbatim from the spec § "Drafted copy". This task is large but mechanical; doing it as one commit avoids leaving the data file in a half-migrated state.
 
-- [ ] **Step 1: Edit `painel-da-reconstrucao`**
+- [x] **Step 1: Edit `painel-da-reconstrucao`**
 
 In `src/data/projects.ts`, locate the `id: 'painel-da-reconstrucao'` entry (line 5-127).
 
@@ -741,7 +741,7 @@ In `src/data/projects.ts`, locate the `id: 'painel-da-reconstrucao'` entry (line
 
 **Remove**: the entire `routes: [ ... ]` block (lines 67-87), the entire `screenshots: [ ... ]` block (lines 50-66), and the entire `story: [ ... ]` block (lines 88-126). Leave the trailing `},` of the object intact.
 
-- [ ] **Step 2: Edit `enquetes-gzh`**
+- [x] **Step 2: Edit `enquetes-gzh`**
 
 Locate the `id: 'enquetes-gzh'` entry (line 129).
 
@@ -764,7 +764,7 @@ Locate the `id: 'enquetes-gzh'` entry (line 129).
 
 **Remove**: the entire `story: [ ... ]` block. (This project has no `routes` or `screenshots`.)
 
-- [ ] **Step 3: Edit `ia-na-redacao`**
+- [x] **Step 3: Edit `ia-na-redacao`**
 
 Locate the `id: 'ia-na-redacao'` entry (line 197).
 
@@ -787,7 +787,7 @@ Locate the `id: 'ia-na-redacao'` entry (line 197).
 
 **Remove**: `screenshots: [ ... ]` and `story: [ ... ]`.
 
-- [ ] **Step 4: Edit `fotos-do-ano-2025`**
+- [x] **Step 4: Edit `fotos-do-ano-2025`**
 
 Locate the `id: 'fotos-do-ano-2025'` entry (line 266).
 
@@ -810,7 +810,7 @@ Locate the `id: 'fotos-do-ano-2025'` entry (line 266).
 
 **Remove**: `screenshots: [ ... ]` and `story: [ ... ]`.
 
-- [ ] **Step 5: Edit `peleia-gre-nal`**
+- [x] **Step 5: Edit `peleia-gre-nal`**
 
 Locate the `id: 'peleia-gre-nal'` entry (line 340).
 
@@ -833,7 +833,7 @@ Locate the `id: 'peleia-gre-nal'` entry (line 340).
 
 **Remove**: `screenshots: [ ... ]` and `story: [ ... ]`.
 
-- [ ] **Step 6: Edit `hotmart-bunde`**
+- [x] **Step 6: Edit `hotmart-bunde`**
 
 Locate the `id: 'hotmart-bunde'` entry (line 414).
 
@@ -856,7 +856,7 @@ Locate the `id: 'hotmart-bunde'` entry (line 414).
 
 **Remove**: `screenshots: [ ... ]` and `story: [ ... ]`.
 
-- [ ] **Step 7: Edit `fotos-do-ano-2024`**
+- [x] **Step 7: Edit `fotos-do-ano-2024`**
 
 Locate the `id: 'fotos-do-ano-2024'` entry (line 490).
 
@@ -879,13 +879,13 @@ Locate the `id: 'fotos-do-ano-2024'` entry (line 490).
 
 **Remove**: `screenshots: [ ... ]` and `story: [ ... ]`.
 
-- [ ] **Step 8: Verify typecheck, build, and unit tests pass**
+- [x] **Step 8: Verify typecheck, build, and unit tests pass**
 
 Run: `npx tsc -b && npm run build && npm run test:unit`
 
 Expected: all green. The `projects.validator.test.ts` and the module-load-time validator in `projects.ts` (lines 568-579) only check `mockups` — they're unaffected by adding/removing the fields above.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/data/projects.ts

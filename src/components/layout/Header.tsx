@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useLenis } from "../../hooks/useLenis";
 import { useMotion } from "../../context/MotionContext";
 
@@ -27,6 +28,8 @@ export function Header() {
   const { scrollTo } = useLenis();
   const { entranceDone } = useMotion();
   const [visible, setVisible] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -62,7 +65,20 @@ export function Header() {
       className={`nav${scrolled ? " is-scrolled" : ""}${visible ? " is-visible" : ""}`}
     >
       <div className="nav-inner">
-        <a href="#top" className="nav-brand" onClick={go("top")}>
+        <a
+          href="/"
+          className="nav-brand"
+          onClick={(e) => {
+            e.preventDefault();
+            if (location.pathname === "/") {
+              scrollTo("#top", { duration: 1.2 });
+            } else {
+              // Off-home (e.g. /projects/:slug): route home. ProjectDetail's
+              // useLayoutEffect resets scroll to 0, so the user lands on the hero.
+              navigate("/");
+            }
+          }}
+        >
           <span className="nav-mark">ks<span className="nav-mark__dot" aria-hidden="true" /></span>
           {/* <span className="nav-brand-text">kevin shibuya</span> */}
         </a>
