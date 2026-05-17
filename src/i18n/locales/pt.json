@@ -14,10 +14,9 @@
     "rolePrefix": "sou um",
     "roles": [
       "desenvolvedor fullstack",
-      "desenvolvedor interativo",
-      "designer-desenvolvedor",
-      "criador de produtos",
-      "narrador de dados"
+      "arquiteto de sistemas",
+      "líder técnico",
+      "engenheiro de ia"
     ],
     "description": "<strong>do esboço ao produto final.</strong> um time de um homem só.",
     "cta": {

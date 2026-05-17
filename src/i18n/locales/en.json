@@ -14,10 +14,9 @@
     "rolePrefix": "i am an",
     "roles": [
       "fullstack developer",
-      "interactive developer",
-      "design-engineer",
-      "product builder",
-      "data storyteller"
+      "system architect",
+      "tech lead",
+      "ai engineer"
     ],
     "description": "<strong>rough ideas → shipped products.</strong> a team of one.",
     "cta": {
