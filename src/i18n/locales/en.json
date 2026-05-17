@@ -116,6 +116,8 @@
     "back": "back to projects",
     "year": "year",
     "stack": "tech stack",
+    "whatShipped": "what shipped",
+    "trick": "the trick",
     "liveDemo": "live demo",
     "sourceCode": "source code",
     "routesCount_one": "{{count}} route",

@@ -91,6 +91,11 @@ export interface Project {
   description: Bilingual
   stats?: Stat[]
 
+  // editorial digest (highlight projects)
+  pitch?: Bilingual
+  whatShipped?: Bilingual
+  trick?: Bilingual
+
   // links + meta
   liveUrl?: string
   githubUrl?: string
