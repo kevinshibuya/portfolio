@@ -5,15 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>kevin shibuya — interactive developer</title>
+    <title>kevin shibuya — fullstack developer &amp; tech lead</title>
 
     <meta
       name="description"
-      content="Interactive developer building data-driven journalism, infographics, and scrollytelling — bilingual (EN/PT) full-stack work in React, TypeScript, GSAP, and React Three Fiber."
+      content="Fullstack developer, system architect, and tech lead — building newsroom interactives, AI tooling, and scrollytelling in React, TypeScript, and GSAP. Bilingual EN/PT."
     />
     <meta
       name="keywords"
-      content="interactive developer, data visualization, scrollytelling, data journalism, infographics, react, typescript, gsap, react three fiber, brazil, bilingual, kevin shibuya"
+      content="fullstack developer, system architect, tech lead, ai engineer, react, typescript, data visualization, scrollytelling, data journalism, interactive developer, bilingual, brazil, kevin shibuya"
     />
     <meta name="author" content="Kevin Shibuya" />
     <meta
@@ -51,12 +51,15 @@
     <!-- OPEN GRAPH / FACEBOOK -->
     <meta property="og:type" content="profile" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:locale:alternate" content="pt_BR" />
+    <!-- og:locale:alternate intentionally omitted: PT is served via runtime
+         i18n switch on the same URL, not separate /pt routes, so there is no
+         distinct hreflang target. Declaring pt_BR here without a matching
+         <link rel="alternate" hreflang> would mislead crawlers. -->
     <meta property="og:site_name" content="kevin shibuya" />
-    <meta property="og:title" content="kevin shibuya — interactive developer" />
+    <meta property="og:title" content="kevin shibuya — fullstack developer &amp; tech lead" />
     <meta
       property="og:description"
-      content="Interactive developer building data-driven journalism, infographics, and scrollytelling — bilingual (EN/PT) full-stack work in React, TypeScript, GSAP, and R3F."
+      content="Fullstack developer, system architect, and tech lead — newsroom interactives, AI tooling, and scrollytelling in React, TypeScript, and GSAP. Bilingual EN/PT."
     />
     <meta property="og:url" content="https://kevinshibuya.com/" />
     <meta property="og:image" content="https://kevinshibuya.com/og.png" />
@@ -66,22 +69,22 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="kevin shibuya — interactive developer portfolio"
+      content="kevin shibuya — fullstack developer portfolio"
     />
 
     <!-- TWITTER / X -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:domain" content="kevinshibuya.com" />
-    <meta name="twitter:title" content="kevin shibuya — interactive developer" />
+    <meta name="twitter:title" content="kevin shibuya — fullstack developer &amp; tech lead" />
     <meta
       name="twitter:description"
-      content="Interactive developer building data-driven journalism, infographics, and scrollytelling — bilingual (EN/PT) full-stack work in React, TypeScript, GSAP, and R3F."
+      content="Fullstack developer, system architect, and tech lead — newsroom interactives, AI tooling, and scrollytelling in React, TypeScript, and GSAP. Bilingual EN/PT."
     />
     <meta name="twitter:url" content="https://kevinshibuya.com/" />
     <meta name="twitter:image" content="https://kevinshibuya.com/og.png" />
     <meta
       name="twitter:image:alt"
-      content="kevin shibuya — interactive developer portfolio"
+      content="kevin shibuya — fullstack developer portfolio"
     />
 
     <!-- STRUCTURED DATA -->
@@ -95,8 +98,13 @@
             "name": "Kevin Shibuya",
             "url": "https://kevinshibuya.com/",
             "image": "https://kevinshibuya.com/og.png",
-            "jobTitle": "Interactive Developer",
-            "description": "Full-stack developer specialising in interactive journalism, data visualisation, and scrollytelling. Bilingual (EN/PT).",
+            "jobTitle": [
+              "Fullstack Developer",
+              "System Architect",
+              "Tech Lead",
+              "AI Engineer"
+            ],
+            "description": "Fullstack developer, system architect, and tech lead. Builds newsroom interactives, AI tooling, and data-driven journalism in React, TypeScript, and GSAP. Bilingual (EN/PT).",
             "email": "hello@kevinshibuya.com",
             "sameAs": [
               "https://github.com/kevinshibuya",
@@ -108,15 +116,15 @@
             "@id": "https://kevinshibuya.com/#website",
             "url": "https://kevinshibuya.com/",
             "name": "kevin shibuya",
-            "description": "Interactive developer portfolio — data journalism, infographics, scrollytelling.",
+            "description": "Fullstack developer & tech lead portfolio — newsroom interactives, AI tooling, scrollytelling.",
             "publisher": { "@id": "https://kevinshibuya.com/#person" },
-            "inLanguage": ["en", "pt-BR"]
+            "inLanguage": "en"
           },
           {
             "@type": "ProfilePage",
             "@id": "https://kevinshibuya.com/#webpage",
             "url": "https://kevinshibuya.com/",
-            "name": "kevin shibuya — interactive developer",
+            "name": "kevin shibuya — fullstack developer & tech lead",
             "isPartOf": { "@id": "https://kevinshibuya.com/#website" },
             "about": { "@id": "https://kevinshibuya.com/#person" },
             "primaryImageOfPage": {
