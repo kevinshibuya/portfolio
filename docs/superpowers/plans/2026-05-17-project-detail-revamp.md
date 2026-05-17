@@ -340,9 +340,9 @@ git commit -m "feat(css): editorial digest styles — pitch/mockup-frame/what-sh
 
 Display-type lead with word-split fade-up, mirroring the existing hero tagline animation pattern. Renders `parseInline` for `*em*` blue-italic accents and any `**bold**`/`` `code` ``/`[link](url)` markers.
 
-- [ ] **Step 1: Create the component file**
+- [x] **Step 1: Create the component file**
 
-Create `src/components/projectDetail/Pitch.tsx` with this content:
+Create `src/components/projectDetail/Pitch.tsx` with this content (DONE):
 
 ```tsx
 import { motion } from 'framer-motion'
@@ -381,7 +381,7 @@ export function Pitch({ text, lang }: Props) {
 }
 ```
 
-- [ ] **Step 2: Verify typecheck passes**
+- [x] **Step 2: Verify typecheck passes**
 
 Run: `npx tsc -b`
 
