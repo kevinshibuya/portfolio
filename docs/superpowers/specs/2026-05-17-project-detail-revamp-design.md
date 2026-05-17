@@ -413,12 +413,12 @@ GSAP isn't installed in the project despite the CLAUDE.md stack notes. Using Fra
 
 - [ ] Spec amendment committed (this section)
 - [x] CSS rewrite (drop trick, restyle pitch + what-shipped, add mobile-trick)
-- [ ] Update Pitch component (cinematic fade + blur)
-- [ ] Update MockupFrame component (scroll-tied scale + parallax for desktop; tilt-settle entrance for mobile)
-- [ ] Create WhatShipped component
-- [ ] Rename WhatShippedRow → MobileTrickRow (new prop shape, tilt-settle + word-stagger animation)
-- [ ] Delete TrickCard component
-- [ ] Update ProjectDetail.tsx flow + re-import StackSection
+- [x] Update Pitch component (cinematic fade + blur)
+- [x] Update MockupFrame component (scroll-tied scale + parallax for desktop; tilt-settle entrance for mobile)
+- [x] Create WhatShipped component
+- [x] Rename WhatShippedRow → MobileTrickRow (new prop shape, tilt-settle + word-stagger animation)
+- [x] Delete TrickCard component
+- [x] Update ProjectDetail.tsx flow + re-import StackSection
 - [ ] Expand whatShipped + trick copy for all 7 highlights
 - [ ] `npm run build` and `npm run test:unit` pass
 - [ ] Visual check by user
