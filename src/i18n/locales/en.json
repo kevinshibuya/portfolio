@@ -11,12 +11,12 @@
   "hero": {
     "name1": "kevin",
     "name2": "shibuya.",
-    "rolePrefix": "i am an",
+    "rolePrefix": "i am",
     "roles": [
-      "fullstack developer",
-      "system architect",
-      "tech lead",
-      "ai engineer"
+      "a fullstack developer",
+      "a system architect",
+      "a tech lead",
+      "an ai engineer"
     ],
     "description": "<strong>rough ideas → shipped products.</strong> a team of one.",
     "cta": {

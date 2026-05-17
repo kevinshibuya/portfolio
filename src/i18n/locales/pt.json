@@ -11,12 +11,12 @@
   "hero": {
     "name1": "kevin",
     "name2": "shibuya.",
-    "rolePrefix": "sou um",
+    "rolePrefix": "sou",
     "roles": [
-      "desenvolvedor fullstack",
-      "arquiteto de sistemas",
-      "líder técnico",
-      "engenheiro de ia"
+      "um desenvolvedor fullstack",
+      "um arquiteto de sistemas",
+      "um líder técnico",
+      "um engenheiro de ia"
     ],
     "description": "<strong>do esboço ao produto final.</strong> um time de um homem só.",
     "cta": {
