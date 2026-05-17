@@ -320,8 +320,7 @@ strong {
    Same rules are inlined in index.html so the curtain paints with the
    first byte of HTML, before this bundled stylesheet arrives.
    ========================================================================= */
-html[data-loading='true'],
-body.is-loading {
+html[data-loading='true'] {
   overflow: hidden;
 }
 

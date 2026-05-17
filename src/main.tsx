@@ -74,7 +74,6 @@ const liftCurtain = (): void => {
     loaderEl.classList.add('loader--exit')
     window.setTimeout(() => {
       loaderEl.remove()
-      document.body.classList.remove('is-loading')
       document.documentElement.removeAttribute('data-loading')
       resolveCurtain()
     }, TRANSITION_MS + 50)

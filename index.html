@@ -291,7 +291,7 @@
          translate ±50vh with the panels — re-creating the tear effect
          while keeping the whole-mark's LCP timestamp locked. -->
     <style>
-      html[data-loading='true'], body.is-loading { overflow: hidden; }
+      html[data-loading='true'] { overflow: hidden; }
       @font-face {
         font-family: 'Plus Jakarta Sans';
         src: url('/fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2-variations'),
@@ -352,13 +352,16 @@
       }
     </style>
     <script>
-      // Lock body scroll while the loader is up. Set BEFORE React parses so
-      // the document's initial render is already scroll-locked — prevents
-      // a one-frame flash of scrollable content underneath the curtain on
-      // very slow networks. main.tsx removes this class when it removes
-      // the loader element.
+      // Lock html scroll while the loader is up. Set BEFORE React parses so
+      // the document's initial render is already scroll-locked — prevents a
+      // one-frame flash of scrollable content underneath the curtain on slow
+      // networks. main.tsx clears this attribute when it removes the loader.
+      //
+      // We can only target <html> here: this script runs in <head>, so
+      // document.body is null at this point. A previous version also added
+      // a body.is-loading class as a belt-and-suspenders backup, but the
+      // body wasn't parsed yet so the call was always a no-op — removed.
       document.documentElement.dataset.loading = 'true'
-      document.body && (document.body.classList.add('is-loading'))
     </script>
   </head>
   <body>
