@@ -2130,6 +2130,13 @@ body[data-loader-state="loading"] {
   margin: 0;
   text-align: justify;
 }
+@media (max-width: 720px) {
+  .project-detail-pitch,
+  .project-detail-what-shipped-text,
+  .project-detail-mobile-trick-text {
+    text-align: left;
+  }
+}
 
 .project-detail-footnotes {
   max-width: 620px;
