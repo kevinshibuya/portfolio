@@ -1342,30 +1342,115 @@ body[data-loader-state="loading"] {
   pointer-events: none;
   z-index: 0;
 }
-/* Stats slim-band section. Reuses .hero-stat-v / .hero-stat-l for type
-   styles so the relocated Hero stat numerals keep their 40px/700 weight. */
+/* Stats numbered-receipt section. Two-column editorial layout on desktop
+   (heading left, numbered rows right), single column on mobile. The
+   slim-band/.hero-stat-* classes are no longer referenced from this
+   section but stay in place for Hero. */
 .stats {
   padding: 128px 80px;
+  background: var(--cream);
 }
 .stats-inner {
   max-width: 1440px;
   margin: 0 auto;
-}
-.stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 48px;
-  text-align: center;
+  grid-template-columns: 5fr 7fr;
+  gap: 80px;
+  align-items: start;
 }
-.stats-item {
+.stats-heading-col {
+  position: sticky;
+  top: 120px;
+}
+.stats-eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--blue-500);
+  text-transform: lowercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 14px;
+}
+.stats-rows {
+  position: relative;
+  border-left: 1px solid var(--mist);
+  padding-left: 80px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
+}
+.stats-row {
+  display: grid;
+  grid-template-columns: 48px 200px 1fr;
+  column-gap: 24px;
+  align-items: baseline;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--mist);
+}
+.stats-row:first-child { padding-top: 0; }
+.stats-row:last-child { border-bottom: none; padding-bottom: 0; }
+.stats-row-num {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dust);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+.stats-row-value {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.stats-row-ann {
+  font-size: 16px;
+  color: var(--bark);
+  line-height: 1.6;
+  text-transform: lowercase;
+}
+.stats-row-link {
+  color: var(--blue-500);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-bottom-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  margin-left: 6px;
+}
+.stats-row-link:hover {
+  color: var(--blue-400);
+  border-bottom-color: var(--blue-400);
+}
+.stats-row-link:focus-visible {
+  outline: 2px solid var(--blue-300);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+@media (max-width: 1023px) {
+  .stats { padding: 112px 48px; }
+  .stats-inner { gap: 56px; }
+  .stats-rows { padding-left: 48px; }
+  .stats-row { grid-template-columns: 40px 140px 1fr; column-gap: 20px; }
+  .stats-row-value { font-size: 48px; }
 }
 @media (max-width: 768px) {
   .stats { padding: 96px 24px; }
-  .stats-grid { grid-template-columns: 1fr; gap: 32px; }
+  .stats-inner {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .stats-heading-col { position: static; }
+  .stats-rows {
+    border-left: none;
+    padding-left: 0;
+  }
+  .stats-row {
+    grid-template-columns: 32px 110px 1fr;
+    column-gap: 16px;
+    padding: 24px 0;
+  }
+  .stats-row-value { font-size: 40px; }
+  .stats-row-ann { font-size: 15px; }
 }
 
 /* =========================================================================
