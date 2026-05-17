@@ -11,8 +11,8 @@ import { Footnotes } from '../components/projectDetail/Footnotes'
 import { RouteList } from '../components/projectDetail/blocks/RouteList'
 import { Pitch } from '../components/projectDetail/Pitch'
 import { MockupFrame } from '../components/projectDetail/MockupFrame'
-import { WhatShippedRow } from '../components/projectDetail/WhatShippedRow'
-import { TrickCard } from '../components/projectDetail/TrickCard'
+import { WhatShipped } from '../components/projectDetail/WhatShipped'
+import { MobileTrickRow } from '../components/projectDetail/MobileTrickRow'
 
 const Contact = lazy(() =>
   import('../components/sections/Contact').then((m) => ({ default: m.Contact }))
@@ -82,7 +82,7 @@ export function ProjectDetail() {
         <ScrollCue />
 
         {project.pitch ? (
-          /* Editorial digest path — new structured layout for highlights */
+          /* Editorial digest v3 — Pitch / MockupFrame / WhatShipped / MobileTrickRow / StackSection */
           <>
             <Pitch text={project.pitch} lang={lang} />
             {project.mockups?.desktop && (
@@ -92,21 +92,18 @@ export function ProjectDetail() {
                 alt={`${project.title[lang]} desktop mockup`}
               />
             )}
-            {project.mockups?.mobile && project.whatShipped && (
-              <WhatShippedRow
+            {project.whatShipped && (
+              <WhatShipped text={project.whatShipped} lang={lang} />
+            )}
+            {project.mockups?.mobile && project.trick && (
+              <MobileTrickRow
                 mobileSrc={project.mockups.mobile}
-                text={project.whatShipped}
+                trick={project.trick}
                 lang={lang}
                 alt={`${project.title[lang]} mobile mockup`}
               />
             )}
-            {project.trick && (
-              <TrickCard
-                trick={project.trick}
-                stack={project.techStack}
-                lang={lang}
-              />
-            )}
+            <StackSection project={project} />
           </>
         ) : (
           /* Legacy story path — kept for any non-highlight detail page */

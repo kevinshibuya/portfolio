@@ -14,17 +14,22 @@ export function Pitch({ text, lang }: Props) {
   const { prefersReducedMotion } = useMotion()
   const value = text[lang]
 
-  // Single fade-up rather than the hero's word-split so multi-word italic
-  // spans like "*data dashboard*" or "*real-time apps*" render correctly
-  // through parseInline. The display type carries the entrance weight.
   return (
     <motion.p
       className="project-detail-pitch"
-      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
-      whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+      initial={
+        prefersReducedMotion
+          ? { opacity: 0 }
+          : { opacity: 0, y: 32, filter: 'blur(6px)' }
+      }
+      whileInView={
+        prefersReducedMotion
+          ? { opacity: 1 }
+          : { opacity: 1, y: 0, filter: 'blur(0px)' }
+      }
       viewport={{ once: true, amount: 0.4 }}
       transition={{
-        duration: prefersReducedMotion ? 0.2 : 0.7,
+        duration: prefersReducedMotion ? 0.2 : 1.0,
         ease: EASE,
       }}
     >
