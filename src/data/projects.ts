@@ -131,7 +131,7 @@ export const projects: Project[] = [
     title: { en: 'enquetes gzh', pt: 'enquetes gzh' },
     year: 2026,
     highlight: true,
-    highlightOrder: 4,
+    highlightOrder: 2,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #C8D8F0, #8AAADA)',
     tagline: {
@@ -268,7 +268,7 @@ export const projects: Project[] = [
     title: { en: 'fotos do ano 2025', pt: 'fotos do ano 2025' },
     year: 2025,
     highlight: true,
-    highlightOrder: 2,
+    highlightOrder: 4,
     size: 'md',
     gradient: 'linear-gradient(145deg, #F4F8FE, #A2D2FF)',
     tagline: {
