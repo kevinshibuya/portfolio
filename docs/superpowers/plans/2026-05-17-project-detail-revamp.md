@@ -41,7 +41,7 @@
 
 The drafted copy uses backticks for technical terms (`?edit=1`, `localStorage`, `useState`, etc.). Currently `parseInline` only handles `**bold**`, `*italic*`, and `[link](url)` — backticks fall through as literal characters. Add inline `<code>` support so all three new components render technical terms correctly.
 
-- [ ] **Step 1: Add failing tests for backtick parsing**
+- [x] **Step 1: Add failing tests for backtick parsing**
 
 Append these cases to `tests/unit/projectDetail/inlineMarkdown.test.tsx` inside the existing `describe('parseInline', ...)` block, before the closing `})`:
 
@@ -68,13 +68,13 @@ Append these cases to `tests/unit/projectDetail/inlineMarkdown.test.tsx` inside 
   })
 ```
 
-- [ ] **Step 2: Run the new tests and confirm they fail**
+- [x] **Step 2: Run the new tests and confirm they fail**
 
 Run: `npm run test:unit -- inlineMarkdown`
 
 Expected: the 4 new cases fail (the existing 7 still pass). Failure messages will show the backticks rendered literally.
 
-- [ ] **Step 3: Add backtick handling to `parseInline`**
+- [x] **Step 3: Add backtick handling to `parseInline`**
 
 Edit `src/components/projectDetail/inlineMarkdown.tsx`. Add a `CODE` regex near the other constants, and a new branch in the tokenizer loop.
 
@@ -100,13 +100,13 @@ Add this branch in the tokenizer loop, immediately before the `if (ch === '[')` 
     }
 ```
 
-- [ ] **Step 4: Run all parseInline tests and confirm they pass**
+- [x] **Step 4: Run all parseInline tests and confirm they pass**
 
 Run: `npm run test:unit -- inlineMarkdown`
 
 Expected: all 11 tests pass (7 existing + 4 new).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/projectDetail/inlineMarkdown.tsx tests/unit/projectDetail/inlineMarkdown.test.tsx
@@ -124,7 +124,7 @@ git commit -m "feat(prose): inline code-span support in parseInline"
 
 Pure plumbing. Fields are optional so no existing project breaks. i18n keys back the eyebrow labels in the new components.
 
-- [ ] **Step 1: Add the three optional fields to `Project`**
+- [x] **Step 1: Add the three optional fields to `Project`**
 
 In `src/types/content.ts`, in the `Project` interface (around line 73-111), add three lines in the `// hero copy` block, right after the existing `stats?: Stat[]` line:
 
@@ -142,7 +142,7 @@ In `src/types/content.ts`, in the `Project` interface (around line 73-111), add 
   // links + meta
 ```
 
-- [ ] **Step 2: Add EN i18n keys**
+- [x] **Step 2: Add EN i18n keys**
 
 In `src/i18n/locales/en.json`, inside the `"projectDetail": { ... }` object (around line 115-127), add two new keys after `"stack": "tech stack",`:
 
@@ -153,7 +153,7 @@ In `src/i18n/locales/en.json`, inside the `"projectDetail": { ... }` object (aro
     "liveDemo": "live demo",
 ```
 
-- [ ] **Step 3: Add PT i18n keys**
+- [x] **Step 3: Add PT i18n keys**
 
 In `src/i18n/locales/pt.json`, inside `"projectDetail": { ... }` (around line 115-126), add two new keys after `"stack": "tecnologias",`:
 
@@ -164,13 +164,13 @@ In `src/i18n/locales/pt.json`, inside `"projectDetail": { ... }` (around line 11
     "liveDemo": "demo ao vivo",
 ```
 
-- [ ] **Step 4: Verify typecheck still passes**
+- [x] **Step 4: Verify typecheck still passes**
 
 Run: `npx tsc -b`
 
 Expected: no errors. (Fields are optional; no consumer changes yet.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/types/content.ts src/i18n/locales/en.json src/i18n/locales/pt.json
@@ -186,7 +186,7 @@ git commit -m "feat(content): pitch/whatShipped/trick fields + i18n eyebrows"
 
 All four components plus the new `<code>` token share one CSS block. Adding it before component code lets us write each component's JSX with stable class hooks from the start.
 
-- [ ] **Step 1: Append the new CSS block**
+- [x] **Step 1: Append the new CSS block**
 
 Open `src/index.css`. Locate the end of `.project-detail-stack-chips { ... }` (around line 2009). Insert this block immediately after it, before `.project-detail-footnotes`:
 
@@ -318,7 +318,7 @@ Open `src/index.css`. Locate the end of `.project-detail-stack-chips { ... }` (a
 }
 ```
 
-- [ ] **Step 2: Verify the build still compiles**
+- [x] **Step 2: Verify the build still compiles**
 
 Run: `npm run build`
 

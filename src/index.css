@@ -2008,6 +2008,133 @@ body[data-loader-state="loading"] {
   gap: 6px;
 }
 
+/* ============================================================
+   Editorial digest — Pitch / MockupFrame / WhatShippedRow / TrickCard
+   Used on highlight project detail pages. Shares <em>/<strong>/<code>
+   visual treatment with .project-detail-paragraph.
+   ============================================================ */
+
+/* Shared inline tokens */
+.project-detail-pitch em,
+.project-detail-what-shipped-text em,
+.project-detail-trick-body em {
+  color: var(--blue-400);
+  font-style: italic;
+}
+.project-detail-pitch strong,
+.project-detail-what-shipped-text strong,
+.project-detail-trick-body strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.project-detail-pitch code,
+.project-detail-what-shipped-text code,
+.project-detail-trick-body code,
+.project-detail-paragraph code {
+  background: var(--sand);
+  color: var(--bark);
+  padding: 0.05em 0.4em;
+  border-radius: 6px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.92em;
+}
+
+/* Pitch — display-type lead */
+.project-detail-pitch {
+  max-width: 880px;
+  margin: 48px auto 40px;
+  font-size: clamp(28px, 4vw, 56px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+  color: var(--ink);
+}
+
+/* MockupFrame — framed, centered, max-width constrained */
+.project-detail-mockup-frame {
+  margin: 32px auto 40px;
+  display: block;
+}
+.project-detail-mockup-frame--desktop { max-width: 880px; }
+.project-detail-mockup-frame--mobile  { max-width: 360px; }
+.project-detail-mockup-frame img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 14px;
+  object-fit: contain;
+}
+
+/* WhatShippedRow — 2-col: mobile mockup + short prose */
+.project-detail-what-shipped {
+  max-width: 880px;
+  margin: 48px auto;
+  display: grid;
+  grid-template-columns: minmax(0, 360px) 1fr;
+  gap: 48px;
+  align-items: center;
+}
+@media (max-width: 720px) {
+  .project-detail-what-shipped {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+.project-detail-what-shipped .project-detail-mockup-frame {
+  margin: 0;
+}
+.project-detail-what-shipped-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--blue-400);
+  margin: 0 0 12px;
+}
+.project-detail-what-shipped-text {
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* TrickCard — single card combining trick prose + tech pills */
+.project-detail-trick {
+  max-width: 880px;
+  margin: 48px auto 64px;
+  background: var(--sand);
+  border-radius: 18px;
+  padding: 32px;
+}
+@media (max-width: 720px) {
+  .project-detail-trick { padding: 24px; }
+}
+.project-detail-trick-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--blue-400);
+  margin: 0 0 12px;
+}
+.project-detail-trick-body {
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 0;
+}
+.project-detail-trick-divider {
+  border: 0;
+  border-top: 1px solid var(--mist);
+  margin: 24px 0;
+}
+.project-detail-trick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .project-detail-footnotes {
   max-width: 620px;
   margin: 32px auto;
