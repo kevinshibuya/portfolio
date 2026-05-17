@@ -132,7 +132,7 @@ export const projects: Project[] = [
     year: 2026,
     highlight: true,
     highlightOrder: 2,
-    size: 'sm',
+    size: 'md',
     gradient: 'linear-gradient(145deg, #C8D8F0, #8AAADA)',
     tagline: {
       en: 'realtime polls, two apps, one firestore',
@@ -269,7 +269,7 @@ export const projects: Project[] = [
     year: 2025,
     highlight: true,
     highlightOrder: 4,
-    size: 'md',
+    size: 'sm',
     gradient: 'linear-gradient(145deg, #F4F8FE, #A2D2FF)',
     tagline: {
       en: 'a photo retrospective for the year',
