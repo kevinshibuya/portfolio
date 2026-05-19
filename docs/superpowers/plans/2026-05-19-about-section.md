@@ -16,7 +16,7 @@
 
 **Create:**
 - `src/components/sections/About.tsx` — the section component
-- `src/components/ui/SectionHeading.test.tsx` — smoke test for the optional-index refactor
+- `tests/unit/SectionHeading.test.tsx` — smoke test for the optional-index refactor (vitest config only includes `tests/unit/**`, co-located tests are ignored)
 
 **Modify:**
 - `src/components/ui/SectionHeading.tsx` — make `index` optional
@@ -30,17 +30,17 @@
 ### Task 1: Make `SectionHeading.index` optional
 
 **Files:**
-- Create: `src/components/ui/SectionHeading.test.tsx`
+- Create: `tests/unit/SectionHeading.test.tsx` (vitest config only includes `tests/unit/**`)
 - Modify: `src/components/ui/SectionHeading.tsx`
 
-- [ ] **Step 1: Write the smoke test**
+- [x] **Step 1: Write the smoke test**
 
-Create `src/components/ui/SectionHeading.test.tsx`:
+Create `tests/unit/SectionHeading.test.tsx`:
 
 ```tsx
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
-import { SectionHeading } from './SectionHeading'
+import { SectionHeading } from '../../src/components/ui/SectionHeading'
 
 describe('SectionHeading', () => {
   it('renders the section index when provided', () => {
@@ -55,12 +55,12 @@ describe('SectionHeading', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test and verify the second case fails**
+- [x] **Step 2: Run the test and verify the second case fails**
 
 Run: `npm run test:unit -- SectionHeading`
 Expected: First test passes. Second test fails with a TypeScript error (`index` is required) OR a render assertion (the `.section-index` span renders unconditionally).
 
-- [ ] **Step 3: Make `index` optional and conditionally render the index span**
+- [x] **Step 3: Make `index` optional and conditionally render the index span**
 
 Replace the contents of `src/components/ui/SectionHeading.tsx` with:
 
@@ -96,20 +96,20 @@ export function SectionHeading({
 }
 ```
 
-- [ ] **Step 4: Run the test and verify both pass**
+- [x] **Step 4: Run the test and verify both pass**
 
 Run: `npm run test:unit -- SectionHeading`
 Expected: Both tests pass.
 
-- [ ] **Step 5: Verify full type check**
+- [x] **Step 5: Verify full type check**
 
 Run: `npx tsc --noEmit`
 Expected: No errors. All existing callers (Projects, Archive, WorkExperience, Skills, Contact) still pass `index`, so no regression.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
-git add src/components/ui/SectionHeading.tsx src/components/ui/SectionHeading.test.tsx
+git add src/components/ui/SectionHeading.tsx tests/unit/SectionHeading.test.tsx
 git commit -m "refactor(section-heading): make index prop optional
 
 Lets the About section render without an index number while
@@ -124,7 +124,7 @@ keeping the existing 01-05 indexed sections unchanged."
 - Modify: `src/i18n/locales/en.json`
 - Modify: `src/i18n/locales/pt.json`
 
-- [ ] **Step 1: Add `sections.about` to en.json**
+- [x] **Step 1: Add `sections.about` to en.json**
 
 In `src/i18n/locales/en.json`, find the `"sections": {` object. Insert this block as the *first* property inside `sections` (before `projects`):
 
@@ -157,7 +157,7 @@ In `src/i18n/locales/en.json`, find the `"sections": {` object. Insert this bloc
     },
 ```
 
-- [ ] **Step 2: Add `sections.about` to pt.json**
+- [x] **Step 2: Add `sections.about` to pt.json**
 
 In `src/i18n/locales/pt.json`, insert as the *first* property inside `sections` (before `projects` or whatever the first entry is):
 
@@ -190,7 +190,7 @@ In `src/i18n/locales/pt.json`, insert as the *first* property inside `sections` 
     },
 ```
 
-- [ ] **Step 3: Verify JSON validity**
+- [x] **Step 3: Verify JSON validity**
 
 Run:
 ```bash
@@ -200,7 +200,7 @@ node -e "JSON.parse(require('fs').readFileSync('src/i18n/locales/en.json','utf8'
 ```
 Expected: Prints `OK`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/i18n/locales/en.json src/i18n/locales/pt.json
@@ -219,11 +219,11 @@ locked native-voice pass."
 **Files:**
 - Modify: `src/index.css`
 
-- [ ] **Step 1: Locate the section boundary in `src/index.css`**
+- [x] **Step 1: Locate the section boundary in `src/index.css`**
 
 Find the comment block `/* ===== WORK EXPERIENCE ===== */` (or whichever block contains the `.work-*` rules ending around line ~820). The new About block goes *after* the WORK EXPERIENCE block and *before* the next section header.
 
-- [ ] **Step 2: Append the About section style block**
+- [x] **Step 2: Append the About section style block**
 
 Insert the following block:
 
@@ -302,12 +302,12 @@ Insert the following block:
 }
 ```
 
-- [ ] **Step 3: Verify CSS compiles via build**
+- [x] **Step 3: Verify CSS compiles via build**
 
 Run: `npm run build`
 Expected: Build succeeds with no warnings. (The component isn't wired yet, so CSS will be present but unused — that's fine.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/index.css
@@ -325,7 +325,7 @@ blue-400 per the design system."
 **Files:**
 - Create: `src/components/sections/About.tsx`
 
-- [ ] **Step 1: Write the component**
+- [x] **Step 1: Write the component**
 
 Create `src/components/sections/About.tsx`:
 
@@ -390,12 +390,12 @@ export function About() {
 }
 ```
 
-- [ ] **Step 2: Verify type check**
+- [x] **Step 2: Verify type check**
 
 Run: `npx tsc --noEmit`
 Expected: No errors.
 
-- [ ] **Step 3: Commit (component not yet wired — no visible effect)**
+- [x] **Step 3: Commit (component not yet wired — no visible effect)**
 
 ```bash
 git add src/components/sections/About.tsx
