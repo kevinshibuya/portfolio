@@ -4,22 +4,22 @@ A new bilingual "about" section that lands between Hero and Projects. Does doubl
 
 ## TODO
 
-- [ ] `src/components/sections/About.tsx` exists and renders the heading `how i *work.*`, a 3-sentence bio, and 4 numbered practice tactics
-- [ ] The section is rendered in `src/pages/Home.tsx` between `<Hero />` and the `<Suspense>` block — eagerly loaded, NOT inside the lazy suspense boundary
-- [ ] Section has no index number (unnumbered intro, like Hero); does not shift the existing 01–05 indices on other sections
-- [ ] `SectionHeading.index` is optional; the existing 5 callers continue to pass `index` and render unchanged
-- [ ] Bio + tactics copy lives in `src/i18n/locales/en.json` and `src/i18n/locales/pt.json` under `sections.about.*` — both languages render the locked copy verbatim including the inline `<em>` blue accents
-- [ ] PT heading is `como eu <em>trabalho.</em>` (matches the pt-translated heading convention of other sections)
-- [ ] Layout is two-column editorial: bio left (~40%), tactics right (~60%), inside the existing `.section` scaffold (`max-width: 1440px; padding: 140px 80px;`)
-- [ ] Bio column is sticky (`position: sticky; top: 96px`) on desktop while the tactics column scrolls past
-- [ ] Tactic rows are flat (no card borders), separated by 1px mist borders, with sand-bg-only hover (no arrow, no title nudge, no padding shift)
-- [ ] Mobile (<900px): single column, bio un-sticks, tactic rows collapse to tighter padding
-- [ ] Section reveals with the existing `Stagger` cascade — tactic rows fade up in sequence via `STAGGER_PRESETS.workRows`
-- [ ] `prefers-reduced-motion` shortcuts to opacity-only fade (handled by `Stagger` already, verified manually)
-- [ ] Heading `how i *work.*` uses the existing `SectionHeading` pattern; the `<em>work.</em>` renders blue-500 via existing `.section-title em` rule (no override)
-- [ ] Inline `<em>` accents inside bio and tactic body render blue-400 (the design-system accent) via new `.about-bio em, .about-tactic-title em, .about-tactic-body em` rule
-- [ ] `npm run build` passes (TypeScript strict + bundling, no warnings)
-- [ ] Visual sweep in `npm run preview` confirms EN and PT both render correctly under the hero, with the sticky-bio behavior on desktop and the mobile single-column on a 375px viewport
+- [x] `src/components/sections/About.tsx` exists and renders the heading `how i *work.*`, a 3-sentence bio, and 4 numbered practice tactics
+- [x] The section is rendered in `src/pages/Home.tsx` between `<Hero />` and the `<Suspense>` block — eagerly loaded, NOT inside the lazy suspense boundary
+- [x] Section has no index number (unnumbered intro, like Hero); does not shift the existing 01–05 indices on other sections
+- [x] `SectionHeading.index` is optional; the existing 4 callers (Projects, Archive, WorkExperience, Skills — Contact never used SectionHeading) continue to pass `index` and render unchanged
+- [x] Bio + tactics copy lives in `src/i18n/locales/en.json` and `src/i18n/locales/pt.json` under `sections.about.*` — both languages render the locked copy verbatim including the inline `<em>` blue accents
+- [x] PT heading is `como eu <em>trabalho.</em>` (matches the pt-translated heading convention of other sections)
+- [x] Layout is two-column editorial: bio left (~40%), tactics right (~60%), inside the existing `.section` scaffold (`max-width: 1440px; padding: 140px 80px;`)
+- [x] Bio column is sticky (`position: sticky; top: 96px`) on desktop while the tactics column scrolls past
+- [x] Tactic rows are flat (no card borders), separated by 1px mist borders, with sand-bg-only hover (no arrow, no title nudge, no padding shift)
+- [x] Mobile (<900px): single column, bio un-sticks, tactic rows collapse to tighter padding
+- [x] Section reveals with the existing `Stagger` cascade — tactic rows fade up in sequence via `STAGGER_PRESETS.workRows`
+- [x] `prefers-reduced-motion` shortcuts to opacity-only fade (handled by `Stagger` already; library handles via `REDUCED_MOTION_VARIANT`)
+- [x] Heading `how i *work.*` uses the existing `SectionHeading` pattern; the `<em>work.</em>` renders blue-500 via existing `.section-title em` rule (no override)
+- [x] Inline `<em>` accents inside bio and tactic body render blue-400 (the design-system accent) via new `.about-bio em, .about-tactic-title em, .about-tactic-body em` rule
+- [x] `npm run build` passes (TypeScript strict + bundling, no warnings — only pre-existing HeroAccent3D chunk-size advisory remains)
+- [ ] Visual sweep in `npm run preview` confirms EN and PT both render correctly under the hero, with the sticky-bio behavior on desktop and the mobile single-column on a 375px viewport _(pending user eyeball — dev server is open at http://localhost:5173)_
 
 ## Context
 
