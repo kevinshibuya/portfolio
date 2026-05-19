@@ -42,6 +42,32 @@
     }
   },
   "sections": {
+    "about": {
+      "title": "como eu <em>trabalho.</em>",
+      "bio": "<em>fullstack</em>, <em>system design</em>, <em>ai engineering</em> — três frentes que toco em paralelo em todo projeto que entrego. sete anos de estrada cuidando do produto inteiro — visualização de dados, sistemas em tempo real, ai tooling, funis de conversão — e um <em>método</em> que vai somando. brasileiro, de porto alegre.",
+      "tactics": [
+        {
+          "num": "01",
+          "title": "orçamento de contexto.",
+          "body": "encaro o context window como <em>custo de primeira classe</em>, não recurso infinito — toda chamada e cada plano é dimensionado em cima dele antes do trabalho começar."
+        },
+        {
+          "num": "02",
+          "title": "skills, não prompts soltos.",
+          "body": "decisões que se repetem viram <em>skills reusáveis</em> com guardrails explícitos — é assim que alucinação não chega no código que sobe."
+        },
+        {
+          "num": "03",
+          "title": "retros que somam.",
+          "body": "toda tarefa de peso termina com uma <em>retro</em> curta — o aprendizado volta pra biblioteca de skills, então a próxima tentativa sai mais afiada, não igual."
+        },
+        {
+          "num": "04",
+          "title": "automação por snapshot.",
+          "body": "fluxos que repito mais de duas vezes viram <em>skills</em> — a skill de snapshot do portfólio, por exemplo, percorre o repo, sobe o front, mocka backends mortos inline e cospe um <em>bundle tipado pra outra ia consumir</em>: metadados, briefing técnico e um set assimétrico de screenshots desktop/mobile, dimensionado pros templates de mockup downstream."
+        }
+      ]
+    },
     "projects": {
       "index": "01 · destaques",
       "label": "",

@@ -42,6 +42,32 @@
     }
   },
   "sections": {
+    "about": {
+      "title": "how i <em>work.</em>",
+      "bio": "<em>fullstack</em>, <em>system design</em>, <em>ai engineering</em> — three things i practice on every product i build. seven years end-to-end across data viz, real-time systems, ai tooling, and sales funnels — with a <em>method</em> that compounds. brazilian, based in porto alegre.",
+      "tactics": [
+        {
+          "num": "01",
+          "title": "context budgets.",
+          "body": "i treat the model's context window as a <em>first-class cost</em>, not a free resource — every dispatch and plan is sized against it before the work starts."
+        },
+        {
+          "num": "02",
+          "title": "skills over prompts.",
+          "body": "repeated decisions get codified into <em>reusable skills</em> with explicit guardrails — that's how i keep hallucinations out of shipped code."
+        },
+        {
+          "num": "03",
+          "title": "retros that compound.",
+          "body": "every non-trivial task ends with a small <em>retrospective</em> — the lesson gets written back into the skill library, so the next attempt is sharper, not the same."
+        },
+        {
+          "num": "04",
+          "title": "automation by snapshot.",
+          "body": "flows i run more than twice get <em>captured as skills</em> — for example, the portfolio snapshot skill walks a repo, boots the frontend, mocks dead backends inline, and emits a typed <em>bundle another ai can ingest</em>: metadata, a technical brief, and an asymmetric set of desktop/mobile screenshots sized for downstream mockup templates."
+        }
+      ]
+    },
     "projects": {
       "index": "01 · featured",
       "label": "",
