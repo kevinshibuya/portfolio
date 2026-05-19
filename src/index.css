@@ -816,6 +816,79 @@ html[data-loading='true'] {
 .work-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* =========================================================================
+   ABOUT SECTION
+   ========================================================================= */
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.55fr;
+  gap: 80px;
+  align-items: start;
+  margin-top: 64px;
+}
+.about-bio-wrap { position: sticky; top: 96px; }
+.about-bio {
+  font-size: 20px;
+  line-height: 1.55;
+  color: var(--bark);
+  font-weight: 400;
+  padding-right: 16px;
+  margin: 0;
+}
+.about-tactics { display: flex; flex-direction: column; }
+.about-tactic {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 24px;
+  padding: 26px 16px;
+  border-top: 1px solid var(--mist);
+  align-items: start;
+  transition: background 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.about-tactic:last-child { border-bottom: 1px solid var(--mist); }
+.about-tactic:hover { background: var(--sand); }
+.about-tactic-num {
+  font-size: 13px;
+  color: var(--dust);
+  letter-spacing: 0.12em;
+  font-feature-settings: 'tnum';
+  padding-top: 6px;
+}
+.about-tactic-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  text-transform: lowercase;
+  margin: 0 0 10px;
+  color: var(--ink);
+}
+.about-tactic-body {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--bark);
+  max-width: 60ch;
+  margin: 0;
+}
+.about-bio em,
+.about-tactic-title em,
+.about-tactic-body em {
+  font-style: italic;
+  color: var(--blue-400);
+  font-weight: inherit;
+}
+
+@media (max-width: 900px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    margin-top: 36px;
+  }
+  .about-bio-wrap { position: static; }
+  .about-bio { font-size: 18px; padding-right: 0; }
+  .about-tactic { grid-template-columns: 40px 1fr; gap: 16px; padding: 22px 12px; }
+  .about-tactic-title { font-size: 19px; }
+}
+
+/* =========================================================================
    SKILLS (3-col numbered columns)
    ========================================================================= */
 .skills-grid {
