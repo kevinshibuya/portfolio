@@ -11,6 +11,7 @@ const SLUGS = [
   'fotos-do-ano-2024',
   'ia-na-redacao',
   'peleia-gre-nal',
+  'chatbot-analitico-redacao',
 ] as const
 
 type Variant = 'desktop' | 'desktop-bento' | 'mobile'

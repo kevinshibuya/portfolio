@@ -112,12 +112,54 @@ export const projects: Project[] = [
     },
   },
   {
+    id: 'chatbot-analitico-redacao',
+    slug: 'chat-da-hora',
+    title: { en: 'chat da hora', pt: 'chat da hora' },
+    year: 2025,
+    highlight: true,
+    highlightOrder: 4,
+    size: 'sm',
+    gradient: 'linear-gradient(145deg, #8AAADA, #3A96E8)',
+    tagline: {
+      en: 'natural-language analytics for the newsroom',
+      pt: 'analytics em linguagem natural pra redação',
+    },
+    description: {
+      en: 'AI chat tool for GZH editors and product managers — ask in plain Portuguese ("qual o mês com mais acessos em 2025?") and get back a formatted analyst answer over the newsroom\'s BigQuery audience data. Built as an MVP for Lab IA 2026 (Abraji + Google + Plexus + Blue Engine Collaborative): the multi-agent workflow proved out end-to-end, but the tool never went to production in the newsroom — Plexus\'s investment is what takes it there.',
+      pt: 'ferramenta de chat com IA pros editores e PMs da GZH — perguntam em português direto ("qual o mês com mais acessos em 2025?") e recebem uma resposta analítica formatada, batendo no BigQuery de audiência da redação. construído como MVP do Lab IA 2026 (Abraji + Google + Plexus + Blue Engine Collaborative): o pipeline multi-agente funcionou fim a fim, mas a ferramenta não chegou a virar produto na redação — é justamente esse o salto que o investimento da Plexus banca.',
+    },
+    stats: [
+      { value: '3', label: { en: 'agents', pt: 'agentes' } },
+      { value: 'Plexus', label: { en: 'invested', pt: 'investiu' } },
+      { value: 'Lab IA', label: { en: '2026', pt: '2026' } },
+    ],
+    pitch: {
+      en: 'an *ai analyst* the newsroom talks to in plain portuguese — three agents on n8n turn the question into SQL, run it against BigQuery, and write the answer back in natural language.',
+      pt: 'um *analista de IA* com quem a redação conversa em português — três agentes no n8n viram a pergunta em SQL, rodam no BigQuery e devolvem a resposta em linguagem natural.',
+    },
+    whatShipped: {
+      en: "a react 18 + vite chat client backed by an *agentic n8n workflow* on azure openai. the pipeline is three agents: a *query-builder* synthesises a BigQuery SQL statement against the newsroom's consolidated article-audience table, a BigQuery executor runs it under a hard `LIMIT 20` rule, and an *insight-builder agent* writes the final Markdown answer in brazilian portuguese — with rankings, percentages, and site-vs-app splits. agent instruction sets are versioned alongside the frontend, so prompt changes ship as code.",
+      pt: 'cliente de chat em react 18 + vite por cima de um *workflow agêntico no n8n* rodando em azure openai. o pipeline tem três agentes: o *query-builder* monta um SQL em BigQuery em cima da tabela consolidada de audiência da redação, um executor roda a query com a regra fixa de `LIMIT 20`, e o *insight-builder* devolve a resposta em markdown em português — com rankings, porcentagens e divisão site vs app. as instruções dos agentes ficam versionadas junto do frontend, então mexer no prompt é um commit.',
+    },
+    trick: {
+      en: 'the real engineering is in *prompt discipline*, not in glue code. the query-builder agent is locked to *one aggregation template* — fixed grouping key, fixed projection shape, fixed `SUM()` over the pageview columns — and a non-negotiable `LIMIT 20`, so the LLM never wanders off into ad-hoc query shapes that blow up the bill or return one row when it should return twenty. the insight agent has explicit *field-reading guardrails* — examples of correct vs incorrect interpretations — that stop it from confusing a month-number column with a pageview count. shipping the agents as versioned markdown next to the app means every guardrail is a diff and every regression is a revert.',
+      pt: 'a engenharia de verdade tá na *disciplina de prompt*, não no código de cola. o query-builder é trancado num *único molde de agregação* — chave de agrupamento fixa, projeções fixas, `SUM()` fixo nas colunas de pageview — e num `LIMIT 20` inegociável, então o LLM nunca sai inventando query maluca que estoura conta ou devolve uma linha quando devia devolver vinte. o agente de insight tem *grades de leitura de campo* explícitas — exemplos do que é certo e do que é errado interpretar — que impedem ele de confundir a coluna do mês com uma contagem de pageviews. e como os agentes são markdowns versionados ao lado do app, cada salvaguarda é um diff e cada regressão é um revert.',
+    },
+    techStack: ['React 18', 'Vite', 'n8n', 'Azure OpenAI', 'BigQuery', 'react-markdown'],
+    projectType: 'shipped',
+    mockups: {
+      desktop: '/images/projects/chatbot-analitico-redacao/mockups/desktop.webp',
+      desktopBento: '/images/projects/chatbot-analitico-redacao/mockups/desktop-bento.webp',
+      mobile: '/images/projects/chatbot-analitico-redacao/mockups/mobile.webp',
+    },
+  },
+  {
     id: 'ia-na-redacao',
     slug: 'ia-na-redacao',
     title: { en: 'ia na redação', pt: 'ia na redação' },
     year: 2025,
     highlight: true,
-    highlightOrder: 4,
+    highlightOrder: 8,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #DCF0FF, #6DB8FF)',
     tagline: {
