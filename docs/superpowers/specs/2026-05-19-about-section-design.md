@@ -19,7 +19,7 @@ A new bilingual "about" section that lands between Hero and Projects. Does doubl
 - [x] Heading `how i *work.*` uses the existing `SectionHeading` pattern; the `<em>work.</em>` renders blue-500 via existing `.section-title em` rule (no override)
 - [x] Inline `<em>` accents inside bio and tactic body render blue-400 (the design-system accent) via new `.about-bio em, .about-tactic-title em, .about-tactic-body em` rule
 - [x] `npm run build` passes (TypeScript strict + bundling, no warnings — only pre-existing HeroAccent3D chunk-size advisory remains)
-- [ ] Visual sweep in `npm run preview` confirms EN and PT both render correctly under the hero, with the sticky-bio behavior on desktop and the mobile single-column on a 375px viewport _(pending user eyeball — dev server is open at http://localhost:5173)_
+- [x] Visual sweep confirms EN and PT both render correctly under the hero, with the sticky-bio behavior on desktop and the mobile single-column on a 375px viewport (user-confirmed on dev server)
 
 ## Context
 
