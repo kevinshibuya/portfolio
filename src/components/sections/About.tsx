@@ -12,9 +12,10 @@ interface Tactic {
 export function About() {
   const { t } = useTranslation()
 
-  const tactics = t('sections.about.tactics', {
-    returnObjects: true,
-  }) as Tactic[]
+  // Mirrors the defensive pattern in Hero.tsx — t() with returnObjects can
+  // hand back a string when the key is missing or i18next isn't ready yet.
+  const rawTactics = t('sections.about.tactics', { returnObjects: true })
+  const tactics: Tactic[] = Array.isArray(rawTactics) ? (rawTactics as Tactic[]) : []
 
   return (
     <section id="about" className="section">
@@ -37,10 +38,7 @@ export function About() {
               <span className="about-tactic-num">{tactic.num}</span>
               <div>
                 <h3 className="about-tactic-title">
-                  <Trans
-                    i18nKey={`sections.about.tactics.${i}.title`}
-                    components={{ em: <em /> }}
-                  />
+                  {t(`sections.about.tactics.${i}.title`)}
                 </h3>
                 <p className="about-tactic-body">
                   <Trans

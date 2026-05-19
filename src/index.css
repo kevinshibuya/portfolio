@@ -834,7 +834,13 @@ html[data-loading='true'] {
   padding-right: 16px;
   margin: 0;
 }
-.about-tactics { display: flex; flex-direction: column; }
+.about-tactics {
+  display: flex;
+  flex-direction: column;
+  /* Closing border anchored on the container — :last-child doesn't apply
+     to rows because Stagger wraps each child in an anonymous motion.div. */
+  border-bottom: 1px solid var(--mist);
+}
 .about-tactic {
   display: grid;
   grid-template-columns: 56px 1fr;
@@ -844,7 +850,6 @@ html[data-loading='true'] {
   align-items: start;
   transition: background 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.about-tactic:last-child { border-bottom: 1px solid var(--mist); }
 .about-tactic:hover { background: var(--sand); }
 .about-tactic-num {
   font-size: 13px;
