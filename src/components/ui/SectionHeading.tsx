@@ -1,5 +1,5 @@
 interface SectionHeadingProps {
-  index: string
+  index?: string
   label?: string
   /** Title accepts HTML with <em> for blue-accent italic (e.g. "selected <em>work.</em>") */
   title: string
@@ -12,11 +12,13 @@ export function SectionHeading({
   title,
   description,
 }: SectionHeadingProps) {
-  const indexText = label ? `${index} · ${label}` : index
+  const indexText = index
+    ? (label ? `${index} · ${label}` : index)
+    : null
 
   return (
     <div className="section-header">
-      <span className="section-index">{indexText}</span>
+      {indexText && <span className="section-index">{indexText}</span>}
       <h2
         className="section-title"
         dangerouslySetInnerHTML={{ __html: title }}
