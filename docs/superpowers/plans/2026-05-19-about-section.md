@@ -463,7 +463,7 @@ Checklist:
 Run: `npm run build`
 Expected: Build succeeds, no warnings.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/pages/Home.tsx
