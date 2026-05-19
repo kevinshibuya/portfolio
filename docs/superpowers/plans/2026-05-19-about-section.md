@@ -413,7 +413,7 @@ numbered practice tactics sourced from i18n."
 **Files:**
 - Modify: `src/pages/Home.tsx`
 
-- [ ] **Step 1: Add the import**
+- [x] **Step 1: Add the import**
 
 In `src/pages/Home.tsx`, add the import near the other section imports (alphabetical or grouped — match the existing convention):
 
@@ -421,7 +421,7 @@ In `src/pages/Home.tsx`, add the import near the other section imports (alphabet
 import { About } from '../components/sections/About'
 ```
 
-- [ ] **Step 2: Render `<About />` between `<Hero />` and `<Suspense>`**
+- [x] **Step 2: Render `<About />` between `<Hero />` and `<Suspense>`**
 
 Find the `return` block (around line 201–214). Replace:
 
@@ -444,7 +444,7 @@ with:
         <Projects />
 ```
 
-- [ ] **Step 3: Run dev server and visually verify**
+- [x] **Step 3: Run dev server and visually verify**
 
 Run: `npm run dev`
 Open `http://localhost:5173`:
@@ -458,7 +458,7 @@ Checklist:
 - Toggle EN ↔ PT via the nav toggle: copy swaps cleanly, layout doesn't shift, heading becomes "como eu *trabalho.*" in PT.
 - Resize window to <900px: collapses to single column, bio un-sticks, tactic rows tighten.
 
-- [ ] **Step 4: Verify production build**
+- [x] **Step 4: Verify production build**
 
 Run: `npm run build`
 Expected: Build succeeds, no warnings.
