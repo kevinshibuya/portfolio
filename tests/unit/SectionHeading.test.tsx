@@ -12,4 +12,9 @@ describe('SectionHeading', () => {
     const { container } = render(<SectionHeading title="how i <em>work.</em>" />)
     expect(container.querySelector('.section-index')).toBeNull()
   })
+
+  it('joins index and label with a middle dot when both are provided', () => {
+    render(<SectionHeading index="01" label="featured" title="selected <em>work.</em>" />)
+    expect(screen.getByText('01 · featured')).toBeInTheDocument()
+  })
 })
