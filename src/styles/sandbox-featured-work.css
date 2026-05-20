@@ -1,0 +1,321 @@
+/* =========================================================================
+   SANDBOX — FEATURED WORK PROTOTYPE
+   Throwaway styles. The route + this file exist to validate a design
+   decision and will be deleted once the real Projects section ships.
+   ========================================================================= */
+
+.sandbox-fw {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  position: relative;
+}
+
+.sandbox-fw__nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 80px;
+  background: color-mix(in srgb, var(--cream) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--mist);
+}
+.sandbox-fw__crumb {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bark);
+}
+.sandbox-fw__crumb--muted { color: var(--dust); }
+
+.sandbox-fw__footer {
+  padding: 32px 80px;
+  text-align: center;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================ *
+ *  FEATURED WORK SECTION                                        *
+ * ============================================================ */
+.fw {
+  padding: 96px 0 120px;
+}
+.fw__grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 80px;
+  padding: 0 80px;
+  align-items: start;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ---- Sticky aside (left) — content swaps per active project ---- */
+.fw__sticky {
+  position: sticky;
+  top: 120px;
+  padding-top: 8px;
+}
+.fw__sticky-desktop {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* Reserve vertical space so animated text swaps don't shift the layout */
+  min-height: 540px;
+}
+/* Mobile static block — hidden on desktop, swapped in by the media query
+   at the bottom of this file. */
+.fw__sticky-mobile { display: none; }
+.fw__title--static {
+  font-size: clamp(48px, 12vw, 88px);
+}
+.fw__eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blue-400);
+}
+.fw__index {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.fw__index-now {
+  font-size: 64px;
+  line-height: 1;
+  color: var(--ink);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+.fw__index-sep { color: var(--mist); font-size: 28px; }
+.fw__index-total { color: var(--dust); font-size: 18px; }
+
+.fw__title {
+  font-size: clamp(36px, 4.6vw, 60px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 0;
+}
+.fw__tagline {
+  font-size: 17px;
+  color: var(--blue-400);
+  font-style: italic;
+  line-height: 1.4;
+  margin: 0;
+}
+.fw__copy {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--bark);
+  max-width: 42ch;
+  margin: 0;
+}
+.fw__tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fw__tech li {
+  padding: 4px 10px;
+  border: 1px solid var(--mist);
+  border-radius: 999px;
+  background: var(--cream);
+  font-size: 12px;
+  color: var(--bark);
+}
+.fw__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--mist);
+}
+.fw__year {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dust);
+}
+.fw__cta {
+  font-size: 14px;
+  color: var(--blue-500);
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+.fw__cta:hover { border-color: var(--blue-500); }
+
+/* ---- Right list ---- */
+.fw__list {
+  display: flex;
+  flex-direction: column;
+  gap: 120px;
+}
+
+.fw__row {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Square image card — FIXED size (does not grow on hover) */
+.fw__media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--mist);
+}
+
+/* Image fills 124% so the parallax range (±12%) doesn't expose a gap.
+   Scale on hover happens via framer-motion `animate.scale` — composed
+   with the scroll-driven y motion value into a single transform. */
+.fw__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 124%;
+  top: -12%;
+  object-fit: cover;
+  will-change: transform;
+  transform-origin: center center;
+}
+
+.fw__idx {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  z-index: 2;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--cream) 80%, transparent);
+  backdrop-filter: blur(6px);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+/* Meta row OUTSIDE / BELOW the square — does NOT animate on row hover */
+.fw__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 4px 0;
+  border-top: 1px solid var(--mist);
+  margin-top: 20px;
+}
+.fw__meta-title {
+  margin: 0;
+  font-size: clamp(22px, 2.4vw, 32px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.fw__meta-tags {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bark);
+  text-align: right;
+  max-width: 50%;
+}
+
+/* ============================================================ *
+ *  CURSOR FOLLOWER                                              *
+ *  Outer:  fixed at (cursor.x, cursor.y) via motion x/y.        *
+ *  Rotor:  zero-sized anchor; rotation pivots around the        *
+ *          cursor point (transform-origin 0 0).                 *
+ *  Box:    positioned top-right of the cursor via translate;    *
+ *          small "view project" pill.                           *
+ * ============================================================ */
+.fw__cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+.fw__cursor-rotor {
+  position: relative;
+  width: 0;
+  height: 0;
+  transform-origin: 0% 0%;
+  /* `rotate` motion value is applied via style; `scale` + `opacity`
+     transitions are applied via framer-motion animate prop. */
+}
+.fw__cursor-box {
+  position: absolute;
+  /* Center the box horizontally on the cursor anchor and float it above
+     with a 14px gap (bottom edge 14px above cursor Y). Rotor rotation
+     still pivots around the cursor, so the pill swings overhead. */
+  left: 0;
+  top: 0;
+  transform: translate(-50%, calc(-100% - 14px));
+  display: inline-block;
+  white-space: nowrap;
+  background: var(--blue-400);
+  color: var(--cream);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 6px;
+  box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--blue-500) 60%, transparent);
+}
+
+@media (hover: none) {
+  .fw__cursor { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fw__img { transform: none !important; }
+  .fw__cursor { display: none; }
+}
+
+@media (max-width: 900px) {
+  .fw__grid {
+    grid-template-columns: 1fr;
+    padding: 0 24px;
+    gap: 48px;
+  }
+  .fw__sticky {
+    position: relative;
+    top: auto;
+  }
+  /* On small screens, swap the dynamic per-project aside for a static intro.
+     The aside isn't actually sticky here, so per-project content would just
+     be stranded above the fold the moment the user starts scrolling. */
+  .fw__sticky-desktop { display: none; }
+  .fw__sticky-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .fw__list { gap: 80px; }
+  .fw__cursor { display: none; }
+}
