@@ -1201,7 +1201,7 @@ Expected: no matches (other than any unrelated test fixtures).
 
 Tick: "All sandbox files removed before merge: …"
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A src/pages src/styles src/App.tsx docs/superpowers/specs/2026-05-20-featured-work-revamp-design.md
