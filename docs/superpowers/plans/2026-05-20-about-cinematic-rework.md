@@ -49,12 +49,12 @@
 - Read: working tree state
 - Move: brainstorm-session scripts to a stable location or delete
 
-- [ ] **Step 1: Verify working tree state**
+- [x] **Step 1: Verify working tree state**
 
 Run: `git status --porcelain && git branch --show-current`
 Expected: branch is `main`. Output may show new spec + scripts written during brainstorm.
 
-- [ ] **Step 2: Create feature branch from main**
+- [x] **Step 2: Create feature branch from main**
 
 ```bash
 git checkout -b feat/about-cinematic-rework
@@ -62,7 +62,7 @@ git checkout -b feat/about-cinematic-rework
 
 Expected: `Switched to a new branch 'feat/about-cinematic-rework'`
 
-- [ ] **Step 3: Remove one-off brainstorm scripts that aren't reusable**
+- [x] **Step 3: Remove one-off brainstorm scripts that aren't reusable**
 
 ```bash
 rm -f scripts/capture-noomo.mjs scripts/capture-noomo-hold.mjs scripts/capture-noomo-full.mjs
@@ -70,7 +70,7 @@ rm -f scripts/capture-noomo.mjs scripts/capture-noomo-hold.mjs scripts/capture-n
 
 Keep `scripts/capture-scroll-site.mjs` — it's the reusable tool authored during the spec phase.
 
-- [ ] **Step 4: Stage spec + plan + reusable script and commit**
+- [x] **Step 4: Stage spec + plan + reusable script and commit**
 
 ```bash
 git add docs/superpowers/specs/2026-05-20-about-cinematic-rework-design.md \
@@ -90,7 +90,7 @@ EOF
 )"
 ```
 
-- [ ] **Step 5: Verify clean state**
+- [x] **Step 5: Verify clean state**
 
 Run: `git status && git log --oneline -2`
 Expected: working tree clean, latest commit is the docs commit on `feat/about-cinematic-rework`.
@@ -103,7 +103,7 @@ Expected: working tree clean, latest commit is the docs commit on `feat/about-ci
 - Create: `src/hooks/useMediaQuery.ts`
 - Create: `src/hooks/useMediaQuery.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/hooks/useMediaQuery.test.ts`:
 
@@ -159,12 +159,12 @@ describe('useMediaQuery', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/hooks/useMediaQuery.test.ts`
 Expected: FAIL — `Cannot find module './useMediaQuery'`
 
-- [ ] **Step 3: Implement the hook**
+- [x] **Step 3: Implement the hook**
 
 Create `src/hooks/useMediaQuery.ts`:
 
@@ -191,12 +191,12 @@ export function useMediaQuery(query: string): boolean {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run src/hooks/useMediaQuery.test.ts`
 Expected: 3 tests passing.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/hooks/useMediaQuery.ts src/hooks/useMediaQuery.test.ts
