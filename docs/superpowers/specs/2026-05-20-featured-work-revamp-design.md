@@ -23,9 +23,9 @@ Design validated end-to-end in a working sandbox at `/sandbox/featured-work` on 
 - [x] `aria-hidden="true"` on the cursor follower; system cursor stays visible (no `cursor: none`)
 - [x] Reduced motion: `@media (prefers-reduced-motion: reduce)` hides the cursor follower, disables parallax (`transform: none !important` on `.project-row__img`), and skips the hover image scale
 - [x] Touch (`@media (hover: none)`): cursor follower hidden; rows remain tap-to-navigate Links to `/projects/:slug`
-- [ ] All sandbox files removed before merge: `src/pages/SandboxFeaturedWork.tsx`, `src/styles/sandbox-featured-work.css`, and the `/sandbox/featured-work` route + lazy import in `src/App.tsx`
+- [x] All sandbox files removed before merge: `src/pages/SandboxFeaturedWork.tsx`, `src/styles/sandbox-featured-work.css`, and the `/sandbox/featured-work` route + lazy import in `src/App.tsx`
 - [ ] Bento CSS in `src/index.css` (`.bento`, `.bento-card*`, `.bento-mockup*`, `.bento-desc-top`, `.bento-bottom`, `.bento-title`, `.bento-cs`, `.bento-text-col`) stays in place for this PR — cleanup is a separate follow-up
-- [ ] `useCursorTilt` import in `Projects.tsx` removed (no longer used by the new layout); the hook file itself stays in repo (other future callers may want it)
+- [x] `useCursorTilt` import in `Projects.tsx` removed (no longer used by the new layout); the hook file itself stays in repo (other future callers may want it)
 - [ ] `npm run build` passes — TypeScript strict, no new warnings
 - [ ] `npm run test` passes — existing tests remain green
 - [ ] Visual sweep at 1440px (desktop): active aside swaps as each of the 4 cards passes through viewport center; parallax visibly shifts during scroll; cursor pill rotates against horizontal mouse motion; image scales on hover, frame does not

@@ -1099,7 +1099,7 @@ Stop the dev server.
 
 Tick: "Mobile aside (`≤900px`)", "Reduced motion: …", "Touch (`@media (hover: none)`) …"
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/index.css docs/superpowers/specs/2026-05-20-featured-work-revamp-design.md
@@ -1113,7 +1113,7 @@ git commit -m "feat(projects): mobile, touch, and reduced-motion fallbacks"
 **Files:**
 - Modify: `src/components/sections/Projects.tsx`
 
-- [ ] **Step 1: Confirm `useCursorTilt` is no longer referenced in the file**
+- [x] **Step 1: Confirm `useCursorTilt` is no longer referenced in the file**
 
 Run: `grep -n "useCursorTilt" src/components/sections/Projects.tsx`
 Expected: no matches (the original bento `BentoCard` used it; the rewrite does not).
@@ -1122,12 +1122,12 @@ If the grep is empty, there's nothing to do for the import either — the import
 
 If the grep finds something, that's a regression — go fix `Projects.tsx` so the rewrite doesn't reintroduce the import or call.
 
-- [ ] **Step 2: Confirm the hook file itself stays**
+- [x] **Step 2: Confirm the hook file itself stays**
 
 Run: `ls src/hooks/useCursorTilt.ts`
 Expected: file exists. (Per spec: don't delete the hook even though Projects.tsx no longer uses it.)
 
-- [ ] **Step 3: Tick the spec TODO**
+- [x] **Step 3: Tick the spec TODO**
 
 Tick: "`useCursorTilt` import in `Projects.tsx` removed …"
 
@@ -1141,14 +1141,14 @@ Tick: "`useCursorTilt` import in `Projects.tsx` removed …"
 - Delete: `src/styles/` (only if empty after the CSS delete)
 - Modify: `src/App.tsx`
 
-- [ ] **Step 1: Delete the sandbox files**
+- [x] **Step 1: Delete the sandbox files**
 
 ```bash
 rm src/pages/SandboxFeaturedWork.tsx
 rm src/styles/sandbox-featured-work.css
 ```
 
-- [ ] **Step 2: Remove the empty `src/styles/` directory if it has no other files**
+- [x] **Step 2: Remove the empty `src/styles/` directory if it has no other files**
 
 ```bash
 ls src/styles/ 2>/dev/null
@@ -1162,7 +1162,7 @@ rmdir src/styles
 
 If `src/styles/` still has other files, leave the directory.
 
-- [ ] **Step 3: Remove the sandbox lazy import + route from `src/App.tsx`**
+- [x] **Step 3: Remove the sandbox lazy import + route from `src/App.tsx`**
 
 Open `src/App.tsx`. Delete the `SandboxFeaturedWork` lazy declaration:
 
@@ -1187,17 +1187,17 @@ And delete the corresponding `<Route>` block:
 
 The final `App.tsx` should match `main`'s `App.tsx` shape: `Header` + `Routes` with `/` and `/projects/:slug` only.
 
-- [ ] **Step 4: Build to verify nothing else referenced them**
+- [x] **Step 4: Build to verify nothing else referenced them**
 
 Run: `npm run build`
 Expected: clean build.
 
-- [ ] **Step 5: Verify the route is gone**
+- [x] **Step 5: Verify the route is gone**
 
 Run: `grep -rn "sandbox" src/ 2>/dev/null`
 Expected: no matches (other than any unrelated test fixtures).
 
-- [ ] **Step 6: Tick the spec TODO**
+- [x] **Step 6: Tick the spec TODO**
 
 Tick: "All sandbox files removed before merge: …"
 

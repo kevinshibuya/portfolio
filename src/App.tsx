@@ -9,10 +9,6 @@ const ProjectDetail = lazy(() =>
   import('./pages/ProjectDetail').then((m) => ({ default: m.ProjectDetail }))
 )
 
-const SandboxFeaturedWork = lazy(() =>
-  import('./pages/SandboxFeaturedWork').then((m) => ({ default: m.SandboxFeaturedWork }))
-)
-
 function App() {
   useScrollLockDuringEntrance()
   return (
@@ -25,14 +21,6 @@ function App() {
           element={
             <Suspense fallback={null}>
               <ProjectDetail />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/sandbox/featured-work"
-          element={
-            <Suspense fallback={null}>
-              <SandboxFeaturedWork />
             </Suspense>
           }
         />
