@@ -2500,3 +2500,46 @@ body[data-loader-state="loading"] {
   font-size: 12px;
   line-height: 1.5;
 }
+
+/* About — DOM fallback (mobile + reduced-motion) */
+.about-fallback {
+  padding: 96px 24px;
+  max-width: 640px;
+  margin-inline: auto;
+}
+.about-fallback__media {
+  display: block;
+  margin-bottom: 48px;
+}
+.about-fallback__media img {
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+}
+.about-fallback__beat {
+  margin-bottom: 56px;
+}
+.about-fallback__beat:last-child {
+  margin-bottom: 0;
+}
+.about-fallback__eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faded, #6A8CAA);
+  margin-bottom: 12px;
+}
+.about-fallback__title {
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  color: var(--text-ink, #111822);
+  margin: 0 0 16px;
+}
+.about-fallback__body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-bark, #2A4060);
+  margin: 0;
+}

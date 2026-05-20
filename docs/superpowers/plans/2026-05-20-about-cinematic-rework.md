@@ -378,7 +378,7 @@ EOF
 - Create: `src/components/ui/AboutFallback.test.tsx`
 - Modify: `src/index.css` (append fallback styles)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/components/ui/AboutFallback.test.tsx`:
 
@@ -434,12 +434,12 @@ describe('<AboutFallback>', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/ui/AboutFallback.test.tsx`
 Expected: FAIL — `Cannot find module './AboutFallback'`
 
-- [ ] **Step 3: Implement the component**
+- [x] **Step 3: Implement the component**
 
 Create `src/components/ui/AboutFallback.tsx`:
 
@@ -485,7 +485,7 @@ export function AboutFallback() {
 }
 ```
 
-- [ ] **Step 4: Append fallback styles to `src/index.css`**
+- [x] **Step 4: Append fallback styles to `src/index.css`**
 
 Append at the end of `src/index.css` (or after the existing About-related rules section if there's a logical place):
 
@@ -534,7 +534,7 @@ Append at the end of `src/index.css` (or after the existing About-related rules 
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `npx vitest run src/components/ui/AboutFallback.test.tsx`
 Expected: 3 tests passing.
