@@ -6,19 +6,19 @@ Design validated end-to-end in a working sandbox at `/sandbox/featured-work` on 
 
 ## TODO
 
-- [ ] `body { overflow-x: clip }` (not `hidden`) — change already landed on this branch; verify it survives any further index.css edits
-- [ ] `src/components/sections/Projects.tsx` rewritten: sticky aside (desktop) + scrolling list of square project rows; bento removed from this file
-- [ ] Project rows show the top 4 highlights (filter `p.highlight && (p.highlightOrder ?? 99) <= 4`) — same set as today's bento
+- [x] `body { overflow-x: clip }` (not `hidden`) — change already landed on this branch; verify it survives any further index.css edits
+- [x] `src/components/sections/Projects.tsx` rewritten: sticky aside (desktop) + scrolling list of square project rows; bento removed from this file
+- [x] Project rows show the top 4 highlights (filter `p.highlight && (p.highlightOrder ?? 99) <= 4`) — same set as today's bento
 - [ ] Sticky aside (desktop) reflects the **active project**: counter (`NN / 04`), title, italic-blue tagline, description, up to 6 tech pills, year, `↗ case study` Link to `/projects/:slug`
 - [ ] Active project is detected via `IntersectionObserver` with `rootMargin: '-45% 0px -45% 0px'` (whichever card sits in the middle 10% of viewport)
 - [ ] Active-content transitions: each text block keys off `project.id` so framer-motion crossfades (≤500ms, `[0.22, 1, 0.36, 1]` ease, opacity + 8–10px y); no layout shift between projects (aside has reserved `min-height`)
 - [ ] Mobile aside (`≤900px`): static block instead — eyebrow `// selected work`, `selected <em>work.</em>` heading, single intro paragraph (i18n), `04 · projects` count. Dynamic block is `display: none`
-- [ ] New i18n keys: `sections.projects.intro` (static mobile paragraph) added to `en.json` and `pt.json`. Existing `sections.projects.title` / `caseStudy` keys reused
-- [ ] Project row: square image frame (`aspect-ratio: 1/1`, fixed size, `overflow: hidden`); below-card meta row (uppercase title left, bracketed tech tags right) outside the frame, separated by a top `1px mist` border
-- [ ] Parallax on each row's image: `framer-motion useScroll` with `offset: ['start end', 'end start']`, image height `124%` + `top: -12%`, translates `y` from `-12%` to `+12%` across the row's scroll range (GPU `transform` only, no layout)
+- [x] New i18n keys: `sections.projects.intro` (static mobile paragraph) added to `en.json` and `pt.json`. Existing `sections.projects.title` / `caseStudy` keys reused
+- [x] Project row: square image frame (`aspect-ratio: 1/1`, fixed size, `overflow: hidden`); below-card meta row (uppercase title left, bracketed tech tags right) outside the frame, separated by a top `1px mist` border
+- [x] Parallax on each row's image: `framer-motion useScroll` with `offset: ['start end', 'end start']`, image height `124%` + `top: -12%`, translates `y` from `-12%` to `+12%` across the row's scroll range (GPU `transform` only, no layout)
 - [ ] Image hover scale: `1.06` via framer-motion `animate.scale`, composed with the scroll-driven `y` motion value on the same `<motion.img>`. 0.7s `[0.22, 1, 0.36, 1]` ease. Frame box and `01` badge do not move. Meta-row title does not move
 - [ ] Custom cursor follower (`<CursorFollower>` colocated in `Projects.tsx`): fixed outer at `(cursorX, cursorY)` via motion `x` / `y` smoothed through `useSpring`; zero-sized rotor child with `transform-origin: 0% 0%` and `style={{ rotate }}`; rotation is `useTransform(useVelocity(springX), [-2500, 2500], [18, -18], { clamp: true })` — leans back against horizontal mouse motion
-- [ ] Cursor pill: small monospace "view project", `bg: blue-400`, `color: cream`, `padding: 8px 14px`, `border-radius: 6px`, centered horizontally on the cursor and floating **14px above** it via `transform: translate(-50%, calc(-100% - 14px))`
+- [x] Cursor pill: small monospace "view project", `bg: blue-400`, `color: cream`, `padding: 8px 14px`, `border-radius: 6px`, centered horizontally on the cursor and floating **14px above** it via `transform: translate(-50%, calc(-100% - 14px))`
 - [ ] Pill visibility: `hovering` state on the outer `<main>`; toggled by `onPointerEnter` / `onPointerLeave` on each `.project-row__media`. Animates via `animate={{ opacity, scale }}` with 0.3s ease
 - [ ] `aria-hidden="true"` on the cursor follower; system cursor stays visible (no `cursor: none`)
 - [ ] Reduced motion: `@media (prefers-reduced-motion: reduce)` hides the cursor follower, disables parallax (`transform: none !important` on `.project-row__img`), and skips the hover image scale

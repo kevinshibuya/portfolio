@@ -1103,6 +1103,140 @@ html[data-loading='true'] {
 }
 
 /* =========================================================================
+   FEATURED WORK — sticky aside + scrolling square cards
+   ========================================================================= */
+.project-section { /* no-op — `.section` already sets max-width, padding, etc. */ }
+
+.project-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 80px;
+  align-items: start;
+}
+
+.project-aside {
+  position: sticky;
+  top: 120px;
+  padding-top: 8px;
+}
+/* Mobile-static block (shown by default; the desktop dynamic block — added
+   in Task 5 — overrides via media query). */
+.project-aside__mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.project-aside__eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blue-400);
+}
+.project-aside__title-static {
+  font-size: clamp(48px, 7vw, 96px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 0;
+}
+.project-aside__title-static em {
+  color: var(--blue-400);
+  font-style: italic;
+}
+.project-aside__copy {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--bark);
+  max-width: 38ch;
+  margin: 0;
+}
+.project-aside__year {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dust);
+}
+
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 120px;
+}
+
+.project-row {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.project-row__media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--mist);
+}
+.project-row__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 124%;
+  top: -12%;
+  object-fit: cover;
+  will-change: transform;
+  transform-origin: center center;
+}
+.project-row__idx {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  z-index: 2;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--cream) 80%, transparent);
+  backdrop-filter: blur(6px);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.project-row__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 4px 0;
+  border-top: 1px solid var(--mist);
+  margin-top: 20px;
+}
+.project-row__title {
+  margin: 0;
+  font-size: clamp(22px, 2.4vw, 32px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.project-row__tags {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bark);
+  text-align: right;
+  max-width: 50%;
+}
+
+/* Cursor follower rules are appended in Task 7. */
+/* Desktop dynamic-aside rules are appended in Task 5. */
+/* Mobile responsive rules are appended in Task 8. */
+
+/* =========================================================================
    CONTACT (dark ink)
    ========================================================================= */
 .section--contact {

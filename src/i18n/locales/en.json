@@ -73,7 +73,9 @@
       "label": "",
       "title": "selected <em>work.</em>",
       "description": "personal highlights. from brief to ship.",
-      "caseStudy": "case study"
+      "caseStudy": "case study",
+      "intro": "a handful of recent projects i'm proudest of — newsroom tools, scroll-driven specials, and interactive embeds that reached millions of brazilian readers.",
+      "viewProject": "view project"
     },
     "archive": {
       "index": "02 · everything",

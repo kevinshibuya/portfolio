@@ -41,13 +41,13 @@
 - Modify: `src/i18n/locales/en.json`
 - Modify: `src/i18n/locales/pt.json`
 
-- [ ] **Step 1: Read the current `sections.projects` block in both locale files**
+- [x] **Step 1: Read the current `sections.projects` block in both locale files**
 
 Run: `grep -A 6 '"projects"' src/i18n/locales/en.json src/i18n/locales/pt.json`
 
 Expected: each file has a `sections.projects` object with `index`, `label`, `title`, `description`, `caseStudy` keys.
 
-- [ ] **Step 2: Add `intro` to `src/i18n/locales/en.json`**
+- [x] **Step 2: Add `intro` to `src/i18n/locales/en.json`**
 
 Find the `"caseStudy"` line inside `sections.projects` and add an `intro` key after it. The updated block should read exactly:
 
@@ -63,7 +63,7 @@ Find the `"caseStudy"` line inside `sections.projects` and add an `intro` key af
     },
 ```
 
-- [ ] **Step 3: Add the matching PT keys to `src/i18n/locales/pt.json`**
+- [x] **Step 3: Add the matching PT keys to `src/i18n/locales/pt.json`**
 
 ```json
       "intro": "uma seleção dos projetos que mais me orgulho — ferramentas de redação, especiais comandados pelo scroll e embeds interativos que alcançaram milhões de leitores brasileiros.",
@@ -74,13 +74,13 @@ Find the `"caseStudy"` line inside `sections.projects` and add an `intro` key af
 
 Insert it after the existing `caseStudy` line in the same `sections.projects` block.
 
-- [ ] **Step 4: Verify both files still parse as valid JSON**
+- [x] **Step 4: Verify both files still parse as valid JSON**
 
 Run: `node -e "JSON.parse(require('fs').readFileSync('src/i18n/locales/en.json','utf8')); JSON.parse(require('fs').readFileSync('src/i18n/locales/pt.json','utf8')); console.log('ok')"`
 
 Expected: `ok` (no parse errors).
 
-- [ ] **Step 5: Tick the corresponding TODO in the spec**
+- [x] **Step 5: Tick the corresponding TODO in the spec**
 
 Edit `docs/superpowers/specs/2026-05-20-featured-work-revamp-design.md` and change the `- [ ]` for "New i18n keys: `sections.projects.intro` (static mobile paragraph) …" to `- [x]`. Also tick "Cursor pill: small monospace 'view project' …" — the `viewProject` key satisfies the copy half of that TODO (positioning is verified in Task 7).
 
@@ -91,7 +91,7 @@ Edit `docs/superpowers/specs/2026-05-20-featured-work-revamp-design.md` and chan
 **Files:**
 - Verify: `src/index.css`
 
-- [ ] **Step 1: Confirm the rule reads `overflow-x: clip` (not `hidden`)**
+- [x] **Step 1: Confirm the rule reads `overflow-x: clip` (not `hidden`)**
 
 Run: `grep -A 2 -B 0 'overflow-x:' src/index.css | head -10`
 
@@ -115,7 +115,7 @@ In this task we get the component to a working "renders 4 square cards with no p
 **Files:**
 - Modify: `src/components/sections/Projects.tsx`
 
-- [ ] **Step 1: Replace `src/components/sections/Projects.tsx` with the shell version**
+- [x] **Step 1: Replace `src/components/sections/Projects.tsx` with the shell version**
 
 Write the entire file contents (overwrite, do not patch):
 
@@ -204,7 +204,7 @@ Notes for the implementer:
 - This shell intentionally omits framer-motion, IntersectionObserver, the desktop dynamic aside, and the cursor follower. Those are added in Tasks 4, 5, 6, 7.
 - The mobile "projects" suffix is plain string for now. If the design team later wants it translated, add a new i18n key — don't reuse `sections.projects.label` (that's used for the section's optional sub-label in `SectionHeading` and is currently `""`).
 
-- [ ] **Step 2: Append the shell CSS to `src/index.css`**
+- [x] **Step 2: Append the shell CSS to `src/index.css`**
 
 Find the closing `}` of the `.bento*` block in `src/index.css` (search for `.bento-mockup--mobile` and find the next `}`). Append, with one blank line of separation:
 
@@ -344,12 +344,12 @@ Find the closing `}` of the `.bento*` block in `src/index.css` (search for `.ben
 /* Mobile responsive rules are appended in Task 8. */
 ```
 
-- [ ] **Step 3: Build to verify no TS / CSS errors**
+- [x] **Step 3: Build to verify no TS / CSS errors**
 
 Run: `npm run build`
 Expected: builds successfully; the existing HeroAccent3D chunk-size advisory is the only warning.
 
-- [ ] **Step 4: Manual visual check at 1440px**
+- [x] **Step 4: Manual visual check at 1440px**
 
 Start dev server: `npm run dev`
 Open `http://localhost:5173/` and scroll to the Projects section. Expected:
@@ -360,7 +360,7 @@ Open `http://localhost:5173/` and scroll to the Projects section. Expected:
 
 Stop the dev server before continuing.
 
-- [ ] **Step 5: Tick the corresponding TODO in the spec**
+- [x] **Step 5: Tick the corresponding TODO in the spec**
 
 In `docs/superpowers/specs/2026-05-20-featured-work-revamp-design.md`, tick the box for "`src/components/sections/Projects.tsx` rewritten: sticky aside (desktop) + scrolling list of square project rows; bento removed from this file" → `- [x]`. Also tick "Project rows show the top 4 highlights …" and "Project row: square image frame …". Active-tracking and parallax stay unticked — those land in later tasks.
 
@@ -371,7 +371,7 @@ In `docs/superpowers/specs/2026-05-20-featured-work-revamp-design.md`, tick the 
 **Files:**
 - Modify: `src/components/sections/Projects.tsx`
 
-- [ ] **Step 1: Add framer-motion imports**
+- [x] **Step 1: Add framer-motion imports**
 
 At the top of `src/components/sections/Projects.tsx`, change the existing imports so the file starts with:
 
@@ -384,7 +384,7 @@ import { projects } from '../../data/projects'
 import type { Project } from '../../types/content'
 ```
 
-- [ ] **Step 2: Rewrite `ProjectRow` to add the parallax**
+- [x] **Step 2: Rewrite `ProjectRow` to add the parallax**
 
 Replace the whole `ProjectRow` function with:
 
@@ -425,18 +425,18 @@ function ProjectRow({ project, index, lang }: ProjectRowProps) {
 }
 ```
 
-- [ ] **Step 3: Build to verify**
+- [x] **Step 3: Build to verify**
 
 Run: `npm run build`
 Expected: clean build.
 
-- [ ] **Step 4: Manual scroll check**
+- [x] **Step 4: Manual scroll check**
 
 Run `npm run dev`, scroll through the Projects section, and confirm the image *inside* each square frame visibly drifts vertically as the card crosses the viewport (top of card on screen → image translated up; bottom on screen → image translated down). The frame itself does not move.
 
 Stop the dev server before continuing.
 
-- [ ] **Step 5: Tick the parallax TODO in the spec**
+- [x] **Step 5: Tick the parallax TODO in the spec**
 
 Tick "Parallax on each row's image: `framer-motion useScroll` …" → `- [x]`.
 
