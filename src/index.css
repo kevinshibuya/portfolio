@@ -88,7 +88,10 @@ html, body {
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  /* `clip` (not `hidden`) so sticky descendants don't inherit body as a
+     containing-block and lose their stick. `clip` still suppresses any
+     horizontal overflow from off-screen animations. */
+  overflow-x: clip;
 }
 body { font-weight: 400; }
 ::selection { background: var(--blue-300); color: var(--cream); }
