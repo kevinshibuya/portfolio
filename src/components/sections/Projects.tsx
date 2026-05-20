@@ -151,6 +151,7 @@ function ProjectRow({ project, index, lang, mediaRefCb }: ProjectRowProps) {
     offset: ['start end', 'end start'],
   })
   const imgY = useTransform(scrollYProgress, [0, 1], ['-12%', '12%'])
+  const [hover, setHover] = useState(false)
 
   function setRef(el: HTMLDivElement | null) {
     mediaRef.current = el
@@ -159,7 +160,13 @@ function ProjectRow({ project, index, lang, mediaRefCb }: ProjectRowProps) {
 
   return (
     <Link to={`/projects/${project.slug}`} className="project-row">
-      <div ref={setRef} className="project-row__media" style={{ background: project.gradient }}>
+      <div
+        ref={setRef}
+        className="project-row__media"
+        onPointerEnter={() => setHover(true)}
+        onPointerLeave={() => setHover(false)}
+        style={{ background: project.gradient }}
+      >
         <span className="project-row__idx">{String(index + 1).padStart(2, '0')}</span>
         {project.mockups && (
           <motion.img
@@ -169,6 +176,8 @@ function ProjectRow({ project, index, lang, mediaRefCb }: ProjectRowProps) {
             decoding="async"
             className="project-row__img"
             style={{ y: imgY }}
+            animate={{ scale: hover ? 1.06 : 1 }}
+            transition={{ scale: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }}
             width="1200"
             height="1200"
           />

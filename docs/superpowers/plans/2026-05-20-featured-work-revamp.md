@@ -750,7 +750,7 @@ Stop the dev server.
 
 Tick: "Sticky aside (desktop) reflects the **active project**", "Active project is detected via `IntersectionObserver`", "Active-content transitions: each text block keys off `project.id`".
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/components/sections/Projects.tsx src/index.css docs/superpowers/specs/2026-05-20-featured-work-revamp-design.md
@@ -764,7 +764,7 @@ git commit -m "feat(projects): per-active dynamic aside on desktop"
 **Files:**
 - Modify: `src/components/sections/Projects.tsx`
 
-- [ ] **Step 1: Add hover state to `ProjectRow`**
+- [x] **Step 1: Add hover state to `ProjectRow`**
 
 Replace the `ProjectRow` function with the version that adds the `hover` state and `animate.scale` on the `<motion.img>`:
 
@@ -819,12 +819,12 @@ function ProjectRow({ project, index, lang, mediaRefCb }: ProjectRowProps) {
 }
 ```
 
-- [ ] **Step 2: Build to verify**
+- [x] **Step 2: Build to verify**
 
 Run: `npm run build`
 Expected: clean build.
 
-- [ ] **Step 3: Manual hover check**
+- [x] **Step 3: Manual hover check**
 
 `npm run dev`, hover each card. Expected:
 - Image visibly scales up to ~1.06× over ~700ms
@@ -834,11 +834,11 @@ Expected: clean build.
 
 Stop the dev server.
 
-- [ ] **Step 4: Tick the spec TODO**
+- [x] **Step 4: Tick the spec TODO**
 
 Tick: "Image hover scale: `1.06` via framer-motion `animate.scale` …"
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/sections/Projects.tsx
