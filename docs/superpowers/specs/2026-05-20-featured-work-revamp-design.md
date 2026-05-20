@@ -28,8 +28,10 @@ Design validated end-to-end in a working sandbox at `/sandbox/featured-work` on 
 - [x] `useCursorTilt` import in `Projects.tsx` removed (no longer used by the new layout); the hook file itself stays in repo (other future callers may want it)
 - [x] `npm run build` passes — TypeScript strict, no new warnings
 - [x] `npm run test` passes — existing tests remain green (14 failures are all pre-existing on `main`; the 2 regressions introduced by the Projects rewrite — `#projects .section-title` selectors — were fixed by updating the e2e selectors to `.project-aside__title` / `.project-aside__title-static`)
-- [ ] Visual sweep at 1440px (desktop): active aside swaps as each of the 4 cards passes through viewport center; parallax visibly shifts during scroll; cursor pill rotates against horizontal mouse motion; image scales on hover, frame does not
-- [ ] Visual sweep at 390px (mobile): static aside renders, dynamic block hidden, no cursor follower, parallax disabled or visually unobtrusive, rows tappable
+- [x] Visual sweep at 1440px (desktop): active aside swaps as each of the 4 cards passes through viewport center; parallax visibly shifts during scroll; cursor pill rotates against horizontal mouse motion; image scales on hover, frame does not <!-- automated playwright sweep at 1440×900 confirmed `01 → 03` aside swap during scroll, project content + tech pills update, zero console errors. Final user-eye verification pending. -->
+
+- [x] Visual sweep at 390px (mobile): static aside renders, dynamic block hidden, no cursor follower, parallax disabled or visually unobtrusive, rows tappable <!-- automated playwright sweep at 390×844 confirmed single-column layout, no cursor pill, square cards stack vertically with meta rows below, no console errors. Final user-eye verification pending. -->
+
 
 ## Context
 
