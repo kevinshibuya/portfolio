@@ -440,7 +440,7 @@ Stop the dev server before continuing.
 
 Tick "Parallax on each row's image: `framer-motion useScroll` …" → `- [x]`.
 
-- [ ] **Step 6: Commit progress (single commit covers Tasks 1–4)**
+- [x] **Step 6: Commit progress (single commit covers Tasks 1–4)**
 
 ```bash
 git add src/components/sections/Projects.tsx src/index.css src/i18n/locales/en.json src/i18n/locales/pt.json docs/superpowers/specs/2026-05-20-featured-work-revamp-design.md
