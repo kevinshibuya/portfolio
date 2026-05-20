@@ -73,7 +73,9 @@
       "label": "",
       "title": "obras <em>em foco.</em>",
       "description": "highlights pessoais. do briefing à entrega.",
-      "caseStudy": "estudo de caso"
+      "caseStudy": "estudo de caso",
+      "intro": "uma seleção dos projetos de que mais me orgulho — ferramentas para redações, especiais comandados pelo scroll e embeds interativos que alcançaram milhões de leitores brasileiros.",
+      "viewProject": "ver projeto"
     },
     "archive": {
       "index": "02 · arquivo",

@@ -1,169 +1,243 @@
-import { motion } from 'framer-motion'
-import { useRef } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
-import { useMotion } from '../../context/MotionContext'
-import { useCursorTilt } from '../../hooks/useCursorTilt'
-import { SectionHeading } from '../ui/SectionHeading'
-import { projects } from '../../data/projects'
 import {
-  VARIANTS,
-  STAGGER_PRESETS,
-  staggerContainer,
-  REDUCED_MOTION_VARIANT,
-} from '../../utils/animations'
+  motion,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+  useVelocity,
+} from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
+import { projects } from '../../data/projects'
 import type { Project } from '../../types/content'
 
-const MotionLink = motion.create(Link)
+const FEATURED_LIMIT = 4
+
+function getFeatured(): Project[] {
+  return projects
+    .filter((p) => p.highlight && (p.highlightOrder ?? 99) <= FEATURED_LIMIT)
+    .sort((a, b) => (a.highlightOrder ?? 99) - (b.highlightOrder ?? 99))
+}
 
 export function Projects() {
   const { t, i18n } = useTranslation()
-  const { prefersReducedMotion } = useMotion()
-  const lang = i18n.language as 'en' | 'pt'
-  const featured = projects
-    .filter((p) => p.highlight && (p.highlightOrder ?? 99) <= 4)
-    .sort((a, b) => (a.highlightOrder ?? 99) - (b.highlightOrder ?? 99))
+  const lang = i18n.language.startsWith('pt') ? 'pt' : 'en'
+  const featured = getFeatured()
+  const [active, setActive] = useState(0)
+  const mediaRefs = useRef<(HTMLDivElement | null)[]>([])
 
-  const parentVariants = prefersReducedMotion
-    ? REDUCED_MOTION_VARIANT
-    : staggerContainer(STAGGER_PRESETS.projectCards)
-  const cardVariants = prefersReducedMotion
-    ? REDUCED_MOTION_VARIANT
-    : VARIANTS.cardReveal
+  useEffect(() => {
+    const observers: IntersectionObserver[] = []
+    mediaRefs.current.forEach((node, idx) => {
+      if (!node) return
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActive(idx)
+        },
+        { rootMargin: '-45% 0px -45% 0px', threshold: 0 }
+      )
+      obs.observe(node)
+      observers.push(obs)
+    })
+    return () => observers.forEach((o) => o.disconnect())
+  }, [])
+
+  const cursorX = useMotionValue(-100)
+  const cursorY = useMotionValue(-100)
+  const springX = useSpring(cursorX, { damping: 28, stiffness: 380, mass: 0.4 })
+  const springY = useSpring(cursorY, { damping: 28, stiffness: 380, mass: 0.4 })
+  const vx = useVelocity(springX)
+  const rotate = useTransform(vx, [-2500, 2500], [18, -18], { clamp: true })
+  const [hovering, setHovering] = useState(false)
+
+  function handleMove(e: React.MouseEvent) {
+    cursorX.set(e.clientX)
+    cursorY.set(e.clientY)
+  }
+
+  const current = featured[active]
 
   return (
-    <section id="projects" className="section">
-      <SectionHeading
-        index={t('sections.projects.index')}
-        label={t('sections.projects.label')}
-        title={t('sections.projects.title')}
-        description={t('sections.projects.description')}
-      />
+    <section
+      id="projects"
+      className="section project-section"
+      onMouseMove={handleMove}
+    >
+      <div className="project-grid">
+        <aside className="project-aside">
+          {/* Mobile-static block (Task 3) */}
+          <div className="project-aside__mobile">
+            <span className="project-aside__eyebrow">{t('sections.projects.index')}</span>
+            <h2 className="project-aside__title-static">
+              <Trans i18nKey="sections.projects.title" components={{ em: <em /> }} />
+            </h2>
+            <p className="project-aside__copy">{t('sections.projects.intro')}</p>
+            <span className="project-aside__year">
+              {String(featured.length).padStart(2, '0')} · projects
+            </span>
+          </div>
+
+          {/* Desktop-dynamic block — swaps per active project */}
+          <div className="project-aside__desktop">
+            <span className="project-aside__eyebrow">{t('sections.projects.index')}</span>
+
+            <div className="project-aside__index">
+              <span className="project-aside__index-now">{String(active + 1).padStart(2, '0')}</span>
+              <span className="project-aside__index-sep">/</span>
+              <span className="project-aside__index-total">
+                {String(featured.length).padStart(2, '0')}
+              </span>
+            </div>
+
+            <motion.h2
+              key={current.id + '-t'}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="project-aside__title"
+            >
+              {current.title[lang]}
+            </motion.h2>
+
+            {current.tagline && (
+              <motion.p
+                key={current.id + '-tg'}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+                className="project-aside__tagline"
+              >
+                {current.tagline[lang]}
+              </motion.p>
+            )}
+
+            <motion.p
+              key={current.id + '-d'}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="project-aside__copy"
+            >
+              {current.description[lang]}
+            </motion.p>
+
+            <motion.ul
+              key={current.id + '-tech'}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="project-aside__tech"
+            >
+              {current.techStack.slice(0, 6).map((tag) => (
+                <li key={tag}>{tag}</li>
+              ))}
+            </motion.ul>
+
+            <div className="project-aside__bottom">
+              <span className="project-aside__year">year · {current.year}</span>
+              <Link to={`/projects/${current.slug}`} className="project-aside__cta">
+                ↗ {t('sections.projects.caseStudy')}
+              </Link>
+            </div>
+          </div>
+        </aside>
+
+        <div className="project-list">
+          {featured.map((project, idx) => (
+            <ProjectRow
+              key={project.id}
+              project={project}
+              index={idx}
+              lang={lang}
+              mediaRefCb={(el) => {
+                mediaRefs.current[idx] = el
+              }}
+              onHoverEnter={() => setHovering(true)}
+              onHoverLeave={() => setHovering(false)}
+            />
+          ))}
+        </div>
+      </div>
 
       <motion.div
-        className="bento section-spacing-content"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={parentVariants}
+        className="project-cursor"
+        style={{ x: springX, y: springY }}
+        aria-hidden="true"
       >
-        {featured.map((project) => (
-          <BentoCard
-            key={project.id}
-            project={project}
-            lang={lang}
-            caseStudy={t('sections.projects.caseStudy')}
-            variants={cardVariants}
-          />
-        ))}
+        <motion.div
+          className="project-cursor__rotor"
+          style={{ rotate }}
+          animate={hovering ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <span className="project-cursor__pill">{t('sections.projects.viewProject')}</span>
+        </motion.div>
       </motion.div>
     </section>
   )
 }
 
-interface BentoCardProps {
+interface ProjectRowProps {
   project: Project
+  index: number
   lang: 'en' | 'pt'
-  caseStudy: string
-  variants: import('framer-motion').Variants
+  mediaRefCb: (el: HTMLDivElement | null) => void
+  onHoverEnter: () => void
+  onHoverLeave: () => void
 }
 
-function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
-  const cardRef = useRef<HTMLAnchorElement>(null)
-  const wrapRef = useRef<HTMLDivElement>(null)
-  useCursorTilt(cardRef, wrapRef, { tilt: 10, scale: 1.08, shift: 8 })
+function ProjectRow({ project, index, lang, mediaRefCb, onHoverEnter, onHoverLeave }: ProjectRowProps) {
+  const mediaRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: mediaRef,
+    offset: ['start end', 'end start'],
+  })
+  const imgY = useTransform(scrollYProgress, [0, 1], ['-12%', '12%'])
+  const [hover, setHover] = useState(false)
 
-  const sizeClass =
-    project.size === 'lg'
-      ? 'bento-card--lg'
-      : project.size === 'md'
-        ? 'bento-card--md'
-        : ''
-  const cardClass = `bento-card ${sizeClass}${project.dark ? ' is-dark' : ''}`.trim()
-  const isDual = project.size === 'md'
-  const background = project.gradient ?? 'linear-gradient(145deg, #D4E5F2, #6A8CAA)'
-
-  const tagline = project.tagline?.[lang]
-  const title = project.title[lang]
-  const desktopAlt = `${title} desktop mockup`
-  const mobileAlt = `${title} mobile mockup`
-
-  if (isDual) {
-    return (
-      <MotionLink
-        ref={cardRef}
-        variants={variants}
-        to={`/projects/${project.slug}`}
-        className={cardClass}
-        style={{ background }}
-      >
-        <div className="bento-text-col">
-          {tagline && <span className="bento-desc-top">{tagline}</span>}
-          <div className="bento-bottom">
-            <h3 className="bento-title">{title}</h3>
-            <span className="bento-cs">↗ {caseStudy}</span>
-          </div>
-        </div>
-        <div ref={wrapRef} className="bento-mockup-wrap bento-mockup-wrap--dual">
-          {project.mockups && (
-            <>
-              <MockupLayer src={project.mockups.desktopBento} alt={desktopAlt} />
-              <MockupLayer src={project.mockups.mobile} alt={mobileAlt} className="bento-mockup--mobile" />
-            </>
-          )}
-        </div>
-      </MotionLink>
-    )
+  function setRef(el: HTMLDivElement | null) {
+    mediaRef.current = el
+    mediaRefCb(el)
   }
 
   return (
-    <MotionLink
-      ref={cardRef}
-      variants={variants}
-      to={`/projects/${project.slug}`}
-      className={cardClass}
-      style={{ background }}
-    >
-      {tagline && <span className="bento-desc-top">{tagline}</span>}
-      <div ref={wrapRef} className="bento-mockup-wrap">
-        {project.mockups && <MockupLayer src={project.mockups.desktopBento} alt={desktopAlt} />}
+    <Link to={`/projects/${project.slug}`} className="project-row">
+      <div
+        ref={setRef}
+        className="project-row__media"
+        onPointerEnter={() => {
+          setHover(true)
+          onHoverEnter()
+        }}
+        onPointerLeave={() => {
+          setHover(false)
+          onHoverLeave()
+        }}
+        style={{ background: project.gradient }}
+      >
+        <span className="project-row__idx">{String(index + 1).padStart(2, '0')}</span>
+        {project.mockups && (
+          <motion.img
+            src={project.mockups.desktopBento}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="project-row__img"
+            style={{ y: imgY }}
+            animate={{ scale: hover ? 1.06 : 1 }}
+            transition={{ scale: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }}
+            width="1200"
+            height="1200"
+          />
+        )}
       </div>
-      <div className="bento-bottom">
-        <h3 className="bento-title">{title}</h3>
-        <span className="bento-cs">↗ {caseStudy}</span>
+      <div className="project-row__meta">
+        <h3 className="project-row__title">{project.title[lang]}</h3>
+        <span className="project-row__tags">
+          [ {project.techStack.slice(0, 3).join(' ] — [ ')} ]
+        </span>
       </div>
-    </MotionLink>
-  )
-}
-
-interface MockupLayerProps {
-  src: string
-  alt: string
-  className?: string
-}
-
-function MockupLayer({ src, alt, className }: MockupLayerProps) {
-  return (
-    <span className={`bento-mockup ${className ?? ''}`}>
-      <img
-        className="bento-mockup-img bento-mockup-img--tonal"
-        src={src}
-        alt=""
-        aria-hidden="true"
-        decoding="async"
-        loading="lazy"
-        width="1200"
-        height="737"
-      />
-      <img
-        className="bento-mockup-img bento-mockup-img--color"
-        src={src}
-        alt={alt}
-        decoding="async"
-        loading="lazy"
-        width="1200"
-        height="737"
-      />
-    </span>
+    </Link>
   )
 }

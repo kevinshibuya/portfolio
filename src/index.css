@@ -88,7 +88,10 @@ html, body {
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  /* `clip` (not `hidden`) so sticky descendants don't inherit body as a
+     containing-block and lose their stick. `clip` still suppresses any
+     horizontal overflow from off-screen animations. */
+  overflow-x: clip;
 }
 body { font-weight: 400; }
 ::selection { background: var(--blue-300); color: var(--cream); }
@@ -1097,6 +1100,272 @@ html[data-loading='true'] {
    color reveal. Pairs with useCursorTilt's no-op on coarse pointers. */
 @media (pointer: coarse) {
   .bento-card:hover .bento-mockup-img--color { opacity: 0; }
+}
+
+/* =========================================================================
+   FEATURED WORK — sticky aside + scrolling square cards
+   ========================================================================= */
+.project-section { /* no-op — `.section` already sets max-width, padding, etc. */ }
+
+.project-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 80px;
+  align-items: start;
+}
+
+.project-aside {
+  position: sticky;
+  top: 120px;
+  padding-top: 8px;
+}
+/* Mobile-static block (shown by default; the desktop dynamic block — added
+   in Task 5 — overrides via media query). */
+.project-aside__mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.project-aside__eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blue-400);
+}
+.project-aside__title-static {
+  font-size: clamp(48px, 7vw, 96px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 0;
+}
+.project-aside__title-static em {
+  color: var(--blue-400);
+  font-style: italic;
+}
+.project-aside__copy {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--bark);
+  max-width: 38ch;
+  margin: 0;
+}
+.project-aside__year {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dust);
+}
+
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 120px;
+}
+
+.project-row {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.project-row__media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--mist);
+}
+.project-row__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 124%;
+  top: -12%;
+  object-fit: cover;
+  will-change: transform;
+  transform-origin: center center;
+}
+.project-row__idx {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  z-index: 2;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--cream) 80%, transparent);
+  backdrop-filter: blur(6px);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.project-row__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 4px 0;
+  border-top: 1px solid var(--mist);
+  margin-top: 20px;
+}
+.project-row__title {
+  margin: 0;
+  font-size: clamp(22px, 2.4vw, 32px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.project-row__tags {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bark);
+  text-align: right;
+  max-width: 50%;
+}
+
+/* Cursor follower rules are appended in Task 7. */
+/* Desktop-dynamic aside — hidden by default; revealed in the desktop media
+   query at the bottom of this block. */
+.project-aside__desktop {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 540px;
+}
+.project-aside__index {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.project-aside__index-now {
+  font-size: 64px;
+  line-height: 1;
+  color: var(--ink);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+.project-aside__index-sep { color: var(--mist); font-size: 28px; }
+.project-aside__index-total { color: var(--dust); font-size: 18px; }
+.project-aside__title {
+  font-size: clamp(36px, 4.6vw, 60px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 0;
+}
+.project-aside__tagline {
+  font-size: 17px;
+  color: var(--blue-400);
+  font-style: italic;
+  line-height: 1.4;
+  margin: 0;
+}
+.project-aside__tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.project-aside__tech li {
+  padding: 4px 10px;
+  border: 1px solid var(--mist);
+  border-radius: 999px;
+  background: var(--cream);
+  font-size: 12px;
+  color: var(--bark);
+}
+.project-aside__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--mist);
+}
+.project-aside__cta {
+  font-size: 14px;
+  color: var(--blue-500);
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+.project-aside__cta:hover { border-color: var(--blue-500); }
+
+.project-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+.project-cursor__rotor {
+  position: relative;
+  width: 0;
+  height: 0;
+  transform-origin: 0% 0%;
+}
+.project-cursor__pill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* Center horizontally on cursor X; float 14px above cursor Y. */
+  transform: translate(-50%, calc(-100% - 14px));
+  display: inline-block;
+  white-space: nowrap;
+  background: var(--blue-400);
+  color: var(--cream);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 6px;
+  box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--blue-500) 60%, transparent);
+}
+
+/* Show the desktop block / hide the mobile block above 900px. */
+@media (min-width: 901px) {
+  .project-aside__mobile { display: none; }
+  .project-aside__desktop { display: flex; }
+}
+/* Mobile: aside un-sticks; tighter gaps; hide the cursor follower. */
+@media (max-width: 900px) {
+  .project-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .project-aside {
+    position: relative;
+    top: auto;
+  }
+  .project-list { gap: 80px; }
+  .project-cursor { display: none; }
+}
+
+/* Touch: cursor follower can't be hovered usefully. */
+@media (hover: none) {
+  .project-cursor { display: none; }
+}
+
+/* Reduced motion: kill parallax + cursor + image hover scale. */
+@media (prefers-reduced-motion: reduce) {
+  .project-row__img { transform: none !important; }
+  .project-cursor { display: none; }
 }
 
 /* =========================================================================
