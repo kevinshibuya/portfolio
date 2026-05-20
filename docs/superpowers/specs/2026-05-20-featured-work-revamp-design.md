@@ -12,7 +12,7 @@ Design validated end-to-end in a working sandbox at `/sandbox/featured-work` on 
 - [x] Sticky aside (desktop) reflects the **active project**: counter (`NN / 04`), title, italic-blue tagline, description, up to 6 tech pills, year, `↗ case study` Link to `/projects/:slug`
 - [x] Active project is detected via `IntersectionObserver` with `rootMargin: '-45% 0px -45% 0px'` (whichever card sits in the middle 10% of viewport)
 - [x] Active-content transitions: each text block keys off `project.id` so framer-motion crossfades (≤500ms, `[0.22, 1, 0.36, 1]` ease, opacity + 8–10px y); no layout shift between projects (aside has reserved `min-height`)
-- [ ] Mobile aside (`≤900px`): static block instead — eyebrow `// selected work`, `selected <em>work.</em>` heading, single intro paragraph (i18n), `04 · projects` count. Dynamic block is `display: none`
+- [x] Mobile aside (`≤900px`): static block instead — eyebrow `// selected work`, `selected <em>work.</em>` heading, single intro paragraph (i18n), `04 · projects` count. Dynamic block is `display: none`
 - [x] New i18n keys: `sections.projects.intro` (static mobile paragraph) added to `en.json` and `pt.json`. Existing `sections.projects.title` / `caseStudy` keys reused
 - [x] Project row: square image frame (`aspect-ratio: 1/1`, fixed size, `overflow: hidden`); below-card meta row (uppercase title left, bracketed tech tags right) outside the frame, separated by a top `1px mist` border
 - [x] Parallax on each row's image: `framer-motion useScroll` with `offset: ['start end', 'end start']`, image height `124%` + `top: -12%`, translates `y` from `-12%` to `+12%` across the row's scroll range (GPU `transform` only, no layout)
@@ -21,8 +21,8 @@ Design validated end-to-end in a working sandbox at `/sandbox/featured-work` on 
 - [x] Cursor pill: small monospace "view project", `bg: blue-400`, `color: cream`, `padding: 8px 14px`, `border-radius: 6px`, centered horizontally on the cursor and floating **14px above** it via `transform: translate(-50%, calc(-100% - 14px))`
 - [x] Pill visibility: `hovering` state on the outer `<main>`; toggled by `onPointerEnter` / `onPointerLeave` on each `.project-row__media`. Animates via `animate={{ opacity, scale }}` with 0.3s ease
 - [x] `aria-hidden="true"` on the cursor follower; system cursor stays visible (no `cursor: none`)
-- [ ] Reduced motion: `@media (prefers-reduced-motion: reduce)` hides the cursor follower, disables parallax (`transform: none !important` on `.project-row__img`), and skips the hover image scale
-- [ ] Touch (`@media (hover: none)`): cursor follower hidden; rows remain tap-to-navigate Links to `/projects/:slug`
+- [x] Reduced motion: `@media (prefers-reduced-motion: reduce)` hides the cursor follower, disables parallax (`transform: none !important` on `.project-row__img`), and skips the hover image scale
+- [x] Touch (`@media (hover: none)`): cursor follower hidden; rows remain tap-to-navigate Links to `/projects/:slug`
 - [ ] All sandbox files removed before merge: `src/pages/SandboxFeaturedWork.tsx`, `src/styles/sandbox-featured-work.css`, and the `/sandbox/featured-work` route + lazy import in `src/App.tsx`
 - [ ] Bento CSS in `src/index.css` (`.bento`, `.bento-card*`, `.bento-mockup*`, `.bento-desc-top`, `.bento-bottom`, `.bento-title`, `.bento-cs`, `.bento-text-col`) stays in place for this PR — cleanup is a separate follow-up
 - [ ] `useCursorTilt` import in `Projects.tsx` removed (no longer used by the new layout); the hook file itself stays in repo (other future callers may want it)

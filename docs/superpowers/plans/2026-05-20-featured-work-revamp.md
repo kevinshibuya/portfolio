@@ -1029,7 +1029,7 @@ Stop the dev server.
 
 Tick: "Custom cursor follower …", "Pill visibility …", "`aria-hidden='true'` on the cursor follower …" (the pill-copy TODO was already ticked in Task 1 Step 5).
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add src/components/sections/Projects.tsx src/index.css docs/superpowers/specs/2026-05-20-featured-work-revamp-design.md
@@ -1043,7 +1043,7 @@ git commit -m "feat(projects): velocity-rotated cursor pill on image hover"
 **Files:**
 - Modify: `src/index.css`
 
-- [ ] **Step 1: Append responsive + a11y rules to the Featured Work block in `src/index.css`**
+- [x] **Step 1: Append responsive + a11y rules to the Featured Work block in `src/index.css`**
 
 After the desktop media-query rule from Task 5, append:
 
@@ -1074,12 +1074,12 @@ After the desktop media-query rule from Task 5, append:
 }
 ```
 
-- [ ] **Step 2: Build to verify**
+- [x] **Step 2: Build to verify**
 
 Run: `npm run build`
 Expected: clean build.
 
-- [ ] **Step 3: Manual responsive check**
+- [x] **Step 3: Manual responsive check**
 
 `npm run dev`. With browser devtools, set viewport to 390×844. Expected:
 - Layout collapses to a single column
@@ -1095,7 +1095,7 @@ Toggle Chrome's "Emulate CSS prefers-reduced-motion: reduce". Expected on deskto
 
 Stop the dev server.
 
-- [ ] **Step 4: Tick the spec TODOs**
+- [x] **Step 4: Tick the spec TODOs**
 
 Tick: "Mobile aside (`≤900px`)", "Reduced motion: …", "Touch (`@media (hover: none)`) …"
 

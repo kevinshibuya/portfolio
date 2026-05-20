@@ -1343,7 +1343,30 @@ html[data-loading='true'] {
   .project-aside__mobile { display: none; }
   .project-aside__desktop { display: flex; }
 }
-/* Mobile responsive rules are appended in Task 8. */
+/* Mobile: aside un-sticks; tighter gaps; hide the cursor follower. */
+@media (max-width: 900px) {
+  .project-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .project-aside {
+    position: relative;
+    top: auto;
+  }
+  .project-list { gap: 80px; }
+  .project-cursor { display: none; }
+}
+
+/* Touch: cursor follower can't be hovered usefully. */
+@media (hover: none) {
+  .project-cursor { display: none; }
+}
+
+/* Reduced motion: kill parallax + cursor + image hover scale. */
+@media (prefers-reduced-motion: reduce) {
+  .project-row__img { transform: none !important; }
+  .project-cursor { display: none; }
+}
 
 /* =========================================================================
    CONTACT (dark ink)
