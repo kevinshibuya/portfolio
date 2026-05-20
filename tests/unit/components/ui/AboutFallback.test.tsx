@@ -34,10 +34,11 @@ describe('<AboutFallback>', () => {
   })
 
   it('renders the poster image with empty alt (decorative)', () => {
-    render(<AboutFallback />)
-    const img = screen.getByRole('img', { hidden: true })
+    const { container } = render(<AboutFallback />)
+    const img = container.querySelector('img')
+    expect(img).not.toBeNull()
     expect(img).toHaveAttribute('alt', '')
-    expect(img.getAttribute('src') || '').toContain('about-toy-poster')
+    expect(img!.getAttribute('src') || '').toContain('about-toy-poster')
   })
 
   it('does NOT render a <canvas>', () => {

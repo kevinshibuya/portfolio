@@ -18,7 +18,6 @@ export function AboutFallback() {
         <img
           src="/images/about-toy-poster.png"
           alt=""
-          role="img"
           width={640}
           height={640}
           loading="lazy"
