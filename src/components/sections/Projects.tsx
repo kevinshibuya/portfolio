@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { projects } from '../../data/projects'
@@ -17,11 +17,32 @@ export function Projects() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language.startsWith('pt') ? 'pt' : 'en'
   const featured = getFeatured()
+  const [active, setActive] = useState(0)
+  const mediaRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  useEffect(() => {
+    const observers: IntersectionObserver[] = []
+    mediaRefs.current.forEach((node, idx) => {
+      if (!node) return
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActive(idx)
+        },
+        { rootMargin: '-45% 0px -45% 0px', threshold: 0 }
+      )
+      obs.observe(node)
+      observers.push(obs)
+    })
+    return () => observers.forEach((o) => o.disconnect())
+  }, [])
+
+  const current = featured[active]
 
   return (
     <section id="projects" className="section project-section">
       <div className="project-grid">
         <aside className="project-aside">
+          {/* Mobile-static block (Task 3) */}
           <div className="project-aside__mobile">
             <span className="project-aside__eyebrow">{t('sections.projects.index')}</span>
             <h2 className="project-aside__title-static">
@@ -32,11 +53,83 @@ export function Projects() {
               {String(featured.length).padStart(2, '0')} · projects
             </span>
           </div>
+
+          {/* Desktop-dynamic block — swaps per active project */}
+          <div className="project-aside__desktop">
+            <span className="project-aside__eyebrow">{t('sections.projects.index')}</span>
+
+            <div className="project-aside__index">
+              <span className="project-aside__index-now">{String(active + 1).padStart(2, '0')}</span>
+              <span className="project-aside__index-sep">/</span>
+              <span className="project-aside__index-total">
+                {String(featured.length).padStart(2, '0')}
+              </span>
+            </div>
+
+            <motion.h2
+              key={current.id + '-t'}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="project-aside__title"
+            >
+              {current.title[lang]}
+            </motion.h2>
+
+            {current.tagline && (
+              <motion.p
+                key={current.id + '-tg'}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+                className="project-aside__tagline"
+              >
+                {current.tagline[lang]}
+              </motion.p>
+            )}
+
+            <motion.p
+              key={current.id + '-d'}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="project-aside__copy"
+            >
+              {current.description[lang]}
+            </motion.p>
+
+            <motion.ul
+              key={current.id + '-tech'}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="project-aside__tech"
+            >
+              {current.techStack.slice(0, 6).map((tag) => (
+                <li key={tag}>{tag}</li>
+              ))}
+            </motion.ul>
+
+            <div className="project-aside__bottom">
+              <span className="project-aside__year">year · {current.year}</span>
+              <Link to={`/projects/${current.slug}`} className="project-aside__cta">
+                ↗ {t('sections.projects.caseStudy')}
+              </Link>
+            </div>
+          </div>
         </aside>
 
         <div className="project-list">
           {featured.map((project, idx) => (
-            <ProjectRow key={project.id} project={project} index={idx} lang={lang} />
+            <ProjectRow
+              key={project.id}
+              project={project}
+              index={idx}
+              lang={lang}
+              mediaRefCb={(el) => {
+                mediaRefs.current[idx] = el
+              }}
+            />
           ))}
         </div>
       </div>
@@ -48,9 +141,10 @@ interface ProjectRowProps {
   project: Project
   index: number
   lang: 'en' | 'pt'
+  mediaRefCb: (el: HTMLDivElement | null) => void
 }
 
-function ProjectRow({ project, index, lang }: ProjectRowProps) {
+function ProjectRow({ project, index, lang, mediaRefCb }: ProjectRowProps) {
   const mediaRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: mediaRef,
@@ -58,9 +152,14 @@ function ProjectRow({ project, index, lang }: ProjectRowProps) {
   })
   const imgY = useTransform(scrollYProgress, [0, 1], ['-12%', '12%'])
 
+  function setRef(el: HTMLDivElement | null) {
+    mediaRef.current = el
+    mediaRefCb(el)
+  }
+
   return (
     <Link to={`/projects/${project.slug}`} className="project-row">
-      <div ref={mediaRef} className="project-row__media" style={{ background: project.gradient }}>
+      <div ref={setRef} className="project-row__media" style={{ background: project.gradient }}>
         <span className="project-row__idx">{String(index + 1).padStart(2, '0')}</span>
         {project.mockups && (
           <motion.img

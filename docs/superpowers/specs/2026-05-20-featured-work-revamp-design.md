@@ -9,9 +9,9 @@ Design validated end-to-end in a working sandbox at `/sandbox/featured-work` on 
 - [x] `body { overflow-x: clip }` (not `hidden`) — change already landed on this branch; verify it survives any further index.css edits
 - [x] `src/components/sections/Projects.tsx` rewritten: sticky aside (desktop) + scrolling list of square project rows; bento removed from this file
 - [x] Project rows show the top 4 highlights (filter `p.highlight && (p.highlightOrder ?? 99) <= 4`) — same set as today's bento
-- [ ] Sticky aside (desktop) reflects the **active project**: counter (`NN / 04`), title, italic-blue tagline, description, up to 6 tech pills, year, `↗ case study` Link to `/projects/:slug`
-- [ ] Active project is detected via `IntersectionObserver` with `rootMargin: '-45% 0px -45% 0px'` (whichever card sits in the middle 10% of viewport)
-- [ ] Active-content transitions: each text block keys off `project.id` so framer-motion crossfades (≤500ms, `[0.22, 1, 0.36, 1]` ease, opacity + 8–10px y); no layout shift between projects (aside has reserved `min-height`)
+- [x] Sticky aside (desktop) reflects the **active project**: counter (`NN / 04`), title, italic-blue tagline, description, up to 6 tech pills, year, `↗ case study` Link to `/projects/:slug`
+- [x] Active project is detected via `IntersectionObserver` with `rootMargin: '-45% 0px -45% 0px'` (whichever card sits in the middle 10% of viewport)
+- [x] Active-content transitions: each text block keys off `project.id` so framer-motion crossfades (≤500ms, `[0.22, 1, 0.36, 1]` ease, opacity + 8–10px y); no layout shift between projects (aside has reserved `min-height`)
 - [ ] Mobile aside (`≤900px`): static block instead — eyebrow `// selected work`, `selected <em>work.</em>` heading, single intro paragraph (i18n), `04 · projects` count. Dynamic block is `display: none`
 - [x] New i18n keys: `sections.projects.intro` (static mobile paragraph) added to `en.json` and `pt.json`. Existing `sections.projects.title` / `caseStudy` keys reused
 - [x] Project row: square image frame (`aspect-ratio: 1/1`, fixed size, `overflow: hidden`); below-card meta row (uppercase title left, bracketed tech tags right) outside the frame, separated by a top `1px mist` border

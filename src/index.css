@@ -1233,7 +1233,84 @@ html[data-loading='true'] {
 }
 
 /* Cursor follower rules are appended in Task 7. */
-/* Desktop dynamic-aside rules are appended in Task 5. */
+/* Desktop-dynamic aside — hidden by default; revealed in the desktop media
+   query at the bottom of this block. */
+.project-aside__desktop {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 540px;
+}
+.project-aside__index {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.project-aside__index-now {
+  font-size: 64px;
+  line-height: 1;
+  color: var(--ink);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+.project-aside__index-sep { color: var(--mist); font-size: 28px; }
+.project-aside__index-total { color: var(--dust); font-size: 18px; }
+.project-aside__title {
+  font-size: clamp(36px, 4.6vw, 60px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 0;
+}
+.project-aside__tagline {
+  font-size: 17px;
+  color: var(--blue-400);
+  font-style: italic;
+  line-height: 1.4;
+  margin: 0;
+}
+.project-aside__tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.project-aside__tech li {
+  padding: 4px 10px;
+  border: 1px solid var(--mist);
+  border-radius: 999px;
+  background: var(--cream);
+  font-size: 12px;
+  color: var(--bark);
+}
+.project-aside__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--mist);
+}
+.project-aside__cta {
+  font-size: 14px;
+  color: var(--blue-500);
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+.project-aside__cta:hover { border-color: var(--blue-500); }
+
+/* Show the desktop block / hide the mobile block above 900px. */
+@media (min-width: 901px) {
+  .project-aside__mobile { display: none; }
+  .project-aside__desktop { display: flex; }
+}
 /* Mobile responsive rules are appended in Task 8. */
 
 /* =========================================================================

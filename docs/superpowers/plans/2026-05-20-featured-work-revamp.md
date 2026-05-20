@@ -455,7 +455,7 @@ git commit -m "feat(projects): square card layout + parallax — replaces bento"
 - Modify: `src/components/sections/Projects.tsx`
 - Modify: `src/index.css` (append desktop-aside CSS)
 
-- [ ] **Step 1: Add the active-state hook + render the desktop aside**
+- [x] **Step 1: Add the active-state hook + render the desktop aside**
 
 Replace the `Projects` function with:
 
@@ -585,7 +585,7 @@ export function Projects() {
 }
 ```
 
-- [ ] **Step 2: Add `useState` and `useEffect` to the imports**
+- [x] **Step 2: Add `useState` and `useEffect` to the imports**
 
 The `react` import line should now be:
 
@@ -593,7 +593,7 @@ The `react` import line should now be:
 import { useEffect, useRef, useState } from 'react'
 ```
 
-- [ ] **Step 3: Update `ProjectRow` to accept and wire the `mediaRefCb`**
+- [x] **Step 3: Update `ProjectRow` to accept and wire the `mediaRefCb`**
 
 Replace the `ProjectRowProps` interface and the `ProjectRow` function with:
 
@@ -646,7 +646,7 @@ function ProjectRow({ project, index, lang, mediaRefCb }: ProjectRowProps) {
 }
 ```
 
-- [ ] **Step 4: Append desktop-aside CSS to `src/index.css`**
+- [x] **Step 4: Append desktop-aside CSS to `src/index.css`**
 
 Find the `Cursor follower rules are appended in Task 7.` comment placeholder and replace it with:
 
@@ -731,12 +731,12 @@ Find the `Cursor follower rules are appended in Task 7.` comment placeholder and
 }
 ```
 
-- [ ] **Step 5: Build to verify**
+- [x] **Step 5: Build to verify**
 
 Run: `npm run build`
 Expected: clean build.
 
-- [ ] **Step 6: Manual scroll check**
+- [x] **Step 6: Manual scroll check**
 
 `npm run dev`, open home, scroll Projects:
 - At top of section, aside shows project 1 (política essencial — counter `01 / 04`, title, italic tagline in blue, description, tech pills, year, `↗ case study`)
@@ -746,7 +746,7 @@ Expected: clean build.
 
 Stop the dev server.
 
-- [ ] **Step 7: Tick the spec TODOs**
+- [x] **Step 7: Tick the spec TODOs**
 
 Tick: "Sticky aside (desktop) reflects the **active project**", "Active project is detected via `IntersectionObserver`", "Active-content transitions: each text block keys off `project.id`".
 
