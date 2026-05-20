@@ -66,6 +66,25 @@
           "title": "automação por snapshot.",
           "body": "fluxos que repito mais de duas vezes viram <em>skills</em> — a skill de snapshot do portfólio, por exemplo, percorre o repo, sobe o front, mocka backends mortos inline e cospe um <em>bundle tipado pra outra ia consumir</em>: metadados, briefing técnico e um set assimétrico de screenshots desktop/mobile, dimensionado pros templates de mockup downstream."
         }
+      ],
+      "label": "sobre o kevin — cinemática em três tempos",
+      "attribution": "modelo 3D · {{author}} · CC-BY",
+      "beats": [
+        {
+          "eyebrow": "01 — origem",
+          "title": "como cheguei aqui.",
+          "body": "quando criança eu desmontava meus brinquedos pra ver como funcionavam. meu primeiro site na faculdade foi uma epifania — finalmente eu podia montar algo. sete anos depois, ainda refino a mesma habilidade."
+        },
+        {
+          "eyebrow": "02 — presente",
+          "title": "como trabalho hoje.",
+          "body": "fullstack em visualização de dados, sistemas em tempo real, ferramentas de ia e funis de vendas — com um método que acumula. brasileiro, em porto alegre."
+        },
+        {
+          "eyebrow": "03 — o que vem",
+          "title": "pra onde vai.",
+          "body": "pensar-com-ia todo dia. construindo sistemas cujos usuários são agentes, não só humanos — e refinando a prática que torna esse trabalho enviável."
+        }
       ]
     },
     "projects": {
@@ -132,6 +151,9 @@
         "github": "github",
         "resume": "baixar cv"
       }
+    },
+    "footer": {
+      "modelAttribution": "modelo 3D · {{author}} · CC-BY"
     }
   },
   "footer": {

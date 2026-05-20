@@ -222,7 +222,7 @@ EOF
 - Modify: `src/i18n/locales/en.json` (add new keys, keep old ones for now)
 - Modify: `src/i18n/locales/pt.json` (add new keys, keep old ones for now)
 
-- [ ] **Step 1: Create beats data module**
+- [x] **Step 1: Create beats data module**
 
 Create `src/data/aboutBeats.ts`:
 
@@ -276,7 +276,7 @@ export function beatIndexAtProgress(p: number): 0 | 1 | 2 {
 }
 ```
 
-- [ ] **Step 2: Add new i18n keys (EN)**
+- [x] **Step 2: Add new i18n keys (EN)**
 
 Open `src/i18n/locales/en.json` and add the following inside `sections.about` (do NOT remove existing keys yet — that happens in a later task once consumers are migrated):
 
@@ -308,7 +308,7 @@ Also add into `sections.footer`:
 "modelAttribution": "3D model · {{author}} · CC-BY"
 ```
 
-- [ ] **Step 3: Add new i18n keys (PT)**
+- [x] **Step 3: Add new i18n keys (PT)**
 
 Open `src/i18n/locales/pt.json` and add the same structure under `sections.about`:
 
@@ -340,17 +340,17 @@ And inside `sections.footer`:
 "modelAttribution": "modelo 3D · {{author}} · CC-BY"
 ```
 
-- [ ] **Step 4: Run vitest to confirm no test regressions**
+- [x] **Step 4: Run vitest to confirm no test regressions**
 
 Run: `npm run test:unit`
 Expected: all existing unit tests pass (the new keys are additive).
 
-- [ ] **Step 5: Type-check the new data module**
+- [x] **Step 5: Type-check the new data module**
 
 Run: `npx tsc -b --noEmit`
 Expected: clean.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/data/aboutBeats.ts src/i18n/locales/en.json src/i18n/locales/pt.json

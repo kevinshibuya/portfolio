@@ -66,6 +66,25 @@
           "title": "automation by snapshot.",
           "body": "flows i run more than twice get <em>captured as skills</em> — for example, the portfolio snapshot skill walks a repo, boots the frontend, mocks dead backends inline, and emits a typed <em>bundle another ai can ingest</em>: metadata, a technical brief, and an asymmetric set of desktop/mobile screenshots sized for downstream mockup templates."
         }
+      ],
+      "label": "about kevin — three-beat cinematic",
+      "attribution": "3D model · {{author}} · CC-BY",
+      "beats": [
+        {
+          "eyebrow": "01 — origin",
+          "title": "how i got here.",
+          "body": "as a kid i'd disassemble my toys to see how they worked. my first website in college was an epiphany — i finally got to assemble something. seven years on, i'm still refining the same skill."
+        },
+        {
+          "eyebrow": "02 — present",
+          "title": "how i work now.",
+          "body": "fullstack across data viz, real-time systems, ai tooling, and sales funnels — with a method that compounds. brazilian, based in porto alegre."
+        },
+        {
+          "eyebrow": "03 — what's next",
+          "title": "where it's going.",
+          "body": "thinking-with-ai daily. building systems whose users are agents, not just humans — and refining the practice that makes that work shippable."
+        }
       ]
     },
     "projects": {
@@ -132,6 +151,9 @@
         "github": "github",
         "resume": "download cv"
       }
+    },
+    "footer": {
+      "modelAttribution": "3D model · {{author}} · CC-BY"
     }
   },
   "footer": {
