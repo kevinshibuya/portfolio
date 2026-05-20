@@ -1306,6 +1306,38 @@ html[data-loading='true'] {
 }
 .project-aside__cta:hover { border-color: var(--blue-500); }
 
+.project-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+.project-cursor__rotor {
+  position: relative;
+  width: 0;
+  height: 0;
+  transform-origin: 0% 0%;
+}
+.project-cursor__pill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* Center horizontally on cursor X; float 14px above cursor Y. */
+  transform: translate(-50%, calc(-100% - 14px));
+  display: inline-block;
+  white-space: nowrap;
+  background: var(--blue-400);
+  color: var(--cream);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 6px;
+  box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--blue-500) 60%, transparent);
+}
+
 /* Show the desktop block / hide the mobile block above 900px. */
 @media (min-width: 901px) {
   .project-aside__mobile { display: none; }

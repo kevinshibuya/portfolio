@@ -1,4 +1,11 @@
-import { motion, useScroll, useTransform } from 'framer-motion'
+import {
+  motion,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+  useVelocity,
+} from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -36,10 +43,27 @@ export function Projects() {
     return () => observers.forEach((o) => o.disconnect())
   }, [])
 
+  const cursorX = useMotionValue(-100)
+  const cursorY = useMotionValue(-100)
+  const springX = useSpring(cursorX, { damping: 28, stiffness: 380, mass: 0.4 })
+  const springY = useSpring(cursorY, { damping: 28, stiffness: 380, mass: 0.4 })
+  const vx = useVelocity(springX)
+  const rotate = useTransform(vx, [-2500, 2500], [18, -18], { clamp: true })
+  const [hovering, setHovering] = useState(false)
+
+  function handleMove(e: React.MouseEvent) {
+    cursorX.set(e.clientX)
+    cursorY.set(e.clientY)
+  }
+
   const current = featured[active]
 
   return (
-    <section id="projects" className="section project-section">
+    <section
+      id="projects"
+      className="section project-section"
+      onMouseMove={handleMove}
+    >
       <div className="project-grid">
         <aside className="project-aside">
           {/* Mobile-static block (Task 3) */}
@@ -129,10 +153,27 @@ export function Projects() {
               mediaRefCb={(el) => {
                 mediaRefs.current[idx] = el
               }}
+              onHoverEnter={() => setHovering(true)}
+              onHoverLeave={() => setHovering(false)}
             />
           ))}
         </div>
       </div>
+
+      <motion.div
+        className="project-cursor"
+        style={{ x: springX, y: springY }}
+        aria-hidden="true"
+      >
+        <motion.div
+          className="project-cursor__rotor"
+          style={{ rotate }}
+          animate={hovering ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <span className="project-cursor__pill">{t('sections.projects.viewProject')}</span>
+        </motion.div>
+      </motion.div>
     </section>
   )
 }
@@ -142,9 +183,11 @@ interface ProjectRowProps {
   index: number
   lang: 'en' | 'pt'
   mediaRefCb: (el: HTMLDivElement | null) => void
+  onHoverEnter: () => void
+  onHoverLeave: () => void
 }
 
-function ProjectRow({ project, index, lang, mediaRefCb }: ProjectRowProps) {
+function ProjectRow({ project, index, lang, mediaRefCb, onHoverEnter, onHoverLeave }: ProjectRowProps) {
   const mediaRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: mediaRef,
@@ -163,8 +206,14 @@ function ProjectRow({ project, index, lang, mediaRefCb }: ProjectRowProps) {
       <div
         ref={setRef}
         className="project-row__media"
-        onPointerEnter={() => setHover(true)}
-        onPointerLeave={() => setHover(false)}
+        onPointerEnter={() => {
+          setHover(true)
+          onHoverEnter()
+        }}
+        onPointerLeave={() => {
+          setHover(false)
+          onHoverLeave()
+        }}
         style={{ background: project.gradient }}
       >
         <span className="project-row__idx">{String(index + 1).padStart(2, '0')}</span>

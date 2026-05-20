@@ -853,7 +853,7 @@ git commit -m "feat(projects): image-only hover scale inside fixed frame"
 - Modify: `src/components/sections/Projects.tsx`
 - Modify: `src/index.css` (append cursor-follower rules)
 
-- [ ] **Step 1: Add velocity-related imports to `Projects.tsx`**
+- [x] **Step 1: Add velocity-related imports to `Projects.tsx`**
 
 The top imports block should now be:
 
@@ -873,7 +873,7 @@ import { projects } from '../../data/projects'
 import type { Project } from '../../types/content'
 ```
 
-- [ ] **Step 2: Add cursor state + `onMouseMove` handler to `Projects`**
+- [x] **Step 2: Add cursor state + `onMouseMove` handler to `Projects`**
 
 In the `Projects` component body, after the existing `useState`/`useRef`/`useEffect`, add:
 
@@ -892,7 +892,7 @@ In the `Projects` component body, after the existing `useState`/`useRef`/`useEff
   }
 ```
 
-- [ ] **Step 3: Add `onMouseMove` to the section root and pass hover toggles into rows**
+- [x] **Step 3: Add `onMouseMove` to the section root and pass hover toggles into rows**
 
 Change the section element to:
 
@@ -920,7 +920,7 @@ And update the `ProjectRow` call site in `Projects` to pass the hover toggles:
 />
 ```
 
-- [ ] **Step 4: Update `ProjectRowProps` and wire the new callbacks**
+- [x] **Step 4: Update `ProjectRowProps` and wire the new callbacks**
 
 ```tsx
 interface ProjectRowProps {
@@ -948,7 +948,7 @@ And inside `ProjectRow`, change the pointer handlers to call both the local + pa
 
 (Add `onHoverEnter` and `onHoverLeave` to the destructured props.)
 
-- [ ] **Step 5: Add the cursor-follower JSX at the end of the `<section>`**
+- [x] **Step 5: Add the cursor-follower JSX at the end of the `<section>`**
 
 Just before the closing `</section>` (after the `.project-grid` div), add:
 
@@ -971,7 +971,7 @@ Just before the closing `</section>` (after the `.project-grid` div), add:
 
 The `viewProject` key was added to both locale files in Task 1.
 
-- [ ] **Step 6: Append cursor CSS to `src/index.css`**
+- [x] **Step 6: Append cursor CSS to `src/index.css`**
 
 Insert before the `/* Show the desktop block / hide the mobile block above 900px. */` rule from Task 5:
 
@@ -1009,12 +1009,12 @@ Insert before the `/* Show the desktop block / hide the mobile block above 900px
 }
 ```
 
-- [ ] **Step 7: Build to verify**
+- [x] **Step 7: Build to verify**
 
 Run: `npm run build`
 Expected: clean build.
 
-- [ ] **Step 8: Manual hover-and-whip check**
+- [x] **Step 8: Manual hover-and-whip check**
 
 `npm run dev`, hover each card and whip the mouse left/right. Expected:
 - System cursor stays visible (no `cursor: none`)
@@ -1025,7 +1025,7 @@ Expected: clean build.
 
 Stop the dev server.
 
-- [ ] **Step 9: Tick the spec TODOs**
+- [x] **Step 9: Tick the spec TODOs**
 
 Tick: "Custom cursor follower …", "Pill visibility …", "`aria-hidden='true'` on the cursor follower …" (the pill-copy TODO was already ticked in Task 1 Step 5).
 
