@@ -1064,7 +1064,7 @@ EOF
 
 This task ships the toy in its assembled state, with palette-overridden materials. No scroll animation yet — that's Task 13.
 
-- [ ] **Step 1: Implement ToyModel**
+- [x] **Step 1: Implement ToyModel**
 
 Create `src/components/canvas/AboutScene/ToyModel.tsx`:
 
@@ -1136,7 +1136,7 @@ export function ToyModel() {
 }
 ```
 
-- [ ] **Step 2: Build to verify imports resolve**
+- [x] **Step 2: Build to verify imports resolve**
 
 Run: `npm run build`
 Expected: passes. drei + three are already in deps.
