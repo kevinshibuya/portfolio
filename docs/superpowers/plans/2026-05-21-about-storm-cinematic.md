@@ -609,7 +609,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 
 `StormText` renders the 6 drei `<Text>` meshes on the virtual cylinder, subscribes each to its opacity MotionValue, and bridges to the Troika fillOpacity via material direct write. No render-pass updates needed for opacity changes — Troika reads opacity from the material every frame.
 
-- [ ] **Step 1: Create StormText.tsx**
+- [x] **Step 1: Create StormText.tsx**
 
 Create `src/components/canvas/AboutScene/StormText.tsx`:
 
@@ -727,7 +727,7 @@ function StormFragment({ index, i18nKey, opacity }: StormFragmentProps) {
 }
 ```
 
-- [ ] **Step 2: Run typecheck**
+- [x] **Step 2: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS (no new type errors introduced).
