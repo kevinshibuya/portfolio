@@ -1910,7 +1910,7 @@ Expected: all 9 tests pass.
 
 If any fail, debug — likely culprits: (a) the loader gate (`loaderState === 'done'`) — check the existing tests use the same gate; (b) selector mismatch — verify with the dev server open.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/e2e/about-cinematic.spec.ts
