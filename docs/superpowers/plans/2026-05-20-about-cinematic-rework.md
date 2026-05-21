@@ -1755,7 +1755,7 @@ Run: `kill %1` (or find + kill the preview process).
 
 Open `public/images/about-toy-poster.webp` and `.png` in Finder / Preview. Expected: 640×640 image of the assembled toy on cream background, no scroll cursor or other UI visible. If the toy isn't centered or the image cropped wrong, rerun with adjusted cx/cy in the script.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/capture-about-poster.mjs \
@@ -1782,31 +1782,19 @@ EOF
 **Files:**
 - Modify: `src/components/layout/Footer.tsx`
 
-- [ ] **Step 1: Look up the model author from Sketchfab metadata**
+- [x] **Step 1: Look up the model author from Sketchfab metadata**
 
-Run:
-```bash
-curl -s "https://api.sketchfab.com/v3/models/7780d6de101b47e085fc5397f7e33701" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['user']['displayName'])"
-```
-Expected: prints the author's display name (e.g. `Tom Scudder`).
+Result: `Tom Scudder` (already resolved during Task 8 — model A used as-is, no fallback).
 
-If Task 8 fell back to model B or D, look up that model's UID instead.
+- [x] **Step 2: Replace the placeholder**
 
-- [ ] **Step 2: Replace the placeholder**
+Replaced `'TBD-replaced-Task-17'` with `'Tom Scudder'` in `src/components/layout/Footer.tsx:15`.
 
-Open `src/components/layout/Footer.tsx`. Find the literal string `'TBD-replaced-Task-17'` (it might be `TBD-replaced-Task-17` from Task 7 — earlier numbering; just grep for `TBD-replaced`). Replace with the actual author name from Step 1.
+- [x] **Step 3: Build + eyeball footer**
 
-Run: `grep -n "TBD-replaced" src/components/layout/Footer.tsx`
-Expected after the edit: no matches.
+Build verified clean. Footer meta now reads `3D model · Tom Scudder · CC-BY` (EN) / `modelo 3D · Tom Scudder · CC-BY` (PT).
 
-- [ ] **Step 3: Build + eyeball footer**
-
-Run: `npm run build && npm run dev`
-Expected: footer meta row reads `3D model · [actual author] · CC-BY`.
-
-Kill dev server.
-
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/layout/Footer.tsx

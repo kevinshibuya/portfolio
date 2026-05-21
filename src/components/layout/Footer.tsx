@@ -12,7 +12,7 @@ export function Footer() {
         <span>{t('footer.copyright', { year })}</span>
         <span>{t('footer.builtWith')}</span>
         <span className="footer-meta__attribution">
-          {t('sections.footer.modelAttribution', { author: 'TBD-replaced-Task-17' })}
+          {t('sections.footer.modelAttribution', { author: 'Tom Scudder' })}
         </span>
       </div>
     </footer>
