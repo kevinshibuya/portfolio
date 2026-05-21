@@ -11,6 +11,9 @@ export function Footer() {
       <div className="footer-bottom">
         <span>{t('footer.copyright', { year })}</span>
         <span>{t('footer.builtWith')}</span>
+        <span className="footer-meta__attribution">
+          {t('sections.footer.modelAttribution', { author: 'TBD-replaced-Task-17' })}
+        </span>
       </div>
     </footer>
   )

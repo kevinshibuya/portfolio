@@ -713,13 +713,13 @@ EOF
 **Files:**
 - Modify: `src/components/layout/Footer.tsx`
 
-- [ ] **Step 1: Find the meta row**
+- [x] **Step 1: Find the meta row**
 
 Run: `grep -n "meta\|copy\|all rights" src/components/layout/Footer.tsx`
 
 Identify the meta row JSX (usually the bottom of the footer where copyright lives).
 
-- [ ] **Step 2: Add the attribution line**
+- [x] **Step 2: Add the attribution line**
 
 Insert into the meta row a `<span>` (or whatever the existing meta-item element is) reading:
 
@@ -731,7 +731,7 @@ Insert into the meta row a `<span>` (or whatever the existing meta-item element 
 
 The actual author string is filled in during Task 19 once the .glb is downloaded and we know who made it. For this task, the literal `'TBD-replaced-Task-17'` is the placeholder — Task 19 explicitly searches for and replaces it.
 
-- [ ] **Step 3: Build + verify renders**
+- [x] **Step 3: Build + verify renders**
 
 Run: `npm run build && npm run dev`
 Expected: footer shows `3D model · TBD-replaced-Task-17 · CC-BY` (or PT equivalent).
