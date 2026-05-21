@@ -935,7 +935,7 @@ export function spreadDirection(assembledPosition: Vector3): Vector3 {
 Run: `npx vitest run src/components/canvas/AboutScene/scatterMath.test.ts`
 Expected: 6 tests passing.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/scatterMath.ts src/components/canvas/AboutScene/scatterMath.test.ts
@@ -960,7 +960,7 @@ EOF
 - Create: `src/components/canvas/AboutScene/useAboutProgress.ts`
 - Create: `src/components/canvas/AboutScene/useAboutProgress.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/components/canvas/AboutScene/useAboutProgress.test.ts`:
 
@@ -983,12 +983,12 @@ describe('beatOpacityRange', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/canvas/AboutScene/useAboutProgress.test.ts`
 Expected: FAIL — `Cannot find module './useAboutProgress'`.
 
-- [ ] **Step 3: Implement the hook + the pure helper**
+- [x] **Step 3: Implement the hook + the pure helper**
 
 Create `src/components/canvas/AboutScene/useAboutProgress.ts`:
 
@@ -1033,12 +1033,12 @@ export function useAboutProgress(outerRef: RefObject<HTMLElement | null>): About
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run src/components/canvas/AboutScene/useAboutProgress.test.ts`
 Expected: 3 tests passing.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/useAboutProgress.ts src/components/canvas/AboutScene/useAboutProgress.test.ts
