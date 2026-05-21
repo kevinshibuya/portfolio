@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, type RefObject } from 'react'
 import {
   useScroll,
   useTransform,
@@ -10,7 +10,7 @@ import { fragmentAngle, fragmentOpacityAtAngle, wrapPi } from './storm-math'
 const TAU = Math.PI * 2
 
 export interface AboutProgress {
-  outerRef: React.RefObject<HTMLElement | null>
+  outerRef: RefObject<HTMLElement | null>
   scrollYProgress: MotionValue<number>
   cameraZ: MotionValue<number>
   robotSpinY: MotionValue<number>
@@ -34,7 +34,7 @@ export function useAboutProgress(): AboutProgress {
 /** Test-friendly inner — drive with any MotionValue<number>. */
 export function useAboutProgressDerived(
   scrollYProgress: MotionValue<number>,
-  outerRef?: React.RefObject<HTMLElement | null>,
+  outerRef?: RefObject<HTMLElement | null>,
 ): AboutProgress {
   const cameraZ = useTransform(scrollYProgress, [0, 0.25, 1], [5.0, 2.5, 2.5])
   const robotSpinY = useTransform(scrollYProgress, [0, 0.25, 1], [0, TAU, TAU])

@@ -1,3 +1,7 @@
+// TODO(Task 7): rewrite this file. Task 3 changed useAboutProgress's signature
+// (no longer accepts an outerRef arg; no `beatOpacity`); this file currently
+// targets the v1 hook. The build is expected to fail here until Task 7 lands.
+// Tasks 4–6 produce new modules that this rewrite will wire together.
 import { useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useTranslation } from 'react-i18next'
