@@ -732,7 +732,7 @@ function StormFragment({ index, i18nKey, opacity }: StormFragmentProps) {
 Run: `npx tsc --noEmit`
 Expected: PASS (no new type errors introduced).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/StormText.tsx
