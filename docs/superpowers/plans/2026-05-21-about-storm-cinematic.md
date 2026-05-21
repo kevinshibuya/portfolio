@@ -385,7 +385,7 @@ The v1 hook returned `scrollYProgress` + per-beat opacities (3 ranges). The new 
 - `robotSpinY` — MotionValue, full 2π rotation between progress 0 and 0.25, then 0
 - `fragmentOpacities` — readonly array of 6 MotionValues, each derived from cylinderRotation via fragmentAngle + fragmentOpacityAtAngle
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/canvas/useAboutProgress.test.ts`:
 
@@ -480,12 +480,12 @@ describe('useAboutProgressDerived', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run tests/unit/canvas/useAboutProgress.test.ts`
 Expected: FAIL (existing v1 hook has a different signature).
 
-- [ ] **Step 3: Rewrite the hook**
+- [x] **Step 3: Rewrite the hook**
 
 Replace contents of `src/components/canvas/AboutScene/useAboutProgress.ts`:
 
@@ -580,12 +580,12 @@ function useMotionValueFromTransform(
 
 Note: the `useMemo` containing `useTransform` calls is a deliberate pattern. Because `ABOUT_FRAGMENT_COUNT` is a compile-time constant (6), the loop count is stable across renders and the hooks rule is satisfied. If lint complains, add an explicit disable comment on the loop (already included).
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run tests/unit/canvas/useAboutProgress.test.ts`
 Expected: PASS, 5/5.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/useAboutProgress.ts tests/unit/canvas/useAboutProgress.test.ts
