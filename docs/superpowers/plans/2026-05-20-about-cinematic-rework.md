@@ -637,7 +637,7 @@ Expected: visiting `http://localhost:5173`, the About section renders the fallba
 
 Kill dev server with Ctrl+C.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/sections/About.tsx \
