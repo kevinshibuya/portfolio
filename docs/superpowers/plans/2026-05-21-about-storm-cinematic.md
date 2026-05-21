@@ -1058,7 +1058,7 @@ Expected: PASS.
 Run: `npm run test:unit`
 Expected: all pre-existing tests still pass; new tests from Tasks 1–3 also pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/AboutScene.tsx
