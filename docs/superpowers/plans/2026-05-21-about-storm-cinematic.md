@@ -1078,7 +1078,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 
 New shape: small label eyebrow + `<picture>` (webp + png) + single condensed paragraph. No beats stack. Quiet CSS fade-in only.
 
-- [ ] **Step 1: Rewrite the unit test**
+- [x] **Step 1: Rewrite the unit test**
 
 Replace contents of `tests/unit/ui/AboutFallback.test.tsx`:
 
@@ -1129,12 +1129,12 @@ describe('AboutFallback', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run tests/unit/ui/AboutFallback.test.tsx`
 Expected: FAIL (v1 component has the beat-stack DOM, not the new shape).
 
-- [ ] **Step 3: Rewrite the component**
+- [x] **Step 3: Rewrite the component**
 
 Replace contents of `src/components/ui/AboutFallback.tsx`:
 
@@ -1164,7 +1164,7 @@ export function AboutFallback() {
 }
 ```
 
-- [ ] **Step 4: Update CSS**
+- [x] **Step 4: Update CSS**
 
 In `src/index.css`, find the `.about-fallback` block (added in v1). Delete all `.about-fallback__beat`, `.about-fallback__eyebrow`, `.about-fallback__title`, `.about-fallback__body`, and `.about-fallback__media` rules. Add/replace with:
 
@@ -1243,12 +1243,12 @@ If `.about-outer`, `.about-sticky`, or `.sr-only` rules from v1 are missing, ens
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `npx vitest run tests/unit/ui/AboutFallback.test.tsx`
 Expected: PASS, 4/4.
 
-- [ ] **Step 6: Run full unit suite**
+- [x] **Step 6: Run full unit suite**
 
 Run: `npm run test:unit`
 Expected: all tests pass (new + carryover); only the about-related v1 tests still pointing at deleted modules may fail — those are addressed in Task 10.

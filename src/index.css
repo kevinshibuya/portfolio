@@ -2425,45 +2425,58 @@ body[data-loader-state="loading"] {
 
 /* About — DOM fallback (mobile + reduced-motion) */
 .about-fallback {
-  padding: 96px 24px;
-  max-width: 640px;
-  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 80px 24px;
+  color: var(--ink);
+  opacity: 0;
+  animation: about-fallback-fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
 }
-.about-fallback__media {
-  display: block;
-  margin-bottom: 48px;
-}
-.about-fallback__media img {
-  width: 100%;
-  height: auto;
-  border-radius: 14px;
-}
-.about-fallback__beat {
-  margin-bottom: 56px;
-}
-.about-fallback__beat:last-child {
-  margin-bottom: 0;
-}
-.about-fallback__eyebrow {
-  font-size: 11px;
+
+.about-fallback__label {
+  font-size: 14px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-faded, #6A8CAA);
-  margin-bottom: 12px;
+  color: var(--bark);
 }
-.about-fallback__title {
-  font-weight: 800;
-  font-size: 32px;
-  letter-spacing: -0.02em;
-  line-height: 0.95;
-  color: var(--text-ink, #111822);
-  margin: 0 0 16px;
+
+.about-fallback__picture {
+  display: block;
+  max-width: 480px;
+  width: 100%;
 }
-.about-fallback__body {
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--text-bark, #2A4060);
+
+.about-fallback__poster {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 24px;
+}
+
+.about-fallback__paragraph {
+  font-size: 22px;
+  line-height: 1.4;
+  max-width: 36ch;
+  text-align: center;
   margin: 0;
+}
+
+@media (min-width: 768px) {
+  .about-fallback__paragraph {
+    font-size: 28px;
+  }
+}
+
+@keyframes about-fallback-fade-in {
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-fallback { animation: none; opacity: 1; }
 }
 
 /* About — pinned cinematic */
