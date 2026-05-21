@@ -894,7 +894,7 @@ Expected: signature `export function scatterOffset(index: number): Vector3`. If 
 Run: `npx tsc --noEmit`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/ToyModel.tsx
