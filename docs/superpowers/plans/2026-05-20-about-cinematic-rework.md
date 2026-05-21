@@ -689,7 +689,7 @@ If there's NO MarqueeDivider above About already, nothing to change here — not
 Run: `npm run build && npm run lint && npm run test:unit`
 Expected: all green. If anything fails, it's because something still consumed an old key — restore the key and find the leftover caller before retrying.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/i18n/locales/en.json src/i18n/locales/pt.json src/index.css src/pages/Home.tsx
