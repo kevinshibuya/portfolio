@@ -750,7 +750,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 
 New choreography: spin during 0→0.25 (no scatter, just spin around assembled), scatter 0.25→0.5, drift-hold 0.5→0.75, reassemble 0.75→1.0. Camera dolly is handled in `AboutScene.tsx` (Task 7), not here. The robot itself stays at origin (its parts move, but the parent group's position stays put).
 
-- [ ] **Step 1: Rewrite ToyModel.tsx**
+- [x] **Step 1: Rewrite ToyModel.tsx**
 
 Replace contents of `src/components/canvas/AboutScene/ToyModel.tsx`:
 
@@ -884,12 +884,12 @@ useGLTF.preload(MODEL_URL)
 
 Note: `scatterOffset(index)` returns the relative offset from rest (bounded LCG). v1's implementation is preserved in `scatterMath.ts` — confirm by reading it before this step.
 
-- [ ] **Step 2: Confirm scatterMath signature is unchanged**
+- [x] **Step 2: Confirm scatterMath signature is unchanged**
 
 Run: `grep -n "export function scatterOffset" src/components/canvas/AboutScene/scatterMath.ts`
 Expected: signature `export function scatterOffset(index: number): Vector3`. If different, adapt the call site above to match.
 
-- [ ] **Step 3: Run typecheck**
+- [x] **Step 3: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS.
