@@ -1560,7 +1560,7 @@ EOF
 - Modify: `src/components/canvas/AboutScene/AboutScene.tsx` (replace stub)
 - Append: `src/index.css` (sticky layout rules)
 
-- [ ] **Step 1: Replace the stub**
+- [x] **Step 1: Replace the stub**
 
 Overwrite `src/components/canvas/AboutScene/AboutScene.tsx` with:
 
@@ -1605,7 +1605,7 @@ export function AboutScene() {
 }
 ```
 
-- [ ] **Step 2: Append sticky layout rules to `src/index.css`**
+- [x] **Step 2: Append sticky layout rules to `src/index.css`**
 
 Append at the end of `src/index.css`:
 
@@ -1638,19 +1638,19 @@ Append at the end of `src/index.css`:
 }
 ```
 
-- [ ] **Step 3: Build**
+- [x] **Step 3: Build**
 
 Run: `npm run build`
 Expected: passes.
 
-- [ ] **Step 4: Run dev server, eyeball desktop About**
+- [x] **Step 4: Run dev server, eyeball desktop About**
 
 Run: `npm run dev`
 Expected: visiting `http://localhost:5173` on a desktop viewport (≥901px), the About section is now 300vh tall; the inner canvas pins as you scroll; the toy assembles → holds → spreads across the three thirds of scroll; the three beats' eyebrow/headline/body crossfade.
 
 Kill dev server.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/AboutScene.tsx src/index.css

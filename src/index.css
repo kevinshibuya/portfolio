@@ -2465,3 +2465,16 @@ body[data-loader-state="loading"] {
   color: var(--text-bark, #2A4060);
   margin: 0;
 }
+
+/* About — pinned cinematic */
+.about-outer {
+  position: relative;
+  height: 300vh;
+}
+.about-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
