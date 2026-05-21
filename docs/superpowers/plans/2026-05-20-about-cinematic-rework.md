@@ -665,18 +665,18 @@ EOF
 - Modify: `src/index.css` — remove `.about-grid`, `.about-bio-wrap`, `.about-bio`, `.about-tactics`, `.about-tactic*` rules
 - Modify: `src/pages/Home.tsx` — remove MarqueeDivider above About if present
 
-- [ ] **Step 1: Find dead CSS by inspection**
+- [x] **Step 1: Find dead CSS by inspection**
 
 Run: `grep -n "about-grid\|about-bio\|about-tactic" src/index.css`
 Save the line ranges for deletion. Open `src/index.css`, find each rule block, delete the rules.
 
-- [ ] **Step 2: Remove dead i18n keys**
+- [x] **Step 2: Remove dead i18n keys**
 
 In `src/i18n/locales/en.json`, delete keys `sections.about.title`, `sections.about.bio`, `sections.about.tactics`.
 
 Same in `src/i18n/locales/pt.json`.
 
-- [ ] **Step 3: Check `src/pages/Home.tsx` for MarqueeDivider above About**
+- [x] **Step 3: Check `src/pages/Home.tsx` for MarqueeDivider above About**
 
 Run: `grep -n "About\|MarqueeDivider" src/pages/Home.tsx`
 
@@ -684,7 +684,7 @@ If there's a `<MarqueeDivider>` immediately above `<About />`, delete that JSX l
 
 If there's NO MarqueeDivider above About already, nothing to change here — note it in the commit message.
 
-- [ ] **Step 4: Build + run unit tests + lint**
+- [x] **Step 4: Build + run unit tests + lint**
 
 Run: `npm run build && npm run lint && npm run test:unit`
 Expected: all green. If anything fails, it's because something still consumed an old key — restore the key and find the leftover caller before retrying.
