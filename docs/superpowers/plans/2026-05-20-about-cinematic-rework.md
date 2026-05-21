@@ -1271,7 +1271,7 @@ EOF
 **Files:**
 - Modify: `src/components/canvas/AboutScene/ToyModel.tsx`
 
-- [ ] **Step 1: Replace ToyModel with the choreographed version**
+- [x] **Step 1: Replace ToyModel with the choreographed version**
 
 Replace the file from Task 11 with:
 
@@ -1382,7 +1382,7 @@ export function ToyModel({ progress }: ToyModelProps) {
 }
 ```
 
-- [ ] **Step 2: Build to verify**
+- [x] **Step 2: Build to verify**
 
 Run: `npm run build`
 Expected: passes.

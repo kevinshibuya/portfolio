@@ -1,57 +1,96 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
-import { Group, Mesh, MeshStandardMaterial } from 'three'
+import { useFrame } from '@react-three/fiber'
+import { Group, Mesh, MeshStandardMaterial, Vector3 } from 'three'
+import type { MotionValue } from 'framer-motion'
+import { scatterOffset, spreadDirection } from './scatterMath'
 
 const MODEL_URL = '/models/about-toy.glb'
 
-// Portfolio palette mapped to a small set of materials. Parts get assigned
-// in a stable order so the palette distribution is deterministic across
-// renders.
 const PALETTE: ReadonlyArray<{ color: string; metalness: number; roughness: number }> = [
-  { color: '#A2D2FF', metalness: 0.35, roughness: 0.45 }, // blue-300 — main body
-  { color: '#D4E5F2', metalness: 0.20, roughness: 0.55 }, // mist     — accents
-  { color: '#6A8CAA', metalness: 0.50, roughness: 0.30 }, // dust     — joints / smaller parts
-  { color: '#3A96E8', metalness: 0.40, roughness: 0.40 }, // blue-400 — highlight
+  { color: '#A2D2FF', metalness: 0.35, roughness: 0.45 },
+  { color: '#D4E5F2', metalness: 0.20, roughness: 0.55 },
+  { color: '#6A8CAA', metalness: 0.50, roughness: 0.30 },
+  { color: '#3A96E8', metalness: 0.40, roughness: 0.40 },
 ]
 
 useGLTF.preload(MODEL_URL)
 
-export function ToyModel() {
+interface ToyModelProps {
+  /** 0..1 scroll progress across the About section. */
+  progress: MotionValue<number>
+}
+
+interface PartCache {
+  mesh: Mesh
+  assembled: Vector3
+  scattered: Vector3
+  spread: Vector3
+}
+
+const _tmp = new Vector3()
+
+function lerpClamped(a: number, b: number, t: number): number {
+  const c = t < 0 ? 0 : t > 1 ? 1 : t
+  return a + (b - a) * c
+}
+
+function positionForProgress(part: PartCache, p: number, out: Vector3): Vector3 {
+  if (p < 0.33) {
+    const t = p / 0.33
+    out.lerpVectors(part.scattered, part.assembled, t)
+  } else if (p < 0.66) {
+    out.copy(part.assembled)
+  } else {
+    const t = (p - 0.66) / 0.34
+    _tmp.copy(part.spread).multiplyScalar(0.3).add(part.assembled)
+    out.lerpVectors(part.assembled, _tmp, t)
+  }
+  return out
+}
+
+export function ToyModel({ progress }: ToyModelProps) {
   const groupRef = useRef<Group>(null)
+  const partsRef = useRef<PartCache[]>([])
   const { scene } = useGLTF(MODEL_URL)
 
-  // Collect mesh refs in a stable, ordered list. Used by Task 13 to
-  // animate per-part transforms.
-  const partsRef = useRef<Mesh[]>([])
-
   useEffect(() => {
-    const meshes: Mesh[] = []
+    const cache: PartCache[] = []
+    let i = 0
     scene.traverse((obj) => {
-      if ((obj as Mesh).isMesh) {
-        const m = obj as Mesh
-        meshes.push(m)
-      }
-    })
-    partsRef.current = meshes
-
-    // Apply palette override — deterministic by mesh index in traversal order.
-    meshes.forEach((mesh, i) => {
+      if (!(obj as Mesh).isMesh) return
+      const mesh = obj as Mesh
       const swatch = PALETTE[i % PALETTE.length]
       mesh.material = new MeshStandardMaterial({
         color: swatch.color,
         metalness: swatch.metalness,
         roughness: swatch.roughness,
       })
-      // Cache the assembled rest pose so Task 13 can lerp from/to it.
-      mesh.userData.assembled = {
-        position: mesh.position.clone(),
-        rotation: mesh.rotation.clone(),
-      }
+      const assembled = mesh.position.clone()
+      cache.push({
+        mesh,
+        assembled,
+        scattered: assembled.clone().add(scatterOffset(i)),
+        spread: spreadDirection(assembled),
+      })
+      i++
     })
+    partsRef.current = cache
   }, [scene])
 
-  // Centre the model: drei's useGLTF returns the scene at whatever origin
-  // the model was authored with. The group wrapper lets us recentre + scale.
+  useFrame(() => {
+    const p = progress.get()
+    const parts = partsRef.current
+    for (const part of parts) {
+      positionForProgress(part, p, part.mesh.position)
+    }
+    if (groupRef.current) {
+      // Subtle Y rotation during the "live" middle phase (0.33..0.66).
+      const liveT = lerpClamped(0, 1, (p - 0.33) / 0.33)
+      groupRef.current.rotation.y = liveT * (Math.PI / 6) // ~30°
+    }
+  })
+
   const transform = useMemo(() => ({
     scale: 1.2,
     position: [0, -0.3, 0] as [number, number, number],
