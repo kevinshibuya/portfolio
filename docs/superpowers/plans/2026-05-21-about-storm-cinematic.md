@@ -1313,7 +1313,7 @@ Expected: writes both files. Manually inspect the PNG — robot should occupy ~2
 
 Run: `kill %1` (or whatever job number the preview is)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add public/images/about-toy-poster.webp public/images/about-toy-poster.png scripts/capture-about-poster.mjs
