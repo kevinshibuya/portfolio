@@ -361,7 +361,7 @@ export function fragmentOpacityAtAngle(
 Run: `npx vitest run tests/unit/canvas/storm-math.test.ts`
 Expected: PASS, all tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/storm-math.ts tests/unit/canvas/storm-math.test.ts
