@@ -1,56 +1,28 @@
-import { Trans, useTranslation } from 'react-i18next'
-import { Stagger } from '../ui/Stagger'
-import { SectionHeading } from '../ui/SectionHeading'
-import { STAGGER_PRESETS } from '../../utils/animations'
+import { lazy, Suspense } from 'react'
+import { useReducedMotion } from 'framer-motion'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
+import { AboutFallback } from '../ui/AboutFallback'
 
-interface Tactic {
-  num: string
-  title: string
-  body: string
-}
+// Lazy-load the canvas branch so mobile users never download the R3F bundle.
+// The canvas module is implemented in a later task; until then this import
+// resolves to a tiny stub that just renders the fallback.
+const AboutScene = lazy(() =>
+  import('../canvas/AboutScene').then((m) => ({ default: m.AboutScene })),
+)
+
+const ABOUT_BREAKPOINT = '(max-width: 900px)'
 
 export function About() {
-  const { t } = useTranslation()
+  const reduced = useReducedMotion() ?? false
+  const isMobile = useMediaQuery(ABOUT_BREAKPOINT)
 
-  // Mirrors the defensive pattern in Hero.tsx — t() with returnObjects can
-  // hand back a string when the key is missing or i18next isn't ready yet.
-  const rawTactics = t('sections.about.tactics', { returnObjects: true })
-  const tactics: Tactic[] = Array.isArray(rawTactics) ? (rawTactics as Tactic[]) : []
+  if (reduced || isMobile) {
+    return <AboutFallback />
+  }
 
   return (
-    <section id="about" className="section">
-      <SectionHeading title={t('sections.about.title')} />
-
-      <div className="about-grid">
-        <div className="about-bio-wrap">
-          <p className="about-bio">
-            <Trans i18nKey="sections.about.bio" components={{ em: <em /> }} />
-          </p>
-        </div>
-
-        <Stagger
-          recipe="fadeUp"
-          stagger={STAGGER_PRESETS.workRows}
-          className="about-tactics"
-        >
-          {tactics.map((tactic, i) => (
-            <div key={tactic.num} className="about-tactic">
-              <span className="about-tactic-num">{tactic.num}</span>
-              <div>
-                <h3 className="about-tactic-title">
-                  {t(`sections.about.tactics.${i}.title`)}
-                </h3>
-                <p className="about-tactic-body">
-                  <Trans
-                    i18nKey={`sections.about.tactics.${i}.body`}
-                    components={{ em: <em /> }}
-                  />
-                </p>
-              </div>
-            </div>
-          ))}
-        </Stagger>
-      </div>
-    </section>
+    <Suspense fallback={<AboutFallback />}>
+      <AboutScene />
+    </Suspense>
   )
 }

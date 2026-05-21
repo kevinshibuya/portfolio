@@ -539,7 +539,7 @@ Append at the end of `src/index.css` (or after the existing About-related rules 
 Run: `npx vitest run src/components/ui/AboutFallback.test.tsx`
 Expected: 3 tests passing.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/ui/AboutFallback.tsx \
@@ -567,7 +567,7 @@ EOF
 **Files:**
 - Modify: `src/components/sections/About.tsx` — full rewrite
 
-- [ ] **Step 1: Replace About.tsx**
+- [x] **Step 1: Replace About.tsx**
 
 Overwrite `src/components/sections/About.tsx` with:
 
@@ -602,7 +602,7 @@ export function About() {
 }
 ```
 
-- [ ] **Step 2: Create the temporary canvas stub**
+- [x] **Step 2: Create the temporary canvas stub**
 
 So the import resolves cleanly while the real canvas is built in later tasks, create `src/components/canvas/AboutScene/index.ts`:
 
@@ -625,12 +625,12 @@ export function AboutScene() {
 }
 ```
 
-- [ ] **Step 3: Build and verify nothing broke**
+- [x] **Step 3: Build and verify nothing broke**
 
 Run: `npm run build`
 Expected: clean. Only the pre-existing HeroAccent3D chunk-size advisory.
 
-- [ ] **Step 4: Run dev server, open in browser, eyeball the About section**
+- [x] **Step 4: Run dev server, open in browser, eyeball the About section**
 
 Run: `npm run dev`
 Expected: visiting `http://localhost:5173`, the About section renders the fallback (poster + 3 articles) regardless of viewport width — the stub forces the fallback path everywhere for now.
