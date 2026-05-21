@@ -1534,7 +1534,7 @@ export function Scene({ scrollYProgress, beatOpacity }: SceneProps) {
 Run: `npm run build`
 Expected: passes.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/Scene.tsx
