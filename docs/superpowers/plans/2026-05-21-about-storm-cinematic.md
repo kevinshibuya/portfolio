@@ -1253,7 +1253,7 @@ Expected: PASS, 4/4.
 Run: `npm run test:unit`
 Expected: all tests pass (new + carryover); only the about-related v1 tests still pointing at deleted modules may fail — those are addressed in Task 10.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/components/ui/AboutFallback.tsx src/index.css tests/unit/ui/AboutFallback.test.tsx
