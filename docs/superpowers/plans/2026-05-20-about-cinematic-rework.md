@@ -1141,7 +1141,7 @@ export function ToyModel() {
 Run: `npm run build`
 Expected: passes. drei + three are already in deps.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/ToyModel.tsx
