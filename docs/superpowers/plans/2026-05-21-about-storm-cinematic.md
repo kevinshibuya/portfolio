@@ -1511,7 +1511,7 @@ Run: `npx playwright test tests/e2e/about-storm.spec.ts`
 (Playwright config should already start `npm run build && npm run preview -- --port 4173` via webServer.)
 Expected: all tests pass on both `desktop-chromium` and `mobile-chromium` projects.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/e2e/about-storm.spec.ts
