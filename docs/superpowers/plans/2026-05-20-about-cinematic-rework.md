@@ -821,7 +821,7 @@ EOF
 - Create: `src/components/canvas/AboutScene/scatterMath.ts`
 - Create: `src/components/canvas/AboutScene/scatterMath.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/components/canvas/AboutScene/scatterMath.test.ts`:
 
@@ -879,12 +879,12 @@ describe('spreadDirection', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/canvas/AboutScene/scatterMath.test.ts`
 Expected: FAIL — `Cannot find module './scatterMath'`.
 
-- [ ] **Step 3: Implement scatterMath**
+- [x] **Step 3: Implement scatterMath**
 
 Create `src/components/canvas/AboutScene/scatterMath.ts`:
 
@@ -930,7 +930,7 @@ export function spreadDirection(assembledPosition: Vector3): Vector3 {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run src/components/canvas/AboutScene/scatterMath.test.ts`
 Expected: 6 tests passing.
