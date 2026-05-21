@@ -1334,38 +1334,38 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - Modify: `src/i18n/locales/en.json` (remove `sections.about.beats`)
 - Modify: `src/i18n/locales/pt.json` (remove `sections.about.beats`)
 
-- [ ] **Step 1: Verify no source imports from v1 modules remain**
+- [x] **Step 1: Verify no source imports from v1 modules remain**
 
 Run: `grep -rn "aboutBeats\|BeatText" src/ tests/ scripts/ 2>&1`
 Expected: only matches inside the files being deleted, or no matches at all. If anything else imports these, fix that file first (likely the orchestrator `About.tsx` — but the orchestrator should only import `AboutScene` and `AboutFallback`, not internals).
 
-- [ ] **Step 2: Delete v1 source files**
+- [x] **Step 2: Delete v1 source files**
 
 ```bash
 git rm src/data/aboutBeats.ts src/components/canvas/AboutScene/BeatText.tsx
 ```
 
-- [ ] **Step 3: Delete v1 unit tests if they exist**
+- [x] **Step 3: Delete v1 unit tests if they exist**
 
 ```bash
 [ -f tests/unit/data/aboutBeats.test.ts ] && git rm tests/unit/data/aboutBeats.test.ts || true
 [ -f tests/unit/canvas/BeatText.test.tsx ] && git rm tests/unit/canvas/BeatText.test.tsx || true
 ```
 
-- [ ] **Step 4: Remove `sections.about.beats` from EN**
+- [x] **Step 4: Remove `sections.about.beats` from EN**
 
 In `src/i18n/locales/en.json`, find the `"beats"` array inside `sections.about` and remove the entire key + value. After this, `sections.about` should contain only `label`, `fragments`, and `fallbackParagraph`.
 
-- [ ] **Step 5: Remove `sections.about.beats` from PT**
+- [x] **Step 5: Remove `sections.about.beats` from PT**
 
 Same for `src/i18n/locales/pt.json`.
 
-- [ ] **Step 6: Verify no stale references**
+- [x] **Step 6: Verify no stale references**
 
 Run: `grep -rn "sections\.about\.beats\|aboutBeats\|BeatText" src/ tests/ scripts/ 2>&1`
 Expected: no matches.
 
-- [ ] **Step 7: Run full test + build + lint**
+- [x] **Step 7: Run full test + build + lint**
 
 ```bash
 npm run test:unit && npm run build && npm run lint

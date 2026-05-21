@@ -52,24 +52,7 @@
         "place": "brasileiro. porto alegre. um time de um.",
         "future": "pensar-com-ia todo dia. ainda curioso."
       },
-      "fallbackParagraph": "construo coisas interativas. quando criança desmontava meus brinquedos pra ver como funcionavam. sete anos depois entrego trabalho interativo em visualização de dados, sistemas em tempo real e ia — um time brasileiro de um só em porto alegre, pensando-com-ia todo dia.",
-      "beats": [
-        {
-          "eyebrow": "01 — origem",
-          "title": "como cheguei aqui.",
-          "body": "quando criança eu desmontava meus brinquedos pra ver como funcionavam. meu primeiro site na faculdade foi uma epifania — finalmente eu podia montar algo. sete anos depois, ainda refino a mesma habilidade."
-        },
-        {
-          "eyebrow": "02 — presente",
-          "title": "como trabalho hoje.",
-          "body": "fullstack em visualização de dados, sistemas em tempo real, ferramentas de ia e funis de vendas — com um método que acumula. brasileiro, em porto alegre."
-        },
-        {
-          "eyebrow": "03 — o que vem",
-          "title": "pra onde vai.",
-          "body": "pensar-com-ia todo dia. construindo sistemas cujos usuários são agentes, não só humanos — e refinando a prática que torna esse trabalho enviável."
-        }
-      ]
+      "fallbackParagraph": "construo coisas interativas. quando criança desmontava meus brinquedos pra ver como funcionavam. sete anos depois entrego trabalho interativo em visualização de dados, sistemas em tempo real e ia — um time brasileiro de um só em porto alegre, pensando-com-ia todo dia."
     },
     "projects": {
       "index": "01 · destaques",
