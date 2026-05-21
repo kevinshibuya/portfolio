@@ -1416,7 +1416,7 @@ EOF
 **Files:**
 - Create: `src/components/canvas/AboutScene/Scene.tsx`
 
-- [ ] **Step 1: Implement Scene**
+- [x] **Step 1: Implement Scene**
 
 Create `src/components/canvas/AboutScene/Scene.tsx`:
 
@@ -1529,7 +1529,7 @@ export function Scene({ scrollYProgress, beatOpacity }: SceneProps) {
 }
 ```
 
-- [ ] **Step 2: Build**
+- [x] **Step 2: Build**
 
 Run: `npm run build`
 Expected: passes.
