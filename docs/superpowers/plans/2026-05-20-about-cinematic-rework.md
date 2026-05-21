@@ -1676,7 +1676,7 @@ EOF
 - Create: `public/images/about-toy-poster.webp`
 - Create: `public/images/about-toy-poster.png`
 
-- [ ] **Step 1: Implement the capture script**
+- [x] **Step 1: Implement the capture script**
 
 Create `scripts/capture-about-poster.mjs`:
 
@@ -1732,26 +1732,26 @@ await browser.close()
 console.log('✓ poster written to public/images/about-toy-poster.{webp,png}')
 ```
 
-- [ ] **Step 2: Install sharp (image processing)**
+- [x] **Step 2: Install sharp (image processing)**
 
 Run: `npm install --save-dev sharp`
 Expected: clean install.
 
-- [ ] **Step 3: Build + start preview server**
+- [x] **Step 3: Build + start preview server**
 
 Run: `npm run build && npm run preview -- --port 4173 &`
 Expected: server starts. Wait ~2s.
 
-- [ ] **Step 4: Run the capture script**
+- [x] **Step 4: Run the capture script**
 
 Run: `node scripts/capture-about-poster.mjs`
 Expected: stdout: `✓ poster written to public/images/about-toy-poster.{webp,png}`.
 
-- [ ] **Step 5: Kill preview server**
+- [x] **Step 5: Kill preview server**
 
 Run: `kill %1` (or find + kill the preview process).
 
-- [ ] **Step 6: Eyeball both files**
+- [x] **Step 6: Eyeball both files**
 
 Open `public/images/about-toy-poster.webp` and `.png` in Finder / Preview. Expected: 640×640 image of the assembled toy on cream background, no scroll cursor or other UI visible. If the toy isn't centered or the image cropped wrong, rerun with adjusted cx/cy in the script.
 
