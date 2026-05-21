@@ -1,6 +1,6 @@
 const TAU = Math.PI * 2
 
-/** Wraps an angle into [-π, π]. */
+/** Wraps an angle into [-π, π) — +π maps to -π. */
 export function wrapPi(x: number): number {
   const m = ((x + Math.PI) % TAU + TAU) % TAU
   return m - Math.PI
