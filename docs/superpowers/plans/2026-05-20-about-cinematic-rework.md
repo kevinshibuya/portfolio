@@ -762,54 +762,42 @@ EOF
 - Create: `public/models/about-toy.glb`
 - Append: `docs/superpowers/plans/2026-05-20-about-cinematic-rework.md` (this file) — implementer pastes the inspection output below this task
 
-- [ ] **Step 1: Download model A from Sketchfab**
+- [x] **Step 1: Download model A from Sketchfab**
 
-Open https://sketchfab.com/3d-models/vintage-toy-robot-7780d6de101b47e085fc5397f7e33701 in a browser, click Download → glTF. Save as `public/models/about-toy.glb` (rename if downloaded `.zip` — extract the glb, discard textures since we override materials at runtime).
+User downloaded `vintage_toy_robot.glb` from Sketchfab (UID `7780d6de101b47e085fc5397f7e33701`), placed at `public/models/about-toy.glb` (2.8 MB original). Author: **Tom Scudder** (CC Attribution).
 
-If Sketchfab download requires sign-in, sign in with a personal account. The model is CC-BY — usable.
+- [x] **Step 2: Inspect the scene graph**
 
-- [ ] **Step 2: Inspect the scene graph**
+```
+generator: Sketchfab-16.65.0
+extensionsUsed: KHR_materials_clearcoat
+Meshes: 32 separate primitives (all TRIANGLES), all named "ToyRobot:..." (pCube*, pCylinder*, pSphere*, polySurface*).
+Textures (original): 3 × 1024² PNG (baseColor, metallicRoughness, normal) totaling 2.1 MB — stripped at runtime override + at build time via texture detach.
+```
 
-Run: `npx gltf-transform inspect public/models/about-toy.glb`
+- [x] **Step 3: Decide path based on mesh count**
 
-Paste the relevant sections (scenes, nodes, meshes) into this plan file directly under this Step 2 as a fenced code block. The implementer should keep the inspection output committed for future reference.
+32 meshes — well above the 4-mesh threshold. Path: **use as-is**. No Blender split needed. Skip Steps 4 + 5.
 
-- [ ] **Step 3: Decide path based on mesh count**
+- [x] **Step 4 (only if Step 3 routed here): Open in Blender + split by loose parts**
 
-Look at the inspection output's `meshes` table:
+Not applicable — Step 3 routed to "use as-is" (32 separable meshes already present).
 
-- If `meshes` count is **≥ 4**: proceed to Step 6 (use as-is).
-- If `meshes` count is **1** (everything in a single fused mesh): proceed to Step 4 (Blender split).
-- If between 2 and 3 meshes: probably fine but parts may be coarsely grouped — still usable. Proceed to Step 6 and document the grouping in the commit.
+- [x] **Step 5 (only if loose-parts split failed): Fall back to model B or D**
 
-- [ ] **Step 4 (only if Step 3 routed here): Open in Blender + split by loose parts**
+Not applicable — primary model A worked.
 
-Open Blender (free, https://www.blender.org). File → Import → glTF 2.0 → `public/models/about-toy.glb`.
+- [x] **Step 6: Optimize**
 
-Select all (`A`), enter Edit Mode (`Tab`), Select All again, press `P` → `By Loose Parts`. Exit Edit Mode (`Tab`).
+Plan command `gltf-transform optimize` with defaults RAN `join` which fused all 32 meshes into 1 — discovered on first attempt, original was restored from a fresh copy from `~/Downloads/`. Re-ran with `--join false --flatten false --compress draco`. Mesh count stayed at 32; size went from 2.8 MB → 2.32 MB.
 
-In the Outliner, rename the resulting mesh nodes to semantic names: `head`, `torso`, `arm-l`, `arm-r`, `leg-l`, `leg-r`, `key`, `base`, plus any others (`antenna`, `chest-window`, etc., depending on the model).
+Then ran a one-off node script to **detach all texture references from materials** and `dispose()` the orphaned textures (since runtime palette override discards them anyway). Final: 162 KB. Script ran with `@gltf-transform/core@4.3.0` + `@gltf-transform/extensions` + `draco3dgltf@1.5.7` installed locally in `/tmp` (not added as project deps).
 
-File → Export → glTF 2.0 (.glb), overwrite `public/models/about-toy.glb`. Settings: Include Selected Objects ✓, Compression ✓ (Draco level 6).
+- [x] **Step 7: Verify file size**
 
-Re-run `npx gltf-transform inspect public/models/about-toy.glb` and confirm `meshes` count is now ≥ 4 with the renamed labels.
+162 KB — well under the 500 KB target.
 
-- [ ] **Step 5 (only if loose-parts split failed): Fall back to model B or D**
-
-If loose-parts produced only 1 part (welded mesh), repeat Steps 1–4 with model B (Cowboy Tin Robot, UID `80e43481b20648a7940fd8737a30bafe`). If B also welded, use D (Robot No.1 Rigged, UID `9f8f0c6fc1ce4fc08e19ead884ee4b98`) — rigged guarantees a bone hierarchy with per-bone meshes.
-
-- [ ] **Step 6: Optimize**
-
-Run: `npx gltf-transform optimize public/models/about-toy.glb public/models/about-toy.glb`
-
-Expected: a transform log showing dedup + draco. Final file size should be < 500 KB. If > 1 MB, run `npx gltf-transform draco public/models/about-toy.glb public/models/about-toy.glb --quantizePosition 14` to push compression further.
-
-- [ ] **Step 7: Verify file size**
-
-Run: `ls -la public/models/about-toy.glb`
-Expected: file size < 1 MB ideally < 500 KB.
-
-- [ ] **Step 8: Commit the model + inspection notes**
+- [x] **Step 8: Commit the model + inspection notes**
 
 ```bash
 git add public/models/about-toy.glb docs/superpowers/plans/2026-05-20-about-cinematic-rework.md
