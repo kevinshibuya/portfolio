@@ -218,7 +218,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 
 Pure, framework-free math primitives: angle wrapping, smoothstep falloff, per-fragment cylinder angle, and per-fragment opacity-at-angle. Reused by `useAboutProgress` (Task 3) and `StormText` (Task 4).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/canvas/storm-math.test.ts`:
 
@@ -303,12 +303,12 @@ describe('fragmentOpacityAtAngle', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run tests/unit/canvas/storm-math.test.ts`
 Expected: FAIL (module not found).
 
-- [ ] **Step 3: Implement the math module**
+- [x] **Step 3: Implement the math module**
 
 Create `src/components/canvas/AboutScene/storm-math.ts`:
 
@@ -356,7 +356,7 @@ export function fragmentOpacityAtAngle(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run tests/unit/canvas/storm-math.test.ts`
 Expected: PASS, all tests.
