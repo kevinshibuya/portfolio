@@ -43,7 +43,16 @@
   },
   "sections": {
     "about": {
-      "label": "sobre o kevin — cinemática em três tempos",
+      "label": "sobre o kevin — tempestade de trabalho",
+      "fragments": {
+        "curiosity": "construo coisas interativas.",
+        "kid-toys": "quando criança eu desmontava meus brinquedos.",
+        "how-it-worked": "pra ver como funcionavam.",
+        "present": "sete anos entregando. dados, tempo real, ia.",
+        "place": "brasileiro. porto alegre. um time de um.",
+        "future": "pensar-com-ia todo dia. ainda curioso."
+      },
+      "fallbackParagraph": "construo coisas interativas. quando criança desmontava meus brinquedos pra ver como funcionavam. sete anos depois entrego trabalho interativo em visualização de dados, sistemas em tempo real e ia — um time brasileiro de um só em porto alegre, pensando-com-ia todo dia.",
       "beats": [
         {
           "eyebrow": "01 — origem",

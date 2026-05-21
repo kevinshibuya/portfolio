@@ -59,7 +59,7 @@
 
 The v1 `aboutBeats.ts` and `sections.about.beats[]` i18n keys are kept temporarily; they are deleted in Task 10 after all references are removed. Adding the new data alongside the old prevents broken-reference compile errors between tasks.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/data/aboutFragments.test.ts`:
 
@@ -119,12 +119,12 @@ describe('ABOUT_FRAGMENTS', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run tests/unit/data/aboutFragments.test.ts`
 Expected: FAIL (module `aboutFragments` not found).
 
-- [ ] **Step 3: Create the fragments module**
+- [x] **Step 3: Create the fragments module**
 
 Create `src/data/aboutFragments.ts`:
 
@@ -154,7 +154,7 @@ export const ABOUT_FRAGMENTS: readonly AboutFragment[] = [
 export const ABOUT_FRAGMENT_COUNT = ABOUT_FRAGMENTS.length
 ```
 
-- [ ] **Step 4: Add new EN i18n keys**
+- [x] **Step 4: Add new EN i18n keys**
 
 In `src/i18n/locales/en.json`, find the `"sections": { "about": { ... } }` block and add `label`, `fragments`, and `fallbackParagraph` to it (keep the existing `beats` key for now — Task 10 deletes it). The block should contain:
 
@@ -174,7 +174,7 @@ In `src/i18n/locales/en.json`, find the `"sections": { "about": { ... } }` block
 }
 ```
 
-- [ ] **Step 5: Add new PT i18n keys**
+- [x] **Step 5: Add new PT i18n keys**
 
 In `src/i18n/locales/pt.json`, mirror the EN structure in PT — same JSON shape, PT translations:
 
@@ -194,12 +194,12 @@ In `src/i18n/locales/pt.json`, mirror the EN structure in PT — same JSON shape
 }
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `npx vitest run tests/unit/data/aboutFragments.test.ts`
 Expected: PASS, 4/4.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/data/aboutFragments.ts src/i18n/locales/en.json src/i18n/locales/pt.json tests/unit/data/aboutFragments.test.ts

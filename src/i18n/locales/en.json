@@ -43,7 +43,16 @@
   },
   "sections": {
     "about": {
-      "label": "about kevin — three-beat cinematic",
+      "label": "about kevin — storm of work",
+      "fragments": {
+        "curiosity": "i build interactive things.",
+        "kid-toys": "as a kid i took my toys apart.",
+        "how-it-worked": "to see how they worked.",
+        "present": "seven years shipping. data, real-time, ai.",
+        "place": "brazilian. porto alegre. a team of one.",
+        "future": "thinking-with-ai daily. still curious."
+      },
+      "fallbackParagraph": "i build interactive things. as a kid i took my toys apart to see how they worked. seven years later i ship interactive work across data, real-time systems, and ai — a brazilian team of one in porto alegre, thinking-with-ai daily.",
       "beats": [
         {
           "eyebrow": "01 — origin",
