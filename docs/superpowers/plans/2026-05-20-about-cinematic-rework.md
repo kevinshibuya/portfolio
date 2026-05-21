@@ -738,7 +738,7 @@ Expected: footer shows `3D model · TBD-replaced-Task-17 · CC-BY` (or PT equiva
 
 Kill dev server.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/layout/Footer.tsx
