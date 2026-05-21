@@ -1,7 +1,7 @@
 // One-off poster capture for the About fallback. Loads the production
 // build at http://localhost:4173, scrolls the About section to progress
-// ~= 0.4 (toy fully assembled, no spread, no rotation midpoint), and
-// crops a 640x640 centered on the canvas.
+// 0.25 (storm peak — robot front-facing, fully assembled, ~25% of viewport),
+// and crops a 640x640 centered on the canvas.
 //
 // Run: npm run preview (in another terminal) then
 //      node scripts/capture-about-poster.mjs
@@ -28,9 +28,11 @@ const aboutBox = await page.evaluate(() => {
   const r = el.getBoundingClientRect()
   return { top: r.top + window.scrollY, height: r.height }
 })
-const targetY = Math.round(aboutBox.top + aboutBox.height * 0.4)
+// useScroll with ['start start','end end'] yields progress 0..1 over
+// (aboutHeight - viewportHeight). Target progress 0.25 = peak pose.
+const targetY = Math.round(aboutBox.top + 0.25 * (aboutBox.height - VIEWPORT.height))
 await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), targetY)
-await page.waitForTimeout(800)
+await page.waitForTimeout(1500)
 
 // Screenshot full viewport, then crop a 640x640 centered on the canvas.
 const fullPath = '/tmp/about-poster-full.png'

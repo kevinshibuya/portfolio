@@ -1272,17 +1272,17 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 
 The new peak pose (scroll 0.25) shows a larger, front-facing robot than v1's poster. The poster must be re-captured against the new scene so the fallback image visually matches what desktop users see at the peak.
 
-- [ ] **Step 1: Build the site so the new About scene is available**
+- [x] **Step 1: Build the site so the new About scene is available**
 
 Run: `npm run build`
 Expected: clean build.
 
-- [ ] **Step 2: Start the preview server in the background**
+- [x] **Step 2: Start the preview server in the background**
 
 Run: `npm run preview -- --port 4173 &`
 Wait until the server prints "Local: http://localhost:4173/".
 
-- [ ] **Step 3: Adapt the capture script if needed**
+- [x] **Step 3: Adapt the capture script if needed**
 
 Read `scripts/capture-about-poster.mjs`. It should:
 1. Launch Playwright Chromium at viewport 1440×900
@@ -1304,12 +1304,12 @@ await page.evaluate((y) => window.scrollTo(0, y), targetScroll)
 await page.waitForTimeout(1500)
 ```
 
-- [ ] **Step 4: Run the capture**
+- [x] **Step 4: Run the capture**
 
 Run: `node scripts/capture-about-poster.mjs`
 Expected: writes both files. Manually inspect the PNG — robot should occupy ~25% of the frame, front-facing, on the mist-blue background.
 
-- [ ] **Step 5: Stop the preview server**
+- [x] **Step 5: Stop the preview server**
 
 Run: `kill %1` (or whatever job number the preview is)
 
