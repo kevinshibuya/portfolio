@@ -1165,7 +1165,7 @@ EOF
 **Files:**
 - Create: `src/components/canvas/AboutScene/BeatText.tsx`
 
-- [ ] **Step 1: Implement BeatText**
+- [x] **Step 1: Implement BeatText**
 
 Create `src/components/canvas/AboutScene/BeatText.tsx`:
 
@@ -1242,12 +1242,12 @@ export function BeatText({
 }
 ```
 
-- [ ] **Step 2: Build to verify imports**
+- [x] **Step 2: Build to verify imports**
 
 Run: `npm run build`
 Expected: passes.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/BeatText.tsx
