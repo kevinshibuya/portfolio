@@ -995,7 +995,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 
 Outer 300vh `<section>` (the scroll target) + 100vh sticky inner + full-bleed `<Canvas>` + sr-only paragraph sibling. Uses `useAboutProgress()` to get the outerRef and all MotionValues, then passes them down to `Scene`.
 
-- [ ] **Step 1: Rewrite AboutScene.tsx**
+- [x] **Step 1: Rewrite AboutScene.tsx**
 
 Replace contents of `src/components/canvas/AboutScene/AboutScene.tsx`:
 
@@ -1048,12 +1048,12 @@ export function AboutScene() {
 }
 ```
 
-- [ ] **Step 2: Run typecheck**
+- [x] **Step 2: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS.
 
-- [ ] **Step 3: Run unit test suite to confirm no regressions**
+- [x] **Step 3: Run unit test suite to confirm no regressions**
 
 Run: `npm run test:unit`
 Expected: all pre-existing tests still pass; new tests from Tasks 1–3 also pass.
