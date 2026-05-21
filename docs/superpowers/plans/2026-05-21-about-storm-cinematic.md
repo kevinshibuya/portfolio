@@ -977,7 +977,7 @@ function CameraController({ cameraZ }: CameraControllerProps) {
 Run: `npx tsc --noEmit`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/canvas/AboutScene/Scene.tsx
