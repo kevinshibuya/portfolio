@@ -2,7 +2,7 @@ import { Text } from '@react-three/drei'
 import type { MotionValue } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 
-const FONT_URL = '/fonts/PlusJakartaSans-VariableFont_wght.woff2'
+const FONT_URL = '/fonts/PlusJakartaSans-VariableFont_wght.ttf'
 
 interface BeatTextProps {
   content: string
