@@ -44,7 +44,6 @@
   "sections": {
     "about": {
       "label": "sobre o kevin — cinemática em três tempos",
-      "attribution": "modelo 3D · {{author}} · CC-BY",
       "beats": [
         {
           "eyebrow": "01 — origem",
@@ -129,7 +128,9 @@
       }
     },
     "footer": {
-      "modelAttribution": "modelo 3D · {{author}} · CC-BY"
+      "modelCredit": "modelo 3d:",
+      "by": "por",
+      "via": "via"
     }
   },
   "footer": {

@@ -44,7 +44,6 @@
   "sections": {
     "about": {
       "label": "about kevin — three-beat cinematic",
-      "attribution": "3D model · {{author}} · CC-BY",
       "beats": [
         {
           "eyebrow": "01 — origin",
@@ -129,7 +128,9 @@
       }
     },
     "footer": {
-      "modelAttribution": "3D model · {{author}} · CC-BY"
+      "modelCredit": "3d model:",
+      "by": "by",
+      "via": "via"
     }
   },
   "footer": {
