@@ -66,7 +66,14 @@ export function ToyModel({ progress }: ToyModelProps) {
         metalness: swatch.metalness,
         roughness: swatch.roughness,
       })
-      const assembled = mesh.position.clone()
+      // useGLTF caches the scene across mounts. On remount, mesh.position
+      // holds whatever the last useFrame wrote — not the GLB's rest pose.
+      // Capture the original on first mount into userData, and read from
+      // there on every subsequent capture so assembled stays authoritative.
+      if (!mesh.userData.assembledRest) {
+        mesh.userData.assembledRest = mesh.position.clone()
+      }
+      const assembled = (mesh.userData.assembledRest as Vector3).clone()
       cache.push({
         mesh,
         assembled,
@@ -76,6 +83,11 @@ export function ToyModel({ progress }: ToyModelProps) {
       i++
     })
     partsRef.current = cache
+    return () => {
+      for (const part of cache) {
+        (part.mesh.material as MeshStandardMaterial).dispose()
+      }
+    }
   }, [scene])
 
   useFrame(() => {
