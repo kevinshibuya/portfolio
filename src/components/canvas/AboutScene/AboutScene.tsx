@@ -23,11 +23,11 @@ export function AboutScene() {
       aria-label={t('sections.about.label')}
     >
       <div className="about-sticky">
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
         <Canvas
           camera={{ position: [0, 0, 5], fov: 35 }}
           gl={{ alpha: true, antialias: true }}
           dpr={[1, 2]}
-          aria-hidden="true"
         >
           <Suspense fallback={null}>
             <Scene
@@ -39,6 +39,7 @@ export function AboutScene() {
             />
           </Suspense>
         </Canvas>
+        </div>
         <p className="sr-only">{t('sections.about.fallbackParagraph')}</p>
       </div>
     </section>

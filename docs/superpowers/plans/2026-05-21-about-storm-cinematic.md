@@ -1372,7 +1372,7 @@ npm run test:unit && npm run build && npm run lint
 ```
 Expected: all clean (lint may report the same pre-existing warnings from v1 — confirm count is unchanged, not increased).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -u src/i18n/locales/en.json src/i18n/locales/pt.json
@@ -1389,13 +1389,13 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 - Create: `tests/e2e/about-storm.spec.ts`
 - Delete: `tests/e2e/about-cinematic.spec.ts` (v1 — supersedes by the new file)
 
-- [ ] **Step 1: Delete v1 e2e**
+- [x] **Step 1: Delete v1 e2e**
 
 ```bash
 [ -f tests/e2e/about-cinematic.spec.ts ] && git rm tests/e2e/about-cinematic.spec.ts || true
 ```
 
-- [ ] **Step 2: Create the new e2e file**
+- [x] **Step 2: Create the new e2e file**
 
 Create `tests/e2e/about-storm.spec.ts`:
 
@@ -1503,7 +1503,7 @@ test.describe('about — reduced motion', () => {
 
 Note: the `sparse fragment reveal` test currently uses a placeholder count (returns 1). Tightening it requires DOM-visible opacity state, which Troika doesn't expose. Acceptable as a smoke check for now — visual sweep (Task 12) is the real verification.
 
-- [ ] **Step 3: Run the e2e suite**
+- [x] **Step 3: Run the e2e suite**
 
 Ensure dev/preview is not running, then:
 
