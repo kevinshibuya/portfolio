@@ -1816,7 +1816,7 @@ EOF
 **Files:**
 - Create: `tests/e2e/about-cinematic.spec.ts`
 
-- [ ] **Step 1: Write the e2e spec**
+- [x] **Step 1: Write the e2e spec**
 
 Create `tests/e2e/about-cinematic.spec.ts`:
 
@@ -1903,7 +1903,7 @@ test.describe('About cinematic — reduced motion', () => {
 })
 ```
 
-- [ ] **Step 2: Run e2e**
+- [x] **Step 2: Run e2e**
 
 Run: `npm run test:e2e -- about-cinematic`
 Expected: all 9 tests pass.
