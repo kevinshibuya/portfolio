@@ -912,7 +912,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 
 Wires `BackPlane` + `ToyModel` + `StormText` + lights + a `CameraController` that updates `state.camera.position.z` from the `cameraZ` MotionValue each frame.
 
-- [ ] **Step 1: Rewrite Scene.tsx**
+- [x] **Step 1: Rewrite Scene.tsx**
 
 Replace contents of `src/components/canvas/AboutScene/Scene.tsx`:
 
@@ -972,7 +972,7 @@ function CameraController({ cameraZ }: CameraControllerProps) {
 }
 ```
 
-- [ ] **Step 2: Run typecheck**
+- [x] **Step 2: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS.
