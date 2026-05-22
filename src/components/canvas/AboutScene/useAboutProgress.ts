@@ -74,7 +74,8 @@ function useFragmentOpacity(
   index: number,
 ): MotionValue<number> {
   const baseAngle = fragmentAngle(index, ABOUT_FRAGMENT_COUNT)
+  // Fragment is at world-front when (θ_i − ψ) = 0 (mod 2π) — see fragmentAngle JSDoc.
   return useTransform(cylinderRotation, (psi) =>
-    fragmentOpacityAtAngle(wrapPi(baseAngle + psi)),
+    fragmentOpacityAtAngle(wrapPi(baseAngle - psi)),
   )
 }

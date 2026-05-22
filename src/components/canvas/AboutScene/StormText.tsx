@@ -60,13 +60,17 @@ function StormFragment({ index, i18nKey, opacity }: StormFragmentProps) {
 
   const { position, rotation } = useMemo(() => {
     const theta = fragmentAngle(index, ABOUT_FRAGMENTS.length)
+    // Local Y rotation = -theta so that, when the group rotates by ψ = θ at this
+    // fragment's peak, world rotation Y = -θ + θ = 0 — text +Z faces world +Z
+    // (= toward camera). At other ψ values the fragment is foreshortened, as
+    // intended for "painted on the cylinder wall".
     return {
       position: [
         CYLINDER_RADIUS * Math.sin(theta),
         Y_JITTER[index] ?? 0,
         -CYLINDER_RADIUS * Math.cos(theta),
       ] as [number, number, number],
-      rotation: [0, theta + Math.PI, 0] as [number, number, number],
+      rotation: [0, -theta, 0] as [number, number, number],
     }
   }, [index])
 

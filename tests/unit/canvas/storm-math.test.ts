@@ -39,10 +39,10 @@ describe('smoothFalloff', () => {
 })
 
 describe('fragmentAngle', () => {
-  it('places fragments at -(i+0.5) · 2π/N around the cylinder', () => {
-    expect(fragmentAngle(0, 6)).toBeCloseTo(-(Math.PI / 6))
-    expect(fragmentAngle(1, 6)).toBeCloseTo(-(Math.PI / 2))
-    expect(fragmentAngle(5, 6)).toBeCloseTo(-(11 * Math.PI / 6))
+  it('places fragments at (i+0.5) · 2π/N around the cylinder', () => {
+    expect(fragmentAngle(0, 6)).toBeCloseTo(Math.PI / 6)
+    expect(fragmentAngle(1, 6)).toBeCloseTo(Math.PI / 2)
+    expect(fragmentAngle(5, 6)).toBeCloseTo(11 * Math.PI / 6)
   })
 })
 

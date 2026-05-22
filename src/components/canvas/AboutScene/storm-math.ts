@@ -22,9 +22,14 @@ export function smoothFalloff(x: number, edge0: number, edge1: number): number {
  * Cylinder angle for fragment index i out of N fragments.
  * Picks offsets so fragment i sweeps through camera-front at progress (i + 0.5) / N
  * when the cylinder rotates by progress · 2π.
+ *
+ * Derivation: with local position (R·sin(θ), y, -R·cos(θ)) and group Y rotation
+ * ψ around origin, a fragment reaches world (0, *, -R) when θ_i - ψ = 0 (mod 2π).
+ * So we set θ_i = (i + 0.5) · 2π/n and fragment i peaks at ψ = θ_i, which maps
+ * to progress = (i + 0.5)/n given ψ = progress · 2π.
  */
 export function fragmentAngle(i: number, n: number): number {
-  return -(i + 0.5) * (TAU / n)
+  return (i + 0.5) * (TAU / n)
 }
 
 /**

@@ -17,6 +17,13 @@ const _tmp = new Vector3()
 const DRIFT_AMPLITUDE = 0.05
 const DRIFT_FREQUENCY = 0.4 // Hz
 
+// GLB is authored small (~0.18u tall) and offset (model origin at robot feet,
+// front face turned ~3/4 from -Z). Wrap the primitive so the outer group owns
+// scroll-driven Y spin while the inner primitive carries static fit transforms.
+const MODEL_SCALE = 3.0
+const MODEL_OFFSET_Y = -0.6      // shift model down so its center lands near world Y=0
+const MODEL_FRONT_OFFSET_Y = Math.PI  // GLB's "front" sits ~180° from -Z; correct so spin lands front-facing
+
 interface ToyModelProps {
   scrollYProgress: MotionValue<number>
   robotSpinY: MotionValue<number>
@@ -122,7 +129,17 @@ export function ToyModel({ scrollYProgress, robotSpinY }: ToyModelProps) {
     })
   })
 
-  return <primitive ref={groupRef} object={scene} dispose={null} />
+  return (
+    <group ref={groupRef}>
+      <primitive
+        object={scene}
+        dispose={null}
+        scale={MODEL_SCALE}
+        position={[0, MODEL_OFFSET_Y, 0]}
+        rotation={[0, MODEL_FRONT_OFFSET_Y, 0]}
+      />
+    </group>
+  )
 }
 
 useGLTF.preload(MODEL_URL)
