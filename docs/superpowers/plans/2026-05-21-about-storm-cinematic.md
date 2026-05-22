@@ -1599,7 +1599,7 @@ build clean, lint baseline, unit + e2e green, Lighthouse Perf ≥90 / A11y ≥95
 Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 ```
 
-- [ ] **Step 6: Final status summary**
+- [x] **Step 6: Final status summary**
 
 Report to the controller:
 - Commits added: <N> on `feat/about-cinematic-rework`
