@@ -259,25 +259,25 @@ Visual sweep (Playwright + sharp, in `scripts/`):
 
 ## TODO (acceptance criteria — ticked during implementation)
 
-- [ ] Pinned 300vh outer + 100vh sticky container renders, scroll progress maps 0→1 cleanly.
-- [ ] Robot reaches ~25% viewport coverage at scroll 0.25 (verified via Playwright capture).
-- [ ] Robot completes one full Y revolution between scroll 0.00 and 0.25, settling at front-facing pose.
-- [ ] Robot dolly: camera z = 5.0 at scroll 0.0, z = 2.5 at scroll 0.25, stays at 2.5 through 1.0.
-- [ ] Disassembly fully unfolds between scroll 0.25–0.50; each mesh interpolates from rest to its `scatterOffset(index)` target.
-- [ ] Hold phase (0.50–0.75) shows sinusoidal drift ≤ 0.05u per axis at 0.4 Hz; per-mesh phase offsets break unison.
-- [ ] Reassembly fully completes between scroll 0.75–1.00; robot returns to rest pose at progress 1.0.
-- [ ] 6 fragments are rendered as drei `<Text>` meshes positioned on the virtual cylinder (R=6, 60° spacing, jittered Y).
-- [ ] Cylinder rotates 360° as scroll progresses 0→1.
-- [ ] Active-fragment opacity is 1.0 when |angle| ≤ 20°, 0.0 when |angle| ≥ 30°, crossfaded smoothstep between.
-- [ ] At any scroll position, exactly 0 or 1 fragments are fully opaque (sparse invariant).
-- [ ] `<Text>` rendering uses Plus Jakarta Sans TTF (not WOFF2); fontSize 0.55, color ink, anchor center/middle.
-- [ ] Canvas `<canvas>` has `aria-hidden="true"`; sr-only `<p>` sibling carries `fallbackParagraph`.
+- [x] Pinned 300vh outer + 100vh sticky container renders, scroll progress maps 0→1 cleanly.
+- [x] Robot reaches ~25% viewport coverage at scroll 0.25 (verified via Playwright capture).
+- [x] Robot completes one full Y revolution between scroll 0.00 and 0.25, settling at front-facing pose.
+- [x] Robot dolly: camera z = 5.0 at scroll 0.0, z = 2.5 at scroll 0.25, stays at 2.5 through 1.0.
+- [x] Disassembly fully unfolds between scroll 0.25–0.50; each mesh interpolates from rest to its `scatterOffset(index)` target.
+- [x] Hold phase (0.50–0.75) shows sinusoidal drift ≤ 0.05u per axis at 0.4 Hz; per-mesh phase offsets break unison.
+- [x] Reassembly fully completes between scroll 0.75–1.00; robot returns to rest pose at progress 1.0.
+- [x] 6 fragments are rendered as drei `<Text>` meshes positioned on the virtual cylinder (R=6, 60° spacing, jittered Y).
+- [x] Cylinder rotates 360° as scroll progresses 0→1.
+- [x] Active-fragment opacity is 1.0 when |angle| ≤ 20°, 0.0 when |angle| ≥ 30°, crossfaded smoothstep between.
+- [x] At any scroll position, exactly 0 or 1 fragments are fully opaque (sparse invariant).
+- [x] `<Text>` rendering uses Plus Jakarta Sans TTF (not WOFF2); fontSize 0.55, color ink, anchor center/middle.
+- [x] Canvas `<canvas>` has `aria-hidden="true"`; sr-only `<p>` sibling carries `fallbackParagraph`.
 - [ ] Reduced-motion + max-width:900px route to `<AboutFallback>`; R3F chunk does not download on those branches (verified via network filter).
-- [ ] `AboutFallback` renders label + poster + single `fallbackParagraph`.
-- [ ] `aboutFragments.ts` exports exactly 6 entries with the documented `id`s.
-- [ ] i18n: EN + PT have `sections.about.{label, fragments.*, fallbackParagraph}`; no orphan `sections.about.beats*` keys remain.
-- [ ] Footer CC-BY 4.0 attribution unchanged (carried from v1).
+- [x] `AboutFallback` renders label + poster + single `fallbackParagraph`.
+- [x] `aboutFragments.ts` exports exactly 6 entries with the documented `id`s.
+- [x] i18n: EN + PT have `sections.about.{label, fragments.*, fallbackParagraph}`; no orphan `sections.about.beats*` keys remain.
+- [x] Footer CC-BY 4.0 attribution unchanged (carried from v1).
 - [ ] Unit tests: aboutFragments shape, useAboutProgress opacity boundaries, AboutFallback DOM, About orchestrator branching.
 - [ ] E2E tests: desktop sparse-reveal at 6 scroll stops, robot peak-size assertion at 0.25, mobile fallback present + no R3F chunk, reduced-motion fallback present.
 - [ ] `npm run build` clean; `npm run lint` 0 errors; `npm run test:unit` 100% pass; `npx playwright test` 100% pass.
-- [ ] Lighthouse Performance ≥ 90, Accessibility ≥ 95 against `npm run preview`.
+- [x] Lighthouse Performance ≥ 90, Accessibility ≥ 95 against `npm run preview`.

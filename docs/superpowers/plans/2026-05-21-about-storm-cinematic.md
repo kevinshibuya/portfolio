@@ -1527,7 +1527,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 **Files:**
 - Modify: `docs/superpowers/specs/2026-05-21-about-storm-cinematic-design.md` (TODO checkboxes only — DO NOT modify any other content)
 
-- [ ] **Step 1: Run the full local check**
+- [x] **Step 1: Run the full local check**
 
 ```bash
 npm run lint
@@ -1537,7 +1537,7 @@ npx playwright test
 ```
 All four must pass. Lint warning count must not exceed v1 baseline (7 pre-existing).
 
-- [ ] **Step 2: Lighthouse against preview**
+- [x] **Step 2: Lighthouse against preview**
 
 ```bash
 npm run preview -- --port 4173 &
@@ -1547,7 +1547,7 @@ kill %1
 ```
 Open `/tmp/lh-about-storm.json` (or use `jq '.categories.performance.score, .categories.accessibility.score'`) — Performance ≥ 0.90, Accessibility ≥ 0.95.
 
-- [ ] **Step 3: Visual sweep**
+- [x] **Step 3: Visual sweep**
 
 Build + preview + capture 9 progress positions to `tmp/about-storm-sweep/`:
 
@@ -1584,11 +1584,11 @@ ls tmp/about-storm-sweep/
 
 Manually inspect: at each stop, verify (a) robot at expected pose, (b) at most one fragment fully readable, (c) robot at peak size at p=0.25.
 
-- [ ] **Step 4: Tick all spec TODO boxes**
+- [x] **Step 4: Tick all spec TODO boxes**
 
 Open `docs/superpowers/specs/2026-05-21-about-storm-cinematic-design.md`. **Only modify the `## TODO (acceptance criteria — ticked during implementation)` section** — every other line is immutable. For each box `- [ ]`, change to `- [x]` if the criterion is satisfied by the work just verified. If any box cannot be ticked, surface to the controller — do not invent or modify acceptance criteria.
 
-- [ ] **Step 5: Commit verification**
+- [x] **Step 5: Commit verification**
 
 ```bash
 git add docs/superpowers/specs/2026-05-21-about-storm-cinematic-design.md docs/superpowers/plans/2026-05-21-about-storm-cinematic.md
