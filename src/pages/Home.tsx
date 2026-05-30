@@ -1,6 +1,5 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
-import { About } from '../components/sections/About'
 import { Hero } from '../components/sections/Hero'
 import { useLenis } from '../hooks/useLenis'
 import { useMotion } from '../context/MotionContext'
@@ -202,7 +201,6 @@ export function Home() {
   return (
     <main>
       <Hero />
-      <About />
       <Suspense fallback={<div style={{ minHeight: '100vh' }} aria-hidden />}>
         <Projects />
         <Archive />
