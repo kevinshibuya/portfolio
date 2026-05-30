@@ -32,6 +32,10 @@ projects_assets/
 # Scratch / drafts at repo root
 prompt.md
 a.md
+HANDOFF.md
+
+# Local scratch / sweep output (storm-sweep, tmp captures)
+tmp/
 
 # Playwright artifacts
 test-results/
