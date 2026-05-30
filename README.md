@@ -1,54 +1,59 @@
-# React + TypeScript + Vite
+# kevin shibuya — portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> soft blue editorial. lowercase, playful, confident.
+> a bilingual developer portfolio — built in **en** and **pt** from the first commit.
 
-Currently, two official plugins are available:
+**🔗 live —** [kevinshibuya.com](https://kevinshibuya.com/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| layer | tech |
+| --- | --- |
+| framework | **React 19** + **TypeScript** (strict) |
+| build | **Vite 6** + SWC |
+| styling | **Tailwind CSS v4** (Vite plugin, configured via CSS `@theme` — no `tailwind.config.js`) |
+| react animation | **Framer Motion** — enter/exit, hover, layout |
+| scroll / timeline | **GSAP** + ScrollTrigger, **Lenis** smooth scroll |
+| webgl / 3d | **React Three Fiber** (`@react-three/fiber` + `drei`, `three`) |
+| i18n | **react-i18next** — en + pt |
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+Each animation library stays in its own lane — they're never mixed for the same effect.
+
+## getting started
+
+```bash
+npm install      # node 22+
+npm run dev      # vite dev server
+npm run build    # tsc -b && vite build
+npm run preview  # serve the production build (port 4173)
+npm run test     # unit (vitest) + e2e (playwright)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## structure
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
 ```
+src/
+  components/
+    layout/        # Header, Footer, SmoothScroll
+    sections/      # Hero, Projects, WorkExperience, Skills, Stats, Contact …
+    ui/            # reusable atoms (SectionHeading, Stagger, …)
+    canvas/        # React Three Fiber scenes
+    projectDetail/ # project case-study page parts
+  pages/           # Home, ProjectDetail (routed)
+  hooks/           # useLenis, useReducedMotion, scroll/entrance hooks
+  context/         # MotionContext
+  i18n/            # setup + locales/{en,pt}.json
+  data/            # typed portfolio content (projects, embeds, social)
+  types/           # shared interfaces
+  utils/           # animation presets, constants
+```
+
+Below-the-fold sections are lazy-loaded and warmed at idle, so the initial JS chunk only carries the hero.
+
+## notes
+
+- **bilingual by design** — all copy is authored in en + pt; switch via the nav toggle or `?lang=en|pt`.
+- **motion is respectful** — every animation honours `prefers-reduced-motion`.
+- the 3D model in the footer is used under **CC-BY**; attribution is in the site footer.
