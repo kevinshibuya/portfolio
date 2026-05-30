@@ -3,7 +3,6 @@ import { useFrame } from '@react-three/fiber'
 import { useRef, useEffect } from 'react'
 import { Group, Mesh, MeshStandardMaterial, Vector3 } from 'three'
 import type { MotionValue } from 'framer-motion'
-import { scatterOffset } from './scatterMath'
 
 const MODEL_URL = '/models/about-toy.glb'
 
@@ -17,12 +16,18 @@ const _tmp = new Vector3()
 const DRIFT_AMPLITUDE = 0.05
 const DRIFT_FREQUENCY = 0.4 // Hz
 
-// GLB is authored small (~0.18u tall) and offset (model origin at robot feet,
-// front face turned ~3/4 from -Z). Wrap the primitive so the outer group owns
-// scroll-driven Y spin while the inner primitive carries static fit transforms.
+// Outward-explosion factor: each part moves to (rest - centroid) * EXPLOSION_FACTOR
+// at full scatter. >1 means parts move further from the centroid than they sit at rest.
+// Because the offsets are PURELY radial from the centroid, sum of offsets ≈ 0,
+// so the visual centroid stays anchored during the explosion.
+const EXPLOSION_FACTOR = 3.8
+
+// GLB is authored small (~0.18u tall) and offset (model origin at robot feet).
+// Wrap the primitive so the outer group owns scroll-driven Y spin while the
+// inner primitive carries static fit transforms.
 const MODEL_SCALE = 3.0
 const MODEL_OFFSET_Y = -0.6      // shift model down so its center lands near world Y=0
-const MODEL_FRONT_OFFSET_Y = Math.PI  // GLB's "front" sits ~180° from -Z; correct so spin lands front-facing
+const MODEL_FRONT_OFFSET_Y = -Math.PI / 4   // tuned via visual sweep so robot faces camera at p=0
 
 interface ToyModelProps {
   scrollYProgress: MotionValue<number>
@@ -35,35 +40,48 @@ export function ToyModel({ scrollYProgress, robotSpinY }: ToyModelProps) {
 
   // Set up palette overrides and cache per-mesh scatter target + phase offsets ONCE on mount.
   useEffect(() => {
-    let meshIndex = 0
+    // First pass: collect meshes and compute centroid of rest positions.
+    const meshes: Mesh[] = []
     scene.traverse((node) => {
-      if ((node as Mesh).isMesh) {
-        const mesh = node as Mesh
-        const color = PALETTE[meshIndex % PALETTE.length]
-        mesh.material = new MeshStandardMaterial({
-          color,
-          roughness: 0.4,
-          metalness: 0.1,
-        })
-        // Cache scatter target ONCE — scatterOffset allocates a new Vector3,
-        // so we must not call it inside useFrame.
-        mesh.userData.scatterTarget = scatterOffset(meshIndex)
-        // Stable per-mesh phase offsets (deterministic from meshIndex so they
-        // survive across remounts).
-        mesh.userData.phaseX = (meshIndex * 0.7) % (Math.PI * 2)
-        mesh.userData.phaseY = (meshIndex * 1.3) % (Math.PI * 2)
-        mesh.userData.phaseZ = (meshIndex * 2.1) % (Math.PI * 2)
-        mesh.userData.meshIndex = meshIndex
-        meshIndex++
+      if ((node as Mesh).isMesh) meshes.push(node as Mesh)
+    })
+    const centroid = new Vector3()
+    meshes.forEach((m) => centroid.add(m.position))
+    if (meshes.length > 0) centroid.divideScalar(meshes.length)
+
+    // Second pass: assign material + cache scatter target = radial vector
+    // from centroid, scaled by EXPLOSION_FACTOR. Because targets are pure
+    // radial from the centroid, their sum is ~zero → centroid stays anchored.
+    meshes.forEach((mesh, meshIndex) => {
+      const color = PALETTE[meshIndex % PALETTE.length]
+      mesh.material = new MeshStandardMaterial({
+        color,
+        roughness: 0.4,
+        metalness: 0.1,
+      })
+      const radial = mesh.position.clone().sub(centroid)
+      // Parts sitting exactly at the centroid get a tiny deterministic outward
+      // nudge so they don't stay glued there during the explosion.
+      if (radial.lengthSq() < 1e-6) {
+        radial.set(
+          Math.cos(meshIndex * 1.3),
+          Math.sin(meshIndex * 0.7),
+          Math.sin(meshIndex * 2.1),
+        ).multiplyScalar(0.05)
       }
+      mesh.userData.scatterTarget = radial.multiplyScalar(EXPLOSION_FACTOR)
+      // Stable per-mesh phase offsets (deterministic from meshIndex so they
+      // survive across remounts).
+      mesh.userData.phaseX = (meshIndex * 0.7) % (Math.PI * 2)
+      mesh.userData.phaseY = (meshIndex * 1.3) % (Math.PI * 2)
+      mesh.userData.phaseZ = (meshIndex * 2.1) % (Math.PI * 2)
+      mesh.userData.meshIndex = meshIndex
     })
     return () => {
-      scene.traverse((node) => {
-        if ((node as Mesh).isMesh) {
-          const m = (node as Mesh).material
-          if (Array.isArray(m)) m.forEach((mat) => mat.dispose())
-          else m?.dispose()
-        }
+      meshes.forEach((mesh) => {
+        const m = mesh.material
+        if (Array.isArray(m)) m.forEach((mat) => mat.dispose())
+        else m?.dispose()
       })
     }
   }, [scene])

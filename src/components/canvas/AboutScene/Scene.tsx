@@ -22,12 +22,6 @@ export function Scene({
     <>
       <CameraController cameraZ={cameraZ} />
 
-      {/* Soft mist-blue backplane behind the cinematic. */}
-      <mesh position={[0, 0, -10]}>
-        <planeGeometry args={[40, 40]} />
-        <meshBasicMaterial color="#DCF0FF" transparent opacity={0.55} />
-      </mesh>
-
       <ambientLight intensity={0.6} />
       <directionalLight position={[3, 4, 5]} intensity={0.8} />
 
