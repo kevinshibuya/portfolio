@@ -40,3 +40,10 @@ tests/e2e/_screens/
 
 # Superpowers brainstorming session artifacts
 .superpowers/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
