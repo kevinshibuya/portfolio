@@ -28,7 +28,7 @@ const MotionLink = motion.create(Link)
 export function Projects() {
   const { t, i18n } = useTranslation()
   const { prefersReducedMotion } = useMotion()
-  const lang = i18n.language as 'en' | 'pt'
+  const lang = i18n.language.startsWith('pt') ? 'pt' : 'en'
   const featured = projects
     .filter((p) => p.highlight && (p.highlightOrder ?? 99) <= 4)
     .sort((a, b) => (a.highlightOrder ?? 99) - (b.highlightOrder ?? 99))
