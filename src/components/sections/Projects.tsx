@@ -1,9 +1,12 @@
 import {
   motion,
   useMotionValue,
+  useScroll,
   useSpring,
   useTransform,
   useVelocity,
+  type MotionValue,
+  type Variants,
 } from 'framer-motion'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -108,7 +111,7 @@ interface BentoCardProps {
   project: Project
   lang: 'en' | 'pt'
   caseStudy: string
-  variants: import('framer-motion').Variants
+  variants: Variants
   onHoverEnter?: () => void
   onHoverLeave?: () => void
 }
@@ -117,6 +120,17 @@ function BentoCard({ project, lang, caseStudy, variants, onHoverEnter, onHoverLe
   const cardRef = useRef<HTMLAnchorElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   useCursorTilt(cardRef, wrapRef, { tilt: 10, scale: 1.08, shift: 8 })
+
+  const { prefersReducedMotion } = useMotion()
+
+  // Subtle scroll parallax on the (contain-fit) mockup. Targets the inner
+  // `.bento-mockup` span — a different node than the tilt-driven imgs.
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    offset: ['start end', 'end start'],
+  })
+  const rawY = useTransform(scrollYProgress, [0, 1], ['-5%', '5%'])
+  const mockupY = prefersReducedMotion ? undefined : rawY
 
   const sizeClass =
     project.size === 'lg'
@@ -154,8 +168,8 @@ function BentoCard({ project, lang, caseStudy, variants, onHoverEnter, onHoverLe
         <div ref={wrapRef} className="bento-mockup-wrap bento-mockup-wrap--dual">
           {project.mockups && (
             <>
-              <MockupLayer src={project.mockups.desktopBento} alt={desktopAlt} />
-              <MockupLayer src={project.mockups.mobile} alt={mobileAlt} className="bento-mockup--mobile" />
+              <MockupLayer src={project.mockups.desktopBento} alt={desktopAlt} y={mockupY} />
+              <MockupLayer src={project.mockups.mobile} alt={mobileAlt} className="bento-mockup--mobile" y={mockupY} />
             </>
           )}
         </div>
@@ -175,7 +189,7 @@ function BentoCard({ project, lang, caseStudy, variants, onHoverEnter, onHoverLe
     >
       {tagline && <span className="bento-desc-top">{tagline}</span>}
       <div ref={wrapRef} className="bento-mockup-wrap">
-        {project.mockups && <MockupLayer src={project.mockups.desktopBento} alt={desktopAlt} />}
+        {project.mockups && <MockupLayer src={project.mockups.desktopBento} alt={desktopAlt} y={mockupY} />}
       </div>
       <div className="bento-bottom">
         <h3 className="bento-title">{title}</h3>
@@ -189,11 +203,12 @@ interface MockupLayerProps {
   src: string
   alt: string
   className?: string
+  y?: MotionValue<string>
 }
 
-function MockupLayer({ src, alt, className }: MockupLayerProps) {
+function MockupLayer({ src, alt, className, y }: MockupLayerProps) {
   return (
-    <span className={`bento-mockup ${className ?? ''}`}>
+    <motion.span className={`bento-mockup ${className ?? ''}`} style={{ y }}>
       <img
         className="bento-mockup-img bento-mockup-img--tonal"
         src={src}
@@ -213,6 +228,6 @@ function MockupLayer({ src, alt, className }: MockupLayerProps) {
         width="1200"
         height="737"
       />
-    </span>
+    </motion.span>
   )
 }

@@ -257,7 +257,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 **Files:**
 - Modify: `src/components/sections/Projects.tsx`
 
-- [ ] **Step 1: Extend imports for scroll + the MotionValue type**
+- [x] **Step 1: Extend imports for scroll + the MotionValue type**
 
 Update the framer-motion import to include `useScroll` and the `MotionValue` type:
 ```tsx
@@ -272,7 +272,7 @@ import {
 } from 'framer-motion'
 ```
 
-- [ ] **Step 2: Compute a gated parallax MotionValue in `BentoCard`**
+- [x] **Step 2: Compute a gated parallax MotionValue in `BentoCard`**
 
 At the top of `BentoCard`, after `useCursorTilt(...)`, add (`useMotion` is already imported and used by `Projects`; import is module-level so it's available):
 ```tsx
@@ -289,7 +289,7 @@ At the top of `BentoCard`, after `useCursorTilt(...)`, add (`useMotion` is alrea
 ```
 (`useScroll`/`useTransform` are called unconditionally — only the *value* is gated, so rules-of-hooks hold.)
 
-- [ ] **Step 3: Pass `y` to every `MockupLayer`**
+- [x] **Step 3: Pass `y` to every `MockupLayer`**
 
 Add `y={mockupY}` to each `<MockupLayer .../>` usage — both in the `isDual` branch (two layers: desktop + mobile) and the default branch (one layer). Example (dual):
 ```tsx
@@ -297,7 +297,7 @@ Add `y={mockupY}` to each `<MockupLayer .../>` usage — both in the `isDual` br
               <MockupLayer src={project.mockups.mobile} alt={mobileAlt} className="bento-mockup--mobile" y={mockupY} />
 ```
 
-- [ ] **Step 4: Make `MockupLayer` a `motion.span` that applies `y`**
+- [x] **Step 4: Make `MockupLayer` a `motion.span` that applies `y`**
 
 Replace the `MockupLayerProps` interface and the `MockupLayer` function:
 ```tsx
@@ -335,12 +335,12 @@ function MockupLayer({ src, alt, className, y }: MockupLayerProps) {
 }
 ```
 
-- [ ] **Step 5: Typecheck + build**
+- [x] **Step 5: Typecheck + build**
 
 Run: `npm run build`
 Expected: clean. (`y` is `MotionValue<string> | undefined`; `motion.span` `style.y` accepts it.)
 
-- [ ] **Step 6: Visual verify + tune the range**
+- [x] **Step 6: Visual verify + tune the range**
 
 Run: `npm run build && npx vite preview` (4173). Scroll the bento through the viewport: each mockup should drift gently — clearly present but not distracting, and it must **not** overlap the card's title/case-study row at the extremes. If it collides or feels too strong, reduce the range (`['-4%','4%']` / `['-3%','3%']`) and rebuild. Confirm cursor-tilt on hover still works simultaneously (parallax and tilt compose). Emulate reduced motion: mockup is static (no drift). Capture desktop + mobile screenshots to `tmp/`.
 Expected: subtle drift, no title collision, tilt unaffected, static under reduced motion.
