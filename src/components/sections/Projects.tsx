@@ -1,5 +1,11 @@
-import { motion } from 'framer-motion'
-import { useRef } from 'react'
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  useVelocity,
+} from 'framer-motion'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useMotion } from '../../context/MotionContext'
@@ -31,8 +37,26 @@ export function Projects() {
     ? REDUCED_MOTION_VARIANT
     : VARIANTS.cardReveal
 
+  // Velocity "view project" cursor pill (desktop, motion-on only).
+  const cursorX = useMotionValue(-100)
+  const cursorY = useMotionValue(-100)
+  const springX = useSpring(cursorX, { damping: 28, stiffness: 380, mass: 0.4 })
+  const springY = useSpring(cursorY, { damping: 28, stiffness: 380, mass: 0.4 })
+  const vx = useVelocity(springX)
+  const rotate = useTransform(vx, [-2500, 2500], [18, -18], { clamp: true })
+  const [hovering, setHovering] = useState(false)
+
+  function handleMove(e: React.MouseEvent) {
+    cursorX.set(e.clientX)
+    cursorY.set(e.clientY)
+  }
+
   return (
-    <section id="projects" className="section">
+    <section
+      id="projects"
+      className="section"
+      onMouseMove={prefersReducedMotion ? undefined : handleMove}
+    >
       <SectionHeading
         index={t('sections.projects.index')}
         label={t('sections.projects.label')}
@@ -54,9 +78,28 @@ export function Projects() {
             lang={lang}
             caseStudy={t('sections.projects.caseStudy')}
             variants={cardVariants}
+            onHoverEnter={prefersReducedMotion ? undefined : () => setHovering(true)}
+            onHoverLeave={prefersReducedMotion ? undefined : () => setHovering(false)}
           />
         ))}
       </motion.div>
+
+      {!prefersReducedMotion && (
+        <motion.div
+          className="project-cursor"
+          style={{ x: springX, y: springY }}
+          aria-hidden="true"
+        >
+          <motion.div
+            className="project-cursor__rotor"
+            style={{ rotate }}
+            animate={hovering ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <span className="project-cursor__pill">{t('sections.projects.viewProject')}</span>
+          </motion.div>
+        </motion.div>
+      )}
     </section>
   )
 }
@@ -66,9 +109,11 @@ interface BentoCardProps {
   lang: 'en' | 'pt'
   caseStudy: string
   variants: import('framer-motion').Variants
+  onHoverEnter?: () => void
+  onHoverLeave?: () => void
 }
 
-function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
+function BentoCard({ project, lang, caseStudy, variants, onHoverEnter, onHoverLeave }: BentoCardProps) {
   const cardRef = useRef<HTMLAnchorElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   useCursorTilt(cardRef, wrapRef, { tilt: 10, scale: 1.08, shift: 8 })
@@ -96,6 +141,8 @@ function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
         to={`/projects/${project.slug}`}
         className={cardClass}
         style={{ background }}
+        onMouseEnter={onHoverEnter}
+        onMouseLeave={onHoverLeave}
       >
         <div className="bento-text-col">
           {tagline && <span className="bento-desc-top">{tagline}</span>}
@@ -123,6 +170,8 @@ function BentoCard({ project, lang, caseStudy, variants }: BentoCardProps) {
       to={`/projects/${project.slug}`}
       className={cardClass}
       style={{ background }}
+      onMouseEnter={onHoverEnter}
+      onMouseLeave={onHoverLeave}
     >
       {tagline && <span className="bento-desc-top">{tagline}</span>}
       <div ref={wrapRef} className="bento-mockup-wrap">

@@ -112,7 +112,7 @@ Expected: vitest green; Playwright green (the two updated specs now resolve `#pr
 Run: `grep -nE '\.project-(section|grid|aside|list|row)' src/index.css || echo "CLEAN: no square layout CSS"` and `grep -n '"intro"' src/i18n/locales/*.json || echo "CLEAN: no intro key"`
 Expected: both print `CLEAN: ...`.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/components/sections/Projects.tsx src/index.css src/i18n/locales/en.json src/i18n/locales/pt.json tests/e2e/section-enters.spec.ts tests/e2e/reduced-motion.spec.ts
@@ -130,7 +130,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 **Files:**
 - Modify: `src/components/sections/Projects.tsx`
 
-- [ ] **Step 1: Update imports**
+- [x] **Step 1: Update imports**
 
 Change the top two import lines to:
 ```tsx
@@ -144,7 +144,7 @@ import {
 import { useRef, useState } from 'react'
 ```
 
-- [ ] **Step 2: Add pill machinery + hover state in the `Projects` component**
+- [x] **Step 2: Add pill machinery + hover state in the `Projects` component**
 
 Immediately after the `cardVariants` declaration (before `return`), add:
 ```tsx
@@ -163,7 +163,7 @@ Immediately after the `cardVariants` declaration (before `return`), add:
   }
 ```
 
-- [ ] **Step 3: Wire `onMouseMove` on the section + render the pill**
+- [x] **Step 3: Wire `onMouseMove` on the section + render the pill**
 
 Change the opening `<section>` tag to:
 ```tsx
@@ -193,7 +193,7 @@ Then, just before the closing `</section>`, add the pill (only when motion is on
       )}
 ```
 
-- [ ] **Step 4: Pass hover callbacks to `BentoCard` and wire them on the card link**
+- [x] **Step 4: Pass hover callbacks to `BentoCard` and wire them on the card link**
 
 In the `featured.map(...)` render, add the two props:
 ```tsx
@@ -227,17 +227,17 @@ On **both** `<MotionLink ...>` returns (the `isDual` branch and the default bran
 ```
 (These coexist with `useCursorTilt`, which binds its own `mousemove`/`mouseleave` listeners internally on `cardRef`.)
 
-- [ ] **Step 5: Typecheck + build**
+- [x] **Step 5: Typecheck + build**
 
 Run: `npm run build`
 Expected: clean (no unused-var or type errors).
 
-- [ ] **Step 6: Visual verify (motion on + reduced motion)**
+- [x] **Step 6: Visual verify (motion on + reduced motion)**
 
 Run: `npm run build && npx vite preview` (port 4173). With normal motion: move the cursor over the bento — the pill appears, follows the cursor, tilts with horizontal velocity, and fades out off-card. Emulate reduced motion (DevTools → Rendering → Emulate `prefers-reduced-motion: reduce`, reload): no pill renders. Capture a desktop screenshot to `tmp/`.
 Expected: pill behaves as described; absent under reduced motion.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/components/sections/Projects.tsx
