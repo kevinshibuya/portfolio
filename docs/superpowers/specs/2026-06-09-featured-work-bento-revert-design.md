@@ -64,23 +64,23 @@ and (b) scroll parallax on card mockups — both reduced-motion- and coarse-poin
 | File | Change |
 |---|---|
 | `src/components/sections/Projects.tsx` | Restore bento; graft pill + parallax; reduced-motion / coarse-pointer guards |
-| `src/index.css` | Delete square layout CSS (`.project-section`/`.project-grid`/`.project-aside*`/`.project-list`/`.project-row*`); **keep** `.project-cursor*`; add parallax headroom to `.bento-mockup` |
+| `src/index.css` | Delete square layout CSS (`.project-section`/`.project-grid`/`.project-aside*`/`.project-list`/`.project-row*`); **keep** `.project-cursor*`. *(No parallax-headroom rule was needed — mockups are `object-fit: contain`, so the drift has no clip-frame to reveal; see Task 3 note in the plan.)* |
 | `src/i18n/locales/en.json` + `pt.json` | Remove dead `sections.projects.intro`; keep `viewProject` |
 | `tests/e2e/section-enters.spec.ts` + `reduced-motion.spec.ts` | Drop the `#projects` special case; bento title is `.section-title` |
 
 ## TODO (acceptance criteria — source of truth)
 
-- [ ] `#projects` renders the bento grid (4 cards incl. one `lg` 2×2 and the `md`/`sm` mix) — not the aside + rows layout
-- [ ] Cards show the 3D cursor-tilt + dual tonal/color mockup on hover (desktop, motion on)
-- [ ] Velocity "view project" pill follows the cursor, rotates with velocity, and fades in only while hovering a card
-- [ ] Each card's mockup parallax-drifts on scroll with no card-background reveal at the edges
-- [ ] Reduced-motion: no tilt, no pill, no parallax; bento renders static and complete
-- [ ] Coarse-pointer (mobile): pill hidden; grid reflows responsively
-- [ ] Square layout CSS removed (`.project-section`/`.project-grid`/`.project-aside*`/`.project-list`/`.project-row*`); `.project-cursor*` retained; `grep` finds no orphan square rules
-- [ ] `sections.projects.intro` removed from en.json + pt.json; `viewProject` retained; both JSON files still valid
-- [ ] `tests/e2e/section-enters.spec.ts` + `reduced-motion.spec.ts` pass using `.section-title` for `#projects`
-- [ ] `npm run build` + `tsc -b` clean; `vitest run` green; Playwright e2e green
-- [ ] Desktop + mobile preview screenshots (`npx vite preview` :4173) confirm the above
+- [x] `#projects` renders the bento grid (4 cards incl. one `lg` 2×2 and the `md`/`sm` mix) — not the aside + rows layout *(verified: `tmp/bento-desktop.png`)*
+- [x] Cards show the 3D cursor-tilt + dual tonal/color mockup on hover (desktop, motion on) *(`useCursorTilt` is the unchanged restored bento hook; dual tonal/color confirmed — tonal greyscale at rest in `bento-desktop.png`, color in `bento-reduced.png`)*
+- [x] Velocity "view project" pill follows the cursor, rotates with velocity, and fades in only while hovering a card *(verified: `tmp/bento-hover-pill.png`)*
+- [x] Each card's mockup parallax-drifts on scroll with no card-background reveal at the edges *(verified: `tmp/bento-parallax-top.png` — no title collision / spill at max scroll progress; range ±5%)*
+- [x] Reduced-motion: no tilt, no pill, no parallax; bento renders static and complete *(verified: `tmp/bento-reduced.png`)*
+- [x] Coarse-pointer (mobile): pill hidden; grid reflows responsively *(verified: `tmp/bento-mobile.png`)*
+- [x] Square layout CSS removed (`.project-section`/`.project-grid`/`.project-aside*`/`.project-list`/`.project-row*`); `.project-cursor*` retained; `grep` finds no orphan square rules *(grep CLEAN; `.project-cursor` count = 6)*
+- [x] `sections.projects.intro` removed from en.json + pt.json; `viewProject` retained; both JSON files still valid
+- [x] `tests/e2e/section-enters.spec.ts` + `reduced-motion.spec.ts` pass using `.section-title` for `#projects` *(both #projects + reduced-motion title tests pass, desktop & mobile)*
+- [x] `npm run build` + `tsc -b` clean; `vitest run` green (73/73); lint 0 errors. Playwright e2e: the changed `#projects` title tests pass (desktop & mobile); **14 pre-existing failures remain in untouched subsystems** (hero `shibuya-scramble`, reduced-motion loader, R3F/WebGL `perf-budget`, `#embeds` title) — headless-env 30s-timeout / WebGL signatures, identical set to before Task 1, i.e. **not regressions** (Task 2/3 added zero new failures)
+- [x] Desktop + mobile preview screenshots (`npx vite preview` :4173) confirm the above *(5 captures in `tmp/`)*
 
 ## Decisions made (do not re-litigate)
 

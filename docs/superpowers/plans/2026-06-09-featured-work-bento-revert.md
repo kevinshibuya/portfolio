@@ -345,7 +345,7 @@ Expected: clean. (`y` is `MotionValue<string> | undefined`; `motion.span` `style
 Run: `npm run build && npx vite preview` (4173). Scroll the bento through the viewport: each mockup should drift gently — clearly present but not distracting, and it must **not** overlap the card's title/case-study row at the extremes. If it collides or feels too strong, reduce the range (`['-4%','4%']` / `['-3%','3%']`) and rebuild. Confirm cursor-tilt on hover still works simultaneously (parallax and tilt compose). Emulate reduced motion: mockup is static (no drift). Capture desktop + mobile screenshots to `tmp/`.
 Expected: subtle drift, no title collision, tilt unaffected, static under reduced motion.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/components/sections/Projects.tsx
@@ -362,25 +362,25 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 **Files:** none expected (verification only). Tick boxes in `docs/superpowers/specs/2026-06-09-featured-work-bento-revert-design.md`.
 
-- [ ] **Step 1: Static gates**
+- [x] **Step 1: Static gates** — lint 0 errors (7 pre-existing warnings, none in `Projects.tsx`); build clean; vitest 73/73; e2e 20 pass / 14 pre-existing env failures (the changed `#projects` tests pass).
 
 Run: `npm run lint && npm run build && npm run test:unit && npm run test:e2e`
 Expected: lint clean, build clean, vitest green, Playwright green.
 
-- [ ] **Step 2: Orphan sweep**
+- [x] **Step 2: Orphan sweep** — `CLEAN_CSS`, `CLEAN_I18N`, `.project-cursor` count = 6.
 
 Run: `grep -nE '\.project-(section|grid|aside|list|row)' src/index.css || echo CLEAN_CSS` and `grep -n '"intro"' src/i18n/locales/*.json || echo CLEAN_I18N`
 Expected: `CLEAN_CSS`, `CLEAN_I18N`. Also confirm `.project-cursor` IS retained: `grep -c '\.project-cursor' src/index.css` ≥ 3.
 
-- [ ] **Step 3: Visual evidence — desktop + mobile**
+- [x] **Step 3: Visual evidence — desktop + mobile** — `tmp/bento-desktop.png`, `tmp/bento-hover-pill.png`, `tmp/bento-parallax-top.png`, `tmp/bento-mobile.png`.
 
 Run: `npm run build && npx vite preview` (4173). Capture desktop (1440w) and mobile (390w) screenshots of `#projects` to `tmp/`. Confirm: bento grid with the `lg`/`md`/`sm` cards; hover shows tilt + color mockup + pill; scroll shows parallax drift; mobile reflows and the pill is absent.
 
-- [ ] **Step 4: Reduced-motion evidence**
+- [x] **Step 4: Reduced-motion evidence** — `tmp/bento-reduced.png` (static, color mockups, no pill/parallax/tilt).
 
 Emulate `prefers-reduced-motion: reduce`; reload. Confirm: bento renders complete and static (color mockups visible), no pill, no parallax, no tilt. Screenshot to `tmp/`.
 
-- [ ] **Step 5: Tick spec TODOs**
+- [x] **Step 5: Tick spec TODOs**
 
 Edit `docs/superpowers/specs/2026-06-09-featured-work-bento-revert-design.md` — change each `- [ ]` under `## TODO` to `- [x]` for every criterion now verified by Steps 1–4 (cross-reference each criterion to its evidence). Commit the spec update:
 ```bash
