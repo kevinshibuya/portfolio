@@ -29,12 +29,9 @@ test('reduced motion: titles never scroll-fade', async ({ page }) => {
   await page.locator('#projects').scrollIntoViewIfNeeded()
   await page.evaluate(() => window.scrollBy({ top: -50, behavior: 'instant' as ScrollBehavior }))
   await page.waitForTimeout(120)
-  // Projects no longer uses .section-title (Featured Work revamp); the
-  // visible title is one of `.project-aside__title-static` (mobile) or
-  // `.project-aside__title` (desktop, animated per active project).
-  const op = await page.locator(
-    '#projects .project-aside__title-static, #projects .project-aside__title'
-  ).first().evaluate((el) =>
+  // Projects (reverted to the bento grid) renders its title via
+  // SectionHeading as `.section-title`, like every other section.
+  const op = await page.locator('#projects .section-title').first().evaluate((el) =>
     parseFloat(getComputedStyle(el as HTMLElement).opacity)
   )
   expect(op).toBeGreaterThan(0.99)
