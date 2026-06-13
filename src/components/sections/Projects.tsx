@@ -1,6 +1,7 @@
 import {
   motion,
   useMotionValue,
+  useMotionValueEvent,
   useScroll,
   useSpring,
   useTransform,
@@ -45,9 +46,10 @@ export function Projects() {
   const cursorY = useMotionValue(-100)
   const springX = useSpring(cursorX, { damping: 28, stiffness: 380, mass: 0.4 })
   const springY = useSpring(cursorY, { damping: 28, stiffness: 380, mass: 0.4 })
-  const vx = useVelocity(springX)
-  const rotate = useTransform(vx, [-2500, 2500], [18, -18], { clamp: true })
-  const [hovering, setHovering] = useState(false)
+  // Pill visibility is a MotionValue, NOT useState: a setState here re-renders
+  // the grid, and a re-render mid-entrance kills the staggered whileInView
+  // card animations permanently (viewport.once never re-fires "visible").
+  const pillVisible = useMotionValue(0)
 
   function handleMove(e: React.MouseEvent) {
     cursorX.set(e.clientX)
@@ -81,29 +83,50 @@ export function Projects() {
             lang={lang}
             caseStudy={t('sections.projects.caseStudy')}
             variants={cardVariants}
-            onHoverEnter={prefersReducedMotion ? undefined : () => setHovering(true)}
-            onHoverLeave={prefersReducedMotion ? undefined : () => setHovering(false)}
+            onHoverEnter={prefersReducedMotion ? undefined : () => pillVisible.set(1)}
+            onHoverLeave={prefersReducedMotion ? undefined : () => pillVisible.set(0)}
           />
         ))}
       </motion.div>
 
       {!prefersReducedMotion && (
-        <motion.div
-          className="project-cursor"
-          style={{ x: springX, y: springY }}
-          aria-hidden="true"
-        >
-          <motion.div
-            className="project-cursor__rotor"
-            style={{ rotate }}
-            animate={hovering ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <span className="project-cursor__pill">{t('sections.projects.viewProject')}</span>
-          </motion.div>
-        </motion.div>
+        <ProjectCursorPill
+          x={springX}
+          y={springY}
+          visible={pillVisible}
+          label={t('sections.projects.viewProject')}
+        />
       )}
     </section>
+  )
+}
+
+interface ProjectCursorPillProps {
+  x: MotionValue<number>
+  y: MotionValue<number>
+  visible: MotionValue<number>
+  label: string
+}
+
+// Leaf component so the hover show/hide setState re-renders only the pill,
+// never the bento grid (see comment at pillVisible).
+function ProjectCursorPill({ x, y, visible, label }: ProjectCursorPillProps) {
+  const vx = useVelocity(x)
+  const rotate = useTransform(vx, [-2500, 2500], [18, -18], { clamp: true })
+  const [hovering, setHovering] = useState(false)
+  useMotionValueEvent(visible, 'change', (v) => setHovering(v > 0.5))
+
+  return (
+    <motion.div className="project-cursor" style={{ x, y }} aria-hidden="true">
+      <motion.div
+        className="project-cursor__rotor"
+        style={{ rotate }}
+        animate={hovering ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <span className="project-cursor__pill">{label}</span>
+      </motion.div>
+    </motion.div>
   )
 }
 
