@@ -33,6 +33,10 @@ projects_assets/
 prompt.md
 a.md
 
+# AI session scratch (durable AI docs — CLAUDE.md, docs/superpowers — stay tracked)
+HANDOFF.md
+tmp/
+
 # Playwright artifacts
 test-results/
 playwright-report/
