@@ -50,7 +50,7 @@ export function ProjectDetail() {
   useEffect(() => {
     if (!project) return
     setPageMeta(
-      `${project.title[lang]} — kevin shibuya`,
+      `${project.title[lang]} · kevin shibuya`,
       project.description[lang],
     )
     return resetPageMeta

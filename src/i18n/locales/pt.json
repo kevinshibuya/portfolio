@@ -31,13 +31,13 @@
   },
   "stats": {
     "heading": "o trabalho, em <em>números.</em>",
-    "eyebrow": "métricas selecionadas —",
+    "eyebrow": "métricas selecionadas",
     "receipt": {
       "years": "anos entregando interativos, do primeiro commit até hoje.",
       "interactives": "interativos publicados na gauchazh.",
-      "reconstruction": "em recursos da reconstrução acompanhados —",
+      "reconstruction": "em recursos da reconstrução acompanhados:",
       "reconstruction_cta": "painel da reconstrução",
-      "votes": "votos ao vivo registrados —",
+      "votes": "votos ao vivo registrados:",
       "votes_cta": "enquetes gzh"
     }
   },
@@ -89,10 +89,13 @@
       "index": "04 · conhecimentos",
       "label": "",
       "title": "meu <em>arsenal.</em>",
-      "description": "o stack — rápido, sem abrir mão do capricho.",
+      "description": "o stack: rápido, sem abrir mão do capricho.",
       "frontend": "frontend",
-      "backend": "backend & ferramentas",
-      "expertise": "especialidades"
+      "design": "design",
+      "backend": "backend & cloud",
+      "devops": "devops & testes",
+      "ai": "engenharia de ia",
+      "leadership": "liderança"
     },
     "contact": {
       "index": "05",
@@ -108,7 +111,7 @@
     }
   },
   "footer": {
-    "copyright": "© {{year}} kevin shibuya — todos os direitos reservados",
+    "copyright": "© {{year}} kevin shibuya · todos os direitos reservados",
     "builtWith": "feito com react, typescript & capricho",
     "bigText": "kevin shibuya"
   },

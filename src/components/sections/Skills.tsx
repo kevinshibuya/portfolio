@@ -6,8 +6,11 @@ import { STAGGER_PRESETS } from '../../utils/animations'
 
 const categoryKeys: Record<string, string> = {
   frontend: 'sections.skills.frontend',
+  design: 'sections.skills.design',
   backend: 'sections.skills.backend',
-  expertise: 'sections.skills.expertise',
+  devops: 'sections.skills.devops',
+  ai: 'sections.skills.ai',
+  leadership: 'sections.skills.leadership',
 }
 
 export function Skills() {

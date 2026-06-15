@@ -31,13 +31,13 @@
   },
   "stats": {
     "heading": "the work, in <em>numbers.</em>",
-    "eyebrow": "selected metrics —",
+    "eyebrow": "selected metrics",
     "receipt": {
       "years": "years shipping interactives, from first commit to today.",
       "interactives": "interactives published across gauchazh.",
-      "reconstruction": "in reconstruction spend tracked —",
+      "reconstruction": "in reconstruction spend tracked:",
       "reconstruction_cta": "painel da reconstrução",
-      "votes": "live votes registered —",
+      "votes": "live votes registered:",
       "votes_cta": "enquetes gzh"
     }
   },
@@ -89,10 +89,13 @@
       "index": "04 · expertise",
       "label": "",
       "title": "skills &amp; <em>tools.</em>",
-      "description": "my stack — fast, without cutting craft.",
+      "description": "my stack: fast, without cutting craft.",
       "frontend": "frontend",
-      "backend": "backend & tools",
-      "expertise": "expertise"
+      "design": "design",
+      "backend": "backend & cloud",
+      "devops": "devops & testing",
+      "ai": "ai engineering",
+      "leadership": "leadership"
     },
     "contact": {
       "index": "05",
@@ -108,7 +111,7 @@
     }
   },
   "footer": {
-    "copyright": "© {{year}} kevin shibuya — all rights reserved",
+    "copyright": "© {{year}} kevin shibuya · all rights reserved",
     "builtWith": "built with react, typescript & care",
     "bigText": "kevin shibuya"
   },

@@ -13,13 +13,13 @@ export const workExperiences: WorkExperience[] = [
     workMode: 'in-person',
     description: {
       en: [
-        "Built interactive projects inside a 1000+ employee newsroom — hundreds of editorial pieces, plus campaigns like 'Pra Cima, Rio Grande'",
-        'Shipped a Next.js + Firebase poll system that replaced a paid service and got widely adopted across the company',
+        "Built interactive projects inside a 1000+ employee newsroom, shipping hundreds of editorial pieces plus campaigns like 'Pra Cima, Rio Grande'",
+        "Shipped 'Enquetes GZH', a Firebase-backed live-voting system that replaced a paid service and got widely adopted across the company",
         "Built the 'Painel da Reconstrução' dashboard tracking federal investment into Rio Grande do Sul's May 2024 flood recovery",
       ],
       pt: [
-        "Entreguei projetos interativos dentro de uma redação com mais de 1000 funcionários — centenas de matérias editoriais, além de campanhas como 'Pra Cima, Rio Grande'",
-        'Subi um sistema de enquetes em Next.js + Firebase que substituiu um serviço pago e virou padrão dentro da empresa',
+        "Entreguei projetos interativos dentro de uma redação com mais de 1000 funcionários, com centenas de matérias editoriais, além de campanhas como 'Pra Cima, Rio Grande'",
+        "Subi as 'Enquetes GZH', um sistema de votação ao vivo em Firebase que substituiu um serviço pago e virou padrão dentro da empresa",
         "Construí o 'Painel da Reconstrução', um dashboard acompanhando o investimento federal na recuperação das enchentes de maio de 2024 no Rio Grande do Sul",
       ],
     },
@@ -31,16 +31,16 @@ export const workExperiences: WorkExperience[] = [
       'Data Visualization',
     ],
     highlight: {
-      en: 'Won the RBS Journalism, Sports & Entertainment Award — inspired similar government initiatives',
-      pt: 'Venceu o Prêmio RBS de Jornalismo, Esporte e Entretenimento — inspirou iniciativas governamentais',
+      en: 'Won the RBS Journalism, Sports & Entertainment Award, which inspired similar government initiatives',
+      pt: 'Venceu o Prêmio RBS de Jornalismo, Esporte e Entretenimento, que inspirou iniciativas governamentais',
     },
   },
   {
     id: 2,
     company: 'Flow Autobody',
     role: {
-      en: 'Frontend Developer & Tech Lead',
-      pt: 'Desenvolvedor Frontend & Tech Lead',
+      en: 'Frontend Developer',
+      pt: 'Desenvolvedor Frontend',
     },
     period: { en: 'Nov 2022 — Oct 2023', pt: 'Nov 2022 — Out 2023' },
     location: 'Brisbane, AU',
@@ -129,23 +129,23 @@ export const workExperiences: WorkExperience[] = [
   },
   {
     id: 5,
-    company: 'Ideia 2001 Informática',
+    company: 'Idéia 2001 Informática',
     role: {
       en: 'Mobile Developer (Intern)',
       pt: 'Desenvolvedor Mobile (Estágio)',
     },
     period: { en: 'Nov 2019 — Apr 2021', pt: 'Nov 2019 — Abr 2021' },
-    location: 'São Paulo, BR',
+    location: 'São Caetano do Sul, BR',
     workMode: 'in-person',
     description: {
       en: [
         'Built applications for the auto parts market with HTML, CSS, JavaScript and AngularJS',
-        'Worked mainly on the frontend — building features and layouts',
+        'Worked mainly on the frontend, building features and layouts',
         'Pitched fresh ideas to the team whenever possible to push the product forward',
       ],
       pt: [
         'Construí aplicações para o mercado de autopeças com HTML, CSS, JavaScript e AngularJS',
-        'Atuei principalmente no frontend — construindo features e layouts',
+        'Atuei principalmente no frontend, construindo features e layouts',
         'Sempre que dava, trazia ideias novas para o time, empurrando o produto pra frente',
       ],
     },
