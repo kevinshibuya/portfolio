@@ -2,12 +2,51 @@ import type { Project } from '../types/content'
 
 export const projects: Project[] = [
   {
+    id: 'radar-legislativo',
+    slug: 'radar-legislativo',
+    title: { en: 'radar legislativo', pt: 'radar legislativo' },
+    year: 2026,
+    highlight: true,
+    highlightOrder: 2,
+    size: 'md',
+    gradient: 'linear-gradient(145deg, #D6EDD2, #7FBF7A)',
+    tagline: {
+      en: 'open data in, ai drafts, human approval',
+      pt: 'dados abertos, rascunhos de ia, aprovação humana',
+    },
+    description: {
+      en: 'Legislative-data platform for Grupo RBS (pre-launch): a NestJS/PostgreSQL backend that ingests the Chamber of Deputies open data daily, an AI pipeline drafting voting summaries for editorial approval, and a public React site with voting and expense visualizations.',
+      pt: 'Plataforma de dados legislativos para o Grupo RBS (pré-lançamento): back-end NestJS/PostgreSQL que ingere diariamente os dados abertos da Câmara dos Deputados, pipeline de IA que rascunha resumos de votações para aprovação editorial e site público em React com visualizações de votações e despesas.',
+    },
+    pitch: {
+      en: 'a *pre-launch* newsroom platform over the brazilian chamber of deputies: a scraper keeps postgres in sync with the official open-data api, an *ai pipeline drafts voting summaries*, and nothing reaches the public site before a *human editor approves it*.',
+      pt: 'uma plataforma de redação (*pré-lançamento*) sobre a câmara dos deputados: um scraper mantém o postgres em dia com a api oficial de dados abertos, um *pipeline de ia rascunha resumos das votações*, e nada chega ao site público antes de um *editor humano aprovar*.',
+    },
+    whatShipped: {
+      en: 'three apps in one monorepo: a *nestjs api* that scrapes the câmara open-data api on a rate-limited daily cron (per-deputy sync plus batch csv ingestion, with self-healing runs that fail stuck syncs), a *next.js back office* where editors review, edit, approve or regenerate every ai draft, and a public *react site* with per-party voting visualizations, deputy profiles and an expense-transparency ranking. gitlab ci tests all three and ships docker images to kubernetes on gcp.',
+      pt: 'três apps em um monorepo: uma *api nestjs* que raspa a api de dados abertos da câmara em um cron diário com rate limit (sync por deputado mais ingestão de csv em lote, com runs auto-reparáveis que derrubam syncs travados), um *back-office next.js* onde editores revisam, editam, aprovam ou regeneram cada rascunho de ia, e um *site público em react* com visualizações de votação por partido, perfis de deputados e um ranking de transparência de despesas. o gitlab ci testa os três e publica imagens docker no kubernetes do gcp.',
+    },
+    trick: {
+      en: 'the ai pipeline treats postgres as the source of truth: a *partial unique index* allows at most one in-flight generation per voting, and workers *claim rows with conditional updates* so a redelivered job can never resurrect a finished one. model calls rotate through a redis-backed ladder that tells daily quotas apart from per-minute limits, and every output passes a *prompt-injection filter* (random delimiters in, no html/urls out) before it can even be saved.',
+      pt: 'o pipeline de ia trata o postgres como fonte da verdade: um *índice único parcial* permite no máximo uma geração em andamento por votação, e os workers *reivindicam linhas com updates condicionais*, então um job reentregue nunca ressuscita um registro finalizado. as chamadas de modelo giram por uma escada de fallback no redis que separa cota diária de limite por minuto, e toda saída passa por um *filtro anti prompt injection* (delimitadores aleatórios na entrada, nada de html/urls na saída) antes mesmo de poder ser salva.',
+    },
+    techStack: [
+      'NestJS', 'PostgreSQL', 'TypeORM', 'Redis', 'Bull', 'Next.js', 'React 19',
+      'Vite', 'TanStack Query', 'Tailwind CSS', 'OpenAI API', 'Docker', 'Kubernetes', 'GitLab CI',
+    ],
+    mockups: {
+      desktop: '/images/projects/radar-legislativo/mockups/desktop.webp',
+      desktopBento: '/images/projects/radar-legislativo/mockups/desktop-bento.webp',
+      mobile: '/images/projects/radar-legislativo/mockups/mobile.webp',
+    },
+  },
+  {
     id: 'painel-da-reconstrucao',
     slug: 'painel-da-reconstrucao',
     title: { en: 'painel da reconstrução', pt: 'painel da reconstrução' },
     year: 2024,
     highlight: true,
-    highlightOrder: 3,
+    highlightOrder: 4,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #A2D2FF, #3A96E8)',
     tagline: {
@@ -64,8 +103,8 @@ export const projects: Project[] = [
     title: { en: 'enquetes gzh', pt: 'enquetes gzh' },
     year: 2026,
     highlight: true,
-    highlightOrder: 2,
-    size: 'md',
+    highlightOrder: 3,
+    size: 'sm',
     gradient: 'linear-gradient(145deg, #C8D8F0, #8AAADA)',
     tagline: {
       en: 'realtime polls, two apps, one firestore',
@@ -117,7 +156,7 @@ export const projects: Project[] = [
     title: { en: 'chat da hora', pt: 'chat da hora' },
     year: 2025,
     highlight: true,
-    highlightOrder: 4,
+    highlightOrder: 5,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #8AAADA, #3A96E8)',
     tagline: {
@@ -159,7 +198,7 @@ export const projects: Project[] = [
     title: { en: 'ia na redação', pt: 'ia na redação' },
     year: 2025,
     highlight: true,
-    highlightOrder: 8,
+    highlightOrder: 9,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #DCF0FF, #6DB8FF)',
     tagline: {
@@ -196,7 +235,7 @@ export const projects: Project[] = [
     title: { en: 'fotos do ano 2025', pt: 'fotos do ano 2025' },
     year: 2025,
     highlight: true,
-    highlightOrder: 6,
+    highlightOrder: 7,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #F4F8FE, #A2D2FF)',
     tagline: {
@@ -238,7 +277,7 @@ export const projects: Project[] = [
     title: { en: 'peleia gre-nal', pt: 'peleia gre-nal' },
     year: 2024,
     highlight: true,
-    highlightOrder: 7,
+    highlightOrder: 8,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #DCF0FF, #6DB8FF)',
     tagline: {
@@ -324,7 +363,7 @@ export const projects: Project[] = [
     title: { en: 'fotos do ano 2024', pt: 'fotos do ano 2024' },
     year: 2024,
     highlight: true,
-    highlightOrder: 5,
+    highlightOrder: 6,
     size: 'sm',
     gradient: 'linear-gradient(145deg, #DCF0FF, #A2D2FF)',
     tagline: {

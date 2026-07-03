@@ -52,6 +52,6 @@ describe('JSON-LD featured projects', () => {
 
   it('positions are 1-indexed and contiguous', () => {
     const positions = items.map((li) => li.position).sort((a, b) => a - b)
-    expect(positions).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
+    expect(positions).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
   })
 })

@@ -4,6 +4,7 @@ import { dirname, join, resolve } from 'node:path'
 import { homedir } from 'node:os'
 
 const SLUGS = [
+  'radar-legislativo',
   'hotmart-bunde',
   'fotos-do-ano-2025',
   'painel-da-reconstrucao',
