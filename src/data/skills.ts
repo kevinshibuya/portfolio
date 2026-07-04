@@ -33,6 +33,7 @@ export const skillCategories: SkillCategory[] = [
     skills: [
       'Node.js',
       'NestJS',
+      'PHP',
       'GCP',
       'AWS',
       'Cloudflare',

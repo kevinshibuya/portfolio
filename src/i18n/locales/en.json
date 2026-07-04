@@ -4,8 +4,7 @@
     "archive": "the archive",
     "experience": "experience",
     "skills": "skills",
-    "contact": "contact",
-    "available": "open to work"
+    "contact": "contact"
   },
   "lang": "EN",
   "hero": {
@@ -13,7 +12,8 @@
     "name2": "shibuya.",
     "rolePrefix": "i am",
     "roles": [
-      "a senior front-end engineer",
+      "a senior software engineer",
+      "a full-stack developer",
       "a system architect",
       "a tech lead",
       "an ai engineer"

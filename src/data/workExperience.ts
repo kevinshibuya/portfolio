@@ -14,25 +14,29 @@ export const workExperiences: WorkExperience[] = [
     description: {
       en: [
         "Built interactive projects inside a 1000+ employee newsroom, shipping hundreds of editorial pieces plus campaigns like 'Pra Cima, Rio Grande'",
-        "Shipped 'Enquetes GZH', a Firebase-backed live-voting system that replaced a paid service and got widely adopted across the company",
-        "Built the 'Painel da Reconstrução' dashboard tracking federal investment into Rio Grande do Sul's May 2024 flood recovery",
+        "Shipped 'Enquetes GZH', a Firebase-backed live-voting system that replaced a paid service: atomic vote counting with real-time updates, an authenticated back-office, and origin-based access control. It powered 71 live polls during BBB 26, with top 'Paredão' ballots drawing up to 144k votes",
+        "Designing and building 'Radar Legislativo' (pre-launch): a NestJS/PostgreSQL REST API with Redis/Bull queues and daily scraping of the Chamber's open data, a Next.js editorial back-office, and an AI pipeline with human review before publication, shipped via GitLab CI/CD to Kubernetes on GCP",
+        "Built the 'Painel da Reconstrução' dashboard tracking public and private investment into Rio Grande do Sul's May 2024 flood recovery",
       ],
       pt: [
         "Entreguei projetos interativos dentro de uma redação com mais de 1000 funcionários, com centenas de matérias editoriais, além de campanhas como 'Pra Cima, Rio Grande'",
-        "Subi as 'Enquetes GZH', um sistema de votação ao vivo em Firebase que substituiu um serviço pago e virou padrão dentro da empresa",
-        "Construí o 'Painel da Reconstrução', um dashboard acompanhando o investimento federal na recuperação das enchentes de maio de 2024 no Rio Grande do Sul",
+        "Subi as 'Enquetes GZH', um sistema de votação ao vivo em Firebase que substituiu um serviço pago: contagem atômica de votos em tempo real, back-office autenticado e controle de acesso por origem. Alimentou 71 enquetes ao vivo durante o BBB 26, com votações de 'Paredão' chegando a até 144 mil votos",
+        "Projetei e venho construindo o 'Radar Legislativo' (pré-lançamento): API REST em NestJS/PostgreSQL com filas Redis/Bull e raspagem diária dos dados abertos da Câmara, back-office editorial em Next.js e pipeline de IA com revisão humana antes da publicação, com deploy via CI/CD do GitLab em Kubernetes no GCP",
+        "Construí o 'Painel da Reconstrução', um dashboard acompanhando o investimento público e privado na recuperação das enchentes de maio de 2024 no Rio Grande do Sul",
       ],
     },
     technologies: [
-      'Next.js',
-      'Firebase',
       'React',
       'TypeScript',
+      'Firebase',
+      'NestJS',
+      'PostgreSQL',
+      'Next.js',
       'Data Visualization',
     ],
     highlight: {
-      en: 'Won the RBS Journalism, Sports & Entertainment Award, which inspired similar government initiatives',
-      pt: 'Venceu o Prêmio RBS de Jornalismo, Esporte e Entretenimento, que inspirou iniciativas governamentais',
+      en: 'Won the RBS Journalism, Sports & Entertainment Award, which inspired similar government transparency initiatives',
+      pt: 'Venceu o Prêmio RBS de Jornalismo, Esporte e Entretenimento, que inspirou iniciativas semelhantes de transparência governamental',
     },
   },
   {
@@ -115,12 +119,12 @@ export const workExperiences: WorkExperience[] = [
     workMode: 'remote',
     description: {
       en: [
-        'Modernized interfaces of an accounting-focused ERP, active in code reviews and dailies',
+        "Modernized interfaces of an accounting-focused ERP, absorbing the accounting domain's business rules, active in code reviews and dailies",
         'Built and refactored screens with HTML, CSS (SASS and LESS) and Angular, lifting UX and modernizing legacy components',
         'Cleaned up and optimized code, removing dead paths to lift performance and maintainability',
       ],
       pt: [
-        'Modernizei interfaces de um ERP voltado a soluções contábeis, atuando em code reviews e dailies',
+        'Modernizei interfaces de um ERP voltado a soluções contábeis, absorvendo as regras de negócio do domínio contábil, atuando em code reviews e dailies',
         'Construí e refatorei telas com HTML, CSS (SASS e LESS) e Angular, melhorando a experiência e modernizando componentes legados',
         'Limpei e otimizei o código, eliminando trechos obsoletos para ganhar performance e manutenibilidade',
       ],

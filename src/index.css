@@ -203,38 +203,6 @@ strong {
 .nav-link:hover { color: var(--ink); }
 .nav-link:hover::after { right: 0; }
 .nav-right { display: flex; align-items: center; gap: 14px; justify-self: end; }
-.nav-avail {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 6px 12px;
-  background: var(--cream);
-  border: 1px solid var(--mist);
-  border-radius: 999px;
-  font-size: 10px; font-weight: 600;
-  color: var(--ink);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  white-space: nowrap;
-  cursor: pointer;
-  text-decoration: none;
-  transition: color 0.24s cubic-bezier(0.22, 1, 0.36, 1),
-              border-color 0.24s cubic-bezier(0.22, 1, 0.36, 1),
-              background-color 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.nav-avail:hover {
-  color: var(--blue-500);
-  border-color: var(--blue-300);
-  background: var(--blue-50);
-}
-.nav-avail-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--periwinkle-300);
-  box-shadow: 0 0 0 4px rgba(80, 120, 184, 0.2);
-  animation: pulseDot 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-}
-@keyframes pulseDot {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(80, 120, 184, 0.2); }
-  50%      { box-shadow: 0 0 0 8px rgba(80, 120, 184, 0.05); }
-}
 .nav-lang {
   font-size: 11px; font-weight: 600;
   color: var(--ink);
@@ -1298,7 +1266,6 @@ html[data-loading='true'] {
   .nav.is-scrolled { padding: 12px 20px; }
   .nav-links { display: none; }
   .nav-inner { grid-template-columns: auto 1fr; }
-  .nav-avail { display: none; }
   .hero, .section, .section--contact, .footer {
     padding-left: 20px;
     padding-right: 20px;

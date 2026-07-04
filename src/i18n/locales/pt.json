@@ -4,8 +4,7 @@
     "archive": "arquivo",
     "experience": "carreira",
     "skills": "habilidades",
-    "contact": "contato",
-    "available": "aberto a projetos"
+    "contact": "contato"
   },
   "lang": "PT",
   "hero": {
@@ -13,7 +12,8 @@
     "name2": "shibuya.",
     "rolePrefix": "sou",
     "roles": [
-      "um engenheiro front-end sênior",
+      "um engenheiro de software sênior",
+      "um desenvolvedor full-stack",
       "um arquiteto de sistemas",
       "um líder técnico",
       "um engenheiro de ia"

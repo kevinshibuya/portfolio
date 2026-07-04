@@ -103,14 +103,6 @@ export function Header() {
         </nav>
 
         <div className="nav-right">
-          <a
-            href="#contact"
-            onClick={go("contact")}
-            className="nav-avail"
-          >
-            <span className="nav-avail-dot" aria-hidden="true" />
-            <span>{t("nav.available")}</span>
-          </a>
           <button className="nav-lang" onClick={toggleLanguage}>
             {t("lang")}
           </button>
