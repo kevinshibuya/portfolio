@@ -736,7 +736,7 @@ describe('halftoneMath', () => {
 - [x] **Step 2:** Create `src/canvas/halftone/halftoneMath.ts` with the four exports. Run the test — expect PASS (GREEN).
 - [x] **Step 3:** Create `src/canvas/halftone/HalftoneMaterial.ts`: the drei `shaderMaterial` with the exact default uniforms above, both-mode fragment GLSL, and `extend({ HalftoneMaterial })`. Declare the `halftoneMaterial` JSX intrinsic (module-augment `@react-three/fiber`'s `ThreeElements` — no `any`).
 - [x] **Step 4:** Run `npx tsc -b --noEmit` and `npm run lint` — clean (no `any`; GLSL strings are fine).
-- [ ] **Step 5:** Commit: `feat(halftone): rosette duotone shader material + math helpers (build once)`.
+- [x] **Step 5:** Commit: `feat(halftone): rosette duotone shader material + math helpers (build once)`.
 
 ### Verify before returning
 - `npx vitest run tests/unit/canvas/halftoneMath.test.ts` green · typecheck clean · lint clean · the
