@@ -951,11 +951,11 @@ describe('HalftonePortrait (jsdom → fallback, no WebGL)', () => {
 ```
 
 ### Steps
-- [ ] **Step 1:** Create `tests/unit/canvas/HalftonePortrait.test.tsx` with the code above. Run `npx vitest run tests/unit/canvas/HalftonePortrait.test.tsx` — expect FAIL. RED confirmed.
-- [ ] **Step 2:** Create `src/canvas/halftone/HalftonePortrait.tsx` per the contract: `shouldUseFallback`, `hasWebGL`, fallback `<img>` path, and the IntersectionObserver-gated `<Canvas frameloop="demand">` shader path driving `uFrequency` from `progress`.
-- [ ] **Step 3:** Run `npx vitest run tests/unit/canvas/HalftonePortrait.test.tsx` — expect PASS (GREEN; jsdom takes the fallback path).
-- [ ] **Step 4:** Run `npx tsc -b --noEmit` and `npm run lint` — clean (no `any`).
-- [ ] **Step 5:** Commit: `feat(halftone): HalftonePortrait consumer with fallback + mount gating`.
+- [x] **Step 1:** Create `tests/unit/canvas/HalftonePortrait.test.tsx` with the code above. Run `npx vitest run tests/unit/canvas/HalftonePortrait.test.tsx` — expect FAIL. RED confirmed.
+- [x] **Step 2:** Create `src/canvas/halftone/HalftonePortrait.tsx` per the contract: `shouldUseFallback`, `hasWebGL`, fallback `<img>` path, and the IntersectionObserver-gated `<Canvas frameloop="demand">` shader path driving `uFrequency` from `progress`.
+- [x] **Step 3:** Run `npx vitest run tests/unit/canvas/HalftonePortrait.test.tsx` — expect PASS (GREEN; jsdom takes the fallback path).
+- [x] **Step 4:** Run `npx tsc -b --noEmit` and `npm run lint` — clean (no `any`).
+- [x] **Step 5:** Commit: `feat(halftone): HalftonePortrait consumer with fallback + mount gating`.
 
 ### Verify before returning
 - Unit green · typecheck clean · lint clean · jsdom path renders the fallback `<img>` (never mounts a
