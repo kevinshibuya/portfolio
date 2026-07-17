@@ -168,7 +168,7 @@ describe('warm paper neutral tokens', () => {
 - [x] **Step 6:** In `public/site.webmanifest`: `background_color` and `theme_color` → `#F7F5F1`.
 - [x] **Step 7:** Run `npx vitest run tests/unit/tokens.test.ts` — expect PASS (GREEN).
 - [x] **Step 8:** Run `npx tsc -b --noEmit` and `npm run lint` — both clean.
-- [ ] **Step 9:** Commit: `feat(tokens): warm paper neutrals replace cool cream/sand/mist (tokens + chrome + loader)`.
+- [x] **Step 9:** Commit: `feat(tokens): warm paper neutrals replace cool cream/sand/mist (tokens + chrome + loader)`.
 
 ### Verify before returning
 - `npx vitest run tests/unit/tokens.test.ts` green · `npx tsc -b --noEmit` clean · `npm run lint` clean.
