@@ -32,9 +32,9 @@
    TOKENS (Tailwind v4 @theme + CSS vars)
    ========================================================================= */
 @theme {
-  --color-cream:       #F6F9FC;
-  --color-sand:        #EAF2F8;
-  --color-mist:        #D4E5F2;
+  --color-cream:       #F7F5F1;
+  --color-sand:        #EFEAE1;
+  --color-mist:        #E2DACB;
   --color-ink:         #111822;
   --color-bark:        #2A4060;
   --color-dust:        #4A6A88;
@@ -54,9 +54,9 @@
 }
 
 :root {
-  --cream:    #F6F9FC;
-  --sand:     #EAF2F8;
-  --mist:     #D4E5F2;
+  --cream:    #F7F5F1;
+  --sand:     #EFEAE1;
+  --mist:     #E2DACB;
   --ink:      #111822;
   --bark:     #2A4060;
   --dust:     #4A6A88;
@@ -321,7 +321,7 @@ html[data-loading='true'] {
   line-height: 1;
   letter-spacing: -0.05em;
   text-transform: lowercase;
-  color: #F6F9FC; /* cream — fallback hex */
+  color: var(--cream); /* cream — fallback hex */
   white-space: nowrap;
 }
 

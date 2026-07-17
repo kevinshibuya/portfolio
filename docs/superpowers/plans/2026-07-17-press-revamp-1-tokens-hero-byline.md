@@ -160,14 +160,14 @@ describe('warm paper neutral tokens', () => {
 ```
 
 ### Steps
-- [ ] **Step 1:** Create `tests/unit/tokens.test.ts` with the code above. Run `npx vitest run tests/unit/tokens.test.ts` — expect FAIL (old values still present). RED confirmed.
-- [ ] **Step 2:** In `src/index.css` `@theme` block, set `--color-cream: #F7F5F1;`, `--color-sand: #EFEAE1;`, `--color-mist: #E2DACB;`.
-- [ ] **Step 3:** In `src/index.css` `:root` block, set `--cream: #F7F5F1;`, `--sand: #EFEAE1;`, `--mist: #E2DACB;`.
-- [ ] **Step 4:** In `src/index.css` `.loader-mark` (~line 324), change `color: #F6F9FC;` to `color: var(--cream);` (keep the comment). Without this the test's zero-old-values assertion cannot pass, and a third `#F7F5F1` literal would break the exactly-2 count.
-- [ ] **Step 5:** In `index.html`: theme-color (~29) and msapplication-TileColor (~48) → `#F7F5F1`; inline `.loader-mark` color (~369) → `#F7F5F1`. (Browser chrome + first-paint loader must match the warm paper.)
-- [ ] **Step 6:** In `public/site.webmanifest`: `background_color` and `theme_color` → `#F7F5F1`.
-- [ ] **Step 7:** Run `npx vitest run tests/unit/tokens.test.ts` — expect PASS (GREEN).
-- [ ] **Step 8:** Run `npx tsc -b --noEmit` and `npm run lint` — both clean.
+- [x] **Step 1:** Create `tests/unit/tokens.test.ts` with the code above. Run `npx vitest run tests/unit/tokens.test.ts` — expect FAIL (old values still present). RED confirmed.
+- [x] **Step 2:** In `src/index.css` `@theme` block, set `--color-cream: #F7F5F1;`, `--color-sand: #EFEAE1;`, `--color-mist: #E2DACB;`.
+- [x] **Step 3:** In `src/index.css` `:root` block, set `--cream: #F7F5F1;`, `--sand: #EFEAE1;`, `--mist: #E2DACB;`.
+- [x] **Step 4:** In `src/index.css` `.loader-mark` (~line 324), change `color: #F6F9FC;` to `color: var(--cream);` (keep the comment). Without this the test's zero-old-values assertion cannot pass, and a third `#F7F5F1` literal would break the exactly-2 count.
+- [x] **Step 5:** In `index.html`: theme-color (~29) and msapplication-TileColor (~48) → `#F7F5F1`; inline `.loader-mark` color (~369) → `#F7F5F1`. (Browser chrome + first-paint loader must match the warm paper.)
+- [x] **Step 6:** In `public/site.webmanifest`: `background_color` and `theme_color` → `#F7F5F1`.
+- [x] **Step 7:** Run `npx vitest run tests/unit/tokens.test.ts` — expect PASS (GREEN).
+- [x] **Step 8:** Run `npx tsc -b --noEmit` and `npm run lint` — both clean.
 - [ ] **Step 9:** Commit: `feat(tokens): warm paper neutrals replace cool cream/sand/mist (tokens + chrome + loader)`.
 
 ### Verify before returning
