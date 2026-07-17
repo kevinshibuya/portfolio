@@ -77,17 +77,17 @@ Instant search, FLIP filter re-flow capped <250ms, virtualized rows + `content-v
 
 ## TODO
 
-- [ ] Design tokens: warm paper neutral set replaces cool cream/sand/mist; blue scale + ink kept; all components read from tokens
-- [ ] Scene 0: entrance untouched, solid surname, static canonical title + crossfade role cycle, pointer-lit grain layer deferred behind entranceDone, R3F accent components deleted
+- [x] Design tokens: warm paper neutral set replaces cool cream/sand/mist; blue scale + ink kept; all components read from tokens
+- [x] Scene 0: entrance untouched, solid surname, static canonical title + crossfade role cycle, pointer-lit grain layer deferred behind entranceDone, R3F accent components deleted
 - [ ] Ink brush primitive built once (velocity-width + dry/fade) and reused for timeline, hover underlines, visitor galley
 - [ ] Halftone shader primitive built once (rosette duotone, screen angles) and reused for portrait develop + single goes-to-press wipe with CMYK register-lock; mobile + reduced-motion fallbacks in place
-- [ ] Scene 1 byline: portrait develop, real caption, one scanned-handwriting note, asymmetric layout, bilingual copy
+- [x] Scene 1 byline: portrait develop, real caption, one scanned-handwriting note, asymmetric layout, bilingual copy
 - [ ] Scene 2 timeline replaces WorkExperience + Skills; nodes ignite on draw arrival; per-era tools from CV canon; award hairline box; job detail expandable
 - [ ] Goes-to-press wipe fires once between scenes 2 and 3, origin-anchored to the last timeline node; dark world ends at a hard edge (no inverse wipe)
 - [ ] Scene 3: four art-directed playable beats (demo ballot with seeded real totals, pannable painel embed with fallback, radar recorded strip, política specimen), lazy-mounted, affordance cues, case-study links intact
 - [ ] Scene 4 archive: histogram spine drag-scrubber, FLIP filters <250ms, virtualized rows, dash placeholders fixed, no stat band
 - [ ] Scene 5 contact: mail-dominant CTA, ink hover underlines, demoted pen galley, minimal footer (©/location/lang), marquee + colophon absent
 - [ ] Retired elements verifiably absent: heading formula, icosahedron, magnetic hover, odometers, row skew, ghost numerals, stat band, "a team of one", broadsheet furniture
-- [ ] i18n: all new strings authored EN + PT-BR natively; zero spaced em-dashes in reader-facing prose
+- [x] i18n: all new strings authored EN + PT-BR natively; zero spaced em-dashes in reader-facing prose
 - [ ] Zero pins site-wide; reduced-motion + mobile stories verified per scene
 - [ ] Lighthouse on `npx vite preview` within budget; LCP unchanged; Playwright mount smoke green
