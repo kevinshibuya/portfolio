@@ -101,8 +101,17 @@ shader) · react-i18next (EN + PT-BR) · Lenis smoothing (existing) · Vitest 4 
 
 ### Files
 - `src/index.css` — modify: re-point the three neutral token values in the `@theme` block AND the
-  `:root` block. Nothing else in this task.
+  `:root` block; ALSO fix `.loader-mark` (~line 324) whose `color: #F6F9FC` fallback hex must become
+  `color: var(--cream);` (it is light text on the ink loader curtain — semantically the cream token).
+- `index.html` — modify: `<meta name="theme-color">` (~line 29) and `<meta name="msapplication-TileColor">`
+  (~line 48) from `#F6F9FC` → `#F7F5F1`; the inline first-paint `.loader-mark` style (~line 369)
+  `color: #F6F9FC` → `#F7F5F1` (inline styles can't read the token).
+- `public/site.webmanifest` — modify: `background_color` and `theme_color` (lines 7-8) `#F6F9FC` → `#F7F5F1`.
 - `tests/unit/tokens.test.ts` — create: the RED acceptance test (below).
+
+> Deferred (documented, NOT this task): old-mist gradient literals in `src/components/sections/Projects.tsx:166`,
+> `src/data/embeds.ts:67`, `src/data/archive.ts:24` are imagery gradients; re-point to the warm mist in the
+> later section-restyle plan.
 
 ### Interfaces
 - **Consumes:** nothing.
@@ -154,9 +163,12 @@ describe('warm paper neutral tokens', () => {
 - [ ] **Step 1:** Create `tests/unit/tokens.test.ts` with the code above. Run `npx vitest run tests/unit/tokens.test.ts` — expect FAIL (old values still present). RED confirmed.
 - [ ] **Step 2:** In `src/index.css` `@theme` block, set `--color-cream: #F7F5F1;`, `--color-sand: #EFEAE1;`, `--color-mist: #E2DACB;`.
 - [ ] **Step 3:** In `src/index.css` `:root` block, set `--cream: #F7F5F1;`, `--sand: #EFEAE1;`, `--mist: #E2DACB;`.
-- [ ] **Step 4:** Run `npx vitest run tests/unit/tokens.test.ts` — expect PASS (GREEN).
-- [ ] **Step 5:** Run `npx tsc -b --noEmit` and `npm run lint` — both clean.
-- [ ] **Step 6:** Commit: `feat(tokens): warm paper neutrals replace cool cream/sand/mist`.
+- [ ] **Step 4:** In `src/index.css` `.loader-mark` (~line 324), change `color: #F6F9FC;` to `color: var(--cream);` (keep the comment). Without this the test's zero-old-values assertion cannot pass, and a third `#F7F5F1` literal would break the exactly-2 count.
+- [ ] **Step 5:** In `index.html`: theme-color (~29) and msapplication-TileColor (~48) → `#F7F5F1`; inline `.loader-mark` color (~369) → `#F7F5F1`. (Browser chrome + first-paint loader must match the warm paper.)
+- [ ] **Step 6:** In `public/site.webmanifest`: `background_color` and `theme_color` → `#F7F5F1`.
+- [ ] **Step 7:** Run `npx vitest run tests/unit/tokens.test.ts` — expect PASS (GREEN).
+- [ ] **Step 8:** Run `npx tsc -b --noEmit` and `npm run lint` — both clean.
+- [ ] **Step 9:** Commit: `feat(tokens): warm paper neutrals replace cool cream/sand/mist (tokens + chrome + loader)`.
 
 ### Verify before returning
 - `npx vitest run tests/unit/tokens.test.ts` green · `npx tsc -b --noEmit` clean · `npm run lint` clean.
@@ -280,6 +292,12 @@ describe('press revamp copy', () => {
 ### Boundaries
 - Out of scope: nav item strings/rename, removing `hero.stats`/`stats`/`sections.*` keys (later plans),
   editing components. Do NOT delete existing keys — other sections still read them this plan.
+
+> **Known transient contradiction (reviewed, accepted):** the still-rendered Stats section shows
+> "250+" (`src/data/stats.ts:24`) while the new hero/byline copy says "249". This coexists until the
+> Stats section is retired in a later plan. "249" is an owner-supplied published count NOT derivable
+> from repo data (`embeds.csv` has 162 rows) — the owner must confirm the real count before the
+> archive plan ships its "249 pieces" masthead.
 
 ---
 
@@ -467,7 +485,11 @@ describe('HeroPaperGrain', () => {
    and use it in `viewBoxShibuya`; set the sr-only h1 to `kevin shibuya`. In `index.css` change
    `.hero-name-drawing-glyph--ghost` to `{ fill: var(--blue-400); stroke: transparent; }` (solid blue,
    no outline). **Do not touch** the trace/ink-fill effect, the curtain await, refs, `pathLength`
-   logic, or `onComplete` timing.
+   logic, or `onComplete` timing. **Known + accepted timing consequence (reviewed, do not "fix"):**
+   `totalTrace = (allPaths.length - 1) * STAGGER_MS + TRACE_DUR_MS`, so tracing 12 glyphs instead of 13
+   ends the entrance exactly one stagger (80ms) earlier. That is intrinsic to the ratified period
+   removal; per-glyph timing, stagger, and the curtain handshake are unchanged. Do NOT pad the
+   duration back to the 13-glyph total.
 6. **Grain deferral.** Mount `<HeroPaperGrain />` as the first child of the hero, behind `.hero-main`
    (grain `z-index:0`, main `z-index:1`), and only after `entranceDone` — reuse the existing `gate`
    state (`gate` already flips on `entranceDone.then`). Render `{gate && <HeroPaperGrain />}`. This
@@ -659,6 +681,8 @@ shader must implement an **authentic rosette halftone**:
 
 Guard rails: no external GLSL deps; keep the fragment shader within a single `shaderMaterial`; ensure
 `uSource=null` renders a flat `uInkLight` fill (so a not-yet-loaded texture doesn't NaN). Cap loops.
+Declare `uMode` as `uniform float uMode;` in the GLSL and branch with `uMode < 0.5` (not an int
+uniform) — three.js int-uniform coercion is a known footgun with drei shaderMaterial.
 
 Because GLSL cannot be unit-tested in jsdom, the shader's *correctness* is verified by the browser
 smoke in Task 8 (portrait canvas renders, zero console errors) + visual review. The **pure helpers**
@@ -861,9 +885,13 @@ below):
   rendering a full-quad mesh with `<halftoneMaterial>`. Load `src` via drei `useTexture`; set
   `uSource`, `uResolution`, `uInkDark`/`uInkLight`, `uMode={0}`. Drive `uFrequency` from `progress`
   via `useMotionValueEvent(progress, 'change', p => { material.uFrequency = frequencyForProgress(p); invalidate() })`
-  (the `frameloop="demand"` + `invalidate()` pattern — no continuous render). **Gate the Canvas mount
-  with an IntersectionObserver** so the one WebGL context only initializes when the portrait is near the
-  viewport (unmount/pause when far). One GL context total.
+  (the `frameloop="demand"` + `invalidate()` pattern — no continuous render). **Stale-mount guard
+  (review finding, required):** the Canvas mounts late (IO-gated) while `progress` may already be
+  nonzero — on material/texture ready, initialize `material.uFrequency = frequencyForProgress(progress.get())`
+  and call `invalidate()` once, in addition to the change subscription; never rely on a future scroll
+  event for first paint. **Gate the Canvas mount with an IntersectionObserver** so the one WebGL
+  context only initializes when the portrait is near the viewport (unmount/pause when far). One GL
+  context total.
 
 Export a small pure helper for the RED test (no `any`):
 ```ts
