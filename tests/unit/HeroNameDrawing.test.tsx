@@ -11,24 +11,22 @@ describe('HeroNameDrawing', () => {
   })
   afterEach(() => vi.restoreAllMocks())
 
-  it('renders 5 kevin glyphs and 8 shibuya glyphs as SVG paths', () => {
+  it('renders 5 kevin glyphs and 7 shibuya glyphs (period dropped) as SVG paths', () => {
     const { container } = render(
       <MotionProvider><HeroNameDrawing /></MotionProvider>
     )
     const kevinSvg = container.querySelector('[data-name-word="kevin"]')
     const shibuyaSvg = container.querySelector('[data-name-word="shibuya"]')
-    expect(kevinSvg).not.toBeNull()
-    expect(shibuyaSvg).not.toBeNull()
     expect(kevinSvg!.querySelectorAll('path')).toHaveLength(5)
-    expect(shibuyaSvg!.querySelectorAll('path')).toHaveLength(8)
+    expect(shibuyaSvg!.querySelectorAll('path')).toHaveLength(7)
   })
 
-  it('renders a screen-reader-only h1 with the full name', () => {
+  it('renders a screen-reader-only h1 with the period-free name', () => {
     const { container } = render(
       <MotionProvider><HeroNameDrawing /></MotionProvider>
     )
     const sr = container.querySelector('h1.sr-only')
-    expect(sr?.textContent).toBe('kevin shibuya.')
+    expect(sr?.textContent).toBe('kevin shibuya')
   })
 
   it('exposes data-name-glyph indices on each path', () => {
@@ -37,6 +35,6 @@ describe('HeroNameDrawing', () => {
     )
     expect(container.querySelector('[data-name-glyph="0"]')).not.toBeNull()
     expect(container.querySelector('[data-name-glyph="5"]')).not.toBeNull()
-    expect(container.querySelector('[data-name-glyph="12"]')).not.toBeNull()
+    expect(container.querySelector('[data-name-glyph="11"]')).not.toBeNull()
   })
 })

@@ -131,15 +131,23 @@ export function HeroNameDrawing({ onComplete }: HeroNameDrawingProps) {
     }
   }, [prefersReducedMotion, entranceBypassed, onComplete])
 
+  // Drop the trailing period glyph from the surname (voice: period-free name).
+  // Only the rendered glyph list and the surname viewBox width change — the
+  // trace/ink-fill effect, curtain await, refs, and onComplete are untouched.
+  const shibuyaGlyphs = NAME_SHIBUYA.glyphs.filter((g) => g.char !== '.')
+  const shibuyaWidth = shibuyaGlyphs.length
+    ? shibuyaGlyphs[shibuyaGlyphs.length - 1].x + shibuyaGlyphs[shibuyaGlyphs.length - 1].advance
+    : NAME_SHIBUYA.totalAdvance
+
   const viewBoxKevin = `0 ${-NAME_ASCENT} ${NAME_KEVIN.totalAdvance} ${NAME_ASCENT + NAME_DESCENT}`
-  const viewBoxShibuya = `0 ${-NAME_ASCENT} ${NAME_SHIBUYA.totalAdvance} ${NAME_ASCENT + NAME_DESCENT}`
+  const viewBoxShibuya = `0 ${-NAME_ASCENT} ${shibuyaWidth} ${NAME_ASCENT + NAME_DESCENT}`
 
   const kevinClass = `hero-name-drawing-glyph${inkFilled ? ' hero-name-drawing-glyph--ink' : ''}`
   const shibuyaClass = `hero-name-drawing-glyph${inkFilled ? ' hero-name-drawing-glyph--ghost' : ''}`
 
   return (
     <>
-      <h1 className="sr-only">kevin shibuya.</h1>
+      <h1 className="sr-only">kevin shibuya</h1>
       <div className="hero-name-drawing" aria-hidden="true">
         <svg
           className="hero-name-drawing-word"
@@ -167,7 +175,7 @@ export function HeroNameDrawing({ onComplete }: HeroNameDrawingProps) {
           preserveAspectRatio="xMinYMid meet"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {NAME_SHIBUYA.glyphs.map((g, i) => (
+          {shibuyaGlyphs.map((g, i) => (
             <path
               key={i}
               ref={(el) => {

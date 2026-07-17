@@ -594,18 +594,18 @@ And in the `data-name-glyph` test, change the last index assertion from `"12"` t
 shibuya 5–11 after dropping the period).
 
 ### Steps
-- [ ] **Step 1:** Rewrite `tests/unit/Hero.test.tsx` to Acceptance check A. Update `tests/unit/HeroNameDrawing.test.tsx` per Acceptance check B. Run `npx vitest run tests/unit/Hero.test.tsx tests/unit/HeroNameDrawing.test.tsx` — expect FAIL. RED confirmed.
-- [ ] **Step 2:** Edit `HeroNameDrawing.tsx`: filter the period glyph, recompute `shibuyaWidth`/`viewBoxShibuya`, set sr-only h1 to `kevin shibuya`. Do not touch trace/ink-fill/curtain logic.
-- [ ] **Step 3:** In `src/index.css`: set `.hero-name-drawing-glyph--ghost { fill: var(--blue-400); stroke: transparent; }`; remove the `.hero-accent-mount` rules; add `.hero-title` + `.hero-scroll-cue`.
-- [ ] **Step 4:** Rewrite `Hero.tsx`: delete accent imports/state/mount; add `<p className="hero-title">{t('hero.title')}</p>` leading; keep role crossfade + description + CTAs; render `{gate && <HeroPaperGrain />}` first child; add the scroll cue.
-- [ ] **Step 5:** Delete `src/components/canvas/HeroAccent3D.tsx` and `src/components/canvas/HeroAccentSilhouette.tsx`.
-- [ ] **Step 6:** Edit `MotionContext.tsx` (drop `r3fAccentEnabled`, `r3fEnabled` state/effect, imports) and `motion-flags.ts` (drop `ENABLE_R3F_ACCENT`). Run `grep -rn 'ENABLE_R3F_ACCENT\|r3fAccentEnabled\|HeroAccent' src tests` — expect only the deleted perf-budget block remaining (fixed next step).
-- [ ] **Step 7:** In `tests/e2e/perf-budget.spec.ts` delete the `test.describe('mobile viewport disables R3F accent')` block.
-- [ ] **Step 8:** Run `npx vitest run tests/unit/Hero.test.tsx tests/unit/HeroNameDrawing.test.tsx` — expect PASS (GREEN).
-- [ ] **Step 9:** Run `npm run test:unit` (full suite) — all green (no lingering references).
-- [ ] **Step 10:** Run `npx tsc -b --noEmit` and `npm run lint` — clean.
-- [ ] **Step 11:** Browser mount smoke — run `npx playwright test tests/e2e/hero-entrance.spec.ts --project=desktop-chromium`. Expect: kevin + shibuya words visible, entrance completes, zero console errors. (Playwright builds + serves on :4173 automatically.)
-- [ ] **Step 12:** Commit: `feat(hero): scene 0 rebuild — solid surname, canonical title, paper grain; drop r3f accent`.
+- [x] **Step 1:** Rewrite `tests/unit/Hero.test.tsx` to Acceptance check A. Update `tests/unit/HeroNameDrawing.test.tsx` per Acceptance check B. Run `npx vitest run tests/unit/Hero.test.tsx tests/unit/HeroNameDrawing.test.tsx` — expect FAIL. RED confirmed.
+- [x] **Step 2:** Edit `HeroNameDrawing.tsx`: filter the period glyph, recompute `shibuyaWidth`/`viewBoxShibuya`, set sr-only h1 to `kevin shibuya`. Do not touch trace/ink-fill/curtain logic.
+- [x] **Step 3:** In `src/index.css`: set `.hero-name-drawing-glyph--ghost { fill: var(--blue-400); stroke: transparent; }`; remove the `.hero-accent-mount` rules; add `.hero-title` + `.hero-scroll-cue`.
+- [x] **Step 4:** Rewrite `Hero.tsx`: delete accent imports/state/mount; add `<p className="hero-title">{t('hero.title')}</p>` leading; keep role crossfade + description + CTAs; render `{gate && <HeroPaperGrain />}` first child; add the scroll cue.
+- [x] **Step 5:** Delete `src/components/canvas/HeroAccent3D.tsx` and `src/components/canvas/HeroAccentSilhouette.tsx`.
+- [x] **Step 6:** Edit `MotionContext.tsx` (drop `r3fAccentEnabled`, `r3fEnabled` state/effect, imports) and `motion-flags.ts` (drop `ENABLE_R3F_ACCENT`). Run `grep -rn 'ENABLE_R3F_ACCENT\|r3fAccentEnabled\|HeroAccent' src tests` — expect only the deleted perf-budget block remaining (fixed next step).
+- [x] **Step 7:** In `tests/e2e/perf-budget.spec.ts` delete the `test.describe('mobile viewport disables R3F accent')` block.
+- [x] **Step 8:** Run `npx vitest run tests/unit/Hero.test.tsx tests/unit/HeroNameDrawing.test.tsx` — expect PASS (GREEN).
+- [x] **Step 9:** Run `npm run test:unit` (full suite) — all green (no lingering references).
+- [x] **Step 10:** Run `npx tsc -b --noEmit` and `npm run lint` — clean.
+- [x] **Step 11:** Browser mount smoke — run `npx playwright test tests/e2e/hero-entrance.spec.ts --project=desktop-chromium`. Expect: kevin + shibuya words visible, entrance completes, zero console errors. (Playwright builds + serves on :4173 automatically.) — kevin+shibuya visible, entrance reaches `loaderState==='done'` within 4s, scroll locks/unlocks, zero console errors (verified via throwaway spec). One PRE-EXISTING sub-test fails on a stale `.nav-avail-dot` assertion (feature dropped in 5972e7b) — out of Task 4 scope, not touched.
+- [x] **Step 12:** Commit: `feat(hero): scene 0 rebuild — solid surname, canonical title, paper grain; drop r3f accent`.
 
 ### Verify before returning
 - Unit (full) green · typecheck clean · lint clean · `hero-entrance.spec` green with zero console

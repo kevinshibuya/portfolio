@@ -415,12 +415,11 @@ html[data-loading='true'] {
   fill: var(--ink);
   stroke: transparent;
 }
-/* Final state of "shibuya.": ghost (cream/mist fill + thin blue stroke,
-   matches the previous .hero-name-line--ghost). */
+/* Final state of "shibuya": solid blue, stroke-free (period-free surname set
+   in one confident ink weight — no ghost outline). */
 .hero-name-drawing-glyph--ghost {
-  fill: var(--mist);
-  stroke: var(--blue-300);
-  stroke-width: 4;
+  fill: var(--blue-400);
+  stroke: transparent;
 }
 
 /* Scramble lettering — cursor affordance + design-system focus ring.
@@ -486,6 +485,24 @@ html[data-loading='true'] {
   text-transform: lowercase;
 }
 .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+
+/* Static canonical title — leads above the cycling role line. */
+.hero-title {
+  font-family: var(--font-mono);
+  font-size: clamp(13px, 1.5vw, 16px);
+  letter-spacing: 0.02em;
+  color: var(--bark);
+  text-transform: lowercase;
+  margin: 0 0 4px;
+}
+/* Plain mono scroll cue at the foot of the hero. Static — no bounce loop. */
+.hero-scroll-cue {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--dust);
+  text-transform: lowercase;
+}
 
 .hero-stats {
   position: relative; z-index: 1;
@@ -1342,7 +1359,6 @@ html[data-loading='true'] {
   .contact-meta { display: none; }
   .section-header { margin-bottom: 40px; }
   .section { padding: 100px 20px; }
-  .hero-accent-mount { display: none; }
 
   /* Hero typography — desktop values read bookish on a 6" screen.
      Drop description from "novel body" (17/1.75) to "informative
@@ -1377,24 +1393,6 @@ body[data-loader-state="loading"] {
 .hero-supplementary .hero-role-line + .hero-desc { margin-top: 32px; }
 .hero-supplementary .hero-desc + .hero-cta { margin-top: 48px; }
 
-/* Right-side HeroAccent3D mount. The previous container (.hero-fragments)
-   was a half-width grid of multiple SVG fragments + the 3D accent; that
-   component was deleted in Task 9. The lone surviving accent re-mounts
-   here, positioned absolutely so it sits beside .hero-main without
-   pushing the grid layout. Hidden at ≤720px where the hero layout
-   collapses single-column and the accent would crowd hero-main's
-   content. Between 721–1100px the accent stays mounted; right:80px
-   continues to track section padding at those widths. */
-.hero-accent-mount {
-  position: absolute;
-  top: 50%;
-  right: 80px;
-  transform: translateY(-50%);
-  width: 280px;
-  height: 280px;
-  pointer-events: none;
-  z-index: 0;
-}
 /* Stats numbered-receipt section. Two-column editorial layout on desktop
    (heading left, numbered rows right), single column on mobile. The
    slim-band/.hero-stat-* classes are no longer referenced from this

@@ -1,4 +1,3 @@
-export const ENABLE_R3F_ACCENT = true
 export const MOBILE_BREAKPOINT_PX = 768
 // 1800ms gives the ink-draw enough time to be perceptually visible on fast
 // (cached) loads. Honest progress still applies — slower loads stretch the

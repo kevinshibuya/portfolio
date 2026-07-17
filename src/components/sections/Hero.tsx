@@ -1,17 +1,11 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState, type ComponentType, type LazyExoticComponent } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Trans, useTranslation } from 'react-i18next'
 import { useLenis } from '../../hooks/useLenis'
 import { useMotion } from '../../context/MotionContext'
 import { RevealOnView } from '../ui/RevealOnView'
-import { HeroAccentSilhouette } from '../canvas/HeroAccentSilhouette'
+import { HeroPaperGrain } from '../ui/HeroPaperGrain'
 import { HeroNameDrawing } from '../ui/HeroNameDrawing'
-
-// The R3F accent chunk is ~240 KiB minified and competes for the main thread
-// during LCP if imported on mount. Defer the dynamic import until the hero
-// entrance animation finishes — the silhouette covers the same bounding box
-// in the meantime, so the swap is invisible from the user's perspective.
-type HeroAccent3DLazy = LazyExoticComponent<ComponentType<unknown>>
 
 const ROLE_DURATION_MS = 5000
 
@@ -21,29 +15,16 @@ export function Hero() {
   const { scrollTo } = useLenis()
   const { entranceDone, resolveEntrance } = useMotion()
 
-  // gate: enables the supplementary RevealOnView cascade. Fires when the
-  // hero name's trace + ink-fill animation completes.
+  // gate: enables the supplementary RevealOnView cascade and the deferred
+  // paper-grain layer. Fires when the hero name's trace + ink-fill animation
+  // completes, so nothing here competes with the entrance or freezes the
+  // stagger mid-flight.
   const [gate, setGate] = useState(false)
   useEffect(() => {
     let cancelled = false
     entranceDone
       .then(() => { if (!cancelled) setGate(true) })
       .catch(() => {})
-    return () => { cancelled = true }
-  }, [entranceDone])
-
-  // HeroAccent3D import is held in state and only created after entranceDone
-  // settles — keeps the heavy R3F chunk off the LCP critical path. The
-  // .catch() branch loads anyway so a rejected promise doesn't strand us on
-  // the silhouette forever.
-  const [HeroAccent3D, setHeroAccent3D] = useState<HeroAccent3DLazy | null>(null)
-  useEffect(() => {
-    let cancelled = false
-    const load = (): void => {
-      if (cancelled) return
-      setHeroAccent3D(() => lazy(() => import('../canvas/HeroAccent3D')) as HeroAccent3DLazy)
-    }
-    entranceDone.then(load).catch(load)
     return () => { cancelled = true }
   }, [entranceDone])
 
@@ -96,6 +77,11 @@ export function Hero() {
 
   return (
     <section id="top" className="hero">
+      {/* Pointer-lit paper grain — deferred behind entranceDone so it never
+          competes with LCP and the gate flips AFTER the entrance cascade
+          (avoids freezing an in-flight stagger). Sits behind .hero-main. */}
+      {gate && <HeroPaperGrain />}
+
       <div className="hero-main">
         {/* The SVG drawing IS the title — it traces in, then ink-fills to
             its final state. Its onComplete resolves the entrance gate that
@@ -103,6 +89,9 @@ export function Hero() {
         <HeroNameDrawing onComplete={resolveEntrance} />
 
         <div className="hero-supplementary">
+          {/* Static canonical title leads; the role cycle sits beneath. */}
+          <p className="hero-title">{t('hero.title')}</p>
+
           <RevealOnView recipe="slideInLeft" delay={0.0} gate={gate}>
             <div className="hero-role-line">
               <span className="hero-role-prefix">{t('hero.rolePrefix')}</span>
@@ -161,14 +150,8 @@ export function Hero() {
         </div>
       </div>
 
-      <RevealOnView recipe="fadeUp" delay={0.6} gate={gate} className="hero-accent-mount">
-        {HeroAccent3D ? (
-          <Suspense fallback={<HeroAccentSilhouette />}>
-            <HeroAccent3D />
-          </Suspense>
-        ) : (
-          <HeroAccentSilhouette />
-        )}
+      <RevealOnView recipe="fadeUp" delay={0.6} gate={gate}>
+        <div className="hero-scroll-cue">scroll ↓</div>
       </RevealOnView>
     </section>
   )

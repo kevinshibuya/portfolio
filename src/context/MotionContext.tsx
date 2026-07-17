@@ -1,6 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
-import { ENABLE_R3F_ACCENT, MOBILE_BREAKPOINT_PX } from '../utils/motion-flags'
 
 type Resolver = () => void
 
@@ -25,7 +24,6 @@ interface MotionContextValue {
   /** Backward-compat alias — some legacy consumers still read `loaderDone`. */
   loaderDone: Promise<void>
   prefersReducedMotion: boolean
-  r3fAccentEnabled: boolean
 }
 
 let _resolveEntrance: Resolver | null = null
@@ -49,23 +47,13 @@ const resolveCurtain: Resolver = () => _resolveCurtain?.()
 // double-mount, MotionProvider remount). The provider also mirrors it in
 // state so calling bypassEntrance() triggers a context re-render and
 // consumers see the new value. Without the state mirror, useMemo would
-// keep returning the cached false until reduced/r3fEnabled happened to
-// change.
+// keep returning the cached false until `reduced` happened to change.
 let _entranceBypassed = false
 
 const Ctx = createContext<MotionContextValue | null>(null)
 
 export function MotionProvider({ children }: { children: React.ReactNode }) {
   const reduced = useReducedMotion() ?? false
-
-  const [r3fEnabled, setR3fEnabled] = useState(false)
-  useEffect(() => {
-    const url = new URL(window.location.href)
-    const forceOff = url.searchParams.get('disableR3f') === '1'
-    setR3fEnabled(
-      ENABLE_R3F_ACCENT && !forceOff && window.innerWidth >= MOBILE_BREAKPOINT_PX
-    )
-  }, [])
 
   // Initialise from the module flag so a remounted provider picks up an
   // already-bypassed state instead of resetting to false.
@@ -88,11 +76,10 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
       entranceBypassed: bypassed,
       loaderDone: _entranceDone,
       prefersReducedMotion: reduced,
-      r3fAccentEnabled: r3fEnabled,
     }),
     // bypassEntrance is recreated each render but its identity changing
     // doesn't matter to consumers — it's a one-shot side-effecting call.
-    [reduced, r3fEnabled, bypassed]
+    [reduced, bypassed]
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
