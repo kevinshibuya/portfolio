@@ -18,7 +18,8 @@
       "um líder técnico",
       "um engenheiro de ia"
     ],
-    "description": "<strong>do esboço ao produto final.</strong> um time de um homem só.",
+    "title": "engenheiro front-end sênior · react/typescript",
+    "description": "<strong>do esboço ao produto final.</strong> 249 peças, lidas por milhões no sul do brasil.",
     "cta": {
       "collaborate": "colaborar",
       "resume": "currículo"
@@ -28,6 +29,12 @@
       "embeds": "interativos entregues",
       "projects": "estudos de caso"
     }
+  },
+  "byline": {
+    "caption": "kevin, porto alegre",
+    "body": "sou engenheiro front-end em porto alegre. há sete anos construo jornalismo interativo na gzh: simuladores, mapas, quizzes, enquetes ao vivo. 249 peças, lidas por milhões no sul do brasil. o que eu persigo é o segundo em que o leitor para de rolar porque a coisa na página realmente funciona.",
+    "marginNoteAlt": "nota à mão na margem: publica, depois faz cantar",
+    "portraitAlt": "kevin shibuya, retrato em alto contraste"
   },
   "stats": {
     "heading": "o trabalho, em <em>números.</em>",

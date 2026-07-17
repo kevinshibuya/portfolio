@@ -18,7 +18,8 @@
       "a tech lead",
       "an ai engineer"
     ],
-    "description": "<strong>rough ideas → shipped products.</strong> a team of one.",
+    "title": "senior front-end engineer · react/typescript",
+    "description": "<strong>rough ideas → shipped products.</strong> 249 pieces, read by millions across southern brazil.",
     "cta": {
       "collaborate": "collaborate",
       "resume": "resume"
@@ -28,6 +29,12 @@
       "embeds": "interactives shipped",
       "projects": "case studies"
     }
+  },
+  "byline": {
+    "caption": "kevin, porto alegre",
+    "body": "i'm a front-end engineer in porto alegre. for seven years i've built interactive journalism at gzh: simulators, maps, quizzes, live polls. 249 pieces, read by millions across southern brazil. what i chase is the second a reader stops scrolling because the thing on the page actually works.",
+    "marginNoteAlt": "handwritten margin note: ship it, then make it sing",
+    "portraitAlt": "kevin shibuya, high-contrast portrait"
   },
   "stats": {
     "heading": "the work, in <em>numbers.</em>",

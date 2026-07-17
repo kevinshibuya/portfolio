@@ -279,11 +279,11 @@ describe('press revamp copy', () => {
 ```
 
 ### Steps
-- [ ] **Step 1:** Create `tests/unit/seo/press-copy.test.ts` with the code above. Run `npx vitest run tests/unit/seo/press-copy.test.ts` — expect FAIL (keys missing). RED confirmed.
-- [ ] **Step 2:** Edit `src/i18n/locales/en.json`: add `hero.title`, replace `hero.description`, add the `byline` block (use the em-dash-free `body`). Keep JSON valid (commas).
-- [ ] **Step 3:** Edit `src/i18n/locales/pt.json`: the same keys with the PT-BR values above.
-- [ ] **Step 4:** Run `npx vitest run tests/unit/seo/press-copy.test.ts tests/unit/seo/i18n-roles.test.ts` — both PASS (GREEN; the roles test must still pass since `roles` is untouched).
-- [ ] **Step 5:** Run `npx tsc -b --noEmit` and `npm run lint` — clean.
+- [x] **Step 1:** Create `tests/unit/seo/press-copy.test.ts` with the code above. Run `npx vitest run tests/unit/seo/press-copy.test.ts` — expect FAIL (keys missing). RED confirmed.
+- [x] **Step 2:** Edit `src/i18n/locales/en.json`: add `hero.title`, replace `hero.description`, add the `byline` block (use the em-dash-free `body`). Keep JSON valid (commas).
+- [x] **Step 3:** Edit `src/i18n/locales/pt.json`: the same keys with the PT-BR values above.
+- [x] **Step 4:** Run `npx vitest run tests/unit/seo/press-copy.test.ts tests/unit/seo/i18n-roles.test.ts` — both PASS (GREEN; the roles test must still pass since `roles` is untouched).
+- [x] **Step 5:** Run `npx tsc -b --noEmit` and `npm run lint` — clean.
 - [ ] **Step 6:** Commit: `feat(i18n): canonical hero title + byline copy (en + pt-br)`.
 
 ### Verify before returning
