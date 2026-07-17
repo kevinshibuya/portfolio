@@ -9,6 +9,9 @@ import { resetPageMeta } from '../utils/pageMeta'
 // (the LCP target). After Hero mounts, an idle callback warms the chunks so
 // they're ready by the time the user scrolls. The Suspense fallback reserves
 // 100vh so a hyper-fast scroll doesn't snap through to the footer.
+const Byline = lazy(() =>
+  import('../components/sections/Byline').then((m) => ({ default: m.Byline }))
+)
 const Projects = lazy(() =>
   import('../components/sections/Projects').then((m) => ({ default: m.Projects }))
 )
@@ -180,6 +183,7 @@ export function Home() {
   // requestIdleCallback isn't in Safari yet — fall back to a 0ms timer.
   useEffect(() => {
     const warm = () => {
+      void import('../components/sections/Byline')
       void import('../components/sections/Projects')
       void import('../components/sections/Archive')
       void import('../components/sections/WorkExperience')
@@ -202,6 +206,7 @@ export function Home() {
     <main>
       <Hero />
       <Suspense fallback={<div style={{ minHeight: '100vh' }} aria-hidden />}>
+        <Byline />
         <Projects />
         <Archive />
         <WorkExperience />

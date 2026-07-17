@@ -1043,15 +1043,15 @@ describe('Byline', () => {
 ```
 
 ### Steps
-- [ ] **Step 1:** Create `tests/unit/Byline.test.tsx` with the code above. Run `npx vitest run tests/unit/Byline.test.tsx` — expect FAIL. RED confirmed.
-- [ ] **Step 2:** Create `src/components/sections/Byline.tsx` per the contract (`useScroll` progress, `HalftonePortrait`, caption, body, margin-note img). Root `<section id="byline" className="byline" ref={ref}>`.
-- [ ] **Step 3:** Append `.byline*` styles to `src/index.css`.
-- [ ] **Step 4:** Edit `src/pages/Home.tsx`: add the lazy `Byline` import, render `<Byline />` first inside the Suspense group, add it to the idle-warm effect.
-- [ ] **Step 5:** Run `npx vitest run tests/unit/Byline.test.tsx` — expect PASS (GREEN).
-- [ ] **Step 6:** Run `npm run test:unit` (full) — all green.
-- [ ] **Step 7:** Run `npx tsc -b --noEmit` and `npm run lint` — clean.
-- [ ] **Step 8:** Browser mount smoke — `npx playwright test tests/e2e/hero-entrance.spec.ts tests/e2e/section-enters.spec.ts --project=desktop-chromium`. Expect: page loads, hero + byline render, zero console errors. Manually confirm (or via a quick Playwright scriptlet) the byline `#byline` section is present and the portrait renders (canvas on desktop, `<img>` fallback on `--project=mobile-chromium`).
-- [ ] **Step 9:** Commit: `feat(byline): scene 1 — halftone portrait develop, caption, margin note`.
+- [x] **Step 1:** Create `tests/unit/Byline.test.tsx` with the code above. Run `npx vitest run tests/unit/Byline.test.tsx` — expect FAIL. RED confirmed.
+- [x] **Step 2:** Create `src/components/sections/Byline.tsx` per the contract (`useScroll` progress, `HalftonePortrait`, caption, body, margin-note img). Root `<section id="byline" className="byline" ref={ref}>`.
+- [x] **Step 3:** Append `.byline*` styles to `src/index.css`.
+- [x] **Step 4:** Edit `src/pages/Home.tsx`: add the lazy `Byline` import, render `<Byline />` first inside the Suspense group, add it to the idle-warm effect.
+- [x] **Step 5:** Run `npx vitest run tests/unit/Byline.test.tsx` — expect PASS (GREEN).
+- [x] **Step 6:** Run `npm run test:unit` (full) — all green.
+- [x] **Step 7:** Run `npx tsc -b --noEmit` and `npm run lint` — clean.
+- [x] **Step 8:** Browser mount smoke — `npx playwright test tests/e2e/hero-entrance.spec.ts tests/e2e/section-enters.spec.ts --project=desktop-chromium`. hero-entrance 3/3 green, section-enters 4/5 green; the 1 failure is a PRE-EXISTING stale assertion on `#embeds` (no such section id in the tree — confirmed absent on a clean stash too), unrelated to Byline. A throwaway scriptlet confirmed `#byline` present, caption + 1 margin note, exactly 1 canvas on desktop / `<img>` fallback + 0 canvas on mobile-chromium, zero console errors on both.
+- [x] **Step 9:** Commit: `feat(byline): scene 1 — halftone portrait develop, caption, margin note`.
 
 ### Verify before returning
 - Unit (full) green · typecheck clean · lint clean · byline visible in the browser smoke with zero
