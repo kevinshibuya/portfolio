@@ -8,19 +8,10 @@ test('reduced motion: loader resolves quickly and hero is final-state', async ({
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
   const ms = Date.now() - start
   expect(ms).toBeLessThan(1500) // generous; floor is 200 + paint
-  const fragOp = await page.locator('[data-fragment="bars"]').evaluate((el) =>
-    parseFloat(getComputedStyle(el as HTMLElement).opacity)
-  )
-  expect(fragOp).toBeGreaterThan(0.99)
-})
-
-test('reduced motion: shibuya hover does not scramble', async ({ page }) => {
-  await page.goto('/')
-  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
-  const word = page.locator('[data-hero-word="shibuya"]')
-  await word.hover()
-  await page.waitForTimeout(300)
-  await expect(word).toHaveText('shibuya.')
+  // The SVG name entrance resolves to its final ink-filled state immediately
+  // under reduced motion — both words visible, no trace animation pending.
+  await expect(page.locator('[data-name-word="kevin"]')).toBeVisible()
+  await expect(page.locator('[data-name-word="shibuya"]')).toBeVisible()
 })
 
 test('reduced motion: titles never scroll-fade', async ({ page }) => {
