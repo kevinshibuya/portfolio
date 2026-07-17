@@ -413,7 +413,7 @@ describe('HeroPaperGrain', () => {
 - [x] **Step 3:** Append the `.hero-paper-grain*` CSS block above to `src/index.css`.
 - [x] **Step 4:** Run `npx vitest run tests/unit/HeroPaperGrain.test.tsx` — expect PASS (GREEN).
 - [x] **Step 5:** Run `npx tsc -b --noEmit` and `npm run lint` — clean (no `any`).
-- [ ] **Step 6:** Commit: `feat(hero): pointer-lit paper grain leaf component`.
+- [x] **Step 6:** Commit: `feat(hero): pointer-lit paper grain leaf component`.
 
 ### Verify before returning
 - Unit test green · typecheck clean · lint clean · pointer handler uses MotionValues only (grep the
