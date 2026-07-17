@@ -833,7 +833,7 @@ Files exist at the exact paths with the right formats/dimensions. Verified by th
 - [x] **Step 1:** Create `scripts/gen-placeholder-assets.mjs` and `public/images/README-placeholders.md` with the content above.
 - [x] **Step 2:** Run `node scripts/gen-placeholder-assets.mjs` — expect `placeholder assets written to public/images/`.
 - [x] **Step 3:** Verify: `node -e "import('sharp').then(async ({default:s})=>{for(const f of ['portrait-placeholder.jpg','portrait-duotone-placeholder.jpg','margin-note-placeholder.png']){const m=await s('public/images/'+f).metadata();console.log(f,m.format,m.width+'x'+m.height)}})"` — expect three lines: two `jpeg 1200x1500`, one `png 520x200`.
-- [ ] **Step 4:** Commit: `chore(byline): generate placeholder portrait + handwriting assets`.
+- [x] **Step 4:** Commit: `chore(byline): generate placeholder portrait + handwriting assets`.
 
 ### Verify before returning
 - Three files present with correct format/dimensions · README swap doc present.
