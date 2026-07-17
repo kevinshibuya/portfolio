@@ -509,6 +509,43 @@ html[data-loading='true'] {
   letter-spacing: 0.08em;
 }
 
+/* Pointer-lit paper grain — Scene 0. Deferred behind entranceDone by Hero.
+   Cheap non-R3F texture layer: static feTurbulence grain + a pointer-follow
+   radial light. Idle = grain drift only; no pulses. */
+.hero-paper-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  /* the pointer light, positioned by --lx/--ly (set from MotionValues) */
+  background:
+    radial-gradient(
+      420px circle at var(--lx, 50%) var(--ly, 40%),
+      rgba(255, 255, 255, 0.55),
+      rgba(255, 255, 255, 0) 60%
+    );
+  mix-blend-mode: soft-light;
+}
+.hero-paper-grain::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  animation: grain-drift 18s linear infinite;
+}
+@keyframes grain-drift {
+  0%   { background-position: 0 0; }
+  100% { background-position: 180px 180px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-paper-grain { background: none; }
+  .hero-paper-grain::before { animation: none; }
+}
+
 /* =========================================================================
    BUTTONS
    ========================================================================= */

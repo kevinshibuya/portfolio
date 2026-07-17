@@ -284,7 +284,7 @@ describe('press revamp copy', () => {
 - [x] **Step 3:** Edit `src/i18n/locales/pt.json`: the same keys with the PT-BR values above.
 - [x] **Step 4:** Run `npx vitest run tests/unit/seo/press-copy.test.ts tests/unit/seo/i18n-roles.test.ts` — both PASS (GREEN; the roles test must still pass since `roles` is untouched).
 - [x] **Step 5:** Run `npx tsc -b --noEmit` and `npm run lint` — clean.
-- [ ] **Step 6:** Commit: `feat(i18n): canonical hero title + byline copy (en + pt-br)`.
+- [x] **Step 6:** Commit: `feat(i18n): canonical hero title + byline copy (en + pt-br)`.
 
 ### Verify before returning
 - `npx vitest run tests/unit/seo/press-copy.test.ts` green · roles test still green · JSON parses · lint clean.
@@ -408,11 +408,11 @@ describe('HeroPaperGrain', () => {
 ```
 
 ### Steps
-- [ ] **Step 1:** Create `tests/unit/HeroPaperGrain.test.tsx` with the code above. Run `npx vitest run tests/unit/HeroPaperGrain.test.tsx` — expect FAIL (component missing). RED confirmed.
-- [ ] **Step 2:** Create `src/components/ui/HeroPaperGrain.tsx` per the behavioral contract. Render `<motion.div className="hero-paper-grain" aria-hidden="true">`.
-- [ ] **Step 3:** Append the `.hero-paper-grain*` CSS block above to `src/index.css`.
-- [ ] **Step 4:** Run `npx vitest run tests/unit/HeroPaperGrain.test.tsx` — expect PASS (GREEN).
-- [ ] **Step 5:** Run `npx tsc -b --noEmit` and `npm run lint` — clean (no `any`).
+- [x] **Step 1:** Create `tests/unit/HeroPaperGrain.test.tsx` with the code above. Run `npx vitest run tests/unit/HeroPaperGrain.test.tsx` — expect FAIL (component missing). RED confirmed.
+- [x] **Step 2:** Create `src/components/ui/HeroPaperGrain.tsx` per the behavioral contract. Render `<motion.div className="hero-paper-grain" aria-hidden="true">`.
+- [x] **Step 3:** Append the `.hero-paper-grain*` CSS block above to `src/index.css`.
+- [x] **Step 4:** Run `npx vitest run tests/unit/HeroPaperGrain.test.tsx` — expect PASS (GREEN).
+- [x] **Step 5:** Run `npx tsc -b --noEmit` and `npm run lint` — clean (no `any`).
 - [ ] **Step 6:** Commit: `feat(hero): pointer-lit paper grain leaf component`.
 
 ### Verify before returning
