@@ -4,6 +4,7 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import { useMotionValueEvent, type MotionValue } from 'framer-motion'
 import { useMotion } from '../../context/MotionContext'
+import { MOBILE_BREAKPOINT_PX } from '../../utils/motion-flags'
 import {
   HalftoneMaterial,
   type HalftoneUniformValues,
@@ -54,7 +55,8 @@ export function hasWebGL(): boolean {
 /** Coarse-pointer or small-viewport devices take the static duotone story. */
 function isCoarseOrMobile(): boolean {
   return (
-    window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 768
+    window.matchMedia('(pointer: coarse)').matches ||
+    window.innerWidth <= MOBILE_BREAKPOINT_PX
   )
 }
 

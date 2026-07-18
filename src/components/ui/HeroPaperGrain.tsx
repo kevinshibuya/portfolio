@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { motion, useMotionTemplate, useMotionValue } from 'framer-motion'
+import { motion, useMotionValue } from 'framer-motion'
 import { useMotion } from '../../context/MotionContext'
 
 /**
@@ -8,15 +8,13 @@ import { useMotion } from '../../context/MotionContext'
  *
  * Pointer state MUST NOT flow through React state — a re-render above an
  * in-flight whileInView(once) stagger freezes children at opacity 0. The
- * pointer position is routed pointer -> MotionValue -> CSS custom property
- * via useMotionTemplate, never through setState.
+ * pointer position is routed pointer -> MotionValue -> CSS custom property,
+ * never through setState.
  */
 export function HeroPaperGrain(): React.JSX.Element {
   const { prefersReducedMotion } = useMotion()
   const lx = useMotionValue('50%')
   const ly = useMotionValue('40%')
-  const lxTemplate = useMotionTemplate`${lx}`
-  const lyTemplate = useMotionTemplate`${ly}`
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -46,7 +44,7 @@ export function HeroPaperGrain(): React.JSX.Element {
       style={
         prefersReducedMotion
           ? undefined
-          : { '--lx': lxTemplate, '--ly': lyTemplate } as React.CSSProperties
+          : { '--lx': lx, '--ly': ly } as React.CSSProperties
       }
     />
   )
