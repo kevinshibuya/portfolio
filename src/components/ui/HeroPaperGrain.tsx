@@ -19,11 +19,11 @@ export function HeroPaperGrain(): React.JSX.Element {
 
   useEffect(() => {
     if (prefersReducedMotion) return
-    if (window.matchMedia('(pointer: coarse)').matches) return
+    const el = containerRef.current
+    if (!el) return
+    const finePointer = !window.matchMedia('(pointer: coarse)').matches
 
     const handlePointerMove = (event: PointerEvent): void => {
-      const el = containerRef.current
-      if (!el) return
       const rect = el.getBoundingClientRect()
       if (rect.width === 0 || rect.height === 0) return
       const xPct = ((event.clientX - rect.left) / rect.width) * 100
@@ -32,8 +32,28 @@ export function HeroPaperGrain(): React.JSX.Element {
       ly.set(`${yPct}%`)
     }
 
-    window.addEventListener('pointermove', handlePointerMove)
-    return () => window.removeEventListener('pointermove', handlePointerMove)
+    // Hero visibility gates both costs: the grain-drift keyframes (paused via
+    // the data-offscreen attribute — stamped imperatively, NEVER through
+    // setState, which would freeze an in-flight entrance stagger) and the
+    // window pointermove listener (attached only while the hero is on screen).
+    let listening = false
+    const observer = new IntersectionObserver(([entry]) => {
+      const visible = entry.isIntersecting
+      el.dataset.offscreen = visible ? 'false' : 'true'
+      if (!finePointer) return
+      if (visible && !listening) {
+        window.addEventListener('pointermove', handlePointerMove)
+        listening = true
+      } else if (!visible && listening) {
+        window.removeEventListener('pointermove', handlePointerMove)
+        listening = false
+      }
+    })
+    observer.observe(el)
+    return () => {
+      observer.disconnect()
+      if (listening) window.removeEventListener('pointermove', handlePointerMove)
+    }
   }, [prefersReducedMotion, lx, ly])
 
   return (

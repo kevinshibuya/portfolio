@@ -549,16 +549,21 @@ html[data-loading='true'] {
 .hero-paper-grain::before {
   content: "";
   position: absolute;
-  inset: -20%;
+  /* extra 180px bleed so the one-tile translate loop never exposes an edge */
+  inset: calc(-20% - 180px);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   background-size: 180px 180px;
   opacity: 0.5;
   mix-blend-mode: multiply;
   animation: grain-drift 18s linear infinite;
 }
+/* IO in HeroPaperGrain stamps data-offscreen; a paused animation costs nothing */
+.hero-paper-grain[data-offscreen='true']::before { animation-play-state: paused; }
+/* translating the tiled layer by exactly one 180px tile loops seamlessly and
+   stays composited, unlike background-position which repaints every frame */
 @keyframes grain-drift {
-  0%   { background-position: 0 0; }
-  100% { background-position: 180px 180px; }
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(180px, 180px, 0); }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-paper-grain { background: none; }

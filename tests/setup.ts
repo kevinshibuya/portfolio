@@ -16,6 +16,15 @@ if (!window.matchMedia) {
   })
 }
 
+if (!window.IntersectionObserver) {
+  window.IntersectionObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() { return [] }
+  } as unknown as typeof IntersectionObserver
+}
+
 if (!window.ResizeObserver) {
   window.ResizeObserver = class {
     observe() {}
