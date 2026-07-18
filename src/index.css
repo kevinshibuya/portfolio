@@ -45,6 +45,7 @@
   --color-blue-300:    #6DB8FF;
   --color-blue-400:    #3A96E8;
   --color-blue-500:    #1C6EC4;
+  --color-blue-600:    #1965B4; /* AA (≥4.5) for small text on --sand */
 
   --color-periwinkle-100: #C8D8F0;
   --color-periwinkle-200: #8AAADA;
@@ -67,6 +68,7 @@
   --blue-300: #6DB8FF;
   --blue-400: #3A96E8;
   --blue-500: #1C6EC4;
+  --blue-600: #1965B4; /* AA (≥4.5) for small text on --sand */
 
   --periwinkle-100: #C8D8F0;
   --periwinkle-200: #8AAADA;
@@ -630,6 +632,8 @@ html[data-loading='true'] {
   display: block;
   margin-bottom: 14px;
 }
+/* blue-500 hits only 4.30:1 on sand (AA needs 4.5 at 11px) — step down one. */
+.section--sand .section-index { color: var(--blue-600); }
 .section-title {
   font-size: clamp(44px, 6vw, 84px);
   font-weight: 400;
