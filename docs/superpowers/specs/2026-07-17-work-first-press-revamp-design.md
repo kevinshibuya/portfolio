@@ -71,7 +71,8 @@ Instant search, FLIP filter re-flow capped <250ms, virtualized rows + `content-v
 - One WebGL context, scroll-range gated; shader octaves/DPR capped for low-end.
 - Mobile and reduced-motion tell the same story statically (pre-baked duotone, instant timeline, stacked beats, no wipe → rough-edge mask or crossfade).
 - Hero LCP unchanged (entrance already optimized; grain layer deferred behind `entranceDone`).
-- Lighthouse audited against `npx vite preview` (port 4173), not dev server. Budget: performance ≥ 90 (mobile preset), accessibility ≥ 95, matching or beating the current site's scores.
+- Lighthouse audited against `npx vite preview` (port 4173), not dev server. Budget (recalibrated 2026-07-18 after Plan 1, owner decision): performance ≥ 85 (mobile preset) + LCP unchanged (≤ 2.6s) + accessibility 100. The original perf ≥ 90 was baseline-unachievable (pre-revamp baseline 87; Speed Index is bounded by the inviolable hero entrance). Plans 2-4 inherit this budget.
+- Branch strategy (owner decision 2026-07-18): Plans 2-4 keep stacking on `design/work-first-press-revamp`; merge to `main` only when the below-hero sections are no longer transitional.
 - Real-browser mount smoke (headless Playwright: page loads, root renders, zero console errors) for any plan task touching the app shell.
 - Bilingual EN + PT for every string including annotations and affordance cues.
 
