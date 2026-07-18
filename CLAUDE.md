@@ -39,6 +39,7 @@ Soft blue pastel editorial. Lowercase, playful, and confident — sky blue on co
 - **UI Components**: Tag (chip style), SectionHeading (em-accent), MarqueeDivider, StatCounter, SocialLinks, Cursor.
 - **Section flow**: Hero → About → WorkExperience (accordion) → Skills → Projects (bento v04) → EmbedsGallery (numbered rows v02) → Contact → Footer.
 - **NO**: Purple gradients, generic drop shadows, rainbow accents, amber `#D4A020` (retired), terracotta `#E07A56` / sage `#A8C899` (retired), Outfit/Inter (retired), spinning loaders.
+- **Palette/token changes ship with a contrast audit**: at plan time, check every affected text/background pair (WCAG AA, Lighthouse a11y ≥ target) across the sections that inherit the tokens — verified, not hoped. (Warm-paper swap silently dropped a11y 100→96 via `.section-index` on sand.)
 
 ## Animation Library Usage Rules
 **NEVER mix these libraries for the same animation. Each has a lane:**
