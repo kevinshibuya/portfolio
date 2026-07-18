@@ -1,19 +1,15 @@
-import { Suspense, useEffect, useRef, useState } from 'react'
-import * as THREE from 'three'
-import { Canvas, useThree } from '@react-three/fiber'
-import { useTexture } from '@react-three/drei'
-import { useMotionValueEvent, type MotionValue } from 'framer-motion'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { type MotionValue } from 'framer-motion'
 import { useMotion } from '../../context/MotionContext'
 import { MOBILE_BREAKPOINT_PX } from '../../utils/motion-flags'
-import {
-  HalftoneMaterial,
-  type HalftoneUniformValues,
-} from './HalftoneMaterial'
-import { cappedDpr, frequencyForProgress } from './halftoneMath'
 
-// Importing HalftoneMaterial runs its `extend({ HalftoneMaterial })`, so the
-// <halftoneMaterial /> JSX intrinsic (typed via the module augmentation) is
-// registered before this Canvas mounts.
+// This module MUST stay free of static three / fiber / drei imports: Byline
+// imports it statically (and Home idle-warms Byline), so anything imported
+// here ships to every device — including fallback-only ones that render a
+// plain <img>. The whole live-shader subtree (Canvas + scene + three) lives
+// in HalftoneCanvas.tsx behind the lazy() below, fetched only when the
+// non-fallback path actually mounts it.
+const HalftoneCanvas = lazy(() => import('./HalftoneCanvas'))
 
 export interface HalftonePortraitProps {
   src: string // source image url (sampled by the shader)
@@ -60,86 +56,15 @@ function isCoarseOrMobile(): boolean {
   )
 }
 
-type HalftoneMaterialInstance = InstanceType<typeof HalftoneMaterial>
-
-interface HalftoneSceneProps {
-  src: string
-  progress: MotionValue<number>
-  inkDark: string
-  inkLight: string
-}
-
-/**
- * The live shader mesh. Only ever rendered inside a browser <Canvas> (never in
- * jsdom — the predicate routes jsdom to the fallback). A single full-frame quad
- * runs the duotone-develop material (mode 0); `uFrequency` is scrubbed by the
- * `progress` MotionValue with the frameloop="demand" + invalidate() pattern —
- * no useFrame loop, nothing renders unless progress changes or the guard fires.
- */
-function HalftoneScene({
-  src,
-  progress,
-  inkDark,
-  inkLight,
-}: HalftoneSceneProps): React.JSX.Element {
-  const texture = useTexture(src)
-  const materialRef = useRef<HalftoneMaterialInstance | null>(null)
-  const invalidate = useThree((state) => state.invalidate)
-  const size = useThree((state) => state.size)
-  const viewport = useThree((state) => state.viewport)
-
-  // Stale-mount guard (review-gate finding): the Canvas mounts late (IO-gated)
-  // while `progress` may already be nonzero. On material/texture ready, seed
-  // uSource + all statics and initialise uFrequency from the CURRENT progress,
-  // then invalidate() once. First paint never waits for a future scroll event.
-  useEffect(() => {
-    // drei infers each uniform's type from its initial value, so the instance
-    // types `uSource` as `null` (its default). View it through the wider
-    // HalftoneUniformValues contract to seed a real Texture — no `any`.
-    const material = materialRef.current as HalftoneUniformValues | null
-    if (!material) return
-    material.uSource = texture
-    material.uResolution = new THREE.Vector2(size.width, size.height)
-    material.uInkDark.set(inkDark)
-    material.uInkLight.set(inkLight)
-    material.uMode = 0
-    material.uDpr = cappedDpr(viewport.dpr)
-    material.uFrequency = frequencyForProgress(progress.get())
-    invalidate()
-  }, [
-    texture,
-    size.width,
-    size.height,
-    viewport.dpr,
-    inkDark,
-    inkLight,
-    progress,
-    invalidate,
-  ])
-
-  // Demand-driven scrub: recompute the dot frequency and request one frame.
-  useMotionValueEvent(progress, 'change', (value) => {
-    const material = materialRef.current
-    if (!material) return
-    material.uFrequency = frequencyForProgress(value)
-    invalidate()
-  })
-
-  return (
-    <mesh scale={[viewport.width, viewport.height, 1]}>
-      <planeGeometry args={[1, 1]} />
-      <halftoneMaterial ref={materialRef} />
-    </mesh>
-  )
-}
-
 /**
  * Portrait "develops" from coarse to fine halftone dots as `progress` scrubs
  * 0→1. Chooses its render path once at mount:
  *  • fallback `<img>` — reduced motion, no WebGL, or coarse/mobile (static story);
- *  • live shader `<Canvas frameloop="demand">` — otherwise, its single WebGL
- *    context gated by an IntersectionObserver so it only initialises near the
- *    viewport and unmounts when far. One GL context total.
+ *  • live shader `<Canvas frameloop="demand">` (lazy chunk) — otherwise. An
+ *    IntersectionObserver defers the mount until the portrait first nears the
+ *    viewport, then keeps it mounted: with frameloop="demand" a far Canvas
+ *    costs nothing per frame, and never unmounting avoids re-entry WebGL
+ *    context + shader-compile thrash on every scroll pass. One GL context total.
  */
 export function HalftonePortrait({
   src,
@@ -159,7 +84,7 @@ export function HalftonePortrait({
   }))
 
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const [near, setNear] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   const fallback = shouldUseFallback({
     reducedMotion: prefersReducedMotion,
@@ -167,21 +92,32 @@ export function HalftonePortrait({
     coarseOrMobile: caps.coarseOrMobile,
   })
 
-  // IntersectionObserver gates the one WebGL context: mount only near the
-  // viewport, unmount when far. Skipped entirely on the fallback path.
+  // Capable devices used to get three.js "for free" from Home's idle warm of
+  // the Byline chunk; after the split, warm the shader chunk here instead —
+  // but only on the live path, so the fetch is done before the IO gate fires.
   useEffect(() => {
-    if (fallback) return
+    if (!fallback) void import('./HalftoneCanvas')
+  }, [fallback])
+
+  // Mount-once gate for the one WebGL context: wait for the first intersection
+  // (viewport + 200px margin), then disconnect — the Canvas stays mounted for
+  // the page's life. Skipped entirely on the fallback path.
+  useEffect(() => {
+    if (fallback || mounted) return
     const el = containerRef.current
     if (!el) return
     const observer = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) setNear(entry.isIntersecting)
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setMounted(true)
+          observer.disconnect()
+        }
       },
       { rootMargin: '200px' },
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [fallback])
+  }, [fallback, mounted])
 
   if (fallback) {
     return <img src={fallbackSrc} alt={alt} className={className} />
@@ -189,17 +125,15 @@ export function HalftonePortrait({
 
   return (
     <div ref={containerRef} className={className}>
-      {near && (
-        <Canvas frameloop="demand" dpr={cappedDpr(window.devicePixelRatio)}>
-          <Suspense fallback={null}>
-            <HalftoneScene
-              src={src}
-              progress={progress}
-              inkDark={inkDark}
-              inkLight={inkLight}
-            />
-          </Suspense>
-        </Canvas>
+      {mounted && (
+        <Suspense fallback={null}>
+          <HalftoneCanvas
+            src={src}
+            progress={progress}
+            inkDark={inkDark}
+            inkLight={inkLight}
+          />
+        </Suspense>
       )}
     </div>
   )
