@@ -14,6 +14,17 @@ test('reduced motion: loader resolves quickly and hero is final-state', async ({
   await expect(page.locator('[data-name-word="shibuya"]')).toBeVisible()
 })
 
+test('reduced motion: byline portrait takes the static img fallback, no canvas', async ({ page }) => {
+  await page.goto('/')
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+  await page.locator('#byline').scrollIntoViewIfNeeded()
+  // The fallback predicate must route reduced-motion viewers to the pre-baked
+  // duotone <img>; the live WebGL canvas must never mount (wiring regression
+  // guard — the predicate itself is unit-covered).
+  await expect(page.locator('#byline .byline-portrait img')).toBeVisible()
+  await expect(page.locator('#byline canvas')).toHaveCount(0)
+})
+
 test('reduced motion: titles never scroll-fade', async ({ page }) => {
   await page.goto('/')
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
