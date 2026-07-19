@@ -260,7 +260,7 @@ git commit -m "test: batch-fix stale baseline e2e specs; delete dead scramble co
 - Consumes: nothing.
 - Produces: CSS custom properties every later task styles against — new canonical names: `--bg`, `--bg-tonal`, `--text`, `--text-muted`, `--text-faded`, `--hairline`, `--accent-pink`, `--accent-blue`, `--accent-yellow` (and `@theme` twins `--color-bg`, `--color-bg-tonal`, `--color-text`, `--color-text-muted`, `--color-text-faded`, `--color-accent-pink`, `--color-accent-blue`, `--color-accent-yellow`). Legacy aliases (`--cream`, `--sand`, `--mist`, `--ink`, `--bark`, `--dust`, `--blue-*`, `--periwinkle-*`) are REMAPPED onto the dark system so all existing rules flip in one commit.
 
-- [ ] **Step 1: Write the failing e2e smoke first**
+- [x] **Step 1: Write the failing e2e smoke first**
 
 Create `tests/e2e/dark-tokens.spec.ts`:
 
@@ -281,12 +281,12 @@ test('page renders on the dark ink system with zero console errors', async ({ pa
 })
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `npx playwright test tests/e2e/dark-tokens.spec.ts --project=desktop-chromium`
 Expected: FAIL — body is `rgb(246, 249, 252)` (light cream).
 
-- [ ] **Step 3: Replace the TOKENS section in `src/index.css`**
+- [x] **Step 3: Replace the TOKENS section in `src/index.css`**
 
 Replace the entire `@theme { ... }` block and the entire `:root { ... }` block (currently lines ~34–77) with exactly:
 
@@ -347,7 +347,7 @@ Replace the entire `@theme { ... }` block and the entire `:root { ... }` block (
 
 (S8 — Jakarta solo: `--font-mono` is dropped entirely; it was a dead token with no consumers. The `ui-monospace` literals in the detail-page CSS stay untouched this pass — they're addressed in the deferred detail-page restyle, Plan risk 4.)
 
-- [ ] **Step 4: Fix the three global rules the flip inverts**
+- [x] **Step 4: Fix the three global rules the flip inverts**
 
 In the GLOBAL section of `src/index.css`:
 
@@ -379,16 +379,16 @@ In the GLOBAL section of `src/index.css`:
 }
 ```
 
-- [ ] **Step 5: Update the loader curtain + theme-color in `index.html`**
+- [x] **Step 5: Update the loader curtain + theme-color in `index.html`**
 
 In the inline loader CSS: replace `background: #111822;` with `background: #0B0E14;`, `color: #F6F9FC;` with `color: #F5F2EC;`, and the `background: #3A96E8; /* --blue-400 — fallback hex */` dot with `background: #4D80E6; /* --accent-blue — fallback hex */`. In `<head>`: `<meta name="theme-color" content="#0B0E14" />` and `<meta name="msapplication-TileColor" content="#0B0E14" />`.
 
-- [ ] **Step 6: Build + run the smoke green + full e2e still green**
+- [x] **Step 6: Build + run the smoke green + full e2e still green**
 
 Run: `npm run build && npm run test:e2e`
 Expected: build clean; `dark-tokens.spec.ts` passes; no other spec regressed (they assert behavior/opacity, not colors).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit** (0c65565)
 
 ```bash
 git add src/index.css index.html tests/e2e/dark-tokens.spec.ts
@@ -416,7 +416,7 @@ git commit -m "feat(tokens): dark ink system — legacy aliases remapped, canoni
 - Consumes: `useMotion()` from `src/context/MotionContext` (`prefersReducedMotion: boolean`).
 - Produces: `export function FluidWavesHero(): React.ReactElement` — fills its **positioned parent** (`position:absolute; inset:0`), renders `<canvas className="fluid-waves-canvas" data-canvas="fluid-waves">` or, when WebGL is unavailable, `<div className="fluid-waves-fallback" data-testid="fluid-waves-fallback">`. Sets `data-paused="true"` on the canvas while the IO reports off-screen, `data-static="true"` under reduced motion. Task 4 mounts it inside `.hero-canvas`.
 
-- [ ] **Step 1: Write the failing unit test**
+- [x] **Step 1: Write the failing unit test**
 
 Create `tests/unit/FluidWavesHero.test.tsx`:
 
@@ -440,12 +440,12 @@ describe('FluidWavesHero', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `npx vitest run tests/unit/FluidWavesHero.test.tsx`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement the component**
+- [x] **Step 3: Implement the component**
 
 Create `src/components/canvas/FluidWavesHero.tsx` with exactly this code (adapted from vault fluid-swirl; spin/polar/mouse removed, seeded scattered wave motion added — the 5-iteration UV loop is the paint look, keep it verbatim):
 
@@ -708,7 +708,7 @@ export function FluidWavesHero(): ReactElement {
 }
 ```
 
-- [ ] **Step 4: Append the CSS**
+- [x] **Step 4: Append the CSS**
 
 Append to `src/index.css` (new section comment `/* FLUID WAVES (canvas #1) */`):
 
@@ -732,12 +732,12 @@ Append to `src/index.css` (new section comment `/* FLUID WAVES (canvas #1) */`):
 }
 ```
 
-- [ ] **Step 5: Unit test green**
+- [x] **Step 5: Unit test green**
 
 Run: `npx vitest run tests/unit/FluidWavesHero.test.tsx`
 Expected: PASS (jsdom `getContext('webgl')` returns null → fallback).
 
-- [ ] **Step 6: Write the mount-smoke e2e (RED until Task 4 mounts it — mark `.fixme` now)**
+- [x] **Step 6: Write the mount-smoke e2e (RED until Task 4 mounts it — mark `.fixme` now)**
 
 Create `tests/e2e/hero-shader.spec.ts`:
 
@@ -771,7 +771,7 @@ test.describe('reduced motion', () => {
 })
 ```
 
-- [ ] **Step 7: Typecheck + suites + commit**
+- [x] **Step 7: Typecheck + suites + commit** — build clean; unit 70/70 (69 baseline + 1 new); e2e 3 skipped (fixme); committed f95ee62
 
 Run: `npm run build && npm run test:unit && npx playwright test tests/e2e/hero-shader.spec.ts --project=desktop-chromium`
 Expected: build clean; unit green; the 3 shader tests report as fixme/skipped.
