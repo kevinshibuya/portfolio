@@ -1147,12 +1147,12 @@ test('rows finish their entrance even when hovered mid-stagger', async ({ page, 
 **Steps:**
 
 - [x] **Step 1: Write `tests/e2e/rows-hover.spec.ts` (verbatim); run → FAIL (no `.workrow` in #projects)**
-- [ ] **Step 2: Rewrite `Projects.tsx` per contract; delete bento/cursor-pill code**
+- [x] **Step 2: Rewrite `Projects.tsx` per contract; delete bento/cursor-pill code**
 - [x] **Step 3: Delete bento + project-cursor CSS blocks from `src/index.css`; add `.projects-list` top hairline (`border-top: 1px solid var(--hairline)`)**
 - [x] **Step 4: `git rm tests/e2e/bento-entrance-hover.spec.ts`; grep `useCursorTilt` — if orphaned, `git rm src/hooks/useCursorTilt.ts tests/unit/hooks/useCursorTilt.test.ts`; grep `viewProject`/`caseStudy` i18n usage and prune orphans from both locales**
 - [x] **Step 4b (L4 — stale comment): in `tests/e2e/section-enters.spec.ts`, reword the "including Projects, reverted to the bento grid" comment to "including Projects, now WorkRow rows" — the `.section-title` selector it documents is unchanged, only the comment is stale**
 - [x] **Step 5: `npm run build && npm run test:unit && npm run test:e2e` → green (incl. new spec, section-enters, reduced-motion)**
-- [ ] **Step 6: Commit — `git add -A && git commit -m "feat(projects): featured work as tinted WorkRows; delete bento grid"`**
+- [x] **Step 6: Commit — `git add -A && git commit -m "feat(projects): featured work as tinted WorkRows; delete bento grid"`**
 
 **Verify before returning:** Step 5 output; `grep -n "bento\|project-cursor" src/index.css src/components -r` returns nothing.
 
