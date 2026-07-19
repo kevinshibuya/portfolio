@@ -142,7 +142,7 @@ carries LCP — do not delay it past budget).
 - [ ] Archive: rows + restyled filters, data pipeline and placeholder fallback intact
 - [x] Stats + Skills restyled onto dark tokens
 - [x] Contact/Footer with lazy LiningWavesBackdrop (canvas #2), reduced-motion + pause rules applied
-- [ ] Nav restyled dark (MarqueeDivider absence verified — no work expected)
+- [x] Nav restyled dark (MarqueeDivider absence verified — no work expected)
 - [ ] Bilingual EN/PT copy complete for every changed string
 - [ ] Contrast audit passes AA across all pairs; Lighthouse run against preview with measured baseline recorded in the plan
 - [ ] Full e2e suite green, including new mount smoke + reduced-motion specs; stale specs fixed as a pre-Task-1 batch
