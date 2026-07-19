@@ -140,7 +140,7 @@ carries LCP — do not delay it past budget).
 - [x] WorkRow primitive built once (hover float + tint, touch thumbnail, expandable variant, focus states) and reused by projects, embeds, work experience
 - [ ] Work-first section order verified intact (baseline already work-first; no reorder work) with all content surviving the restyle
 - [ ] Archive: rows + restyled filters, data pipeline and placeholder fallback intact
-- [ ] Stats + Skills restyled onto dark tokens
+- [x] Stats + Skills restyled onto dark tokens
 - [ ] Contact/Footer with lazy LiningWavesBackdrop (canvas #2), reduced-motion + pause rules applied
 - [ ] Nav restyled dark (MarqueeDivider absence verified — no work expected)
 - [ ] Bilingual EN/PT copy complete for every changed string

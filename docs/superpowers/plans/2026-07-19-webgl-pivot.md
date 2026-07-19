@@ -1262,7 +1262,7 @@ npx playwright test tests/e2e/dark-tokens.spec.ts tests/e2e/section-enters.spec.
 - [x] **Step 1: Restyle STATS CSS section per contract**
 - [x] **Step 2: Restyle SKILLS CSS section per contract (nth-child tricolor dots)**
 - [x] **Step 3: `npm run build && npm run test:unit && npm run test:e2e` → green**
-- [ ] **Step 4: Commit — `git add -A && git commit -m "style(stats,skills): dark token restyle, tricolor skill dots"`**
+- [x] **Step 4: Commit — `git add -A && git commit -m "style(stats,skills): dark token restyle, tricolor skill dots"`**
 
 **Verify before returning:** suites green; screenshot of both sections for the taste checkpoint.
 
