@@ -133,7 +133,7 @@ carries LCP — do not delay it past budget).
 
 ## TODO
 
-- [ ] Design tokens: dark ink system (`#0B0E14` base, `#131722` tonal, cream text, tricolor accents) replaces the light cream/sand theme; all components read from tokens
+- [x] Design tokens: dark ink system (`#0B0E14` base, `#131722` tonal, cream text, tricolor accents) replaces the light cream/sand theme; all components read from tokens
 - [ ] FluidWavesHero shader: fluid-swirl adaptation (no swirl, random scattered waves, no mouse) with DPR cap, off-screen pause, reduced-motion static frame, no-WebGL gradient fallback
 - [ ] Hero composition: monumental bottom-anchored name + leading canonical title in role cycle + meta top-right; ink-draw components deleted
 - [ ] Entrance: paint bloom → clipped staggered rises; LCP < 2.5s on preview; reduced-motion fade
