@@ -906,7 +906,7 @@ test.describe('reduced motion', () => {
 **Steps:**
 
 - [x] **Step 1: `npm install gsap`; remove `@react-three/fiber` + `@react-three/drei` from dependencies (`npm uninstall @react-three/fiber @react-three/drei`); update `tests/unit/bundle-deps.test.ts` allowlist as above; run `npx vitest run tests/unit/bundle-deps.test.ts` → PASS**
-- [ ] **Step 2: Rewrite `tests/e2e/hero-entrance.spec.ts` with the acceptance spec above; run it → FAIL (old hero still mounted)**
+- [x] **Step 2: Rewrite `tests/e2e/hero-entrance.spec.ts` with the acceptance spec above; run it → FAIL (old hero still mounted)**
 - [x] **Step 3: Rewrite `Hero.tsx` + HERO CSS per the design contract (deferred `useEffect` + `entranceBypassed` guard per S3; `CustomEase` 'house' per T1); delete `HeroNameDrawing.tsx`, `HeroNameDrawing.test.tsx`, `HeroAccent3D.tsx`, `HeroAccentSilhouette.tsx`, `src/utils/motion-flags.ts`; strip `r3fAccentEnabled` + dead `loaderDone` from `MotionContext` and drop its `motion-flags` import; reword stale HeroNameDrawing comments in `main.tsx` + `MotionContext.tsx` (L4)**
 - [x] **Step 4: Apply the i18n diff to BOTH locales; delete orphaned keys (`rolePrefix`, `description`, `cta`, `stats`) and `heroStats` if unimported; rewrite `tests/unit/seo/i18n-roles.test.ts` per contract; validate JSON (`node -e "JSON.parse(...)"` both files)**
 - [x] **Step 5: Rewrite `tests/unit/Hero.test.tsx`: render Hero inside MotionProvider, assert name1/name2 text and that roles[0] renders. Do NOT assert on un-resolved entrance state (module promise pollution). Run unit suite → green**
@@ -1640,7 +1640,7 @@ node -e "const d=require('./tmp/lh-final.json'); for (const [k,v] of Object.entr
 pkill -f "vite preview" || true
 
 ```
-Expected vs baseline (perf 98 / a11y 100 / bp 100 / seo 100, LCP 0.8 s): Performance ≥ 90, Accessibility = 100, Best Practices = 100, SEO = 100, **LCP < 2.5 s** and the LCP element is the hero name text. Record the numbers in the task tick. If perf < 90 or LCP ≥ 2.5 s → STOP, report to orchestrator (Plan risk 1 lists the suspects; the hero entrance is inviolable — fix around it).
+Expected vs baseline (perf 98 / a11y 100 / bp 100 / seo 100, LCP 0.8 s): Performance ≥ 90, Accessibility = 100, Best Practices = 100, SEO = 100, **LCP < 2.5 s**. Record the numbers in the task tick. **LCP-element adjudication (Task 4, controller-ratified):** the LCP element is EXPECTED to be the loader curtain mark — the loader stays (Task 2 boundary) and its mark is larger than the name, so it legitimately wins the LCP election (measured 895 ms at Task 4). Do NOT stop on "element is not the hero name"; the name's own paint deadline is enforced by the hero-entrance e2e budget, not by the LCP element clause. If perf < 90 or LCP ≥ 2.5 s → STOP, report to orchestrator (Plan risk 1 lists the suspects; the hero entrance is inviolable — fix around it).
 
 - [ ] **Step 5: Contrast spot-verification**
 

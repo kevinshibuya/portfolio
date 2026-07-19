@@ -103,14 +103,12 @@ export function Hero(): ReactElement {
           { autoAlpha: 1, scale: 1, duration: 0.8, ease: 'power2.out' }, 0)
         tl.to('.hero-role-rise',
           { yPercent: 0, duration: 0.6, ease: 'house' }, 0.12)
-        // Ladder timing (offset 0.24 / duration 0.55): keeps the name land
-        // comfortably inside the entrance budget under headless WebGL load,
-        // where the shader first-frame delays curtainGone ~1s.
         tl.to('.hero-line',
-          { yPercent: 0, duration: 0.55, ease: 'house', stagger: 0.18 }, 0.24)
-        // Resolve the entrance gate the moment the name lands (nav + scroll
-        // unlock) rather than waiting on the trailing meta fade.
-        tl.call(resolveEntrance, undefined, 0.97)
+          { yPercent: 0, duration: 0.65, ease: 'house', stagger: 0.18 }, 0.30)
+        // Resolve the entrance gate the moment the name lands (0.30 + 0.18
+        // stagger + 0.65 = 1.13) — unlocks nav + scroll without waiting on the
+        // trailing meta fade.
+        tl.call(resolveEntrance, undefined, 1.13)
         tl.to('.hero-meta',
           { autoAlpha: 1, duration: 0.5 }, 0.9)
       }, el)
@@ -170,7 +168,7 @@ export function Hero(): ReactElement {
           </span>
         </div>
 
-        <h1 className="hero-name">
+        <h1 className="hero-name" aria-label={`${t('hero.name1')} ${t('hero.name2')}`}>
           <span className="hero-mask"><span className="hero-line">{t('hero.name1')}</span></span>
           <span className="hero-mask"><span className="hero-line">{t('hero.name2')}</span></span>
         </h1>
