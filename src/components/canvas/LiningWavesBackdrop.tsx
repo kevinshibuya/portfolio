@@ -119,7 +119,11 @@ export default function LiningWavesBackdrop(): ReactElement {
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material)
     scene.add(mesh)
 
-    // ADAPTED: size from the CONTAINER, not window.
+    // ADAPTED: size from the CONTAINER, not window. A window resize listener
+    // alone misses container-only reflows (language switch, font swap) that
+    // don't fire a window resize event, so a ResizeObserver on the container
+    // is the primary driver; the window listener stays as a cheap belt-and-
+    // braces fallback for environments without RO.
     const onResize = (): void => {
       const w = container.clientWidth
       const h = container.clientHeight
@@ -127,6 +131,8 @@ export default function LiningWavesBackdrop(): ReactElement {
       uniforms.iResolution.value.set(w, h)
     }
     window.addEventListener('resize', onResize)
+    const resizeObserver = new ResizeObserver(onResize)
+    resizeObserver.observe(container)
     onResize()
 
     // ADAPTED: time fed at 0.4x for a slow drift.
@@ -156,13 +162,16 @@ export default function LiningWavesBackdrop(): ReactElement {
     }
 
     // ADAPTED: IO pauses the loop off-screen (identical semantics to the hero).
+    // `isInView` also gates the context-restore handler below so a GPU context
+    // restore while scrolled away doesn't resume the loop off-screen.
+    let isInView = false
     const io = new IntersectionObserver(([entry]) => {
-      const inView = entry.isIntersecting
+      isInView = entry.isIntersecting
       if (prefersReducedMotion) {
-        if (inView) renderFrame(7.0)
+        if (isInView) renderFrame(7.0)
         return
       }
-      if (inView) {
+      if (isInView) {
         canvas.removeAttribute('data-paused')
         start()
       } else {
@@ -180,7 +189,10 @@ export default function LiningWavesBackdrop(): ReactElement {
     }
     const handleContextRestored = (): void => {
       onResize()
-      start()
+      // Mirror the hero's pattern: only resume if still on-screen — otherwise
+      // leave it paused (stale data-paused, no off-screen GPU burn).
+      if (isInView) start()
+      else canvas.dataset.paused = 'true'
     }
     canvas.addEventListener('webglcontextlost', handleContextLost, false)
     canvas.addEventListener('webglcontextrestored', handleContextRestored, false)
@@ -188,6 +200,7 @@ export default function LiningWavesBackdrop(): ReactElement {
     return () => {
       stop()
       io.disconnect()
+      resizeObserver.disconnect()
       window.removeEventListener('resize', onResize)
       canvas.removeEventListener('webglcontextlost', handleContextLost)
       canvas.removeEventListener('webglcontextrestored', handleContextRestored)

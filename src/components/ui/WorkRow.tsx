@@ -79,6 +79,9 @@ export function WorkRow(props: WorkRowProps): React.ReactElement {
   // would re-render a row mid `whileInView` stagger and permanently freeze the
   // section's staggered children at opacity 0 (see project memory + Projects.tsx).
   const [floatEnabled] = useState(() => canHoverFine())
+  // Ratified design call: reduced-motion desktop (fine pointer + hover)
+  // deliberately shows NO preview float, even though canHoverFine() is true —
+  // prefersReducedMotion always wins over the hover-capability check.
   const showFloat = floatEnabled && !prefersReducedMotion && !!preview && !expandable
   const cursorX = useMotionValue(-400)
   const cursorY = useMotionValue(-400)
@@ -206,7 +209,8 @@ interface WorkRowFloatProps {
 }
 
 /** Leaf so the hover show/hide setState re-renders only the float, never the
- *  row list — the same containment pattern as Projects' ProjectCursorPill. */
+ *  row list — hover-driven state stays contained to this leaf component
+ *  instead of bubbling a re-render up into the parent row/list. */
 function WorkRowFloat({ x, y, visible, preview }: WorkRowFloatProps): React.ReactElement {
   const [shown, setShown] = useState(false)
   useMotionValueEvent(visible, 'change', (v) => setShown(v > 0.5))

@@ -832,7 +832,8 @@ html[data-loading='true'] {
 }
 .contact-row:hover {
   padding-left: 20px;
-  background: linear-gradient(90deg, rgba(58, 150, 232, 0.06), transparent);
+  /* --color-accent-blue #4D80E6, not the retired light-era #3A96E8 */
+  background: linear-gradient(90deg, rgba(77, 128, 230, 0.06), transparent);
 }
 .contact-num {
   font-size: 10px;
@@ -870,7 +871,8 @@ html[data-loading='true'] {
 .contact-row:hover .contact-label-arrow { opacity: 1; }
 .contact-meta {
   font-size: 13px;
-  color: rgba(246, 249, 252, 0.5);
+  /* --text #F5F2EC, not the retired light-era cream #F6F9FC */
+  color: rgba(245, 242, 236, 0.5);
   text-transform: lowercase;
   opacity: 0;
   transform: translateX(8px);

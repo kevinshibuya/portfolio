@@ -42,14 +42,16 @@ export function Hero(): ReactElement {
 
   useEffect(() => {
     setRoleIdx(0)
-    startCycling()
+    // Reduced-motion users get the static canonical role (roles[0]) — no
+    // interval, no Framer slide transition ever fires.
+    if (!prefersReducedMotion) startCycling()
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
     // startCycling is stable enough for our purposes; re-running on roles is
     // what matters (language toggle rebuilds the array).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roles])
+  }, [roles, prefersReducedMotion])
 
   const cycleRole = (): void => {
     if (roles.length <= 1) return
