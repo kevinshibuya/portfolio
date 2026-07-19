@@ -29,8 +29,11 @@ biography follows. Done = Kevin rates the shipped page designer-grade.
 5. **Entrance (replaces the retired ink-draw):** paint blooms from black (fade + slight settle),
    then role line and name lines rise with a small stagger — each rise inside its own
    overflow-clipped mask so nothing visibly overflows. ~1.6s total. Reduced motion: static fade.
-6. **Section flow (work-first):** Hero → Featured projects → Embeds gallery → Work experience →
-   About → Skills → Contact/Footer. All current content survives the reorder.
+6. **Section flow (work-first):** Hero → Featured projects → Archive → Work experience → Stats →
+   Skills → Contact/Footer. Baseline correction (verified in `src/pages/Home.tsx` on main): this
+   order already exists — main includes press-revamp Plan 1 (Archive replaced EmbedsGallery, a
+   Stats receipt section exists, there is NO About section, MarqueeDivider is already deleted).
+   The reorder is therefore a no-op; the work is the dark restyle. No About section is added.
 7. **Section language:** open typographic rows — no cards/containers. Numbered oversized title
    rows with hairline dividers (cream at ~12–14% alpha). Hover floats the preview image beside the
    pointer and tints the title with a shader color. Projects, embeds, and work experience all use
@@ -41,8 +44,8 @@ biography follows. Done = Kevin rates the shipped page designer-grade.
 9. **Typography:** Plus Jakarta Sans solo (local variable 200–800), unchanged.
 10. **Branch:** new branch `design/webgl-pivot` off main; press-revamp branch stays parked for
     cherry-picking (perf/a11y commits) if useful.
-11. **Furniture:** MarqueeDivider sections retired. Split nav survives restyled for dark (logo
-    left, links center, availability + EN/PT right).
+11. **Furniture:** MarqueeDivider already absent on baseline (verify only, no work). Nav survives
+    restyled for dark (brand mark left, links center, EN/PT right — matching baseline Header.tsx).
 12. **Still in force:** canonical title everywhere; CV repo (`~/keki/cv-rebuild`) is the source of
     truth for personal facts; no spaced em-dashes in reader-facing prose (use `·`); bilingual
     EN/PT authored, not word-for-word translated; embeds CSV pipeline unchanged.
@@ -92,12 +95,14 @@ carries LCP — do not delay it past budget).
   rewired to the new entrance.
 - **Featured projects:** WorkRow list of featured projects (from `src/data`), hover preview =
   cover image; row links to `/projects/:slug` case study (routes unchanged).
-- **Embeds gallery:** WorkRow list fed by the CSV pipeline; type/editorial filters survive,
+- **Archive (the embeds gallery):** WorkRow list fed by the existing archive data pipeline
+  (`src/data/archive` over the embeds CSV); kind/type/editorial/year/sort filters survive,
   restyled as text/pill row in the dark language; missing previews fall back to a typed
   placeholder block.
 - **Work experience:** expandable WorkRow variant; content from CV canon (6 skill groups, exact
   role titles).
-- **About:** portrait + bio restyled onto dark; shader-color italic highlights replace blue-400.
+- **Stats:** the receipt rows (count-up values + annotations) restyled onto dark tokens; count-up
+  behavior and reduced-motion gating unchanged.
 - **Skills:** compact numbered typographic columns, dark restyle, content unchanged.
 - **Contact/Footer:** LiningWavesBackdrop behind cream display type + mail CTA; footer meta row
   (© · location · EN/PT).
@@ -129,11 +134,11 @@ carries LCP — do not delay it past budget).
 - [ ] Hero composition: monumental bottom-anchored name + leading canonical title in role cycle + meta top-right; ink-draw components deleted
 - [ ] Entrance: paint bloom → clipped staggered rises; LCP < 2.5s on preview; reduced-motion fade
 - [ ] WorkRow primitive built once (hover float + tint, touch thumbnail, expandable variant, focus states) and reused by projects, embeds, work experience
-- [ ] Section reorder to work-first flow with all content surviving
-- [ ] Embeds gallery: rows + restyled filters, CSV pipeline and placeholder fallback intact
-- [ ] About + Skills restyled onto dark tokens
+- [ ] Work-first section order verified intact (baseline already work-first; no reorder work) with all content surviving the restyle
+- [ ] Archive: rows + restyled filters, data pipeline and placeholder fallback intact
+- [ ] Stats + Skills restyled onto dark tokens
 - [ ] Contact/Footer with lazy LiningWavesBackdrop (canvas #2), reduced-motion + pause rules applied
-- [ ] MarqueeDividers removed; nav restyled dark
+- [ ] Nav restyled dark (MarqueeDivider absence verified — no work expected)
 - [ ] Bilingual EN/PT copy complete for every changed string
 - [ ] Contrast audit passes AA across all pairs; Lighthouse run against preview with measured baseline recorded in the plan
 - [ ] Full e2e suite green, including new mount smoke + reduced-motion specs; stale specs fixed as a pre-Task-1 batch
