@@ -168,7 +168,7 @@ Sequencing: 1 → 2 → 3 → 4 → 5 → (6, 7, 8, 9 in any order) → 10 → 1
 - Consumes: nothing.
 - Produces: a fully green baseline (73 unit / all e2e passing) that every later task's "suite stays green" verify step relies on.
 
-- [ ] **Step 1: Delete the scramble e2e spec and the dead scramble code**
+- [x] **Step 1: Delete the scramble e2e spec and the dead scramble code**
 
 ```bash
 git rm tests/e2e/shibuya-scramble.spec.ts src/components/ui/ScrambleText.tsx src/hooks/useScramble.ts tests/unit/useScramble.test.ts
@@ -176,7 +176,7 @@ git rm tests/e2e/shibuya-scramble.spec.ts src/components/ui/ScrambleText.tsx src
 
 (Verified at plan time: nothing in `src/` imports `ScrambleText` or `useScramble` — this mirrors commit 7e5f0f8 from the parked branch.)
 
-- [ ] **Step 2: Trim `tests/e2e/reduced-motion.spec.ts` to the one still-valid test**
+- [x] **Step 2: Trim `tests/e2e/reduced-motion.spec.ts` to the one still-valid test**
 
 Delete the first two tests (`reduced motion: loader resolves quickly and hero is final-state` — asserts `[data-fragment="bars"]`, gone — and `reduced motion: shibuya hover does not scramble`). Keep the file as exactly:
 
@@ -198,7 +198,7 @@ test('reduced motion: titles never scroll-fade', async ({ page }) => {
 })
 ```
 
-- [ ] **Step 3: Fix the `.nav-avail-dot` assertion in `tests/e2e/hero-entrance.spec.ts`**
+- [x] **Step 3: Fix the `.nav-avail-dot` assertion in `tests/e2e/hero-entrance.spec.ts`**
 
 In the test `hero entrance completes within 4s and unlocks scroll`, replace:
 
@@ -215,11 +215,11 @@ with:
   await expect(page.locator('header.nav.is-visible')).toHaveCount(1)
 ```
 
-- [ ] **Step 4: Fix the section id list in `tests/e2e/section-enters.spec.ts`**
+- [x] **Step 4: Fix the section id list in `tests/e2e/section-enters.spec.ts`**
 
 Replace the array `['#projects', '#embeds', '#work', '#skills', '#contact']` with `['#projects', '#archive', '#work', '#skills', '#contact']`.
 
-- [ ] **Step 5: Delete the mobile-R3F describe block in `tests/e2e/perf-budget.spec.ts`**
+- [x] **Step 5: Delete the mobile-R3F describe block in `tests/e2e/perf-budget.spec.ts`**
 
 Delete the entire `test.describe('mobile viewport disables R3F accent', ...)` block (the R3F accent is deleted in Task 4; the test already fails at baseline because Hero loads the chunk unconditionally). Keep the CLS and long-task tests untouched.
 
@@ -227,7 +227,7 @@ Delete the entire `test.describe('mobile viewport disables R3F accent', ...)` bl
 - Run: `npm run test:unit && npm run test:e2e`
 - Expected: unit ALL passed (baseline 73 minus the deleted `useScramble.test.ts` tests — record the actual count in the tick), e2e **0 failed** (baseline had 16 failed; the removed/fixed tests account for all of them), skipped tests OK.
 
-- [ ] **Step 6: Run both suites, confirm zero failures**
+- [x] **Step 6: Run both suites, confirm zero failures** — unit 69 passed (73 baseline - 4 useScramble tests deleted); e2e 23 passed, 1 skipped, 0 failed
 
 Run: `npm run test:unit && npm run test:e2e`
 Expected: vitest all green; Playwright `0 failed`.

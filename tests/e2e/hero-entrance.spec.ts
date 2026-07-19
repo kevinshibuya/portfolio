@@ -13,9 +13,8 @@ test('hero entrance completes within 4s and unlocks scroll', async ({ page }) =>
     null,
     { timeout: 4000 }
   )
-  // After entrance, the nav availability dot is in the DOM (hidden via CSS
-  // on viewports <= 720px, so we assert presence rather than visibility).
-  await expect(page.locator('.nav-avail-dot')).toHaveCount(1)
+  // After entrance, the nav becomes visible/interactive.
+  await expect(page.locator('header.nav.is-visible')).toHaveCount(1)
 })
 
 test('body scroll is locked while the hero entrance plays', async ({ page }) => {
