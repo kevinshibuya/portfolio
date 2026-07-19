@@ -134,9 +134,9 @@ carries LCP — do not delay it past budget).
 ## TODO
 
 - [x] Design tokens: dark ink system (`#0B0E14` base, `#131722` tonal, cream text, tricolor accents) replaces the light cream/sand theme; all components read from tokens
-- [ ] FluidWavesHero shader: fluid-swirl adaptation (no swirl, random scattered waves, no mouse) with DPR cap, off-screen pause, reduced-motion static frame, no-WebGL gradient fallback
-- [ ] Hero composition: monumental bottom-anchored name + leading canonical title in role cycle + meta top-right; ink-draw components deleted
-- [ ] Entrance: paint bloom → clipped staggered rises; LCP < 2.5s on preview; reduced-motion fade
+- [x] FluidWavesHero shader: fluid-swirl adaptation (no swirl, random scattered waves, no mouse) with DPR cap, off-screen pause, reduced-motion static frame, no-WebGL gradient fallback
+- [x] Hero composition: monumental bottom-anchored name + leading canonical title in role cycle + meta top-right; ink-draw components deleted
+- [x] Entrance: paint bloom → clipped staggered rises; LCP < 2.5s on preview; reduced-motion fade
 - [ ] WorkRow primitive built once (hover float + tint, touch thumbnail, expandable variant, focus states) and reused by projects, embeds, work experience
 - [ ] Work-first section order verified intact (baseline already work-first; no reorder work) with all content surviving the restyle
 - [ ] Archive: rows + restyled filters, data pipeline and placeholder fallback intact
