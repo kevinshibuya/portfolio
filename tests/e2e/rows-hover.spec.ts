@@ -32,3 +32,14 @@ test('rows finish their entrance even when hovered mid-stagger', async ({ page, 
     await expect(wraps.nth(i)).toHaveCSS('opacity', '1', { timeout: 4000 })
   }
 })
+
+test('work experience rows expand with aria-expanded', async ({ page }) => {
+  await page.goto('/')
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+  await page.locator('#work').scrollIntoViewIfNeeded()
+  const buttons = page.locator('#work .workrow button[aria-expanded]')
+  await expect(buttons.first()).toHaveAttribute('aria-expanded', 'true') // default open
+  await buttons.nth(1).click()
+  await expect(buttons.nth(1)).toHaveAttribute('aria-expanded', 'true')
+  await expect(buttons.first()).toHaveAttribute('aria-expanded', 'false') // single-open
+})

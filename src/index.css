@@ -632,103 +632,44 @@ html[data-loading='true'] {
 }
 
 /* =========================================================================
-   WORK HISTORY (accordion)
+   WORK HISTORY (expandable WorkRows — see WORKROW primitive)
    ========================================================================= */
 .work-list {
-  background: var(--cream);
-  border: 1px solid var(--mist);
-  border-radius: 18px;
-  overflow: hidden;
+  border-top: 1px solid var(--hairline);
 }
-.work-row { border-bottom: 1px solid var(--mist); }
-.work-row:last-child { border-bottom: none; }
-.work-row.is-open { background: var(--sand); }
-.work-row-head {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 56px 1fr 28px;
-  gap: 24px;
+.work-meta-line {
+  display: flex;
   align-items: center;
-  padding: 28px 32px;
-  text-align: left;
-  transition: background 0.35s;
-}
-.work-row-head:hover { background: var(--sand); }
-.work-num {
-  font-size: 11px;
-  color: var(--dust);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.1em;
-}
-.work-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.work-title-line {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
-}
-.work-role-title {
-  font-size: 24px; font-weight: 500;
-  color: var(--ink);
-  margin: 0;
-  text-transform: lowercase;
-  letter-spacing: -0.02em;
-  transition: color 0.3s;
-}
-.work-row-head:hover .work-role-title,
-.work-row.is-open .work-role-title { color: var(--blue-400); }
-.work-period {
-  font-size: 11px;
-  color: var(--bark);
-  text-transform: lowercase;
-  letter-spacing: 0.08em;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.work-byline {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.work-byline-text {
+  margin-bottom: 16px;
   font-size: 13px;
   text-transform: lowercase;
   letter-spacing: 0.02em;
-  color: var(--dust);
+  color: var(--text-faded);
 }
-.work-company {
-  color: var(--periwinkle-300);
-  font-weight: 600;
+.work-location {
+  color: var(--text-faded);
 }
-.work-byline-sep { color: var(--dust); opacity: 0.6; }
-.work-location { color: var(--dust); }
 .work-mode-pill {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 10px;
-  background: var(--blue-50);
+  background: rgba(245, 242, 236, 0.08);
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--bark);
+  color: var(--text-muted);
   text-transform: lowercase;
   letter-spacing: 0.06em;
   white-space: nowrap;
 }
 .work-mode-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--periwinkle-300);
-}
-.work-toggle {
-  font-size: 24px;
-  color: var(--ink);
-  font-weight: 300;
-  line-height: 1;
-  display: inline-block;
-  justify-self: end;
-}
-.work-body {
-  overflow: hidden;
-}
-.work-body-inner {
-  padding: 0 32px 36px 112px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--row-tint);
 }
 .work-bullets {
   margin-bottom: 24px;
@@ -736,7 +677,7 @@ html[data-loading='true'] {
 }
 .work-bullets li {
   font-size: 14px;
-  color: var(--bark);
+  color: var(--text-muted);
   line-height: 1.6;
   padding-left: 18px;
   position: relative;
@@ -747,11 +688,11 @@ html[data-loading='true'] {
   position: absolute;
   left: 0; top: 0.65em;
   width: 8px; height: 1px;
-  background: var(--blue-300);
+  background: var(--row-tint);
 }
 .work-highlight {
-  background: var(--blue-50);
-  border-left: 3px solid var(--blue-400);
+  background: rgba(245, 242, 236, 0.06);
+  border-left: 3px solid var(--row-tint);
   padding: 14px 20px;
   border-radius: 0 10px 10px 0;
   margin-bottom: 20px;
@@ -759,7 +700,7 @@ html[data-loading='true'] {
 }
 .work-highlight-label {
   font-size: 10px; font-weight: 600;
-  color: var(--blue-500);
+  color: var(--row-tint);
   text-transform: uppercase;
   letter-spacing: 0.15em;
   display: block;
@@ -767,7 +708,7 @@ html[data-loading='true'] {
 }
 .work-highlight p {
   font-size: 13px;
-  color: var(--ink);
+  color: var(--text);
   line-height: 1.5;
   margin: 0;
   text-transform: lowercase;
@@ -1056,8 +997,6 @@ html[data-loading='true'] {
     margin-left: -20px;
     margin-right: -20px;
   }
-  .work-row-head { grid-template-columns: 32px 1fr 24px; padding: 20px; gap: 14px; }
-  .work-body-inner { padding: 0 20px 28px 20px; }
   .contact-row { grid-template-columns: 32px 1fr 24px; }
   .contact-meta { display: none; }
   .section-header { margin-bottom: 40px; }
