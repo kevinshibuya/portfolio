@@ -46,7 +46,11 @@ biography follows. Done = Kevin rates the shipped page designer-grade.
     cherry-picking (perf/a11y commits) if useful.
 11. **Furniture:** MarqueeDivider already absent on baseline (verify only, no work). Nav survives
     restyled for dark (brand mark left, links center, EN/PT right — matching baseline Header.tsx).
-12. **Still in force:** canonical title everywhere; CV repo (`~/keki/cv-rebuild`) is the source of
+12. **Vault adaptation method (user-mandated):** component-vault components are COPIED verbatim
+    as the starting point and then minimally adapted (only the modifications this spec lists).
+    Never re-derive or recreate a vault component from scratch. Applies to both `fluid-swirl` →
+    FluidWavesHero and `lining-waves` → LiningWavesBackdrop.
+13. **Still in force:** canonical title everywhere; CV repo (`~/keki/cv-rebuild`) is the source of
     truth for personal facts; no spaced em-dashes in reader-facing prose (use `·`); bilingual
     EN/PT authored, not word-for-word translated; embeds CSV pipeline unchanged.
 
