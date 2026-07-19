@@ -84,22 +84,22 @@ Each grows `duration: 0.6, ease: 'house'`; total span ≈ 0.86 s. Because `xMidY
 
 **Files:** none (read-only verification).
 
-- [ ] **Step 1: Typecheck + lint + unit**
+- [x] **Step 1: Typecheck + lint + unit**
 
 Run: `npm run build` then `npm run test:unit` then `npm run lint`
 Record: build pass/fail, unit N/N, lint clean. Expected: build ok, unit 60/60, lint clean.
 
-- [ ] **Step 2: e2e full suite**
+- [x] **Step 2: e2e full suite**
 
 Run: `npm run test:e2e`
 Record: pass/skip counts. Expected: 38 pass / 2 skip.
 
-- [ ] **Step 3: Lighthouse (preview, NOT wrangler/dev)**
+- [x] **Step 3: Lighthouse (preview, NOT wrangler/dev)**
 
 Run: `npm run build`, then in a separate shell `npx vite preview --port 4173`, then Lighthouse against `http://localhost:4173`. Restart preview after the build.
 Record: perf, a11y, bp, seo, LCP. Expected ≈ perf 97 / a11y 100 / bp 100 / seo 100 / LCP 0.9 s.
 
-- [ ] **Step 4: Reconcile against budgets**
+- [x] **Step 4: Reconcile against budgets**
 
 Confirm perf ≥ 95 and LCP ≤ 1.5 s at baseline. If any measured number is worse than the table above, STOP and report — a baseline-violated budget is a plan defect to resolve before Task 2, not at final verification.
 
@@ -122,11 +122,11 @@ Confirm perf ≥ 95 and LCP ≤ 1.5 s at baseline. If any measured number is wor
 
 > After this task the unit + e2e suites are intentionally RED (FluidWaves/WorkRow.float/loader/hero-entrance/contact-waves reference behavior that lands in Tasks 2–6). This is the ATDD baseline. Do not "fix" the RED by editing these tests later — the implementation tasks turn them green.
 
-- [ ] **Step 1: Delete the old hero-canvas unit test**
+- [x] **Step 1: Delete the old hero-canvas unit test**
 
 Run: `git rm tests/unit/FluidWavesHero.test.tsx`
 
-- [ ] **Step 2: Create `tests/unit/FluidWaves.test.tsx`**
+- [x] **Step 2: Create `tests/unit/FluidWaves.test.tsx`**
 
 ```tsx
 import { describe, it, expect } from 'vitest'
@@ -157,7 +157,7 @@ describe('FluidWaves', () => {
 })
 ```
 
-- [ ] **Step 3: Create `tests/unit/WorkRow.float.test.tsx`**
+- [x] **Step 3: Create `tests/unit/WorkRow.float.test.tsx`**
 
 ```tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -231,7 +231,7 @@ describe('WorkRow float first-hover', () => {
 })
 ```
 
-- [ ] **Step 4: Replace `tests/e2e/hero-entrance.spec.ts`**
+- [x] **Step 4: Replace `tests/e2e/hero-entrance.spec.ts`**
 
 ```ts
 import { test, expect } from '@playwright/test'
@@ -294,7 +294,7 @@ test.describe('reduced motion', () => {
 
 > **Why the discriminator is needed (review fix):** the retired cascade animates the name via `yPercent` (transform), so computed `opacity` stays 1 the whole time — the old settled-opacity assertions were already green pre-Task-5 (a hollow gate). The transform-identity-during-loading assertion is the only one that fails against current code and passes only after the timeline is deleted.
 
-- [ ] **Step 5: Replace `tests/e2e/contact-waves.spec.ts`**
+- [x] **Step 5: Replace `tests/e2e/contact-waves.spec.ts`**
 
 ```ts
 import { test, expect } from '@playwright/test'
@@ -328,7 +328,7 @@ test.describe('reduced motion', () => {
 })
 ```
 
-- [ ] **Step 6: Create `tests/e2e/loader.spec.ts`**
+- [x] **Step 6: Create `tests/e2e/loader.spec.ts`**
 
 ```ts
 import { test, expect } from '@playwright/test'
@@ -358,7 +358,7 @@ test.describe('reduced motion', () => {
 })
 ```
 
-- [ ] **Step 7: Verify the tests are RED for the right reasons**
+- [x] **Step 7: Verify the tests are RED for the right reasons**
 
 Run: `npm run test:unit` — expect `FluidWaves.test.tsx` (module missing) and `WorkRow.float.test.tsx` (no jump on enter) to FAIL; all others green.
 Run: `npm run test:e2e` — expect:
@@ -367,7 +367,7 @@ Run: `npm run test:e2e` — expect:
 - `hero-entrance.spec.ts` — RED ONLY via the new discriminator test ("identity transform while the loader is up"); the other three assertions in that file already pass pre-Task-5 (the retired cascade keeps opacity at 1). Confirm the discriminator specifically fails with a non-identity `matrix(...)` transform on `.hero-line`.
 - `hero-shader`, `perf-budget`, `reduced-motion`, `rows-hover`, `section-enters`, `dark-tokens` — still green.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add tests/
