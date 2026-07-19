@@ -232,7 +232,7 @@ Delete the entire `test.describe('mobile viewport disables R3F accent', ...)` bl
 Run: `npm run test:unit && npm run test:e2e`
 Expected: vitest all green; Playwright `0 failed`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit** — 52c2161
 
 ```bash
 git add -A
