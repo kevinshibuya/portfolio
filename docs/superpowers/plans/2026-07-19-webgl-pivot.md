@@ -1562,12 +1562,12 @@ test.describe('reduced motion', () => {
 
 **Interfaces:** consumes tokens from Task 2; Header.tsx markup unchanged (brand mark left, links center, EN/PT right — matches spec).
 
-- [ ] **Step 1: Verify MarqueeDivider absence (spec decision 11)**
+- [x] **Step 1: Verify MarqueeDivider absence (spec decision 11)**
 
 Run: `grep -rn "MarqueeDivider" src/ || echo "CLEAN: no MarqueeDivider"`
 Expected: `CLEAN: no MarqueeDivider` (verified at plan time — this is the record).
 
-- [ ] **Step 2: Apply the NAV restyle**
+- [x] **Step 2: Apply the NAV restyle**
 
 In the NAV section of `src/index.css`, apply exactly:
 - `.nav.is-scrolled`: `background: rgba(11, 14, 20, 0.78);` (replaces `rgba(246, 249, 252, 0.85)`); `border-bottom: 1px solid var(--hairline);`
@@ -1578,12 +1578,12 @@ In the NAV section of `src/index.css`, apply exactly:
 - **Delete the dead `.nav-brand-text` rule entirely (L3)** — the brand-text span is commented out in `Header.tsx`, so the rule has no element. (Removing it, not recoloring it.)
 (Alias-driven values already close; make these literal rules read from the canonical tokens.)
 
-- [ ] **Step 3: Build + e2e nav-dependent specs**
+- [x] **Step 3: Build + e2e nav-dependent specs**
 
 Run: `npm run build && npx playwright test tests/e2e/hero-entrance.spec.ts tests/e2e/dark-tokens.spec.ts --project=desktop-chromium`
 Expected: green (`.nav.is-visible` assertion unaffected).
 
-- [ ] **Step 4: Commit — `git add src/index.css && git commit -m "style(nav): dark restyle on canonical tokens"`**
+- [x] **Step 4: Commit — `git add src/index.css && git commit -m "style(nav): dark restyle on canonical tokens"`**
 
 **Verify before returning:** Step 3 output.
 
@@ -1605,12 +1605,12 @@ Expected: green (`.nav.is-visible` assertion unaffected).
 **Files:**
 - Modify: `CLAUDE.md` (Design Direction section ONLY)
 
-- [ ] **Step 1: Section order + content survival check**
+- [x] **Step 1: Section order + content survival check** — confirmed order Projects, Archive, WorkExperience, Stats, Skills, Contact, Footer (matches expected, work-first, no reorder needed).
 
 Run: `grep -n "<Projects\|<Archive\|<WorkExperience\|<Stats\|<Skills\|<Contact\|<Footer" src/pages/Home.tsx`
 Expected order: Projects, Archive, WorkExperience, Stats, Skills, Contact, Footer (work-first, matches spec decision 6 — no reorder was needed).
 
-- [ ] **Step 2: Bilingual completeness check**
+- [x] **Step 2: Bilingual completeness check** — `PARITY OK` modulo the documented pre-existing `projectDetail.routesCount_one/_other` gap (only mismatch found).
 
 Run: `node -e "
 const en=require('./src/i18n/locales/en.json'), pt=require('./src/i18n/locales/pt.json');
@@ -1621,14 +1621,14 @@ console.log(miss.length?miss:'PARITY OK (known pre-existing gap: projectDetail.r
 "`
 Expected: parity OK modulo the documented pre-existing `routesCount_*` gap.
 
-- [ ] **Step 3: Full suites**
+- [x] **Step 3: Full suites** — unit 60/60 passed; e2e 38 passed, 2 skipped (mobile-chromium hover specs, hover not applicable on touch), 0 failed. ALL GREEN.
 
 Run: `npm run test:unit && npm run test:e2e`
 Expected: ALL green — including `dark-tokens`, `hero-shader` (mount smoke, zero console errors), `hero-entrance` (+ reduced-motion fade), `rows-hover`, `contact-waves` (+ reduced-motion static), `section-enters`, `reduced-motion`, `perf-budget`.
 
 > **Note (L1):** the reduced-motion shader specs assert `data-static="true"`, which is a *proxy* for the spec's "zero rAF loops" requirement — both canvas components set that attribute on the same code path that skips `requestAnimationFrame`/`setAnimationLoop`, so loop-absence is enforced by construction, not directly observed by the tests. If stronger evidence is ever wanted, add a `performance`-based rAF counter; not required for this plan.
 
-- [ ] **Step 4: Lighthouse vs preview + LCP budget**
+- [x] **Step 4: Lighthouse vs preview + LCP budget** — Performance 97, Accessibility 100, Best Practices 100, SEO 100, LCP 0.9s. LCP element `div#loader > span.loader-mark` (expected per Task 4 adjudication). ALL PASS.
 
 Run:
 ```bash
@@ -1642,19 +1642,19 @@ pkill -f "vite preview" || true
 ```
 Expected vs baseline (perf 98 / a11y 100 / bp 100 / seo 100, LCP 0.8 s): Performance ≥ 90, Accessibility = 100, Best Practices = 100, SEO = 100, **LCP < 2.5 s**. Record the numbers in the task tick. **LCP-element adjudication (Task 4, controller-ratified):** the LCP element is EXPECTED to be the loader curtain mark — the loader stays (Task 2 boundary) and its mark is larger than the name, so it legitimately wins the LCP election (measured 895 ms at Task 4). Do NOT stop on "element is not the hero name"; the name's own paint deadline is enforced by the hero-entrance e2e budget, not by the LCP element clause. If perf < 90 or LCP ≥ 2.5 s → STOP, report to orchestrator (Plan risk 1 lists the suspects; the hero entrance is inviolable — fix around it).
 
-- [ ] **Step 5: Contrast spot-verification**
+- [x] **Step 5: Contrast spot-verification** — body `rgb(245,242,236)` on `rgb(11,14,20)`; `#archive` meta `rgb(168,164,156)`; hovered `#projects` first-row title `rgb(230,77,102)`. Exact match to audited hexes.
 
 Run a Playwright one-off (or `node` + the plan's ratio function) confirming computed colors match the audited hexes: body text `rgb(245,242,236)` on `rgb(11,14,20)`; a `#archive` meta span resolves to `rgb(168,164,156)`; a hovered `#projects` first-row title resolves to `rgb(230,77,102)`. The audit table in this plan is the authority — any drift from those hexes is a defect.
 
-- [ ] **Step 6: ProjectDetail smoke (Plan risk 4)**
+- [x] **Step 6: ProjectDetail smoke (Plan risk 4)** — `/projects/hotmart-bunde` renders; title `rgb(245,242,236)` and body `rgb(201,196,186)` both legible on the confirmed `rgb(11,14,20)` page background; zero console errors.
 
 Load `http://localhost:4173/projects/hotmart-bunde` (fresh preview): page renders, no invisible text (spot-check computed color vs background of the title + body), zero console errors.
 
-- [ ] **Step 7: Rewrite the CLAUDE.md "Design Direction" section**
+- [x] **Step 7: Rewrite the CLAUDE.md "Design Direction" section** — rewritten per contract; every other CLAUDE.md section untouched.
 
 Replace the entire `## Design Direction` section (and ONLY it) with a description of the shipped system, sourced from this plan: dark ink tokens table (canonical names + hexes + the legacy-alias note), tricolor accents + `accentFor` rotation, FluidWavesHero + LiningWavesBackdrop (canvas budget 2, DPR 1.5, IO pause, reduced-motion static frame, no-WebGL fallback), monumental hero anatomy + GSAP entrance (~1.6 s, LCP = name text), WorkRow section language (anatomy, hover float, touch thumbnail, expandable, focus ring), scrim contrast rule, section flow, the NO-list updated (no light cream/sand theme, no bento cards, no ink-draw/scramble, no third canvas, no spaced em-dashes), and the standing rule that palette changes ship with a recomputed contrast audit. Keep every other CLAUDE.md section byte-identical.
 
-- [ ] **Step 8: Commit — `git add CLAUDE.md && git commit -m "docs: Design Direction rewritten for the dark/WebGL system"`**
+- [x] **Step 8: Commit — `git add CLAUDE.md && git commit -m "docs: Design Direction rewritten for the dark/WebGL system"`**
 
 **Verify before returning:** paste Step 3 + Step 4 outputs verbatim. Kill any preview you started.
 
