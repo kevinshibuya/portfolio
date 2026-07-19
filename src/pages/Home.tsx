@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useLayoutEffect, useRef } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Hero } from '../components/sections/Hero'
 import { useLenis } from '../hooks/useLenis'
@@ -30,6 +30,9 @@ const Contact = lazy(() =>
 const Footer = lazy(() =>
   import('../components/layout/Footer').then((m) => ({ default: m.Footer }))
 )
+// Canvas #2. Default-export module → no unwrap. Deliberately NOT in the idle-warm
+// list: the three.js chunk must not load until the user scrolls near the stage.
+const LiningWavesBackdrop = lazy(() => import('../components/canvas/LiningWavesBackdrop'))
 
 const STORAGE_KEY = 'portfolio:home:scrollY'
 
@@ -43,6 +46,32 @@ export function Home() {
   // ResizeObserver before the target section mounts.
   const navTargetRef = useRef<string | undefined>(
     (location.state as { scrollToId?: string } | null)?.scrollToId,
+  )
+
+  // The contact/footer WebGL backdrop (canvas #2) is the heaviest below-the-fold
+  // asset, so it mounts only once the user scrolls within 120% of the stage —
+  // an IntersectionObserver on the stage wrapper flips this once, then
+  // disconnects. Until then the three.js chunk never loads. A React 19
+  // cleanup-returning callback ref arms the observer the moment the stage node
+  // commits (it sits behind the outer Suspense, so a plain mount effect could
+  // fire before the node exists).
+  const [stageApproached, setStageApproached] = useState(false)
+  const stageRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!node || stageApproached) return
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            setStageApproached(true)
+            io.disconnect()
+          }
+        },
+        { rootMargin: '120%' },
+      )
+      io.observe(node)
+      return () => io.disconnect()
+    },
+    [stageApproached],
   )
 
   useLayoutEffect(() => {
@@ -207,8 +236,13 @@ export function Home() {
         <WorkExperience />
         <Stats />
         <Skills />
-        <Contact />
-        <Footer />
+        <div className="contact-footer-stage" ref={stageRef}>
+          <Suspense fallback={null}>
+            {stageApproached && <LiningWavesBackdrop />}
+          </Suspense>
+          <Contact />
+          <Footer />
+        </div>
       </Suspense>
     </main>
   )

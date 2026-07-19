@@ -1538,12 +1538,12 @@ test.describe('reduced motion', () => {
 
 **Steps:**
 
-- [ ] **Step 1: Write `tests/e2e/contact-waves.spec.ts` (verbatim); run → FAIL**
-- [ ] **Step 2: Implement `LiningWavesBackdrop.tsx` per adaptation contract**
-- [ ] **Step 3: Stage wrapper + lazy IO mount in `Home.tsx` (default-export lazy, no unwrap — S7); Contact restyle; Footer rewrite (`.footer-name` + `.footer-bottom` meta row with EN/PT toggle); add `footer.location` to BOTH locales and validate JSON (S4)**
-- [ ] **Step 4: Delete marquee + test + glyphPaths + extraction script; `npm uninstall opentype.js`; grep `glyphPaths|FooterNameMarquee|opentype` → zero hits**
-- [ ] **Step 5: `npm run build && npm run test:unit && npm run test:e2e` → green (contact-waves included)**
-- [ ] **Step 6: Commit — `git add -A && git commit -m "feat(contact,footer): lining-waves stage (canvas #2); typographic footer name; delete ink-draw remnants"`**
+- [x] **Step 1: Write `tests/e2e/contact-waves.spec.ts` (verbatim); run → FAIL**
+- [x] **Step 2: Implement `LiningWavesBackdrop.tsx` per adaptation contract**
+- [x] **Step 3: Stage wrapper + lazy IO mount in `Home.tsx` (default-export lazy, no unwrap — S7); Contact restyle; Footer rewrite (`.footer-name` + `.footer-bottom` meta row with EN/PT toggle); add `footer.location` to BOTH locales and validate JSON (S4)**
+- [x] **Step 4: Delete marquee + test + glyphPaths + extraction script; `npm uninstall opentype.js`; grep `glyphPaths|FooterNameMarquee|opentype` → zero hits**
+- [x] **Step 5: `npm run build && npm run test:unit && npm run test:e2e` → green (contact-waves included)**
+- [x] **Step 6: Commit — `git add -A && git commit -m "feat(contact,footer): lining-waves stage (canvas #2); typographic footer name; delete ink-draw remnants"`**
 
 **Verify before returning:** suites green; the lazy check specifically: reload preview, confirm no three.js chunk in the network log before scrolling (Playwright request capture or devtools screenshot).
 

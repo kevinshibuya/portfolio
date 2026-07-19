@@ -104,7 +104,9 @@
   "footer": {
     "copyright": "© {{year}} kevin shibuya · all rights reserved",
     "builtWith": "built with react, typescript & care",
-    "bigText": "kevin shibuya"
+    "bigText": "kevin shibuya",
+    "location": "porto alegre, brazil",
+    "langSwitch": "switch language"
   },
   "projectDetail": {
     "back": "back to projects",

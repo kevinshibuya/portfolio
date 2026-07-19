@@ -125,15 +125,6 @@ strong {
   color: var(--text);
 }
 
-/* Interim dark guard for the Contact/Footer block until Task 10 rebuilds it
-   on the LiningWaves stage: keep it ink even though the legacy alias flip
-   would have inverted it to light. */
-.section--contact,
-.footer {
-  background: var(--bg);
-  color: var(--text);
-}
-
 /* =========================================================================
    NAV
    ========================================================================= */
@@ -360,8 +351,7 @@ strong {
   .hero-meta { opacity: 1; }
 }
 
-/* Visually-hidden helper (screen-reader-only text). Standard a11y pattern;
-   used by FooterNameMarquee. */
+/* Visually-hidden helper (screen-reader-only text). Standard a11y pattern. */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -783,11 +773,30 @@ html[data-loading='true'] {
 }
 
 /* =========================================================================
-   CONTACT (dark ink)
+   CONTACT / FOOTER STAGE (canvas #2 backdrop)
+   The stage owns the dark background so Contact + Footer sit transparent over
+   the LiningWaves canvas. --bg (#0B0E14) matches the shader's clear color, so
+   the stage reads seamless before the lazy canvas mounts / if WebGL fails.
+   ========================================================================= */
+.contact-footer-stage {
+  position: relative;
+  background: var(--bg);
+  isolation: isolate;
+}
+.lining-waves-backdrop { position: absolute; inset: 0; z-index: 0; }
+.lining-waves-backdrop canvas { display: block; width: 100%; height: 100%; }
+.contact-footer-stage > .section--contact,
+.contact-footer-stage > .footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================================================================
+   CONTACT (transparent over the stage)
    ========================================================================= */
 .section--contact {
-  background: var(--ink);
-  color: var(--cream);
+  background: transparent;
+  color: var(--text);
   padding: 160px 80px 120px;
   max-width: none;
 }
@@ -800,7 +809,7 @@ html[data-loading='true'] {
   letter-spacing: -0.05em;
   text-transform: lowercase;
   margin: 16px 0 32px;
-  color: var(--cream);
+  color: var(--text);
 }
 .contact-title em {
   font-style: italic;
@@ -838,7 +847,7 @@ html[data-loading='true'] {
 .contact-label {
   font-size: clamp(20px, 2.2vw, 32px);
   font-weight: 500;
-  color: var(--cream);
+  color: var(--text);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   /* inline-block + transform-origin so skewX animates from the left edge
@@ -882,83 +891,51 @@ html[data-loading='true'] {
    FOOTER
    ========================================================================= */
 .footer {
-  background: var(--ink);
-  color: var(--cream);
+  background: transparent;
+  color: var(--text);
   padding: 60px 80px 40px;
-  border-top: 1px solid rgba(246, 249, 252, 0.08);
+  border-top: 1px solid var(--hairline);
 }
 /* =========================================================================
-   FOOTER NAME MARQUEE
-   "kevin shibuya" stroke-dashoffset trace then infinite leftward marquee.
-   The trace and marquee both render in cream-25% — no color shift. Track
-   lives inside .footer (which has 80px LR padding); negative margin on the
-   container breaks out so the marquee runs edge-to-edge of the viewport
-   while the bottom meta row keeps its gutter.
-
-   Track sizing: width:max-content forces the track to size to its two
-   children, so translateX(-50%) translates by exactly one copy-width
-   (= seamless wrap). Without it, the track defaults to 100% of its parent
-   (~100vw) and -50% becomes -50vw, which doesn't line up with copy width
-   on most viewports → visible snap mid-loop.
+   FOOTER NAME
+   "kevin shibuya" set as a large lowercase typographic display — no outline
+   or trace trickery (the ink-draw marquee was retired in the WebGL pivot).
    ========================================================================= */
-.footer-marquee {
-  margin-left: -80px;
-  margin-right: -80px;
-  margin-bottom: 48px;
-  overflow: hidden;
-}
-.footer-marquee-track {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0;
-  width: max-content;
-  font-size: clamp(80px, 18vw, 280px);
-}
-.footer-marquee-track-copy {
-  display: block;
-  flex-shrink: 0;
-  height: 1em;
-  width: auto;
-  overflow: visible;
-}
-.footer-marquee-glyph {
-  fill: transparent;
-  stroke: rgba(246, 249, 252, 0.25);
-  stroke-width: 6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-.footer-marquee-track--marquee {
-  animation: footer-marquee-scroll 45s linear infinite;
-  will-change: transform;
-}
-@keyframes footer-marquee-scroll {
-  from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(-50%, 0, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* Reset will-change too — under rmotion the --marquee class is still
-     applied (component initializes to phase='marquee'), so leaving the
-     base rule's will-change:transform active would waste a GPU layer
-     on a static element. */
-  .footer-marquee-track--marquee {
-    animation: none;
-    will-change: auto;
-  }
+.footer-name {
+  margin: 0 0 48px;
+  font-size: clamp(48px, 10vw, 160px);
+  font-weight: 650;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+  color: var(--text);
 }
 .footer-bottom {
   display: flex; justify-content: space-between; align-items: center;
   padding-top: 24px;
-  border-top: 1px solid rgba(246, 249, 252, 0.08);
+  border-top: 1px solid var(--hairline);
   font-size: 11px;
-  color: var(--mist);
+  color: var(--text-faded);
   text-transform: lowercase;
   letter-spacing: 0.04em;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 16px;
 }
+.footer-meta-left,
+.footer-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.footer-meta-sep { opacity: 0.5; }
+.footer-lang {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-faded);
+  transition: color 0.3s;
+}
+.footer-lang:hover { color: var(--text); }
 
 /* =========================================================================
    RESPONSIVE
@@ -972,10 +949,6 @@ html[data-loading='true'] {
      the full-bleed canvas), so track the narrower page gutter directly. */
   .hero-bottom { left: 40px; right: 40px; }
   .hero-meta { right: 40px; }
-  .footer-marquee {
-    margin-left: -40px;
-    margin-right: -40px;
-  }
 }
 
 /* Skills steps down 3 → 2 → 1 col across desktop / tablet / mobile.
@@ -999,10 +972,6 @@ html[data-loading='true'] {
   .section, .section--contact, .footer {
     padding-left: 20px;
     padding-right: 20px;
-  }
-  .footer-marquee {
-    margin-left: -20px;
-    margin-right: -20px;
   }
   .contact-row { grid-template-columns: 32px 1fr 24px; }
   .contact-meta { display: none; }
