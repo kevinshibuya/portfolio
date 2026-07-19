@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('section enter on viewport', () => {
-  // Every section — including Projects, reverted to the bento grid — renders
+  // Every section — including Projects, now WorkRow rows — renders
   // its title via SectionHeading as `.section-title`.
   const titleSelectorFor = (id: string): string => `${id} .section-title`
 
