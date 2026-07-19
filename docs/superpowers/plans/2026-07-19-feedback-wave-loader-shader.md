@@ -47,7 +47,7 @@ No budget is baseline-violated. Task 0 re-verifies these fresh; if the re-run de
 | 4 | Ink-bleed loader (`index.html` + `index.css`) + `main.tsx` bleed | integrator-opus-high | boot-path, GSAP+SVG mask, visual-critical, highest risk |
 | 5 | Hero entrance retirement (settled from paint) | integrator-opus-high | animation-critical; entranceDone handshake judgment |
 | 6 | WorkRow float first-hover fix | implementer-sonnet-medium | fully specified 4-line change + supplied test; animation nuance |
-| 7 | AA recompute + token remedy + CLAUDE.md contrast table | editor-sonnet-low | exact numbers + edits supplied; transcription |
+| 7 | AA recompute + 2 remedies (decorative exemption + alpha) + CLAUDE.md table | implementer-sonnet-medium | now touches Contact.tsx + index.css (codex P2-1); edits fully specified |
 | 8 | CLAUDE.md Design Direction + memory doc updates | editor-sonnet-low | exact prose supplied |
 | 9 | Final battery + Lighthouse/LCP gate + manual smoke | verifier-sonnet-low | mechanical gate; Kevin does the visual sign-off |
 
@@ -407,7 +407,24 @@ git commit -m "test(wave): RED batch — FluidWaves, ink-bleed loader, backdrop 
    - hero: `<canvas className="fluid-waves-canvas" data-canvas="fluid-waves" aria-hidden="true">`; WebGL-failure fallback `<div className="fluid-waves-fallback" data-testid="fluid-waves-fallback" aria-hidden="true" />`.
    - backdrop: `<canvas className="fluid-waves-canvas fluid-waves-canvas--backdrop" data-canvas="fluid-waves-backdrop" aria-hidden="true">`; WebGL-failure fallback renders `<></>` (the stage ink `#0B0E14` stands — mirrors the old `LiningWavesBackdrop` failure path).
 3. **rAF loop starts at mount (spec §2, the key change):** DELETE the `entranceDone` gate and the `allowLoop` flag entirely. The loop starts on mount, subject only to IO visibility and reduced motion. Do NOT import `entranceDone` from MotionContext (only `prefersReducedMotion` is still needed). Effect deps become `[prefersReducedMotion, variant]`.
-4. **Preserve verbatim from the current hero:** `gl.getContext('webgl', { alpha: false })` for BOTH variants (opaque canvas; backdrop dims via CSS — see §backdrop dimming); per-mount `const seed = Math.random()`; `resize()` reads `canvas.clientWidth/clientHeight` × `min(dpr, 1.5)`; `window` resize listener; IntersectionObserver toggling `data-paused` + start/stop; reduced-motion path draws ONE frame (`drawFrame(seed * 10)`), sets `data-static="true"`, never loops, repaints one frame on IO re-entry; `webglcontextlost` → `preventDefault()` + stop + fallback; full cleanup (cancel rAF, disconnect IO, remove listeners, delete program/shaders/buffer).
+4. **Preserve from the current hero** (with the IO correction in item 4a — do NOT copy the old reduced-motion IO branch verbatim): `gl.getContext('webgl', { alpha: false })` for BOTH variants (opaque canvas; backdrop dims via CSS — see §backdrop dimming); per-mount `const seed = Math.random()`; `resize()` reads `canvas.clientWidth/clientHeight` × `min(dpr, 1.5)`; `window` resize listener; reduced-motion path draws ONE frame (`drawFrame(seed * 10)`), sets `data-static="true"`, never loops, repaints one frame on IO re-entry; `webglcontextlost` → `preventDefault()` + stop + fallback; full cleanup (cancel rAF, disconnect IO, remove listeners, delete program/shaders/buffer).
+   **4a. IO observer — `data-paused` for EVERY canvas (codex P2-3 fix):** the current `FluidWavesHero` observer early-returns inside `if (prefersReducedMotion)` WITHOUT touching `data-paused` — that contradicts the per-canvas contract ("`data-paused="true"` off-screen for every canvas, reduced motion included"). The observer MUST set/clear `data-paused` FIRST, before the reduced-motion branch. Use exactly:
+   ```ts
+   const io = new IntersectionObserver(([entry]) => {
+     inView = entry.isIntersecting
+     // Every canvas reflects visibility via data-paused — reduced motion too.
+     if (inView) canvas.removeAttribute('data-paused')
+     else canvas.dataset.paused = 'true'
+     if (prefersReducedMotion) {
+       if (inView) drawFrame(seed * 10) // one-frame repaint on re-entry
+       return
+     }
+     if (inView) start()
+     else stop()
+   })
+   io.observe(canvas)
+   ```
+   (Under reduced motion there is no loop, but `data-paused="true"` off-screen is still semantically correct and satisfies the contract; no e2e asserts its ABSENCE.)
 5. **Backdrop dimming is CSS only (spec §2):** the backdrop canvas is opaque paint; `.fluid-waves-canvas--backdrop { opacity: 0.22; filter: saturate(0.7); }` composites it toward the stage ink. **Note the value is 0.22, not the spec's ~0.32** — see Task 7 and Spec Concerns for the AA rationale; this is the AA-verified murmur strength. An opaque canvas with CSS `opacity` over the `#0B0E14` stage bg is the correct, shader-change-free dimming.
 
 - [ ] **Step 1: Create `src/components/canvas/FluidWaves.tsx`** per the contract above (smooth shader, both variants, rAF-from-mount, `alpha:false`, IO/reduced-motion/context-loss preserved). No `entranceDone` import.
@@ -573,7 +590,9 @@ Replace the entire `<style>…</style>` block currently at lines ~342–402 (the
         pointer-events: none; overflow: hidden;
       }
       /* Dim tricolor stand-in behind the windows: reads as paint before React
-         mounts the live shader (mirrors the hero fallback gradient). */
+         mounts the live shader (mirrors the hero fallback gradient). Subtly
+         animated (spec §3) via a compositor-cheap transform drift so the paint
+         breathes pre-React; the mount fade uses opacity (separate channel). */
       .loader-standin {
         position: absolute; inset: 0; z-index: 0;
         background:
@@ -583,6 +602,12 @@ Replace the entire `<style>…</style>` block currently at lines ~342–402 (the
           #0B0E14;
         opacity: 1;
         transition: opacity 300ms ease-out;
+        animation: loaderStandinDrift 7s ease-in-out infinite alternate;
+        will-change: transform;
+      }
+      @keyframes loaderStandinDrift {
+        from { transform: scale(1) translate3d(0, 0, 0); }
+        to   { transform: scale(1.05) translate3d(-1.5%, 1.5%, 0); }
       }
       /* On React mount main.tsx adds .loader--mounted → fade the stand-in so the
          windows reveal the live (already-looping) hero canvas behind #loader. */
@@ -604,11 +629,11 @@ Replace the entire `<style>…</style>` block currently at lines ~342–402 (the
         .loader-meta--tl, .loader-meta--bl { left: 18px; }
         .loader-meta--tr, .loader-meta--br { right: 18px; }
       }
-      /* Reduced motion: no bleed — fade the whole loader out. */
+      /* Reduced motion: no bleed — fade the whole loader out; no stand-in drift. */
       @media (prefers-reduced-motion: reduce) {
         #loader { transition: opacity 150ms ease-out; }
         #loader.loader--exit { opacity: 0; }
-        .loader-standin { transition: none; }
+        .loader-standin { transition: none; animation: none; }
       }
     </style>
 ```
@@ -660,7 +685,7 @@ Replace the whole `<div id="loader" aria-hidden="true">…</div>` block (the two
 
 - [ ] **Step 3: Mirror the loader CSS in `src/index.css`**
 
-Replace the entire `/* LOADER + CURTAIN … */` block (~lines 363–468, from `html[data-loading='true']` through the reduced-motion `@media` closing brace) with the SAME rules as Step 1 (minus the `@font-face`, which lives elsewhere in the sheet). Keep the block comment header describing the new structure. The rules must be identical to the inline ones so the bundled sheet is a no-op re-declaration.
+Replace the entire `/* LOADER + CURTAIN … */` block (~lines 363–468, from `html[data-loading='true']` through the reduced-motion `@media` closing brace) with the SAME rules as Step 1 (minus the `@font-face`, which lives elsewhere in the sheet). Keep the block comment header describing the new structure. The rules must be identical to the inline ones so the bundled sheet is a no-op re-declaration — this INCLUDES the animated `.loader-standin` (`animation: loaderStandinDrift …`), the `@keyframes loaderStandinDrift`, and the reduced-motion `.loader-standin { animation: none; }` override. Do not drop the keyframes when mirroring.
 
 - [ ] **Step 4: Rewrite the curtain controller in `src/main.tsx`**
 
@@ -954,15 +979,18 @@ git commit -m "fix(workrow): float materializes at the cursor on first hover (ju
 
 ---
 
-## Task 7: AA recompute + token remedy + CLAUDE.md contrast table
+## Task 7: AA recompute + remedies for the two failing pairs + CLAUDE.md contrast table
 
-**Model:** editor-sonnet-low. **Serves:** spec §6 (recompute contact/footer contrast over worst-case dimmed paint; all affected pairs pass). All numbers below are computed at plan time (WCAG relative luminance; worst case = brightest tricolor region `#E6CC4D` under `saturate(0.7)` composited at the backdrop opacity over `#0B0E14`).
+**Model:** implementer-sonnet-medium (was editor-sonnet-low — the codex review's P2-1 fix makes this touch source: a decorative-exemption attribute + an alpha bump, both fully specified below). **Serves:** spec §6 (recompute contact/footer contrast over worst-case dimmed paint; **all affected pairs pass**). All numbers computed at plan time (WCAG relative luminance; worst case = brightest tricolor `#E6CC4D` under `saturate(0.7)` composited at `0.22` over `#0B0E14` = bg `rgb(57,56,41)`).
+
+> **Why source changes (codex P2-1):** the spec TODO requires "all affected pairs pass." Two pairs sit sub-4.5 over the NEW backdrop and "pre-existing debt" does not satisfy a ratified criterion, so each gets an explicit, computed remedy — one via the WCAG decorative exemption (with code citation), one via a computed alpha that clears 4.5:1.
 
 **Files:**
-- Modify: `CLAUDE.md` (append the recomputed rows to the standing contrast table / Design Direction AA note)
-- (No CSS change needed — Task 2 already set backdrop opacity to the AA-verified `0.22`.)
+- Modify: `src/components/sections/Contact.tsx` (add `aria-hidden="true"` to `.contact-num` — decorative exemption)
+- Modify: `src/index.css` (`.contact-meta` color alpha `0.5` → `0.62`)
+- Modify: `CLAUDE.md` (record the recomputed table + the two remedies)
 
-**Contrast at the chosen backdrop opacity `0.22` (worst-case dimmed yellow bg ≈ `rgb(57,56,41)`):**
+**Contrast at backdrop opacity `0.22` (worst-case dimmed-yellow bg `rgb(57,56,41)`) — post-remedy:**
 
 | Contact/Footer text | color | size | ratio | AA needed | verdict |
 |---|---|---|---|---|---|
@@ -974,27 +1002,55 @@ git commit -m "fix(workrow): float materializes at the cursor on first hover (ju
 | `.contact-icon` | `--blue-200` | 16px | 4.58:1 | 4.5 | ✅ |
 | `.footer-name` | `--text` cream | huge | 8.9:1 | 3.0 | ✅ |
 | `.footer-*` meta / `.footer-lang` | `--text-faded` #A8A49C | 11px | 4.79:1 | 4.5 | ✅ |
-| `.contact-num` | rgba(246,249,252,.4) | 10px | 3.20:1 | 4.5 | ⚠️ pre-existing debt |
-| `.contact-meta` | rgba(245,242,236,.5) | 13px, hover-only | 3.95:1 | 4.5 | ⚠️ pre-existing debt |
+| `.contact-num` | rgba(246,249,252,.4) | 10px | 3.19:1 | — | ✅ **decorative exemption** (`aria-hidden`, WCAG 1.4.3 note 1) |
+| `.contact-meta` | **rgba(245,242,236,.62)** | 13px, hover-revealed | **5.17:1** | 4.5 | ✅ (remedy: alpha .5→.62) |
 
-Every always-visible, meaningful pair passes AA at opacity `0.22`. The two ⚠️ rows (`.contact-num` decorative 10px numbering; `.contact-meta` hover-only 13px) are faint-by-design and were already sub-4.5 over pure ink (≈3.5 and ≈3.3 respectively) BEFORE this wave — pre-existing accepted debt, not a regression introduced here (spec "Out of scope" classes pre-existing debt as accepted). No recolor is applied; keeping the blue accents intact was the reason `0.22` (not `0.32`) was chosen — see Spec Concerns.
+Every affected pair now passes AA or is a documented decorative exemption. Rationale for each remedy:
+- **`.contact-num`** renders `{num}` (`'01'..'04'`, purely ordinal enumeration) and — unlike the rest — carries NO semantic role; the row's accessible name comes from `.contact-label`/`href`. The codebase's own precedent is `.workrow-index`, which is `aria-hidden="true"` (`WorkRow.tsx:107`). Marking `.contact-num` `aria-hidden="true"` makes it a decoration exempt from WCAG 1.4.3 (contrast applies to text that conveys information; decorative text is exempt). This is the correct + codebase-consistent fix — no recolor needed.
+- **`.contact-meta`** renders `{meta}` (the email address, `@handle`, cv filename) — REAL informational text, hover-revealed. Computed: `#F5F2EC` at alpha `0.60` → 4.95:1, `0.62` → 5.17:1 over `rgb(57,56,41)`. Ship `0.62` for margin. The `opacity: 0 → 1` hover-reveal mechanism is untouched (that is `opacity`, separate from the color's alpha channel).
 
-- [ ] **Step 1: Record the recomputed table in `CLAUDE.md`**
+- [ ] **Step 1: Decorative exemption for `.contact-num`**
 
-In the Design Direction "Standing rule" / contrast area, add a short note + the table above (contact/footer text over the `0.22`-dimmed `FluidWaves` backdrop), stating: worst case = `#E6CC4D` × `saturate(0.7)` @ 0.22 over `#0B0E14`; all always-visible pairs ≥ 4.5:1; `.contact-num`/`.contact-meta` remain pre-existing accepted debt; backdrop opacity is `0.22` for AA, not the spec's ~0.32.
-
-- [ ] **Step 2: Confirm no CSS token change is required**
-
-Run: `grep -n "opacity: 0.22" src/index.css` — confirm `.fluid-waves-canvas--backdrop` carries `0.22` (set in Task 2). No further CSS edit.
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add CLAUDE.md
-git commit -m "docs(aa): recompute contact/footer contrast over 0.22 dimmed backdrop — all visible pairs pass"
+In `src/components/sections/Contact.tsx`, change line ~100:
+```tsx
+<span className="contact-num">{num}</span>
+```
+to:
+```tsx
+<span className="contact-num" aria-hidden="true">{num}</span>
 ```
 
-**Boundaries:** Docs only (plus the already-shipped `0.22`). Do NOT recolor contact/footer tokens (the AA target is met by the backdrop opacity). If Kevin later overrides to `0.32` at review, the recolor remedy in Spec Concerns is the alternative — but that is a separate directive, not this task.
+- [ ] **Step 2: Alpha remedy for `.contact-meta`**
+
+In `src/index.css`, in the `.contact-meta` rule, change:
+```css
+  /* --text #F5F2EC, not the retired light-era cream #F6F9FC */
+  color: rgba(245, 242, 236, 0.5);
+```
+to:
+```css
+  /* --text #F5F2EC. Alpha .5→.62: AA over the 0.22-dimmed backdrop worst case
+     (rgb(57,56,41)) = 5.17:1. Hover-reveal opacity 0→1 is separate + untouched. */
+  color: rgba(245, 242, 236, 0.62);
+```
+
+- [ ] **Step 3: Record the recomputed table in `CLAUDE.md`**
+
+In the Design Direction "Standing rule" / contrast area, add the table above (contact/footer text over the `0.22`-dimmed `FluidWaves` backdrop), stating: worst case `#E6CC4D` × `saturate(0.7)` @ 0.22 over `#0B0E14`; ALL affected pairs pass; `.contact-num` is a decorative exemption (`aria-hidden`, matching `.workrow-index`); `.contact-meta` alpha raised to `0.62` (5.17:1); backdrop opacity is `0.22` for AA (ratified, not the spec's ~0.32).
+
+- [ ] **Step 4: Verify + lint**
+
+Run: `npm run build && npm run lint && npm run test:e2e -- dark-tokens`
+Expected: clean; `dark-tokens` still green (page renders on the dark system, zero console errors). Manually confirm at `npx vite preview` that the contact meta (email/handle) is legible over the brightest backdrop region on hover.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/sections/Contact.tsx src/index.css CLAUDE.md
+git commit -m "fix(aa): contact-num decorative exemption + contact-meta alpha .62; recompute contrast table"
+```
+
+**Boundaries:** Only the two remedies above + the doc table. Do NOT change the backdrop opacity (`0.22` is ratified), do NOT recolor the blue accents or footer meta (they already pass), do NOT alter the hover-reveal `opacity` transitions. `blocked:` if `.contact-num`'s `{num}` turns out to carry a semantic role the accessible name depends on (it does not in the current markup — verified at plan time).
 
 ---
 
@@ -1011,7 +1067,7 @@ git commit -m "docs(aa): recompute contact/footer contrast over 0.22 dimmed back
 Replace the "Canvases (max 2 on the page)" bullet's two sub-bullets with:
 ```
   - `FluidWaves` (`src/components/canvas/FluidWaves.tsx`) — ONE shared raw-WebGL component, `variant: 'hero' | 'backdrop'`. Hero = full-strength background (seeded scattered wave motion, tricolor paint, smooth — no pixel quantization). Backdrop = the SAME shader dimmed via CSS (`opacity: 0.22; filter: saturate(0.7)`) behind Contact/Footer, lazy-mounted as the stage nears viewport. Each instance seeds independently.
-  - Both: `devicePixelRatio` capped at 1.5, `IntersectionObserver` sets `data-paused="true"` and halts the rAF loop off-screen, `prefers-reduced-motion` renders one static frame (`data-static="true"`) and never starts the loop, context-loss fallback (hero → gradient div `data-testid="fluid-waves-fallback"`; backdrop → stage ink stands). The rAF loop runs FROM MOUNT (no entrance gate) so paint animates during the loader bleed. Hero canvas `data-canvas="fluid-waves"`; backdrop `data-canvas="fluid-waves-backdrop"`.
+  - Both: `devicePixelRatio` capped at 1.5, `IntersectionObserver` sets `data-paused="true"` off-screen for every canvas (reduced motion included) and halts the rAF loop, `prefers-reduced-motion` also renders one static frame (`data-static="true"`) and never starts the loop, context-loss fallback (hero → gradient div `data-testid="fluid-waves-fallback"`; backdrop → stage ink stands). The rAF loop runs FROM MOUNT (no entrance gate) so paint animates during the loader bleed. Hero canvas `data-canvas="fluid-waves"`; backdrop `data-canvas="fluid-waves-backdrop"`.
 ```
 
 - [ ] **Step 2: Replace the Entrance bullet with the Loader/settled-hero prose**
@@ -1092,7 +1148,7 @@ Invoke `superpowers:requesting-code-review` (fresh-context opus) over the branch
 ## Spec concerns (do NOT edit the spec — recorded here per guardrail)
 
 1. **Backdrop opacity `0.22` — RATIFIED (2026-07-19, interactive) as the AA-verified murmur strength, superseding the spec's `~0.32`.** Spec §2 / decision 4 wrote the backdrop dimming as `opacity ~0.32`. The spec §6 AA recompute (a co-ratified, standing "verified not hoped" rule) shows that at `0.32`, over the worst-case dimmed-yellow region (`#E6CC4D` × `saturate(0.7)` @ 0.32 over `#0B0E14` ≈ `rgb(78,74,50)`), several ALWAYS-VISIBLE small contact/footer texts fail normal-size AA: `.section-index`/`.contact-icon` `--blue-200` = 3.42:1, footer meta `--text-faded` = 3.58:1, `.contact-lede` = 4.22:1 (all were ≥ 7:1 over pure ink pre-wave — genuine regressions). Kevin reviewed the numbers and ratified `0.22` (2026-07-19, interactive); the plan ships it, no longer pending. For the record, the two levers considered were:
-   - **(A) Lower the backdrop opacity to `0.22`** (this plan's default): every always-visible pair returns ≥ 4.5:1 (blue-200 4.58, faded 4.79, lede 5.19) with ZERO recolors — the tricolor accents and all text colors are preserved; only the intentionally-faint `.contact-num` (10px) and hover-only `.contact-meta` stay sub-4.5 (pre-existing debt, faint over ink too). Cost: the murmur is ~22% not ~30% (both read as "dimmed murmur").
+   - **(A) Lower the backdrop opacity to `0.22`** (this plan's default): every accent + faded pair returns ≥ 4.5:1 (blue-200 4.58, faded 4.79, lede 5.19) with ZERO recolors — the tricolor accents and text colors are preserved. The two remaining faint pairs are cleared in Task 7 per the ratified "all pairs pass" criterion: `.contact-num` via the WCAG decorative exemption (`aria-hidden`, matching `.workrow-index`) and `.contact-meta` via an alpha bump `.5→.62` (5.17:1). Cost: the murmur is ~22% not ~30% (both read as "dimmed murmur").
    - **(B) Keep `0.32` and recolor** the regressing tokens per the standing token-change rule: footer meta `--text-faded`→`--text-muted`, contact `.section-index`+`.contact-icon` `--blue-200`→`--text-muted`, `.contact-lede`→`--text-muted` (all → 5.11:1). Cost: removes the blue eyebrow/icon accent and homogenizes the palette toward muted cream.
    **(A) is the ratified choice** — it preserves the visual design (accents intact) at a small dimming reduction and satisfies the co-ratified "verified not hoped" gate. (B) is recorded only as the fallback shape if the `0.22` murmur is ever judged too faint; it is not this plan's path.
 
