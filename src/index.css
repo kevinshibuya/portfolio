@@ -32,48 +32,56 @@
    TOKENS (Tailwind v4 @theme + CSS vars)
    ========================================================================= */
 @theme {
-  --color-cream:       #F6F9FC;
-  --color-sand:        #EAF2F8;
-  --color-mist:        #D4E5F2;
-  --color-ink:         #111822;
-  --color-bark:        #2A4060;
-  --color-dust:        #4A6A88;
-
-  --color-blue-50:     #F4F8FE;
-  --color-blue-100:    #DCF0FF;
-  --color-blue-200:    #A2D2FF;
-  --color-blue-300:    #6DB8FF;
-  --color-blue-400:    #3A96E8;
-  --color-blue-500:    #1C6EC4;
-
-  --color-periwinkle-100: #C8D8F0;
-  --color-periwinkle-200: #8AAADA;
-  --color-periwinkle-300: #5078B8;
+  /* Canonical dark-ink tokens (new work styles against these). */
+  --color-bg:          #0B0E14;
+  --color-bg-tonal:    #131722;
+  --color-text:        #F5F2EC;
+  --color-text-muted:  #C9C4BA;
+  --color-text-faded:  #A8A49C;
+  --color-accent-pink:   #E64D66;
+  --color-accent-blue:   #4D80E6;
+  --color-accent-yellow: #E6CC4D;
 
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 :root {
-  --cream:    #F6F9FC;
-  --sand:     #EAF2F8;
-  --mist:     #D4E5F2;
-  --ink:      #111822;
-  --bark:     #2A4060;
-  --dust:     #4A6A88;
+  /* Canonical dark-ink tokens. Contrast-audited in the plan — do not
+     change hexes without recomputing the AA table. */
+  --bg:         #0B0E14;
+  --bg-tonal:   #131722;
+  --text:       #F5F2EC;
+  --text-muted: #C9C4BA;
+  --text-faded: #A8A49C;
+  --hairline:   rgba(245, 242, 236, 0.13);
+  --accent-pink:   #E64D66;
+  --accent-blue:   #4D80E6;
+  --accent-yellow: #E6CC4D;
 
-  --blue-50:  #F4F8FE;
-  --blue-100: #DCF0FF;
-  --blue-200: #A2D2FF;
-  --blue-300: #6DB8FF;
-  --blue-400: #3A96E8;
-  --blue-500: #1C6EC4;
+  /* LEGACY ALIASES — remapped onto the dark system so the whole light-era
+     stylesheet flips in one commit. Semantics: in the light theme --cream
+     was "page background" and --ink was "text"; those ROLES keep their
+     var names, so --cream is now dark and --ink is now light. Sections
+     migrate to the canonical names above as they're restyled. */
+  --cream:    #0B0E14;             /* page bg */
+  --sand:     #131722;             /* tonal section bg */
+  --mist:     rgba(245, 242, 236, 0.14); /* borders/hairlines */
+  --ink:      #F5F2EC;             /* primary text */
+  --bark:     #C9C4BA;             /* secondary text */
+  --dust:     #A8A49C;             /* faded text */
 
-  --periwinkle-100: #C8D8F0;
-  --periwinkle-200: #8AAADA;
-  --periwinkle-300: #5078B8;
+  --blue-50:  #131722;             /* was near-white tint bg */
+  --blue-100: #1B2233;             /* chip/tint bg */
+  --blue-200: #7AA0ED;
+  --blue-300: #7AA0ED;
+  --blue-400: #4D80E6;             /* accent slot */
+  --blue-500: #7AA0ED;             /* hover: lighter, not darker, on dark */
+
+  --periwinkle-100: #2A3450;       /* was pale bg */
+  --periwinkle-200: #6B94EA;
+  --periwinkle-300: #7AA0ED;
 
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SF Mono, Menlo, monospace;
 }
 
 /* =========================================================================
@@ -94,7 +102,7 @@ html, body {
   overflow-x: clip;
 }
 body { font-weight: 400; }
-::selection { background: var(--blue-300); color: var(--cream); }
+::selection { background: var(--accent-blue); color: var(--bg); }
 
 a { color: inherit; text-decoration: none; }
 button {
@@ -112,12 +120,18 @@ strong {
   color: var(--ink);
   font-style: normal;
 }
-/* Defensive override for ink-background sections — Contact + Footer use
-   color: var(--cream) on their text so global strong { color: var(--ink) }
-   would render invisibly. */
 .section--contact strong,
 .footer strong {
-  color: var(--cream);
+  color: var(--text);
+}
+
+/* Interim dark guard for the Contact/Footer block until Task 10 rebuilds it
+   on the LiningWaves stage: keep it ink even though the legacy alias flip
+   would have inverted it to light. */
+.section--contact,
+.footer {
+  background: var(--bg);
+  color: var(--text);
 }
 
 /* =========================================================================
