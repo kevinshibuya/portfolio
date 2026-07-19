@@ -240,17 +240,40 @@ test('monumental name is real settled text with the canonical role', async ({ pa
   await page.goto('/')
   await expect(page.locator('h1.hero-name')).toContainText('kevin', { timeout: 2000 })
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done', null, { timeout: 5000 })
-  // Settled from first paint — name fully opaque, no residual entrance offset.
+  // Final-state assertion (passes pre- and post-Task-5 — NOT the discriminator).
   const op = await page.locator('h1.hero-name').evaluate((el) => parseFloat(getComputedStyle(el).opacity))
   expect(op).toBeGreaterThan(0.99)
   await expect(page.locator('.hero-role')).toContainText('senior front-end engineer · react/typescript')
   await expect(page.locator('header.nav.is-visible')).toHaveCount(1)
 })
 
+// DISCRIMINATOR for Task 5 (settled-from-first-paint). Computed opacity is 1
+// throughout the retired cascade too, so opacity alone is a hollow gate. The
+// real tell is the TRANSFORM: the retired GSAP entrance held .hero-line at
+// yPercent:112 (a non-identity transform) while the loader was up, then rose it
+// to 0. Settled-from-first-paint means .hero-line sits at identity transform
+// even during 'loading'. This fails RED against pre-Task-5 code (non-identity
+// translateY present) and passes only once the entrance timeline is deleted.
+test('name is settled from first paint — identity transform while the loader is up', async ({ page }) => {
+  await page.goto('/')
+  // The min dwell (≥600ms) guarantees a ~1.5s 'loading' window; wait for the
+  // stamp (waitForFunction throws if it is never observed) rather than a
+  // race-prone immediate read. By the time 'loading' is observable, React has
+  // committed and both the loader-lock effect and the (retired) Hero entrance
+  // effect have run — so a lingering yPercent transform is already applied.
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'loading', null, { timeout: 3000 })
+  const line = page.locator('.hero-line').first()
+  const op = await line.evaluate((el) => parseFloat(getComputedStyle(el).opacity))
+  expect(op).toBeGreaterThan(0.99)
+  const transform = await line.evaluate((el) => getComputedStyle(el).transform)
+  expect(transform === 'none' || /matrix\(1, 0, 0, 1, 0, 0\)/.test(transform)).toBeTruthy()
+})
+
 test('body scroll is locked while the loader is up, released after the bleed', async ({ page }) => {
   await page.goto('/')
-  const during = await page.evaluate(() => document.body.dataset.loaderState)
-  expect(during).toBe('loading')
+  // Robustly observe the 'loading' stamp (throws if never seen) instead of a
+  // race-prone immediate read, then wait for release.
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'loading', null, { timeout: 3000 })
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done', null, { timeout: 5000 })
   const overflowAfter = await page.evaluate(() => getComputedStyle(document.body).overflow)
   expect(overflowAfter).not.toBe('hidden')
@@ -268,6 +291,8 @@ test.describe('reduced motion', () => {
   })
 })
 ```
+
+> **Why the discriminator is needed (review fix):** the retired cascade animates the name via `yPercent` (transform), so computed `opacity` stays 1 the whole time — the old settled-opacity assertions were already green pre-Task-5 (a hollow gate). The transform-identity-during-loading assertion is the only one that fails against current code and passes only after the timeline is deleted.
 
 - [ ] **Step 5: Replace `tests/e2e/contact-waves.spec.ts`**
 
@@ -336,7 +361,11 @@ test.describe('reduced motion', () => {
 - [ ] **Step 7: Verify the tests are RED for the right reasons**
 
 Run: `npm run test:unit` — expect `FluidWaves.test.tsx` (module missing) and `WorkRow.float.test.tsx` (no jump on enter) to FAIL; all others green.
-Run: `npm run test:e2e` — expect `loader.spec.ts`, `contact-waves.spec.ts`, and `hero-entrance.spec.ts` to FAIL against current code; `hero-shader`, `perf-budget`, `reduced-motion`, `rows-hover`, `section-enters`, `dark-tokens` still green.
+Run: `npm run test:e2e` — expect:
+- `loader.spec.ts` — genuinely RED (new loader markup absent).
+- `contact-waves.spec.ts` — genuinely RED (`data-canvas="fluid-waves-backdrop"` absent).
+- `hero-entrance.spec.ts` — RED ONLY via the new discriminator test ("identity transform while the loader is up"); the other three assertions in that file already pass pre-Task-5 (the retired cascade keeps opacity at 1). Confirm the discriminator specifically fails with a non-identity `matrix(...)` transform on `.hero-line`.
+- `hero-shader`, `perf-budget`, `reduced-motion`, `rows-hover`, `section-enters`, `dark-tokens` — still green.
 
 - [ ] **Step 8: Commit**
 
@@ -674,6 +703,9 @@ const liftCurtain = (): void => {
   if (lifted) return
   lifted = true
   if (!loaderEl) {
+    // Defensive: no loader element (misconfigured deploy). Still release the
+    // scroll lock so the page isn't frozen, and resolve both gates.
+    document.documentElement.removeAttribute('data-loading')
     resolveCurtain()
     resolveEntrance()
     return
@@ -728,9 +760,11 @@ Expected: clean. (AttrPlugin for `attr:{r}` is in gsap core — no extra registr
 Run: `npm run test:e2e -- loader`
 Expected: GREEN (SVG mask + 3 glyph paths + 4 meta blocks present; `kevin shibuya` visible; loader removed after bleed; zero console errors; reduced-motion fade path removes the loader).
 
-- [ ] **Step 7: Real-browser mount smoke (boot-path, per Global Constraints)**
+- [ ] **Step 7: Real-browser mount smoke (boot-path, per Global Constraints) — scoped to what Task 4 can show**
 
-Run: `npm run test:e2e -- loader hero-entrance` at `npx vite preview` (Playwright's webServer builds+serves). Confirm: page loads, `#root` renders, windows show paint, the bleed reveals the settled hero, ZERO console errors. Manually watch one load at `npx vite preview --port 4173` to confirm the ink visibly dissolves via organic stains (no hard-edged wipe, no residual ink at any window/corner) on both a wide and a narrow window.
+> **Important (review fix):** at THIS task the hero is not yet settled — `.hero-canvas` is still CSS `opacity: 0` and the Hero GSAP timeline holds it at `autoAlpha 0` until `curtainGone` (both removed in Task 5). So once the stand-in fades on mount, the glyph windows reveal an opacity-0 hero canvas = ink-on-ink → the `ks.` mark reads as invisible/ink here, BY DESIGN, until Task 5. Do NOT try to confirm "windows show live shader paint" or "bleed reveals the settled hero" in Task 4 — those move to Task 5's smoke.
+
+Run: `npm run test:e2e -- loader` at `npx vite preview` (Playwright's webServer builds+serves). Confirm the ACHIEVABLE-at-Task-4 set: page loads, `#root` renders, the loader SVG + 3 glyph-window paths + 4 corner meta are present, the ink visibly dissolves via organic staggered stains (no hard-edged wipe, no residual ink at any corner) on both a wide and a narrow window, `#loader` is removed, the gates resolve (`loaderState` reaches `done`), and there are ZERO console errors.
 
 - [ ] **Step 8: Commit**
 
@@ -830,9 +864,17 @@ Expected: build clean (no unused `gsap`/`curtainGone`), `tests/unit/Hero.test.ts
 - [ ] **Step 6: e2e entrance + shader + shell smokes**
 
 Run: `npm run test:e2e -- hero-entrance hero-shader section-enters reduced-motion`
-Expected: ALL GREEN — hero name settled (opacity 1, canonical role), nav `is-visible`, scroll released after bleed, reduced-motion fast+settled, sections still enter, shader unaffected.
+Expected: ALL GREEN — including the Task-5 discriminator (`.hero-line` at identity transform WHILE the loader is up), hero name settled (opacity 1, canonical role), nav `is-visible`, scroll released after bleed, reduced-motion fast+settled, sections still enter, shader unaffected.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 7: Real-browser visual smoke (the confirmation deferred from Task 4)**
+
+Now that the hero is settled (canvas opacity 1, no timeline holding it), the full loader story is visible. At `npx vite preview --port 4173`, watch a fresh load on BOTH a wide and a narrow window and confirm by eye:
+- the `ks.` glyph windows show LIVE tricolor shader paint through the ink (stand-in → live-shader swap is seamless);
+- deliberately eyeball the glyph shapes and centering — the mark reads as a correct lowercase `ks.` (k, s, period), centered, undistorted at both aspect ratios (guards the extracted-glyph-path watch-item);
+- the ink bleeds away via organic staggered stains and reveals the SETTLED hero (name + role in final position, no rise);
+- smooth shader on the hero; zero console errors.
+
+- [ ] **Step 8: Commit**
 
 ```bash
 git add src/components/sections/Hero.tsx src/index.css
@@ -1017,10 +1059,19 @@ Expected: build clean, unit ALL green (was 60; now 60 − 1 deleted FluidWavesHe
 Run: `npm run test:e2e`
 Expected: all green (loader, hero-entrance, hero-shader, contact-waves, rows-hover, section-enters, reduced-motion, perf-budget, dark-tokens across desktop + mobile projects); prior skips preserved.
 
-- [ ] **Step 3: Lighthouse + LCP (preview, restart after build)**
+- [ ] **Step 3: Lighthouse + LCP (preview, restart after build) — with a pre-agreed remediation ladder**
 
-Run: `npm run build`, then `npx vite preview --port 4173`, then Lighthouse on `http://localhost:4173`.
-Gate: perf ≥ 95 AND LCP ≤ 1.5 s. Record the LCP element (expected: `h1.hero-name`, not the loader). If perf < 95 or LCP > 1.5 s, that is a defect — STOP and report (do not renegotiate the budget).
+Run: `npm run build`, then `npx vite preview --port 4173`, then Lighthouse on `http://localhost:4173`. Record perf, and the LCP time AND element.
+
+> **Context (review fix):** the 0.9 s baseline LCP was produced by the loader-mark LCP lock that Task 4 DELETES; post-change LCP shifts to `h1.hero-name` at React mount and is unmeasured until here — the headroom is illusory, so remediation is pre-agreed rather than discovered at a dead-end.
+
+Gate + ladder (execute in order; do not skip to a later rung):
+- **(a) Font not blocking the hero-name paint:** confirm `index.html` preloads the Plus Jakarta Sans woff2 (`<link rel="preload" as="font" type="font/woff2" crossorigin>` — present today at the `/fonts/PlusJakartaSans-VariableFont_wght.woff2` line). If it is missing or was removed, ADDING the preload is an authorized in-plan fix (do it, rebuild, re-measure).
+- **(b) Hero in the initial chunk:** confirm `Home`/`Hero` are NOT accidentally code-split out of the main chunk (Home imports Hero eagerly; only below-the-fold sections are `lazy`). If a split crept in, un-split Hero (authorized in-plan fix), rebuild, re-measure.
+- **(c) LCP in (1.5 s, 2.0 s] with perf ≥ 95:** do NOT stall and do NOT renegotiate silently — record the measured number and PRESENT it to Kevin as a decision (accept the exception vs redesign an early legitimate LCP candidate). Await his call.
+- **(d) LCP > 2.0 s, OR perf < 95:** STOP and report as a defect.
+- **Not permitted (any rung):** reintroducing an early loader LCP-lock element (e.g. a visible loader text mark) to game the metric — that conflicts with the ratified ink-bleed/window design and is not a silent fix.
+- If LCP ≤ 1.5 s and perf ≥ 95 with the element being `h1.hero-name`: gate passes, proceed.
 
 - [ ] **Step 4: Manual smoke (Kevin)**
 
@@ -1040,10 +1091,10 @@ Invoke `superpowers:requesting-code-review` (fresh-context opus) over the branch
 
 ## Spec concerns (do NOT edit the spec — recorded here per guardrail)
 
-1. **Backdrop opacity `0.22` vs the ratified `~0.32` — AA-forced deviation (surfaced, not silently overridden).** Spec §2 / decision 4 ratify the backdrop dimming at `opacity ~0.32`. The spec §6 AA recompute (a co-ratified, standing "verified not hoped" rule) shows that at `0.32`, over the worst-case dimmed-yellow region (`#E6CC4D` × `saturate(0.7)` @ 0.32 over `#0B0E14` ≈ `rgb(78,74,50)`), several ALWAYS-VISIBLE small contact/footer texts fail normal-size AA: `.section-index`/`.contact-icon` `--blue-200` = 3.42:1, footer meta `--text-faded` = 3.58:1, `.contact-lede` = 4.22:1 (all were ≥ 7:1 over pure ink pre-wave — genuine regressions). Two levers resolve it:
+1. **Backdrop opacity `0.22` — RATIFIED (2026-07-19, interactive) as the AA-verified murmur strength, superseding the spec's `~0.32`.** Spec §2 / decision 4 wrote the backdrop dimming as `opacity ~0.32`. The spec §6 AA recompute (a co-ratified, standing "verified not hoped" rule) shows that at `0.32`, over the worst-case dimmed-yellow region (`#E6CC4D` × `saturate(0.7)` @ 0.32 over `#0B0E14` ≈ `rgb(78,74,50)`), several ALWAYS-VISIBLE small contact/footer texts fail normal-size AA: `.section-index`/`.contact-icon` `--blue-200` = 3.42:1, footer meta `--text-faded` = 3.58:1, `.contact-lede` = 4.22:1 (all were ≥ 7:1 over pure ink pre-wave — genuine regressions). Kevin reviewed the numbers and ratified `0.22` (2026-07-19, interactive); the plan ships it, no longer pending. For the record, the two levers considered were:
    - **(A) Lower the backdrop opacity to `0.22`** (this plan's default): every always-visible pair returns ≥ 4.5:1 (blue-200 4.58, faded 4.79, lede 5.19) with ZERO recolors — the tricolor accents and all text colors are preserved; only the intentionally-faint `.contact-num` (10px) and hover-only `.contact-meta` stay sub-4.5 (pre-existing debt, faint over ink too). Cost: the murmur is ~22% not ~30% (both read as "dimmed murmur").
    - **(B) Keep `0.32` and recolor** the regressing tokens per the standing token-change rule: footer meta `--text-faded`→`--text-muted`, contact `.section-index`+`.contact-icon` `--blue-200`→`--text-muted`, `.contact-lede`→`--text-muted` (all → 5.11:1). Cost: removes the blue eyebrow/icon accent and homogenizes the palette toward muted cream.
-   The plan ships **(A)** because it preserves the ratified visual design (accents intact) at a small dimming reduction, and because "verified not hoped" is itself a ratified numeric gate the backdrop must satisfy. If Kevin prefers the fuller `0.32` strength, switch Task 2's `.fluid-waves-canvas--backdrop { opacity }` to `0.32` and apply remedy (B) in Task 7 — his call at plan review.
+   **(A) is the ratified choice** — it preserves the visual design (accents intact) at a small dimming reduction and satisfies the co-ratified "verified not hoped" gate. (B) is recorded only as the fallback shape if the `0.22` murmur is ever judged too faint; it is not this plan's path.
 
 2. **LCP element shift is assumed, not yet measured.** Spec §6 asserts LCP moves from the loader mark to the hero name and stays ≤ 1.5 s. The new loader has NO LCP candidate (SVG mask windows, CSS-gradient stand-in, and inline SVG rect are all non-candidates; corner meta text is tiny), so LCP should become `h1.hero-name` painting at React mount (occluded by the loader but opacity 1 — occlusion does not disqualify). This is sound but unverified until Task 9. Flagged as a watch-item; Task 9 gates it. If LCP unexpectedly lands on a corner-meta text block and exceeds budget, the fix is to ensure the hero name commits in the initial main chunk (it already does) — not a spec defect.
 
