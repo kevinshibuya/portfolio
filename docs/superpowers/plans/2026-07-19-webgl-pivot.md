@@ -48,7 +48,9 @@ Recorded against `npm run build` + `npx vite preview --port 4173` on branch `des
 
 Metrics: LCP **0.8 s** · FCP **0.8 s** · TBT **0 ms** · CLS **0**.
 
-**Targets (achievable from this baseline):** Performance ≥ 90, Accessibility = 100, Best Practices = 100, SEO = 100, LCP < 2.5 s. (Perf will drop from 98 — two shader canvases + GSAP; ≥ 90 is the pass bar, 98 is not.)
+> **LCP element caveat (S1):** the baseline 0.8 s LCP element is the loader `ks` mark painted from `index.html`, NOT the hero name — a *different element* that this pivot deletes. So the baseline LCP number does not carry over as a post-pivot premise. The post-pivot LCP element is the hero name text, which reveals after the ~1250 ms curtain + entrance rise (see Task 4 timing math). The **in-task LCP gate in Task 4 Step 8** (< 2400 ms, name must be the LCP element) owns the budget — the baseline does not.
+
+**Targets (achievable from this baseline):** Performance ≥ 90, Accessibility = 100, Best Practices = 100, SEO = 100, LCP < 2.5 s (Task 4's in-task gate holds the tighter < 2400 ms line). (Perf will drop from 98 — two shader canvases + GSAP; ≥ 90 is the pass bar, 98 is not.)
 
 **Unit suite:** 13 files, **73/73 passed**.
 
@@ -340,9 +342,10 @@ Replace the entire `@theme { ... }` block and the entire `:root { ... }` block (
   --periwinkle-300: #7AA0ED;
 
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SF Mono, Menlo, monospace;
 }
 ```
+
+(S8 — Jakarta solo: `--font-mono` is dropped entirely; it was a dead token with no consumers. The `ui-monospace` literals in the detail-page CSS stay untouched this pass — they're addressed in the deferred detail-page restyle, Plan risk 4.)
 
 - [ ] **Step 4: Fix the three global rules the flip inverts**
 
@@ -497,9 +500,12 @@ const fragmentShader = `
 
     // Scattered wave pre-warp (replaces the swirl): two crossed sine fields
     // phase-shifted by the per-load seed so every visit scatters differently.
+    // Spatial frequencies 0.22 / 0.41 are deliberately non-commensurate — close
+    // values (e.g. 0.35 / 0.30) beat into visible banding; these interfere
+    // irregularly for an organic scatter.
     uv += 1.2 * vec2(
-      sin(uv.y * 0.35 + speed * 0.32 + seed * 6.2831),
-      cos(uv.x * 0.30 - speed * 0.24 + seed * 12.566)
+      sin(uv.y * 0.22 + speed * 0.32 + seed * 6.2831),
+      cos(uv.x * 0.41 - speed * 0.24 + seed * 12.566)
     );
 
     vec2 uv2 = vec2(uv.x + uv.y);
@@ -672,10 +678,21 @@ export function FluidWavesHero(): ReactElement {
     })
     io.observe(canvas)
 
+    // WebGL context loss (GPU reset, tab-backgrounding on some drivers): stop
+    // the loop and drop to the gradient fallback rather than rendering a frozen
+    // or black canvas. preventDefault keeps the context recoverable.
+    const handleContextLost = (e: Event): void => {
+      e.preventDefault()
+      stop()
+      setWebglFailed(true)
+    }
+    canvas.addEventListener('webglcontextlost', handleContextLost, false)
+
     return () => {
       stop()
       io.disconnect()
       window.removeEventListener('resize', resize)
+      canvas.removeEventListener('webglcontextlost', handleContextLost)
       gl.deleteProgram(program)
       gl.deleteShader(vShader)
       gl.deleteShader(fShader)
@@ -766,7 +783,7 @@ git commit -m "feat(canvas): FluidWavesHero — de-spun fluid-swirl, seeded scat
 
 **Verify before returning:** Step 5 + Step 7 outputs. Component is NOT yet mounted anywhere — that is Task 4's job; do not edit `Hero.tsx`.
 
-**Boundaries:** Out of scope: `Hero.tsx`, entrance, GSAP, deletions. The GLSL beyond the documented adaptation is verbatim vault code — do not "clean it up". If the shader compiles but you cannot verify the look, that's fine: Task 4's smoke + the Task-3 screenshot checkpoint (orchestrator runs it) own the eye test. If compile/link fails at runtime in the smoke, return `blocked:` with the console output (escalation path: deep-reasoner-opus-xhigh per Plan risk 2).
+**Boundaries:** Out of scope: `Hero.tsx`, entrance, GSAP, deletions. The GLSL beyond the documented adaptation is verbatim vault code — do not "clean it up". S5 context-loss handling for the hero drops permanently to the gradient fallback (`setWebglFailed(true)` unmounts the canvas), so there is deliberately NO `webglcontextrestored` re-init here — that path only applies to the lining-waves backdrop (Task 10), which keeps its container. If the shader compiles but you cannot verify the look, that's fine: Task 4's smoke + the Task-3 screenshot checkpoint (orchestrator runs it) own the eye test. If compile/link fails at runtime in the smoke, return `blocked:` with the console output (escalation path: deep-reasoner-opus-xhigh per Plan risk 2).
 
 ---
 
@@ -779,8 +796,8 @@ git commit -m "feat(canvas): FluidWavesHero — de-spun fluid-swirl, seeded scat
 **Routing:** integrator-opus-high · high
 
 **Files:**
-- Modify: `src/components/sections/Hero.tsx` (full rewrite), `src/index.css` (HERO + HERO NAME DRAWING sections), `src/i18n/locales/en.json`, `src/i18n/locales/pt.json`, `package.json` (+`gsap`, −`@react-three/fiber`, −`@react-three/drei`), `tests/unit/bundle-deps.test.ts`, `tests/unit/seo/i18n-roles.test.ts`, `tests/unit/Hero.test.tsx` (rewrite), `tests/e2e/hero-entrance.spec.ts` (rewrite), `tests/e2e/hero-shader.spec.ts` (un-fixme), `src/data/stats.ts` (remove `heroStats` if unused), `src/utils/motion-flags.ts` (remove `ENABLE_R3F_ACCENT`), `src/context/MotionContext.tsx` (remove `r3fAccentEnabled`)
-- Delete: `src/components/ui/HeroNameDrawing.tsx`, `tests/unit/HeroNameDrawing.test.tsx`, `src/components/canvas/HeroAccent3D.tsx`, `src/components/canvas/HeroAccentSilhouette.tsx`
+- Modify: `src/components/sections/Hero.tsx` (full rewrite), `src/index.css` (HERO + HERO NAME DRAWING sections), `src/i18n/locales/en.json`, `src/i18n/locales/pt.json`, `package.json` (+`gsap`, −`@react-three/fiber`, −`@react-three/drei`), `tests/unit/bundle-deps.test.ts`, `tests/unit/seo/i18n-roles.test.ts`, `tests/unit/Hero.test.tsx` (rewrite), `tests/e2e/hero-entrance.spec.ts` (rewrite), `tests/e2e/hero-shader.spec.ts` (un-fixme), `src/data/stats.ts` (remove `heroStats` if unused), `src/context/MotionContext.tsx` (remove `r3fAccentEnabled` + dead `loaderDone` field; drop `motion-flags` import), `src/main.tsx` (reword stale HeroNameDrawing comments)
+- Delete: `src/components/ui/HeroNameDrawing.tsx`, `tests/unit/HeroNameDrawing.test.tsx`, `src/components/canvas/HeroAccent3D.tsx`, `src/components/canvas/HeroAccentSilhouette.tsx`, **`src/utils/motion-flags.ts`** (all exports dead — S6)
 - (Keep for Task 10: `src/data/glyphPaths.ts`, `scripts/extract-glyph-paths.mjs` — `FooterNameMarquee` still imports glyphPaths until the footer rewrite.)
 
 **Interfaces:**
@@ -790,15 +807,17 @@ git commit -m "feat(canvas): FluidWavesHero — de-spun fluid-swirl, seeded scat
 **Design contract (integrator judgment within these constraints):**
 - Composition: full-viewport hero (`min-height: 100svh`), canvas absolute behind, scrim above canvas, text above scrim. Name bottom-left like a signature: lowercase, `clamp(64px, 12vw, 200px)`, weight 650–750, line-height ~0.92, letter-spacing −0.03em, cream. Role line sits directly above the name: `clamp(15px, 1.6vw, 22px)`, cream, keeps the click/keyboard cycle behavior from the old Hero (AnimatePresence swap, `role="button"`, aria-label) — roles[0] is the canonical title and the cycle starts there on every load. Meta top-right (small, `--text-faded`, two lines right-aligned: location, availability), below the fixed nav.
 - Scrim (MANDATORY, from the contrast table): `.hero-scrim { position:absolute; inset:0; background: linear-gradient(to top, rgba(11,14,20,0.88) 0%, rgba(11,14,20,0.55) 32%, rgba(11,14,20,0) 60%), linear-gradient(to bottom, rgba(11,14,20,0.75) 0%, rgba(11,14,20,0) 28%); }`
-- Entrance (GSAP, one-shot; install `gsap` with `npm install gsap`): on mount, if `prefersReducedMotion || entranceBypassed` → `gsap.set` final states, call `resolveEntrance()` immediately (CSS handles a plain fade via the existing loader curtain). Otherwise `curtainGone.then(...)` → timeline inside `gsap.context(self => ..., heroRef)`:
-  1. `.hero-canvas` from `{ autoAlpha: 0, scale: 1.045 }` to `{ autoAlpha: 1, scale: 1, duration: 0.8, ease: 'power2.out' }` at 0;
-  2. role line inner span `fromTo yPercent: 112 → 0, duration 0.6, ease 'power3.out'` at **0.45**;
-  3. the two `.hero-line` name spans `yPercent: 112 → 0, duration 0.7, ease 'power3.out', stagger: 0.12` at **0.57**;
-  4. `.hero-meta` `autoAlpha 0 → 1, duration 0.5` at 0.9;
-  5. `tl.call(resolveEntrance)` at the end (~1.6 s total).
-  Every rise lives inside a `.hero-mask { overflow: hidden; display: block; }` wrapper — nothing visibly overflows. Cleanup: `return () => ctx.revert()`.
-  LCP note: name spans must be in the initial HTML commit (transformed, not `display:none`), and the timeline starts at `curtainGone` with no added delay — name paint lands ≈ 1.8–2.2 s worst case, inside the 2.5 s budget. Do NOT gate Hero text rendering behind any lazy import.
-- Deletions: `HeroNameDrawing` + its test + both `HeroAccent*` canvas files; strip `r3fAccentEnabled` from `MotionContext` (and its consumers — grep) and `ENABLE_R3F_ACCENT` from `motion-flags.ts` (keep `MOBILE_BREAKPOINT_PX` only if still referenced; delete the file if empty). Remove `@react-three/fiber` + `@react-three/drei` from `package.json` dependencies (`three` STAYS — Task 10 needs it). Delete the HERO NAME DRAWING CSS section and the dead `.hero-desc/.hero-cta/.hero-stats/.hero-name-line*` rules; rebuild the HERO CSS section for the new anatomy.
+- **Entrance (GSAP, one-shot; install `gsap` with `npm install gsap`).** Ease: register the house ease ONCE at module scope — `import { CustomEase } from 'gsap/CustomEase'; gsap.registerPlugin(CustomEase); CustomEase.create('house', '0.22,1,0.36,1')` (CustomEase ships in the public `gsap` package) — and use `ease: 'house'` for the role + name rises (T1).
+  - **Effect shape (S3 — back-nav replay guard, MANDATORY):** run the entrance in a **deferred `useEffect`** (NEVER `useLayoutEffect`) whose dep array includes `entranceBypassed` from `useMotion()`. Inside, FIRST branch on `prefersReducedMotion || entranceBypassed` → `gsap.set` all targets to their final state (`autoAlpha: 1`, `yPercent: 0`, `scale: 1`) and call `resolveEntrance()` immediately — **no timeline, no `curtainGone.then`**. Only when neither is true do you subscribe `curtainGone.then(runTimeline)`. Rationale: `curtainGone` is a once-resolved module-scoped promise, so a naive `.then(runTimeline)` on every mount replays the full 1.6 s entrance on back-navigation into Home; the `entranceBypassed` early-return (Home calls `bypassEntrance()` before restoring scroll) prevents the replay. Guard the timeline so a StrictMode double-invoke can't build it twice (a `let built = false` closure flag or `ctx` presence check).
+  - **Timeline** (inside `gsap.context(() => { ... }, heroRef)`; every rise wrapped in a `.hero-mask { overflow: hidden; display: block; }` clip so nothing visibly overflows; `return () => ctx.revert()` cleanup):
+    1. `.hero-canvas` from `{ autoAlpha: 0, scale: 1.045 }` to `{ autoAlpha: 1, scale: 1, duration: 0.8, ease: 'power2.out' }` at **0**;
+    2. role line inner span `fromTo({ yPercent: 112 }, { yPercent: 0, duration: 0.6, ease: 'house' })` at **0.12**;
+    3. the two `.hero-line` name spans `fromTo({ yPercent: 112 }, { yPercent: 0, duration: 0.65, ease: 'house', stagger: 0.18 })` at **0.30**;
+    4. `.hero-meta` `fromTo({ autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5 })` at **0.9**;
+    5. `tl.call(resolveEntrance)` at the end.
+  - **Timing reality (S1 — corrected math, do not trust the old ~1.6 s figure as an LCP proof):** `curtainGone` resolves ≈ **1250 ms after React's first commit** (per `src/main.tsx`: `MIN_DWELL 600 ms` + `TRANSITION_MS 600 ms` + `50 ms` removal delay; `MAX_WAIT` hard-lifts at 3000 ms). The name rise starts at timeline offset 0.30 s, runs 0.65 s, with the second line staggered +0.18 s, so the last name line settles at ≈ 0.30 + 0.18 + 0.65 = **1.13 s into the timeline** → ≈ 1250 + 1130 = **≈ 2.38 s after first commit** worst case. That is inside the < 2.5 s budget but with almost no slack — hence the mandatory in-task LCP gate below. Total entrance ≈ 1.7 s from `curtainGone`.
+  - **LCP contract:** the name spans MUST be in the initial HTML commit (present + transformed via `yPercent`, NOT `display:none` and NOT behind a lazy import) so the paint is a `yPercent:0` reveal of already-laid-out text, not a first mount. The name text is the post-pivot LCP element (the loader `ks` mark that owned the 0.8 s baseline LCP is removed).
+- **Deletions:** `HeroNameDrawing` + its test + both `HeroAccent*` canvas files; strip `r3fAccentEnabled` from `MotionContext` (and its consumers — grep) and **`git rm src/utils/motion-flags.ts` unconditionally (S6):** all four exports are dead after this task — `ENABLE_R3F_ACCENT` + `MOBILE_BREAKPOINT_PX` are referenced ONLY by `MotionContext` (both removed here), and `LOADER_*` already have zero consumers (grep to confirm, then delete the file). Remove BOTH `ENABLE_R3F_ACCENT` and `MOBILE_BREAKPOINT_PX` from the `MotionContext` import line. **Also drop the dead `loaderDone` field (S9)** from `MotionContextValue` and from the `useMemo` value object in the same rewrite (grep `loaderDone` first — if a live consumer exists, return `blocked:` instead). Remove `@react-three/fiber` + `@react-three/drei` from `package.json` dependencies (`three` STAYS — Task 10 needs it). **Update stale comments (L4):** in `src/main.tsx` and `src/context/MotionContext.tsx`, any comment referencing `HeroNameDrawing` / the ink-trace entrance gets reworded to the new GSAP entrance (the `curtainGone` handshake still exists — HeroNameDrawing awaited it, now the Hero GSAP effect does). Delete the HERO NAME DRAWING CSS section and the dead `.hero-desc/.hero-cta/.hero-stats/.hero-name-line*` rules; rebuild the HERO CSS section for the new anatomy.
 - i18n (both locales, same commit — exact values):
 
 ```jsonc
@@ -888,16 +907,30 @@ test.describe('reduced motion', () => {
 
 - [ ] **Step 1: `npm install gsap`; remove `@react-three/fiber` + `@react-three/drei` from dependencies (`npm uninstall @react-three/fiber @react-three/drei`); update `tests/unit/bundle-deps.test.ts` allowlist as above; run `npx vitest run tests/unit/bundle-deps.test.ts` → PASS**
 - [ ] **Step 2: Rewrite `tests/e2e/hero-entrance.spec.ts` with the acceptance spec above; run it → FAIL (old hero still mounted)**
-- [ ] **Step 3: Rewrite `Hero.tsx` + HERO CSS per the design contract; delete `HeroNameDrawing.tsx`, `HeroNameDrawing.test.tsx`, `HeroAccent3D.tsx`, `HeroAccentSilhouette.tsx`; strip `r3fAccentEnabled`/`ENABLE_R3F_ACCENT`**
+- [ ] **Step 3: Rewrite `Hero.tsx` + HERO CSS per the design contract (deferred `useEffect` + `entranceBypassed` guard per S3; `CustomEase` 'house' per T1); delete `HeroNameDrawing.tsx`, `HeroNameDrawing.test.tsx`, `HeroAccent3D.tsx`, `HeroAccentSilhouette.tsx`, `src/utils/motion-flags.ts`; strip `r3fAccentEnabled` + dead `loaderDone` from `MotionContext` and drop its `motion-flags` import; reword stale HeroNameDrawing comments in `main.tsx` + `MotionContext.tsx` (L4)**
 - [ ] **Step 4: Apply the i18n diff to BOTH locales; delete orphaned keys (`rolePrefix`, `description`, `cta`, `stats`) and `heroStats` if unimported; rewrite `tests/unit/seo/i18n-roles.test.ts` per contract; validate JSON (`node -e "JSON.parse(...)"` both files)**
 - [ ] **Step 5: Rewrite `tests/unit/Hero.test.tsx`: render Hero inside MotionProvider, assert name1/name2 text and that roles[0] renders. Do NOT assert on un-resolved entrance state (module promise pollution). Run unit suite → green**
 - [ ] **Step 6: Remove `.fixme` from all three tests in `tests/e2e/hero-shader.spec.ts`**
 - [ ] **Step 7: `npm run build && npm run test:unit && npm run test:e2e` → all green (hero-entrance, hero-shader, dark-tokens, section-enters, reduced-motion, perf-budget)**
-- [ ] **Step 8: Mount smoke is covered by hero-shader.spec zero-console-errors test; additionally load `/projects/hotmart-bunde` in the preview and confirm it still renders (route regression from MotionContext changes)**
+- [ ] **Step 8 (in-task LCP gate — S1, do NOT defer to Task 12): measure LCP against a fresh preview and confirm the name text is the LCP element under budget**
+
+Run:
+```bash
+npm run build
+npx vite preview --port 4173 &   # fresh preview AFTER the build (stale-sirv rule)
+sleep 3
+npx lighthouse http://localhost:4173 --preset=desktop --quiet --chrome-flags="--headless=new" --output=json --output-path=tmp/lh-hero.json
+node -e "const d=require('./tmp/lh-hero.json'); const a=d.audits; console.log('LCP', a['largest-contentful-paint'].numericValue, 'ms |', JSON.stringify(a['largest-contentful-paint-element']?.details?.items?.[0]?.items?.[0]?.node?.selector ?? 'n/a'))"
+pkill -f "vite preview" || true
+```
+Expected: **LCP < 2400 ms** AND the LCP element selector resolves to the hero name (`h1.hero-name` / `.hero-line`), not a canvas or loader remnant.
+**Fallback if LCP ≥ 2400 ms:** cut the name-rise `duration` from 0.65 → **0.55** and drop the name-line timeline offset from 0.30 → **0.24**, rebuild, and re-measure once. If still ≥ 2400 ms, STOP and return `blocked: LCP <n>ms` — do not sacrifice the entrance (the entrance is inviolable; fix around it, per the memory note).
+
+- [ ] **Step 9: Mount smoke is covered by hero-shader.spec zero-console-errors test; additionally load `/projects/hotmart-bunde` in the preview and confirm it still renders (route regression from MotionContext changes)**
 
 Run: `npx playwright test tests/e2e/hero-shader.spec.ts tests/e2e/hero-entrance.spec.ts --project=desktop-chromium`
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
 git add -A
@@ -953,6 +986,9 @@ export interface WorkRowProps {
   meta?: string[]
   /** Internal path ('/...') renders a <Link>, external an <a target="_blank" rel="noreferrer">. Omit for non-link rows. */
   href?: string
+  /** Overrides the href-prefix heuristic (L2): when set, decides Link vs anchor
+   *  regardless of whether href starts with '/'. Archive passes item.internal. */
+  internal?: boolean
   preview?: WorkRowPreview
   /** Expandable variant (work experience). Mutually exclusive with href. */
   expandable?: boolean
@@ -967,6 +1003,7 @@ export function WorkRow(props: WorkRowProps): React.ReactElement
 ```
 
 **Design contract (integrator judgment within these constraints):**
+- Link decision (L2): `const isInternal = props.internal ?? href?.startsWith('/') ?? false` — internal → `<Link to={href}>`, external → `<a href={href} target="_blank" rel="noreferrer">`.
 - Anatomy (open typographic row, NO card/container): `<div class="workrow">` wrapping a `<Link>/<a>` (`.workrow-link`) or `<button aria-expanded>` (`.workrow-toggle`), containing: `.workrow-index` (zero-padded `01`, `--text-faded`, tabular-nums) · `.workrow-title` (oversized lowercase, `clamp(28px, 4.6vw, 64px)`, weight 550, letter-spacing −0.02em, cream) · `.workrow-meta` (spans joined with `·`, `--text-faded`, small) · `.workrow-arrow` (`↗` for links / `+` rotating 45° when expanded, `--text-faded`).
 - Dividers: each row `border-bottom: 1px solid var(--hairline)`; the LIST OWNER (section) adds the top hairline — the primitive only draws bottoms.
 - Tint: the row root gets `style={{ '--row-tint': accentFor(index) }}` (typed via `React.CSSProperties & Record<'--row-tint', string>` or a cast — no `any`). CSS: hover/focus-within transitions `.workrow-title { color: var(--row-tint) }` and arrow to full cream; base state is cream/faded. `transition: color 0.3s cubic-bezier(0.22,1,0.36,1)`.
@@ -1058,7 +1095,7 @@ git commit -m "feat(ui): WorkRow primitive — tinted typographic rows, hover fl
 **Routing:** implementer-sonnet-medium · medium
 
 **Files:**
-- Modify: `src/components/sections/Projects.tsx` (rewrite), `src/index.css` (delete BENTO + project-cursor sections; add `.projects-list` bits)
+- Modify: `src/components/sections/Projects.tsx` (rewrite), `src/index.css` (delete BENTO + project-cursor sections; add `.projects-list` bits), `tests/e2e/section-enters.spec.ts` (stale bento comment — L4)
 - Delete: `tests/e2e/bento-entrance-hover.spec.ts`; hook `src/hooks/useCursorTilt.ts` + `tests/unit/hooks/useCursorTilt.test.ts` IF unreferenced after the rewrite (grep first)
 - Test: `tests/e2e/rows-hover.spec.ts` (new)
 
@@ -1113,6 +1150,7 @@ test('rows finish their entrance even when hovered mid-stagger', async ({ page, 
 - [ ] **Step 2: Rewrite `Projects.tsx` per contract; delete bento/cursor-pill code**
 - [ ] **Step 3: Delete bento + project-cursor CSS blocks from `src/index.css`; add `.projects-list` top hairline (`border-top: 1px solid var(--hairline)`)**
 - [ ] **Step 4: `git rm tests/e2e/bento-entrance-hover.spec.ts`; grep `useCursorTilt` — if orphaned, `git rm src/hooks/useCursorTilt.ts tests/unit/hooks/useCursorTilt.test.ts`; grep `viewProject`/`caseStudy` i18n usage and prune orphans from both locales**
+- [ ] **Step 4b (L4 — stale comment): in `tests/e2e/section-enters.spec.ts`, reword the "including Projects, reverted to the bento grid" comment to "including Projects, now WorkRow rows" — the `.section-title` selector it documents is unchanged, only the comment is stale**
 - [ ] **Step 5: `npm run build && npm run test:unit && npm run test:e2e` → green (incl. new spec, section-enters, reduced-motion)**
 - [ ] **Step 6: Commit — `git add -A && git commit -m "feat(projects): featured work as tinted WorkRows; delete bento grid"`**
 
@@ -1135,7 +1173,7 @@ test('rows finish their entrance even when hovered mid-stagger', async ({ page, 
 - Consumes: `WorkRow`, `accentFor`; `archive, archiveTypes, archiveEditorials, archiveYears, archiveKinds, byFeatured` from `src/data/archive`; `resolveTitle` from `src/types/content`; i18n `sections.archive.*` (unchanged).
 - Produces: `#archive` section, `.section-title` intact, filters + pagination behavior identical.
 
-**Contract:** Replace `ArchiveRow` markup with `<WorkRow index={idx} title={resolveTitle(item, lang)} meta={[item.type, item.editorial, item.date].filter(Boolean) as string[]} href={item.href} preview={{ gradient: item.gradient }} ornament={item.kind === 'featured' && item.highlight ? <span className="archive-star">★</span> : undefined} />` — `internal` items route via WorkRow's Link branch automatically (href starts with `/`). ALL state/filter/debounce/pagination logic is untouched (search, kind/type/editorial/year/sort dropdowns, disabled gating, chips, count, show-more). Missing preview → gradient placeholder (WorkRow's gradient branch — pipeline intact). Archive title scale: rows are denser than featured — override in CSS scoped to `#archive`: `.workrow-title { font-size: clamp(20px, 2.6vw, 34px); }`. Restyle toolbar to the dark language: search input transparent bg, `1px solid var(--hairline)` bottom border, cream text, `::placeholder { color: var(--text-faded) }`; dropdown trigger/list on `--bg-tonal` with hairline borders, options hover `--bg` + tint; chips = pill outline `1px solid var(--hairline)`, text `--text-muted`, `×` on hover cream; count text `--text-faded`. Keep per-row staggered `useInView` entrance (reduced-motion gate as-is), delegating visuals to a wrapper around WorkRow.
+**Contract:** Replace `ArchiveRow` markup with `<WorkRow index={idx} title={resolveTitle(item, lang)} meta={[item.type, item.editorial, item.date].filter(Boolean) as string[]} href={item.href} internal={item.internal} preview={{ gradient: darkenedPreview(item.gradient) }} ornament={item.kind === 'featured' && item.highlight ? <span className="archive-star">★</span> : undefined} />` — **`internal={item.internal}` (L2)** drives the Link-vs-anchor branch explicitly (the archive mixes internal `/projects/...` case-study rows with external GZH article URLs; do not rely on the href-prefix heuristic). **T4 — darken the light-era preview gradients** so the pastel `typeGradients` don't glare on the dark rows: pass `darkenedPreview(g) = `linear-gradient(rgba(11,14,20,0.35), rgba(11,14,20,0.35)), ${g}`` (a const arrow fn or inline template above the map) instead of the raw `item.gradient`. ALL state/filter/debounce/pagination logic is untouched (search, kind/type/editorial/year/sort dropdowns, disabled gating, chips, count, show-more). Missing preview → gradient placeholder (WorkRow's gradient branch — pipeline intact). Archive title scale: rows are denser than featured — override in CSS scoped to `#archive`: `.workrow-title { font-size: clamp(20px, 2.6vw, 34px); }`. Restyle toolbar to the dark language: search input transparent bg, `1px solid var(--hairline)` bottom border, cream text, `::placeholder { color: var(--text-faded) }`; dropdown trigger/list on `--bg-tonal` with hairline borders, options hover `--bg` + tint; chips = pill outline `1px solid var(--hairline)`, text `--text-muted`, `×` on hover cream; count text `--text-faded`. Keep per-row staggered `useInView` entrance (reduced-motion gate as-is), delegating visuals to a wrapper around WorkRow.
 
 **Acceptance check:** the existing `tests/e2e/section-enters.spec.ts` `#archive` test (Task 1) plus this one-off: run `npx playwright test tests/e2e/section-enters.spec.ts --project=desktop-chromium` AND a manual-command filter check:
 
@@ -1245,14 +1283,228 @@ npx playwright test tests/e2e/dark-tokens.spec.ts tests/e2e/section-enters.spec.
 - Test: `tests/e2e/contact-waves.spec.ts` (new)
 
 **Interfaces:**
-- Consumes: `three` (already a dep), `useMotion()`, i18n `sections.contact.*` + `footer.*` (existing keys incl. `footer.bigText`).
-- Produces: `LiningWavesBackdrop(): React.ReactElement` — absolute-fill canvas inside `.contact-footer-stage` (relative). DOM contract: `<div className="contact-footer-stage">` wraps `<LiningWavesBackdrop/>` (z-0) + `<Contact/><Footer/>` (z-1). Canvas carries `data-canvas="lining-waves"`, `data-paused`/`data-static` semantics identical to FluidWavesHero.
+- Consumes: `three` (already a dep), `useMotion()`, i18n `sections.contact.*` + `footer.*` (existing keys incl. `footer.bigText`; new key `footer.location` added in this task), `react-i18next` `useTranslation` in Footer for the EN/PT toggle.
+- Produces: **`export default function LiningWavesBackdrop(): ReactElement` (S7 — default export, matching the vault source's default export; there is NO named export).** Task 10's lazy import therefore stays `lazy(() => import('../components/canvas/LiningWavesBackdrop'))` with no `.then(m => ({ default: m.X }))` unwrap. The component appends a three.js `<canvas>` into its own container `<div>`; that canvas carries `data-canvas="lining-waves"`, with `data-paused`/`data-static` semantics identical to FluidWavesHero. DOM contract: `<div className="contact-footer-stage">` wraps `<Suspense><LiningWavesBackdrop/></Suspense>` (z-0) + `<Contact/><Footer/>` (z-1).
 
-**LiningWavesBackdrop — complete adaptation contract (vault `lining-waves`, three.js):** keep the vault's fbm `lines()` fragment shader; delete the reminder-state and center-dimming uniforms/props entirely; line color = cream at backdrop intensity (`vec3 baseColor = vec3(0.961, 0.949, 0.925) * 0.22;` mixed over `vec3(0.043, 0.055, 0.078)` /* #0B0E14 */ instead of black); slow it (`iTime * 0.4` fed into the existing `iTime*0.1` term or thickness 0.015, distortion 0.12 — tune to "subtle"); renderer `new THREE.WebGLRenderer({ antialias: true, alpha: false })`, `setClearColor(0x0B0E14)`, `setPixelRatio(Math.min(window.devicePixelRatio, 1.5))`; size from the container (not window); `renderer.setAnimationLoop` only while an `IntersectionObserver` on the container reports visible AND not reduced-motion (reduced motion: render exactly one frame at `iTime = 7.0`, set `data-static`); full cleanup (loop null, remove canvas, dispose material/geometry/renderer, disconnect IO). Guard construction in try/catch → on failure render nothing (the stage bg `--bg` stands, text unaffected).
+**LiningWavesBackdrop — complete code (S2 — verbatim-derived from `component-vault/src/registry/lining-waves/lining-waves-shader.tsx` per spec decision 12; the fbm `hash`/`noise`/`fbm`/`lines` GLSL is copied UNCHANGED; every adaptation is marked `// ADAPTED:` inline; no free latitude).** Transcribe exactly:
+
+```tsx
+import { useEffect, useRef, useState, type ReactElement } from 'react'
+import * as THREE from 'three'
+import { useMotion } from '../../context/MotionContext'
+
+const DPR_CAP = 1.5
+
+// ADAPTED: reminder-state + center-dimming uniforms/props removed; vertex
+// shader is the vault's, unchanged.
+const vertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = vec4(position, 1.0);
+  }
+`
+
+// ADAPTED from vault lining-waves fragment shader: hash/noise/fbm/lines copied
+// verbatim; reminder-state baseColor branches and the center-dimming block
+// deleted; baseColor is now a dim cream, mixed over the page ink instead of
+// black; thickness/distortion tuned for a subtle backdrop.
+const fragmentShader = `
+  precision mediump float;
+  uniform vec2 iResolution;
+  uniform float iTime;
+  varying vec2 vUv;
+
+  // Simple hash-based noise (vault, unchanged)
+  float hash(float n) {
+    return fract(sin(n) * 43758.5453);
+  }
+  float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f*f*(3.0-2.0*f);
+    float a = hash(i.x + i.y*57.0);
+    float b = hash(i.x+1.0 + i.y*57.0);
+    float c = hash(i.x + (i.y+1.0)*57.0);
+    float d = hash(i.x+1.0 + (i.y+1.0)*57.0);
+    return mix(mix(a,b,f.x), mix(c,d,f.x), f.y);
+  }
+
+  // Fractal Brownian Motion (vault, unchanged)
+  float fbm(vec2 p) {
+    float sum = 0.0, amp = 0.5, freq = 1.0;
+    for(int i=0;i<6;i++){
+      sum += amp * noise(p*freq);
+      amp *= 0.5;
+      freq *= 2.0;
+    }
+    return sum;
+  }
+
+  // Wavy lines pattern (vault, unchanged)
+  float lines(vec2 uv, float thickness, float distortion) {
+    float y = uv.y + distortion * fbm(uv*2.0 + iTime*0.1);
+    float pattern = fract(y * 20.0);
+    return smoothstep(0.5-thickness, 0.5, pattern)
+         - smoothstep(0.5,       0.5+thickness, pattern);
+  }
+
+  void mainImage(out vec4 O, in vec2 fragCoord) {
+    vec2 uv = fragCoord.xy / iResolution;
+    uv.x *= iResolution.x / iResolution.y;
+
+    // ADAPTED: thickness 0.02 -> 0.015, distortion 0.1 -> 0.12 (subtler lines).
+    float thickness = 0.015;
+    float distortion = 0.12;
+    float wave = lines(uv, thickness, distortion);
+
+    // ADAPTED: reminder-state ternary deleted — dim cream #F5F2EC*0.22.
+    vec3 baseColor = vec3(0.961, 0.949, 0.925) * 0.22;
+
+    // ADAPTED: mix over page ink #0B0E14 instead of vec3(0.0) (pure black).
+    vec3 col = mix(vec3(0.043, 0.055, 0.078), baseColor, wave);
+
+    // ADAPTED: center-dimming block deleted entirely.
+    O = vec4(col, 1.0);
+  }
+
+  void main() {
+    mainImage(gl_FragColor, vUv * iResolution);
+  }
+`
+
+export default function LiningWavesBackdrop(): ReactElement {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [failed, setFailed] = useState(false)
+  const { prefersReducedMotion } = useMotion()
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    let renderer: THREE.WebGLRenderer
+    try {
+      // ADAPTED: alpha false + explicit clear color to the page ink; DPR capped.
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
+    } catch {
+      setFailed(true)
+      return
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, DPR_CAP))
+    renderer.setClearColor(0x0b0e14, 1)
+
+    const canvas = renderer.domElement
+    canvas.dataset.canvas = 'lining-waves'
+    container.appendChild(canvas)
+
+    const scene = new THREE.Scene()
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
+    const clock = new THREE.Clock()
+
+    // ADAPTED: uniforms reduced to iTime + iResolution (reminder/dimming gone).
+    const uniforms = {
+      iTime: { value: 0 },
+      iResolution: { value: new THREE.Vector2() },
+    }
+    const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms })
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material)
+    scene.add(mesh)
+
+    // ADAPTED: size from the CONTAINER, not window.
+    const onResize = (): void => {
+      const w = container.clientWidth
+      const h = container.clientHeight
+      renderer.setSize(w, h, false)
+      uniforms.iResolution.value.set(w, h)
+    }
+    window.addEventListener('resize', onResize)
+    onResize()
+
+    // ADAPTED: time fed at 0.4x for a slow drift.
+    const renderFrame = (t: number): void => {
+      uniforms.iTime.value = t
+      renderer.render(scene, camera)
+    }
+    const loop = (): void => {
+      renderFrame(clock.getElapsedTime() * 0.4)
+    }
+
+    let running = false
+    const start = (): void => {
+      if (running || prefersReducedMotion) return
+      running = true
+      renderer.setAnimationLoop(loop)
+    }
+    const stop = (): void => {
+      running = false
+      renderer.setAnimationLoop(null)
+    }
+
+    if (prefersReducedMotion) {
+      // ADAPTED: reduced motion — exactly one frozen frame, no loop.
+      canvas.dataset.static = 'true'
+      renderFrame(7.0)
+    }
+
+    // ADAPTED: IO pauses the loop off-screen (identical semantics to the hero).
+    const io = new IntersectionObserver(([entry]) => {
+      const inView = entry.isIntersecting
+      if (prefersReducedMotion) {
+        if (inView) renderFrame(7.0)
+        return
+      }
+      if (inView) {
+        canvas.removeAttribute('data-paused')
+        start()
+      } else {
+        canvas.dataset.paused = 'true'
+        stop()
+      }
+    })
+    io.observe(container)
+
+    // ADAPTED: S5 — context loss drops to nothing (stage ink stands); on
+    // restore, re-init by remounting via the failed→false effect re-run.
+    const handleContextLost = (e: Event): void => {
+      e.preventDefault()
+      stop()
+    }
+    const handleContextRestored = (): void => {
+      onResize()
+      start()
+    }
+    canvas.addEventListener('webglcontextlost', handleContextLost, false)
+    canvas.addEventListener('webglcontextrestored', handleContextRestored, false)
+
+    return () => {
+      stop()
+      io.disconnect()
+      window.removeEventListener('resize', onResize)
+      canvas.removeEventListener('webglcontextlost', handleContextLost)
+      canvas.removeEventListener('webglcontextrestored', handleContextRestored)
+      if (canvas.parentNode === container) container.removeChild(canvas)
+      material.dispose()
+      mesh.geometry.dispose()
+      renderer.dispose()
+    }
+  }, [prefersReducedMotion])
+
+  if (failed) return <></>
+  return <div ref={containerRef} className="lining-waves-backdrop" aria-hidden="true" />
+}
+```
+
+CSS (append to `src/index.css`): `.lining-waves-backdrop { position: absolute; inset: 0; z-index: 0; } .lining-waves-backdrop canvas { display: block; width: 100%; height: 100%; }`
 
 **Lazy boundary (perf-critical):** in `Home.tsx`, `const LiningWavesBackdrop = lazy(() => import('../components/canvas/LiningWavesBackdrop'))`; mount it ONLY after an IO with `rootMargin: '120%'` on the stage wrapper fires (state flip, once). Do NOT add it to the idle-warm import list — the three.js chunk must not load at idle before scroll approach. Wrap in `<Suspense fallback={null}>`.
 
-**Contact restyle:** keep `RevealOnView` structure + i18n; `.section--contact` moves onto the stage (transparent background — remove the Task 2 interim guard for `.section--contact`/`.footer` since the stage now owns the bg), cream display title, contact rows on hairlines with tint-on-hover (reuse `.workrow` hover language via CSS, not the component). **Footer rewrite:** delete `FooterNameMarquee`; render `footer.bigText` as `.footer-name` typographic display (lowercase, `clamp(48px, 10vw, 160px)`, weight 650, cream, no outline trickery) above the existing `.footer-bottom` meta row (`footer.copyright` · `footer.builtWith`). Then delete `glyphPaths.ts` + `scripts/extract-glyph-paths.mjs` + `opentype.js` devDep (`npm uninstall opentype.js`) — grep `glyphPaths` first; the marquee was its last consumer.
+**Contact restyle:** keep `RevealOnView` structure + i18n; `.section--contact` moves onto the stage (transparent background — remove the Task 2 interim guard for `.section--contact`/`.footer` since the stage now owns the bg), cream display title, contact rows on hairlines with tint-on-hover (reuse `.workrow` hover language via CSS, not the component).
+
+**Footer rewrite (S4 — spec-mandated meta row `© · location · EN/PT`):** delete `FooterNameMarquee`; render `footer.bigText` as `.footer-name` typographic display (lowercase, `clamp(48px, 10vw, 160px)`, weight 650, cream, no outline trickery) above the `.footer-bottom` meta row. Meta row is a flex row, `justify-content: space-between`, `--text-faded`:
+- **left group** (`.footer-meta-left`): `footer.copyright` · `footer.builtWith` (joined by a `·` separator span);
+- **right group** (`.footer-meta-right`): `footer.location` · an EN/PT toggle `<button className="footer-lang">` (joined by `·`).
+
+This satisfies the spec's `© · location · EN/PT` (copyright left, location + toggle right) while keeping `builtWith`. The toggle reuses Header's pattern: `const { t, i18n } = useTranslation()`; `onClick={() => i18n.changeLanguage(i18n.language.startsWith('pt') ? 'en' : 'pt')}`; label `{t('lang')}` (renders `EN`/`PT`); `aria-label` describing the switch. **Add `footer.location` to BOTH locales in this task:** `en.json` `"location": "porto alegre, brazil"`, `pt.json` `"location": "porto alegre, brasil"` (inside the existing `footer` object). Then delete `glyphPaths.ts` + `scripts/extract-glyph-paths.mjs` + `opentype.js` devDep (`npm uninstall opentype.js`) — grep `glyphPaths` first; the marquee was its last consumer.
 
 **Acceptance check** (read-only; write FIRST → RED): create `tests/e2e/contact-waves.spec.ts`:
 
@@ -1288,7 +1540,7 @@ test.describe('reduced motion', () => {
 
 - [ ] **Step 1: Write `tests/e2e/contact-waves.spec.ts` (verbatim); run → FAIL**
 - [ ] **Step 2: Implement `LiningWavesBackdrop.tsx` per adaptation contract**
-- [ ] **Step 3: Stage wrapper + lazy IO mount in `Home.tsx`; Contact restyle; Footer rewrite (`.footer-name`)**
+- [ ] **Step 3: Stage wrapper + lazy IO mount in `Home.tsx` (default-export lazy, no unwrap — S7); Contact restyle; Footer rewrite (`.footer-name` + `.footer-bottom` meta row with EN/PT toggle); add `footer.location` to BOTH locales and validate JSON (S4)**
 - [ ] **Step 4: Delete marquee + test + glyphPaths + extraction script; `npm uninstall opentype.js`; grep `glyphPaths|FooterNameMarquee|opentype` → zero hits**
 - [ ] **Step 5: `npm run build && npm run test:unit && npm run test:e2e` → green (contact-waves included)**
 - [ ] **Step 6: Commit — `git add -A && git commit -m "feat(contact,footer): lining-waves stage (canvas #2); typographic footer name; delete ink-draw remnants"`**
@@ -1321,9 +1573,9 @@ In the NAV section of `src/index.css`, apply exactly:
 - `.nav.is-scrolled`: `background: rgba(11, 14, 20, 0.78);` (replaces `rgba(246, 249, 252, 0.85)`); `border-bottom: 1px solid var(--hairline);`
 - `.nav-mark`: `background: var(--text); color: var(--bg);` (inverted tile)
 - `.nav-mark__dot`: `background: var(--accent-blue);`
-- `.nav-brand-text`: `color: var(--text);`
 - `.nav-link`: `color: var(--text-faded);` hover `color: var(--text);` underline `background: var(--accent-blue);`
 - `.nav-lang`: `color: var(--text);`
+- **Delete the dead `.nav-brand-text` rule entirely (L3)** — the brand-text span is commented out in `Header.tsx`, so the rule has no element. (Removing it, not recoloring it.)
 (Alias-driven values already close; make these literal rules read from the canonical tokens.)
 
 - [ ] **Step 3: Build + e2e nav-dependent specs**
@@ -1373,6 +1625,8 @@ Expected: parity OK modulo the documented pre-existing `routesCount_*` gap.
 
 Run: `npm run test:unit && npm run test:e2e`
 Expected: ALL green — including `dark-tokens`, `hero-shader` (mount smoke, zero console errors), `hero-entrance` (+ reduced-motion fade), `rows-hover`, `contact-waves` (+ reduced-motion static), `section-enters`, `reduced-motion`, `perf-budget`.
+
+> **Note (L1):** the reduced-motion shader specs assert `data-static="true"`, which is a *proxy* for the spec's "zero rAF loops" requirement — both canvas components set that attribute on the same code path that skips `requestAnimationFrame`/`setAnimationLoop`, so loop-absence is enforced by construction, not directly observed by the tests. If stronger evidence is ever wanted, add a `performance`-based rAF counter; not required for this plan.
 
 - [ ] **Step 4: Lighthouse vs preview + LCP budget**
 
