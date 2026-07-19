@@ -138,12 +138,12 @@ carries LCP — do not delay it past budget).
 - [x] Hero composition: monumental bottom-anchored name + leading canonical title in role cycle + meta top-right; ink-draw components deleted
 - [x] Entrance: paint bloom → clipped staggered rises; LCP < 2.5s on preview; reduced-motion fade
 - [x] WorkRow primitive built once (hover float + tint, touch thumbnail, expandable variant, focus states) and reused by projects, embeds, work experience
-- [ ] Work-first section order verified intact (baseline already work-first; no reorder work) with all content surviving the restyle
-- [ ] Archive: rows + restyled filters, data pipeline and placeholder fallback intact
+- [x] Work-first section order verified intact (baseline already work-first; no reorder work) with all content surviving the restyle
+- [x] Archive: rows + restyled filters, data pipeline and placeholder fallback intact
 - [x] Stats + Skills restyled onto dark tokens
 - [x] Contact/Footer with lazy LiningWavesBackdrop (canvas #2), reduced-motion + pause rules applied
 - [x] Nav restyled dark (MarqueeDivider absence verified — no work expected)
-- [ ] Bilingual EN/PT copy complete for every changed string
-- [ ] Contrast audit passes AA across all pairs; Lighthouse run against preview with measured baseline recorded in the plan
-- [ ] Full e2e suite green, including new mount smoke + reduced-motion specs; stale specs fixed as a pre-Task-1 batch
-- [ ] CLAUDE.md Design Direction section rewritten to describe the shipped dark/WebGL system
+- [x] Bilingual EN/PT copy complete for every changed string
+- [x] Contrast audit passes AA across all pairs; Lighthouse run against preview with measured baseline recorded in the plan
+- [x] Full e2e suite green, including new mount smoke + reduced-motion specs; stale specs fixed as a pre-Task-1 batch
+- [x] CLAUDE.md Design Direction section rewritten to describe the shipped dark/WebGL system
