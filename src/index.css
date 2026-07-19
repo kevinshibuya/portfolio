@@ -848,8 +848,9 @@ html[data-loading='true'] {
   font-size: clamp(20px, 2.2vw, 32px);
   font-weight: 500;
   color: var(--text);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  /* lowercase site voice — the light-era uppercase treatment is retired */
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
   /* inline-block + transform-origin so skewX animates from the left edge
      without horizontal drift. font-weight is not interpolable so it
      stays out of the transition list and snaps on hover; that's

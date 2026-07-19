@@ -141,7 +141,7 @@ carries LCP — do not delay it past budget).
 - [ ] Work-first section order verified intact (baseline already work-first; no reorder work) with all content surviving the restyle
 - [ ] Archive: rows + restyled filters, data pipeline and placeholder fallback intact
 - [x] Stats + Skills restyled onto dark tokens
-- [ ] Contact/Footer with lazy LiningWavesBackdrop (canvas #2), reduced-motion + pause rules applied
+- [x] Contact/Footer with lazy LiningWavesBackdrop (canvas #2), reduced-motion + pause rules applied
 - [ ] Nav restyled dark (MarqueeDivider absence verified — no work expected)
 - [ ] Bilingual EN/PT copy complete for every changed string
 - [ ] Contrast audit passes AA across all pairs; Lighthouse run against preview with measured baseline recorded in the plan
