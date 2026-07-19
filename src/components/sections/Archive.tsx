@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { useMotion } from '../../context/MotionContext'
 import { SectionHeading } from '../ui/SectionHeading'
 import { ArchiveDropdown } from '../ui/ArchiveDropdown'
+import { WorkRow } from '../ui/WorkRow'
 import {
   archive,
   archiveTypes,
@@ -18,6 +18,11 @@ import type { ArchiveItem } from '../../types/content'
 
 const PAGE_SIZE = 12
 const STAGGER_MS = 40
+
+/** Light-era typeGradients are pastel and glare on the dark rows — wrap them
+ *  in a translucent ink overlay so previews read as atmospheric, not raw. */
+const darkenedPreview = (gradient: string): string =>
+  `linear-gradient(rgba(11,14,20,0.35), rgba(11,14,20,0.35)), ${gradient}`
 
 type SortKey = 'featured' | 'newest' | 'oldest' | 'az' | 'za'
 
@@ -236,26 +241,9 @@ interface ArchiveRowProps {
 function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
   const ref = useRef<HTMLDivElement | null>(null)
   const inView = useInView(ref, { once: true, amount: 0.2 })
-  const num = String(idx + 1).padStart(2, '0')
   const title = resolveTitle(item, lang)
   const isHighlight = item.kind === 'featured' && item.highlight === true
   const delay = reduced ? 0 : Math.min((idx % PAGE_SIZE) * (STAGGER_MS / 1000), 0.4)
-
-  const inner = (
-    <>
-      <span className="archive-num">{num}</span>
-      <div className="archive-preview" style={{ background: item.gradient }} />
-      <span className="archive-title">
-        {isHighlight && <span className="archive-star" aria-hidden>★</span>}
-        {title}
-      </span>
-      <span className="archive-kind">{item.kind}</span>
-      <span className="archive-type">{item.type ? item.type.toLowerCase() : '—'}</span>
-      <span className="archive-editorial">{item.editorial ?? '—'}</span>
-      <span className="archive-date">{item.date}</span>
-      <span className="archive-arrow">↗</span>
-    </>
-  )
 
   const motionProps = {
     initial: { opacity: 0, x: reduced ? 0 : -16 },
@@ -263,19 +251,17 @@ function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
     transition: { duration: reduced ? 0 : 0.5, ease: [0.22, 1, 0.36, 1] as const, delay },
   }
 
-  const rowClass = `archive-row${isHighlight ? ' archive-row--highlight' : ''}`
-
   return (
-    <motion.div ref={ref} className="archive-row-wrap" {...motionProps}>
-      {item.internal ? (
-        <Link to={item.href} className={rowClass}>
-          {inner}
-        </Link>
-      ) : (
-        <a href={item.href} target="_blank" rel="noopener noreferrer" className={rowClass}>
-          {inner}
-        </a>
-      )}
+    <motion.div ref={ref} className="workrow-wrap" {...motionProps}>
+      <WorkRow
+        index={idx}
+        title={title}
+        meta={[item.type, item.editorial, item.date].filter(Boolean) as string[]}
+        href={item.href}
+        internal={item.internal}
+        preview={{ gradient: darkenedPreview(item.gradient) }}
+        ornament={isHighlight ? <span className="archive-star">★</span> : undefined}
+      />
     </motion.div>
   )
 }

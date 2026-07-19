@@ -1212,9 +1212,9 @@ body[data-loader-state="loading"] {
 .archive-dropdown-trigger {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 8px 14px;
-  border: 1px solid var(--mist);
+  border: 1px solid var(--hairline);
   border-radius: 999px;
-  background: var(--cream);
+  background: var(--bg-tonal);
   color: var(--ink);
   font: inherit;
   font-size: 12px;
@@ -1224,33 +1224,33 @@ body[data-loader-state="loading"] {
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
 }
-.archive-dropdown-trigger:hover { border-color: var(--blue-300); }
-.archive-dropdown-trigger.is-open { border-color: var(--blue-400); background: var(--sand); }
-.archive-dropdown-label { color: var(--dust); }
+.archive-dropdown-trigger:hover { border-color: var(--accent-blue); }
+.archive-dropdown-trigger.is-open { border-color: var(--accent-blue); background: var(--bg); }
+.archive-dropdown-label { color: var(--text-faded); }
 .archive-dropdown-value { color: var(--ink); font-weight: 600; }
-.archive-dropdown-caret { font-size: 10px; color: var(--bark); }
+.archive-dropdown-caret { font-size: 10px; color: var(--text-muted); }
 .archive-dropdown-list {
   position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
   min-width: 100%;
   max-height: 280px; overflow-y: auto;
   margin: 0; padding: 6px;
   list-style: none;
-  background: var(--cream);
-  border: 1px solid var(--mist);
+  background: var(--bg-tonal);
+  border: 1px solid var(--hairline);
   border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(17, 24, 34, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 .archive-dropdown-option {
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 12px;
-  color: var(--bark);
+  color: var(--text-muted);
   text-transform: lowercase;
   cursor: pointer;
   white-space: nowrap;
 }
-.archive-dropdown-option.is-active { background: var(--sand); color: var(--ink); }
-.archive-dropdown-option.is-selected { color: var(--blue-400); font-weight: 600; }
+.archive-dropdown-option.is-active { background: var(--bg); color: var(--ink); }
+.archive-dropdown-option.is-selected { color: var(--accent-blue); font-weight: 600; }
 
 /* =========================================================================
    ARCHIVE — toolbar, chips, list
@@ -1263,21 +1263,22 @@ body[data-loader-state="loading"] {
 .archive-search {
   flex: 1 1 240px;
   min-width: 200px;
-  padding: 9px 14px;
-  border: 1px solid var(--mist);
-  border-radius: 999px;
-  background: var(--cream);
+  padding: 9px 14px 9px 0;
+  border: none;
+  border-bottom: 1px solid var(--hairline);
+  border-radius: 0;
+  background: transparent;
   font: inherit;
   font-size: 12px;
   color: var(--ink);
   letter-spacing: 0.02em;
   transition: border-color 0.2s;
 }
-.archive-search:focus { outline: none; border-color: var(--blue-400); }
-.archive-search::placeholder { color: var(--dust); text-transform: lowercase; }
+.archive-search:focus { outline: none; border-color: var(--accent-blue); }
+.archive-search::placeholder { color: var(--text-faded); text-transform: lowercase; }
 
 @media (max-width: 720px) {
-  .archive-search { min-height: 44px; padding: 11px 16px; }
+  .archive-search { min-height: 44px; padding: 11px 0; }
   .archive-dropdown-trigger { min-height: 44px; padding: 8px 16px; }
 }
 
@@ -1285,109 +1286,40 @@ body[data-loader-state="loading"] {
 .archive-chip {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 12px;
-  border: 1px solid var(--mist);
+  border: 1px solid var(--hairline);
   border-radius: 999px;
   background: transparent;
   font: inherit; font-size: 11px;
-  color: var(--bark);
+  color: var(--text-muted);
   text-transform: lowercase;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
-.archive-chip:hover { background: var(--cream); border-color: var(--blue-300); }
+.archive-chip:hover { background: var(--bg-tonal); border-color: var(--accent-blue); color: var(--ink); }
 
 .archive-count {
   font-size: 12px;
-  color: var(--bark);
+  color: var(--text-faded);
   text-transform: lowercase;
   letter-spacing: 0.04em;
   margin-bottom: 24px;
 }
 .archive-count strong { color: var(--ink); font-weight: 600; }
 
-.archive-list {
-  border: 1px solid var(--mist);
-  border-radius: 18px;
-  overflow: hidden;
-  background: var(--cream);
-}
-.archive-row-wrap { display: block; }
-.archive-row {
-  display: grid;
-  grid-template-columns: 36px 56px 1fr 90px 120px 140px 110px 24px;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--mist);
-  text-decoration: none;
-  color: inherit;
-  transition: background 0.25s;
-}
-.archive-row-wrap:last-child .archive-row { border-bottom: none; }
-.archive-row:hover { background: var(--sand); }
-.archive-row--highlight {
-  background: var(--cream);
-  box-shadow: inset 3px 0 0 var(--blue-400);
-}
-.archive-row--highlight:hover {
-  background: var(--sand);
-}
 .archive-star {
-  color: var(--blue-400);
-  margin-right: 6px;
+  color: var(--accent-blue);
   font-size: 14px;
-  vertical-align: 1px;
 }
-.archive-num {
-  font-size: 11px; font-weight: 500;
-  color: var(--dust); letter-spacing: 0.04em;
-}
-.archive-preview {
-  width: 56px; height: 40px;
-  border-radius: 8px;
-  transition: transform 0.3s;
-}
-.archive-row:hover .archive-preview { transform: scale(1.08); }
-.archive-title {
-  font-size: 13px; font-weight: 600;
-  color: var(--ink);
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  transition: transform 0.3s;
-}
-.archive-row:hover .archive-title {
-  transform: translateX(4px);
-  color: var(--blue-400);
-}
-.archive-kind, .archive-type, .archive-editorial, .archive-date {
-  font-size: 11px; color: var(--bark);
-  text-transform: uppercase; letter-spacing: 0.04em;
-}
-.archive-arrow {
-  font-size: 14px; color: var(--bark);
-  opacity: 0; transition: opacity 0.3s;
-  text-align: right;
-}
-.archive-row:hover .archive-arrow { opacity: 1; }
 
 .archive-more { display: flex; justify-content: center; margin-top: 32px; }
 
-@media (max-width: 1100px) {
-  .archive-row {
-    grid-template-columns: 32px 56px 1fr 110px 24px;
-  }
-  .archive-kind, .archive-type, .archive-editorial { display: none; }
+.archive-list {
+  border-top: 1px solid var(--hairline);
 }
-@media (max-width: 720px) {
-  .archive-row {
-    grid-template-columns: 32px 1fr 24px;
-    gap: 12px;
-    padding: 14px 16px;
-  }
-  .archive-preview, .archive-date { display: none; }
-  /* Tighten the counter→list gap: utility is 96px desktop, ~32px mobile. */
-  .archive-list.section-spacing-content { margin-top: 32px; }
-}
+
+/* Archive rows are denser than featured work rows — tighten the title scale
+   the WorkRow primitive uses by default. */
+#archive .workrow-title { font-size: clamp(20px, 2.6vw, 34px); }
 
 /* =====================================================================
  * Project detail page
