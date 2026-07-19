@@ -284,7 +284,10 @@ strong {
   line-height: 1.4;
   letter-spacing: 0.01em;
   text-transform: lowercase;
-  color: var(--text-faded);
+  /* --text-muted, not --text-faded: this text floats over the shader where
+     the top scrim has decayed (~0.36 alpha at 132px) and axe abstains over
+     canvas — faded's 13px AA margin is unprovable there. */
+  color: var(--text-muted);
   opacity: 0; /* entrance fades this in */
 }
 
