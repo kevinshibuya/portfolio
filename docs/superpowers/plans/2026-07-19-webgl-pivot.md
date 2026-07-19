@@ -1229,10 +1229,10 @@ test('work experience rows expand with aria-expanded', async ({ page }) => {
 
 **Steps:**
 
-- [ ] **Step 1: Append the acceptance test above to `tests/e2e/rows-hover.spec.ts`; run → FAIL**
-- [ ] **Step 2: Convert the section per contract; trim CSS**
-- [ ] **Step 3: `npm run build && npm run test:unit && npm run test:e2e` → green**
-- [ ] **Step 4: Commit — `git add -A && git commit -m "feat(experience): expandable WorkRows replace bespoke accordion"`**
+- [x] **Step 1: Append the acceptance test above to `tests/e2e/rows-hover.spec.ts`; run → FAIL**
+- [x] **Step 2: Convert the section per contract; trim CSS**
+- [x] **Step 3: `npm run build && npm run test:unit && npm run test:e2e` → green**
+- [x] **Step 4: Commit — `git add -A && git commit -m "feat(experience): expandable WorkRows replace bespoke accordion"`**
 
 **Verify before returning:** suites green; keyboard check: `Tab` reaches row buttons and focus ring is visible (screenshot or `:focus-visible` computed outline assertion).
 
@@ -1259,9 +1259,9 @@ npx playwright test tests/e2e/dark-tokens.spec.ts tests/e2e/section-enters.spec.
 
 **Steps:**
 
-- [ ] **Step 1: Restyle STATS CSS section per contract**
-- [ ] **Step 2: Restyle SKILLS CSS section per contract (nth-child tricolor dots)**
-- [ ] **Step 3: `npm run build && npm run test:unit && npm run test:e2e` → green**
+- [x] **Step 1: Restyle STATS CSS section per contract**
+- [x] **Step 2: Restyle SKILLS CSS section per contract (nth-child tricolor dots)**
+- [x] **Step 3: `npm run build && npm run test:unit && npm run test:e2e` → green**
 - [ ] **Step 4: Commit — `git add -A && git commit -m "style(stats,skills): dark token restyle, tricolor skill dots"`**
 
 **Verify before returning:** suites green; screenshot of both sections for the taste checkpoint.

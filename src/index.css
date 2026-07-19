@@ -727,44 +727,51 @@ html[data-loading='true'] {
 .skills-col-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
 .skills-num {
   font-size: 11px; font-weight: 600;
-  color: var(--blue-400);
+  color: var(--text-faded);
   letter-spacing: 0.1em;
   font-variant-numeric: tabular-nums;
 }
 .skills-title {
   font-size: 18px; font-weight: 600;
-  color: var(--ink);
+  color: var(--text);
   margin: 0;
   text-transform: lowercase;
   letter-spacing: -0.01em;
   padding-bottom: 10px;
-  border-bottom: 1px solid var(--mist);
+  border-bottom: 1px solid var(--hairline);
   flex: 1;
 }
 .skills-list { display: flex; flex-direction: column; gap: 10px; }
 .skills-item {
   display: flex; align-items: center; gap: 12px;
   font-size: 14px;
-  color: var(--bark);
+  color: var(--text-muted);
   text-transform: lowercase;
   padding: 8px 0;
   border-bottom: 1px dashed transparent;
   transition: all 0.25s;
 }
 .skills-item:hover {
-  color: var(--ink);
-  border-bottom-color: var(--blue-200);
+  color: var(--text);
+  border-bottom-color: var(--accent-blue);
   transform: translateX(3px);
 }
 .skills-dot {
   width: 5px; height: 5px;
   border-radius: 50%;
-  background: var(--blue-300);
+  background: var(--accent-blue);
   transition: all 0.25s;
   flex-shrink: 0;
 }
+/* Tricolor dots rotate by column index — skills-grid is a 3-col layout, so
+   nth-child(3n+k) targets the same visual column across every row. Stagger
+   wraps each .skills-col in its own motion.div, so the nth-child count must
+   run over .skills-grid's direct children (the wrappers), not .skills-col
+   itself — see the identical .stats-rows wrapper note above. */
+.skills-grid > :nth-child(3n+1) .skills-dot { background: var(--accent-pink); }
+.skills-grid > :nth-child(3n+2) .skills-dot { background: var(--accent-blue); }
+.skills-grid > :nth-child(3n+3) .skills-dot { background: var(--accent-yellow); }
 .skills-item:hover .skills-dot {
-  background: var(--blue-500);
   transform: scale(1.6);
 }
 
@@ -1043,14 +1050,14 @@ body[data-loader-state="loading"] {
   display: block;
   font-size: 11px;
   font-weight: 600;
-  color: var(--blue-500);
+  color: var(--accent-blue);
   text-transform: lowercase;
   letter-spacing: 0.15em;
   margin-bottom: 14px;
 }
 .stats-rows {
   position: relative;
-  border-left: 1px solid var(--mist);
+  border-left: 1px solid var(--hairline);
   padding-left: 80px;
   display: flex;
   flex-direction: column;
@@ -1061,7 +1068,7 @@ body[data-loader-state="loading"] {
   column-gap: 24px;
   align-items: start;
   padding: 56px 0;
-  border-bottom: 1px solid var(--mist);
+  border-bottom: 1px solid var(--hairline);
 }
 /* Stagger wraps each .stats-row in a motion.div, so .stats-row:first-child
    would (incorrectly) match every row. Target the wrapper instead. */
@@ -1073,7 +1080,7 @@ body[data-loader-state="loading"] {
 .stats-row-num {
   font-size: 13px;
   font-weight: 600;
-  color: var(--dust);
+  color: var(--text-faded);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.08em;
   line-height: 1;
@@ -1084,7 +1091,7 @@ body[data-loader-state="loading"] {
 .stats-row-value {
   font-size: 56px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--text);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -1092,7 +1099,7 @@ body[data-loader-state="loading"] {
 }
 .stats-row-ann {
   font-size: 16px;
-  color: var(--bark);
+  color: var(--text-muted);
   line-height: 1.55;
   text-transform: lowercase;
   /* Same optical nudge as .stats-row-num so the annotation's first-line
@@ -1100,7 +1107,7 @@ body[data-loader-state="loading"] {
   padding-top: 6px;
 }
 .stats-row-link {
-  color: var(--blue-500);
+  color: var(--accent-blue);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-bottom-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
@@ -1108,11 +1115,10 @@ body[data-loader-state="loading"] {
   margin-left: 6px;
 }
 .stats-row-link:hover {
-  color: var(--blue-400);
-  border-bottom-color: var(--blue-400);
+  border-bottom-color: var(--accent-blue);
 }
 .stats-row-link:focus-visible {
-  outline: 2px solid var(--blue-300);
+  outline: 2px solid var(--accent-blue);
   outline-offset: 4px;
   border-radius: 2px;
 }
