@@ -1189,7 +1189,7 @@ plus unit: `npx vitest run tests/unit/data/archive.test.ts` (pipeline untouched 
 - [x] **Step 2: Restyle toolbar/dropdown/chips CSS in `src/index.css` per contract (edit existing `.archive-*` rules in place — no new class names except deletions of dead preview rules)**
 - [x] **Step 3: `npm run build && npm run test:unit && npm run test:e2e` → green**
 - [x] **Step 4: Interactive smoke: `npx vite preview --port 4173` (after build), then `npx playwright test tests/e2e/rows-hover.spec.ts` still green (regression guard) — kill the preview after**
-- [ ] **Step 5: Commit — `git add -A && git commit -m "feat(archive): rows on the WorkRow primitive; dark filter toolbar"`**
+- [x] **Step 5: Commit — `git add -A && git commit -m "feat(archive): rows on the WorkRow primitive; dark filter toolbar"`**
 
 **Verify before returning:** suites green; filters verified by loading the page and asserting the count text changes when a kind chip is applied (one-liner Playwright eval or manual screenshot).
 

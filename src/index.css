@@ -1903,6 +1903,8 @@ body[data-loader-state="loading"] {
   align-items: baseline;
   flex-wrap: wrap;
   font-size: clamp(11px, 1vw, 13px);
+  /* site voice is lowercase everywhere; archive types arrive UPPERCASE from the CSV */
+  text-transform: lowercase;
   color: var(--text-faded);
 }
 .workrow-meta-item + .workrow-meta-item::before {
