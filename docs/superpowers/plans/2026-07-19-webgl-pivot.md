@@ -1071,11 +1071,11 @@ describe('WorkRow', () => {
 
 **Steps:**
 
-- [ ] **Step 1: Write `tests/unit/WorkRow.test.tsx` (verbatim above); run `npx vitest run tests/unit/WorkRow.test.tsx` → FAIL (modules missing)**
-- [ ] **Step 2: Implement `src/utils/palette.ts` (verbatim interface above) and `src/components/ui/WorkRow.tsx` per the design contract**
-- [ ] **Step 3: Append the WORKROW CSS section to `src/index.css` (row grid, title scale, tint transition, float, thumb, panel, focus ring, `@media (hover: none)` thumb swap, `@media (prefers-reduced-motion: reduce) { .workrow-float { display: none } }`)**
-- [ ] **Step 4: `npx vitest run tests/unit/WorkRow.test.tsx` → PASS; `npm run build` → clean; `npm run lint` → clean**
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Write `tests/unit/WorkRow.test.tsx` (verbatim above); run `npx vitest run tests/unit/WorkRow.test.tsx` → FAIL (modules missing)**
+- [x] **Step 2: Implement `src/utils/palette.ts` (verbatim interface above) and `src/components/ui/WorkRow.tsx` per the design contract**
+- [x] **Step 3: Append the WORKROW CSS section to `src/index.css` (row grid, title scale, tint transition, float, thumb, panel, focus ring, `@media (hover: none)` thumb swap, `@media (prefers-reduced-motion: reduce) { .workrow-float { display: none } }`)**
+- [x] **Step 4: `npx vitest run tests/unit/WorkRow.test.tsx` → PASS; `npm run build` → clean; `npm run lint` → clean**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/ui/WorkRow.tsx src/utils/palette.ts src/index.css tests/unit/WorkRow.test.tsx

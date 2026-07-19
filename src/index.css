@@ -2148,3 +2148,179 @@ body[data-loader-state="loading"] {
     radial-gradient(70% 60% at 55% 80%, rgba(230, 204, 77, 0.35), transparent 70%),
     var(--bg);
 }
+
+/* =========================================================================
+   WORKROW — shared tinted typographic row primitive
+   (Projects / Archive / Embeds / WorkExperience adopt this in Tasks 6–8.)
+   Open editorial rows: index · [touch thumb] · oversized lowercase title ·
+   ·-joined meta · trailing ↗ / + arrow. Per-row shader tint via --row-tint
+   (set inline by the component). The list OWNER draws the top hairline; the
+   primitive only draws row bottoms.
+   ========================================================================= */
+.workrow {
+  position: relative;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.workrow-link,
+.workrow-toggle {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2.4vw, 40px);
+  width: 100%;
+  padding: clamp(18px, 2.6vw, 34px) 0;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+.workrow-toggle {
+  cursor: pointer;
+}
+
+.workrow-index {
+  flex: none;
+  font-size: clamp(11px, 1vw, 13px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--text-faded);
+  transition: color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.workrow-title {
+  font-size: clamp(28px, 4.6vw, 64px);
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text);
+  transition: color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.workrow-meta {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-size: clamp(11px, 1vw, 13px);
+  color: var(--text-faded);
+}
+.workrow-meta-item + .workrow-meta-item::before {
+  content: "·";
+  margin: 0 0.55em;
+  color: var(--text-faded);
+}
+
+.workrow-ornament {
+  flex: none;
+  color: var(--text-faded);
+  transition: color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.workrow-arrow {
+  flex: none;
+  margin-left: auto;
+  font-size: clamp(18px, 1.8vw, 24px);
+  line-height: 1;
+  color: var(--text-faded);
+  transition:
+    color 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Hover / focus: title + arrow take the row tint / full cream. */
+.workrow-link:hover .workrow-title,
+.workrow-toggle:hover .workrow-title,
+.workrow:focus-within .workrow-title {
+  color: var(--row-tint);
+}
+.workrow-link:hover .workrow-arrow,
+.workrow-link:hover .workrow-index,
+.workrow-toggle:hover .workrow-arrow,
+.workrow-toggle:hover .workrow-index,
+.workrow:focus-within .workrow-arrow,
+.workrow:focus-within .workrow-index {
+  color: var(--text);
+}
+
+/* Static (non-link) rows don't invite interaction. */
+.workrow-link--static {
+  cursor: default;
+}
+
+/* Expandable variant: `+` rotates to `×` when open. */
+.workrow-toggle[aria-expanded="true"] .workrow-arrow {
+  transform: rotate(45deg);
+}
+.workrow-panel {
+  padding: 0 0 clamp(20px, 2.4vw, 34px);
+  color: var(--text-muted);
+}
+
+/* Focus ring — visible cream ring per spec. */
+.workrow-link:focus-visible,
+.workrow-toggle:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Inline touch thumbnail: rendered in DOM whenever a preview exists, but only
+   shown on no-hover (touch) devices — desktop uses the tracking float instead. */
+.workrow-thumb {
+  display: none;
+  flex: none;
+  width: 64px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+.workrow-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Desktop hover float: fixed preview that tracks the pointer (JS-gated to
+   hover + fine pointer + motion-on; positioned via MotionValues). */
+.workrow-float {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+.workrow-float-inner {
+  translate: 28px -50%;
+  width: 300px;
+  height: 200px;
+  border-radius: 10px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  transform-origin: left center;
+  will-change: transform, opacity;
+}
+.workrow-float-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@media (hover: none) {
+  .workrow-thumb {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workrow-float {
+    display: none;
+  }
+}
