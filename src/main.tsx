@@ -50,8 +50,8 @@ createRoot(document.getElementById('root')!).render(
 //   1. .loader--exit class triggers the CSS transitions (panels slide apart
 //      over 600 ms, or 150 ms opacity fade under prefers-reduced-motion).
 //   2. setTimeout removes the loader element from the DOM.
-//   3. resolveCurtain() flips the MotionContext signal that HeroNameDrawing
-//      awaits before starting its trace animation.
+//   3. resolveCurtain() flips the MotionContext signal that the Hero GSAP
+//      entrance effect awaits before starting its paint-bloom + rise timeline.
 const reduceMotion = (() => {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches }
   catch { return false }

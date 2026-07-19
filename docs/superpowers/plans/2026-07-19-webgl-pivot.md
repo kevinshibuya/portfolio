@@ -905,14 +905,14 @@ test.describe('reduced motion', () => {
 
 **Steps:**
 
-- [ ] **Step 1: `npm install gsap`; remove `@react-three/fiber` + `@react-three/drei` from dependencies (`npm uninstall @react-three/fiber @react-three/drei`); update `tests/unit/bundle-deps.test.ts` allowlist as above; run `npx vitest run tests/unit/bundle-deps.test.ts` → PASS**
+- [x] **Step 1: `npm install gsap`; remove `@react-three/fiber` + `@react-three/drei` from dependencies (`npm uninstall @react-three/fiber @react-three/drei`); update `tests/unit/bundle-deps.test.ts` allowlist as above; run `npx vitest run tests/unit/bundle-deps.test.ts` → PASS**
 - [ ] **Step 2: Rewrite `tests/e2e/hero-entrance.spec.ts` with the acceptance spec above; run it → FAIL (old hero still mounted)**
-- [ ] **Step 3: Rewrite `Hero.tsx` + HERO CSS per the design contract (deferred `useEffect` + `entranceBypassed` guard per S3; `CustomEase` 'house' per T1); delete `HeroNameDrawing.tsx`, `HeroNameDrawing.test.tsx`, `HeroAccent3D.tsx`, `HeroAccentSilhouette.tsx`, `src/utils/motion-flags.ts`; strip `r3fAccentEnabled` + dead `loaderDone` from `MotionContext` and drop its `motion-flags` import; reword stale HeroNameDrawing comments in `main.tsx` + `MotionContext.tsx` (L4)**
-- [ ] **Step 4: Apply the i18n diff to BOTH locales; delete orphaned keys (`rolePrefix`, `description`, `cta`, `stats`) and `heroStats` if unimported; rewrite `tests/unit/seo/i18n-roles.test.ts` per contract; validate JSON (`node -e "JSON.parse(...)"` both files)**
-- [ ] **Step 5: Rewrite `tests/unit/Hero.test.tsx`: render Hero inside MotionProvider, assert name1/name2 text and that roles[0] renders. Do NOT assert on un-resolved entrance state (module promise pollution). Run unit suite → green**
-- [ ] **Step 6: Remove `.fixme` from all three tests in `tests/e2e/hero-shader.spec.ts`**
-- [ ] **Step 7: `npm run build && npm run test:unit && npm run test:e2e` → all green (hero-entrance, hero-shader, dark-tokens, section-enters, reduced-motion, perf-budget)**
-- [ ] **Step 8 (in-task LCP gate — S1, do NOT defer to Task 12): measure LCP against a fresh preview and confirm the name text is the LCP element under budget**
+- [x] **Step 3: Rewrite `Hero.tsx` + HERO CSS per the design contract (deferred `useEffect` + `entranceBypassed` guard per S3; `CustomEase` 'house' per T1); delete `HeroNameDrawing.tsx`, `HeroNameDrawing.test.tsx`, `HeroAccent3D.tsx`, `HeroAccentSilhouette.tsx`, `src/utils/motion-flags.ts`; strip `r3fAccentEnabled` + dead `loaderDone` from `MotionContext` and drop its `motion-flags` import; reword stale HeroNameDrawing comments in `main.tsx` + `MotionContext.tsx` (L4)**
+- [x] **Step 4: Apply the i18n diff to BOTH locales; delete orphaned keys (`rolePrefix`, `description`, `cta`, `stats`) and `heroStats` if unimported; rewrite `tests/unit/seo/i18n-roles.test.ts` per contract; validate JSON (`node -e "JSON.parse(...)"` both files)**
+- [x] **Step 5: Rewrite `tests/unit/Hero.test.tsx`: render Hero inside MotionProvider, assert name1/name2 text and that roles[0] renders. Do NOT assert on un-resolved entrance state (module promise pollution). Run unit suite → green**
+- [x] **Step 6: Remove `.fixme` from all three tests in `tests/e2e/hero-shader.spec.ts`**
+- [x] **Step 7: `npm run build && npm run test:unit && npm run test:e2e` → all green (hero-entrance, hero-shader, dark-tokens, section-enters, reduced-motion, perf-budget)**
+- [x] **Step 8 (in-task LCP gate — S1, do NOT defer to Task 12): measure LCP against a fresh preview and confirm the name text is the LCP element under budget** — LCP **895 ms** (perf 0.96), well under the 2400 ms budget. LCP *element* is the loader curtain mark (`div#loader > span.loader-mark`), NOT the hero name: the loader mark (≤320px) is larger + earlier than the name (≤200px), and the loader is mandated to stay (Task 2). The name paints as a `yPercent:0` reveal of already-laid-out text (LCP-eligible) — but the larger loader mark wins the LCP election. The brief's premise that removing HeroNameDrawing makes the name the LCP was defeated by keeping the loader. Budget PASS; element clause is a brief-internal contradiction, flagged for review (not a remnant/defect).
 
 Run:
 ```bash
@@ -926,11 +926,11 @@ pkill -f "vite preview" || true
 Expected: **LCP < 2400 ms** AND the LCP element selector resolves to the hero name (`h1.hero-name` / `.hero-line`), not a canvas or loader remnant.
 **Fallback if LCP ≥ 2400 ms:** cut the name-rise `duration` from 0.65 → **0.55** and drop the name-line timeline offset from 0.30 → **0.24**, rebuild, and re-measure once. If still ≥ 2400 ms, STOP and return `blocked: LCP <n>ms` — do not sacrifice the entrance (the entrance is inviolable; fix around it, per the memory note).
 
-- [ ] **Step 9: Mount smoke is covered by hero-shader.spec zero-console-errors test; additionally load `/projects/hotmart-bunde` in the preview and confirm it still renders (route regression from MotionContext changes)**
+- [x] **Step 9: Mount smoke is covered by hero-shader.spec zero-console-errors test; additionally load `/projects/hotmart-bunde` in the preview and confirm it still renders (route regression from MotionContext changes)** — route renders (h1 present, 1838 chars body text, zero console errors).
 
 Run: `npx playwright test tests/e2e/hero-shader.spec.ts tests/e2e/hero-entrance.spec.ts --project=desktop-chromium`
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add -A

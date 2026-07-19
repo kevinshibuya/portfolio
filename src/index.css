@@ -236,43 +236,129 @@ strong {
 }
 
 /* =========================================================================
-   HERO
+   HERO — full-viewport dark stage. FluidWavesHero canvas behind, a contrast
+   scrim over it, then the text plane: right-aligned meta below the nav and a
+   monumental bottom-anchored signature name with the role cycle directly
+   above it. Entrance transforms (canvas fade/scale, clipped role + name
+   rises) are PRE-SET here so the deferred GSAP timeline reveals
+   already-laid-out text rather than a first mount (LCP is the name).
    ========================================================================= */
 .hero {
   position: relative;
-  min-height: 100vh;
-  padding: 140px 80px 60px;
-  display: grid;
-  grid-template-rows: 1fr auto auto;
-  gap: 40px;
+  min-height: 100svh;
   overflow: hidden;
-  max-width: 1440px;
-  margin: 0 auto;
-}
-.hero-main {
-  position: relative; z-index: 1;
-  align-self: center;
-  max-width: 1200px;
-  display: flex;
-  flex-direction: column;
-}
-.hero-name {
-  font-size: clamp(64px, 11vw, 192px);
-  font-weight: 700;
-  line-height: 0.92;
-  letter-spacing: -0.05em;
-  text-transform: lowercase;
-  margin: 0;
-  color: var(--ink);
-}
-.hero-name-line { display: block; }
-.hero-name-line--ghost {
-  color: var(--mist);
-  -webkit-text-stroke: 1px var(--blue-300);
+  background: var(--bg);
 }
 
-/* Visually-hidden helper used by HeroNameDrawing's screen-reader h1.
-   Standard a11y pattern. */
+/* Canvas layer — FluidWavesHero (position:absolute; inset:0) fills this box.
+   opacity 0 at first paint; the entrance fades in + settles the 1.045 scale. */
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+}
+
+/* MANDATORY contrast scrim (contrast table) — darkens the bottom band where
+   the name sits and the top under nav + meta, leaving the mid-canvas open. */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(to top, rgba(11,14,20,0.88) 0%, rgba(11,14,20,0.55) 32%, rgba(11,14,20,0) 60%),
+    linear-gradient(to bottom, rgba(11,14,20,0.75) 0%, rgba(11,14,20,0) 28%);
+}
+
+.hero-meta {
+  position: absolute;
+  top: 132px;
+  right: 80px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+  color: var(--text-faded);
+  opacity: 0; /* entrance fades this in */
+}
+
+.hero-bottom {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  bottom: 72px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Overflow-clip wrapper for every rise — nothing overflows the mask mid-flight. */
+.hero-mask {
+  display: block;
+  overflow: hidden;
+}
+.hero-role-mask {
+  align-self: flex-start;
+  padding-bottom: 2px;
+}
+
+/* GSAP animates this wrapper's yPercent (the entrance rise); the deferred
+   effect gsap.set's the hidden state before the curtain lifts, so no CSS
+   pre-transform is needed (a CSS translateY would compound with yPercent).
+   Framer Motion owns the inner .hero-role (cycle swap) — separate element. */
+.hero-role-rise {
+  display: inline-block;
+}
+.hero-role {
+  display: inline-block;
+  font-size: clamp(15px, 1.6vw, 22px);
+  font-weight: 500;
+  color: var(--text);
+  text-transform: lowercase;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  border-radius: 2px;
+  transition: color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero-role:hover { color: var(--accent-blue); }
+.hero-role:focus-visible {
+  outline: 2px solid var(--blue-300);
+  outline-offset: 6px;
+}
+
+.hero-name {
+  margin: 0;
+  font-size: clamp(64px, 12vw, 200px);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  text-transform: lowercase;
+  color: var(--text);
+}
+/* GSAP animates each line's yPercent (staggered rise). Hidden state is set by
+   the deferred effect (gsap.set) behind the loader curtain — see .hero-role-rise. */
+.hero-line {
+  display: block;
+}
+
+/* Reduced motion: rest the fade layers visible so the deferred snap has
+   nothing to flash past (the entrance effect gsap.set's the same final state). */
+@media (prefers-reduced-motion: reduce) {
+  .hero-canvas { opacity: 1; }
+  .hero-meta { opacity: 1; }
+}
+
+/* Visually-hidden helper (screen-reader-only text). Standard a11y pattern;
+   used by FooterNameMarquee. */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -392,51 +478,6 @@ html[data-loading='true'] {
   }
 }
 
-/* =========================================================================
-   HERO NAME DRAWING — SVG glyph paths animated as ink-trace + ink-fill.
-   This component IS the hero title (it replaces the static <h1>).
-   Each <path> is a glyph outline extracted from Plus Jakarta Sans Bold;
-   stroke-dashoffset 1→0 produces the trace, then the .--ink / .--ghost
-   classes swap stroke for fill to land on the final h1-equivalent state.
-   ========================================================================= */
-.hero-name-drawing {
-  display: block;
-  /* Aggressive vw component so the title scales toward full-width on
-     mobile/tablet; the 192px max keeps it composed on desktop. */
-  font-size: clamp(72px, 22vw, 192px);
-  line-height: 0.92;
-}
-.hero-name-drawing-word {
-  display: block;
-  width: auto;
-  height: 1em;
-  overflow: visible;
-}
-.hero-name-drawing-glyph {
-  fill: transparent;
-  stroke: var(--blue-400);
-  /* Stroke is in 1000-em viewBox units. 14 ≈ 2.7px @ 192px font — thin
-     and elegant trace, not a thick brush. */
-  stroke-width: 14;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-/* Final state of "kevin": solid ink fill, no stroke (matches the previous
-   .hero-name-line --ink). */
-.hero-name-drawing-glyph--ink {
-  fill: var(--ink);
-  stroke: transparent;
-}
-/* Final state of "shibuya.": ghost (cream/mist fill + thin blue stroke,
-   matches the previous .hero-name-line--ghost). */
-.hero-name-drawing-glyph--ghost {
-  fill: var(--mist);
-  stroke: var(--blue-300);
-  stroke-width: 4;
-}
-
 /* Scramble lettering — cursor affordance + design-system focus ring.
    The ::after underline on hover is for parity with the wider editorial feel:
    a soft suggestion that the lettering is interactive, without committing to
@@ -452,76 +493,6 @@ html[data-loading='true'] {
   outline-offset: 6px;
 }
 .scramble-static { /* reduced-motion fallback — render as plain text */ }
-.hero-role-line {
-  display: flex; align-items: baseline; gap: 16px;
-  flex-wrap: wrap;
-  margin-top: 36px;
-}
-.hero-role-prefix {
-  font-size: clamp(22px, 2.4vw, 36px);
-  font-weight: 300;
-  color: var(--bark);
-  text-transform: lowercase;
-  letter-spacing: -0.02em;
-}
-.hero-role {
-  font-size: clamp(24px, 2.6vw, 40px);
-  font-weight: 600;
-  color: var(--ink);
-  text-transform: lowercase;
-  letter-spacing: -0.02em;
-  border-bottom: 2px solid var(--blue-200);
-  padding-bottom: 4px;
-  display: inline-block;
-}
-/* Click-to-cycle: cursor + accessible focus ring + smooth color shift on hover. */
-.hero-role--clickable {
-  cursor: pointer;
-  user-select: none;
-  outline: none;
-  border-radius: 2px;
-  transition: color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-              border-bottom-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.hero-role--clickable:hover {
-  color: var(--blue-500, #1C6EC4);
-  border-bottom-color: var(--blue-400);
-}
-.hero-role--clickable:focus-visible {
-  outline: 2px solid var(--blue-300);
-  outline-offset: 6px;
-}
-.hero-desc {
-  font-size: 17px;
-  color: var(--bark);
-  max-width: 560px;
-  line-height: 1.75;
-  margin: 24px 0 0;
-  text-transform: lowercase;
-}
-.hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
-
-.hero-stats {
-  position: relative; z-index: 1;
-  display: flex; flex-wrap: wrap; gap: 64px;
-  padding-top: 40px;
-  border-top: 1px solid var(--mist);
-  max-width: 720px;
-}
-.hero-stat { display: flex; flex-direction: column; gap: 4px; }
-.hero-stat-v {
-  font-size: 40px; font-weight: 700;
-  color: var(--ink);
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-.hero-stat-l {
-  font-size: 11px;
-  color: var(--dust);
-  text-transform: lowercase;
-  letter-spacing: 0.08em;
-}
 
 /* =========================================================================
    BUTTONS
@@ -1239,10 +1210,14 @@ html[data-loading='true'] {
    RESPONSIVE
    ========================================================================= */
 @media (max-width: 1100px) {
-  .nav, .hero, .section, .section--contact, .footer {
+  .nav, .section, .section--contact, .footer {
     padding-left: 40px;
     padding-right: 40px;
   }
+  /* Hero children are absolutely positioned (padding on .hero would inset
+     the full-bleed canvas), so track the narrower page gutter directly. */
+  .hero-bottom { left: 40px; right: 40px; }
+  .hero-meta { right: 40px; }
   .footer-marquee {
     margin-left: -40px;
     margin-right: -40px;
@@ -1280,7 +1255,7 @@ html[data-loading='true'] {
   .nav.is-scrolled { padding: 12px 20px; }
   .nav-links { display: none; }
   .nav-inner { grid-template-columns: auto 1fr; }
-  .hero, .section, .section--contact, .footer {
+  .section, .section--contact, .footer {
     padding-left: 20px;
     padding-right: 20px;
   }
@@ -1288,8 +1263,6 @@ html[data-loading='true'] {
     margin-left: -20px;
     margin-right: -20px;
   }
-  .hero { padding-top: 120px; }
-  .hero-stats { gap: 32px; }
   .work-row-head { grid-template-columns: 32px 1fr 24px; padding: 20px; gap: 14px; }
   .work-body-inner { padding: 0 20px 28px 20px; }
   .bento {
@@ -1319,21 +1292,11 @@ html[data-loading='true'] {
   .contact-meta { display: none; }
   .section-header { margin-bottom: 40px; }
   .section { padding: 100px 20px; }
-  .hero-accent-mount { display: none; }
 
-  /* Hero typography — desktop values read bookish on a 6" screen.
-     Drop description from "novel body" (17/1.75) to "informative
-     caption" (15/1.55), soften strong from 700 → 600, open the
-     role/prefix hierarchy gap, and compress inter-block rhythm
-     ~25% so the hero feels composed instead of scroll-y. */
-  .hero-role-line { margin-top: 28px; gap: 12px; }
-  .hero-role-prefix { font-size: 18px; }
-  .hero-role { font-size: 22px; border-bottom-width: 1px; }
-  .hero-desc { font-size: 15px; line-height: 1.55; }
-  .hero-desc strong { font-weight: 600; }
-  .hero-main .hero-name + .hero-supplementary { margin-top: 32px; }
-  .hero-supplementary .hero-role-line + .hero-desc { margin-top: 20px; }
-  .hero-supplementary .hero-desc + .hero-cta { margin-top: 32px; }
+  /* Hero on a phone: hug the 20px gutter, lift the bottom anchor off the
+     home indicator, and drop the meta below the compact nav. */
+  .hero-bottom { left: 20px; right: 20px; bottom: 56px; gap: 14px; }
+  .hero-meta { top: 96px; right: 20px; font-size: 12px; }
 }
 
 /* =========================================================================
@@ -1349,33 +1312,8 @@ body[data-loader-state="loading"] {
   touch-action: none;
 }
 
-/* Hero left column inter-element gaps (spec §1) */
-.hero-main .hero-name + .hero-supplementary { margin-top: 48px; }
-.hero-supplementary .hero-role-line + .hero-desc { margin-top: 32px; }
-.hero-supplementary .hero-desc + .hero-cta { margin-top: 48px; }
-
-/* Right-side HeroAccent3D mount. The previous container (.hero-fragments)
-   was a half-width grid of multiple SVG fragments + the 3D accent; that
-   component was deleted in Task 9. The lone surviving accent re-mounts
-   here, positioned absolutely so it sits beside .hero-main without
-   pushing the grid layout. Hidden at ≤720px where the hero layout
-   collapses single-column and the accent would crowd hero-main's
-   content. Between 721–1100px the accent stays mounted; right:80px
-   continues to track section padding at those widths. */
-.hero-accent-mount {
-  position: absolute;
-  top: 50%;
-  right: 80px;
-  transform: translateY(-50%);
-  width: 280px;
-  height: 280px;
-  pointer-events: none;
-  z-index: 0;
-}
 /* Stats numbered-receipt section. Two-column editorial layout on desktop
-   (heading left, numbered rows right), single column on mobile. The
-   slim-band/.hero-stat-* classes are no longer referenced from this
-   section but stay in place for Hero. */
+   (heading left, numbered rows right), single column on mobile. */
 .stats {
   padding: 128px 80px;
   background: var(--cream);

@@ -10,23 +10,16 @@
   "hero": {
     "name1": "kevin",
     "name2": "shibuya.",
-    "rolePrefix": "i am",
     "roles": [
-      "a senior software engineer",
-      "a full-stack developer",
-      "a system architect",
-      "a tech lead",
-      "an ai engineer"
+      "senior front-end engineer · react/typescript",
+      "full-stack developer",
+      "system architect",
+      "tech lead",
+      "ai engineer"
     ],
-    "description": "<strong>rough ideas → shipped products.</strong> a team of one.",
-    "cta": {
-      "collaborate": "collaborate",
-      "resume": "resume"
-    },
-    "stats": {
-      "years": "years shipping",
-      "embeds": "interactives shipped",
-      "projects": "case studies"
+    "meta": {
+      "location": "porto alegre · brazil",
+      "availability": "open to new projects"
     }
   },
   "stats": {

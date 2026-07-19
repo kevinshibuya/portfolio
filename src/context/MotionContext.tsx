@@ -1,13 +1,13 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
-import { ENABLE_R3F_ACCENT, MOBILE_BREAKPOINT_PX } from '../utils/motion-flags'
 
 type Resolver = () => void
 
 interface MotionContextValue {
-  /** Resolves once the hero name's trace + ink-fill entrance animation
-   *  completes. Header, SmoothScroll, and the rest of the hero cascade
-   *  await this before becoming visible / interactive.
+  /** Resolves once the hero's GSAP entrance timeline completes (or is
+   *  bypassed / reduced-motion-snapped). Header, SmoothScroll, and the
+   *  rest of the hero cascade await this before becoming visible /
+   *  interactive.
    *
    *  Module-scoped so the SAME promise instance survives React 19
    *  StrictMode remounts and any future MotionProvider unmount/remount —
@@ -16,16 +16,13 @@ interface MotionContextValue {
   entranceDone: Promise<void>
   resolveEntrance: Resolver
   /** Skips the hero entrance animation entirely and resolves the gate.
-   *  Used when restoring Home from back-navigation so the ink-trace
+   *  Used when restoring Home from back-navigation so the GSAP entrance
    *  doesn't replay. */
   bypassEntrance: Resolver
-  /** True once bypassEntrance() has been called. HeroNameDrawing and
-   *  useScrollLockDuringEntrance read this to skip animation / lock. */
+  /** True once bypassEntrance() has been called. The Hero entrance effect
+   *  and useScrollLockDuringEntrance read this to skip animation / lock. */
   entranceBypassed: boolean
-  /** Backward-compat alias — some legacy consumers still read `loaderDone`. */
-  loaderDone: Promise<void>
   prefersReducedMotion: boolean
-  r3fAccentEnabled: boolean
 }
 
 let _resolveEntrance: Resolver | null = null
@@ -35,10 +32,10 @@ const _entranceDone: Promise<void> = new Promise<void>((res) => {
 const resolveEntrance: Resolver = () => _resolveEntrance?.()
 
 // Module-scoped curtain handshake. The static loader in index.html paints
-// at first frame (LCP target). main.tsx calls resolveCurtain() after the
-// curtain transition finishes lifting; HeroNameDrawing awaits curtainGone
-// before kicking off the SVG trace animation, so the ink-draw plays on a
-// clean cream stage rather than under the curtain.
+// at first frame. main.tsx calls resolveCurtain() after the curtain
+// transition finishes lifting; the Hero GSAP entrance effect awaits
+// curtainGone before starting its timeline, so the paint-bloom + clipped
+// rises play on a clean stage rather than under the curtain.
 let _resolveCurtain: Resolver | null = null
 const _curtainGone: Promise<void> = new Promise<void>((res) => {
   _resolveCurtain = res
@@ -48,24 +45,13 @@ const resolveCurtain: Resolver = () => _resolveCurtain?.()
 // Module-scoped flag is the survive-everything source of truth (StrictMode
 // double-mount, MotionProvider remount). The provider also mirrors it in
 // state so calling bypassEntrance() triggers a context re-render and
-// consumers see the new value. Without the state mirror, useMemo would
-// keep returning the cached false until reduced/r3fEnabled happened to
-// change.
+// consumers see the new value.
 let _entranceBypassed = false
 
 const Ctx = createContext<MotionContextValue | null>(null)
 
 export function MotionProvider({ children }: { children: React.ReactNode }) {
   const reduced = useReducedMotion() ?? false
-
-  const [r3fEnabled, setR3fEnabled] = useState(false)
-  useEffect(() => {
-    const url = new URL(window.location.href)
-    const forceOff = url.searchParams.get('disableR3f') === '1'
-    setR3fEnabled(
-      ENABLE_R3F_ACCENT && !forceOff && window.innerWidth >= MOBILE_BREAKPOINT_PX
-    )
-  }, [])
 
   // Initialise from the module flag so a remounted provider picks up an
   // already-bypassed state instead of resetting to false.
@@ -75,8 +61,8 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     setBypassed(true)
     resolveEntrance()
     // Back-nav from project detail: there's no full reload, so the loader
-    // never rendered. Pre-resolve the curtain so HeroNameDrawing's await
-    // in this scenario doesn't stall.
+    // never rendered. Pre-resolve the curtain so the Hero entrance effect's
+    // await in this scenario doesn't stall.
     resolveCurtain()
   }
 
@@ -86,13 +72,11 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
       resolveEntrance,
       bypassEntrance,
       entranceBypassed: bypassed,
-      loaderDone: _entranceDone,
       prefersReducedMotion: reduced,
-      r3fAccentEnabled: r3fEnabled,
     }),
     // bypassEntrance is recreated each render but its identity changing
     // doesn't matter to consumers — it's a one-shot side-effecting call.
-    [reduced, r3fEnabled, bypassed]
+    [reduced, bypassed]
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
@@ -105,8 +89,8 @@ export function useMotion(): MotionContextValue {
 }
 
 // Module-level exports for non-React consumers (main.tsx) and for components
-// that need to await curtain handoff (HeroNameDrawing) without going through
-// the React context. Mirrors the `_entranceDone` accessor pattern.
+// that need to await the curtain handoff (the Hero entrance effect) without
+// going through the React context. Mirrors the `_entranceDone` accessor pattern.
 export const curtainGone = _curtainGone
 export const entranceDone = _entranceDone
 export { resolveCurtain, resolveEntrance }

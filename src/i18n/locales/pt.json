@@ -10,23 +10,16 @@
   "hero": {
     "name1": "kevin",
     "name2": "shibuya.",
-    "rolePrefix": "sou",
     "roles": [
-      "um engenheiro de software sênior",
-      "um desenvolvedor full-stack",
-      "um arquiteto de sistemas",
-      "um líder técnico",
-      "um engenheiro de ia"
+      "engenheiro front-end sênior · react/typescript",
+      "desenvolvedor full-stack",
+      "arquiteto de sistemas",
+      "líder técnico",
+      "engenheiro de ia"
     ],
-    "description": "<strong>do esboço ao produto final.</strong> um time de um homem só.",
-    "cta": {
-      "collaborate": "colaborar",
-      "resume": "currículo"
-    },
-    "stats": {
-      "years": "anos entregando",
-      "embeds": "interativos entregues",
-      "projects": "estudos de caso"
+    "meta": {
+      "location": "porto alegre · brasil",
+      "availability": "aberto a novos projetos"
     }
   },
   "stats": {

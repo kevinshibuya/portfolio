@@ -88,7 +88,7 @@ const fragmentShader = `
 export function FluidWavesHero(): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [webglFailed, setWebglFailed] = useState(false)
-  const { prefersReducedMotion } = useMotion()
+  const { prefersReducedMotion, entranceDone } = useMotion()
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -154,6 +154,11 @@ export function FluidWavesHero(): ReactElement {
     const startTime = performance.now()
     let rafId: number | null = null
     let inView = true
+    let cancelled = false
+    // The continuous rAF loop is held until the hero entrance settles so its
+    // heavy per-frame shader work can't starve the GSAP entrance timeline on
+    // the shared main thread. One bloom frame is still drawn immediately.
+    let allowLoop = false
 
     const resize = (): void => {
       const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP)
@@ -186,7 +191,7 @@ export function FluidWavesHero(): ReactElement {
     }
 
     const start = (): void => {
-      if (rafId === null && !prefersReducedMotion) {
+      if (allowLoop && rafId === null && !prefersReducedMotion) {
         rafId = requestAnimationFrame(loop)
       }
     }
@@ -205,7 +210,16 @@ export function FluidWavesHero(): ReactElement {
       canvas.dataset.static = 'true'
       drawFrame(seed * 10)
     } else {
-      start()
+      // Immediate bloom frame so the entrance fade has content; the animated
+      // loop starts once the entrance gate resolves (uncontested main thread).
+      drawFrame((performance.now() - startTime) / 1000)
+      entranceDone
+        .then(() => {
+          if (cancelled) return
+          allowLoop = true
+          if (inView) start()
+        })
+        .catch(() => {})
     }
 
     // Pause the loop when the hero is off-screen. Also repaint one frame on
@@ -237,6 +251,7 @@ export function FluidWavesHero(): ReactElement {
     canvas.addEventListener('webglcontextlost', handleContextLost, false)
 
     return () => {
+      cancelled = true
       stop()
       io.disconnect()
       window.removeEventListener('resize', resize)
@@ -246,7 +261,7 @@ export function FluidWavesHero(): ReactElement {
       gl.deleteShader(fShader)
       gl.deleteBuffer(buffer)
     }
-  }, [prefersReducedMotion])
+  }, [prefersReducedMotion, entranceDone])
 
   if (webglFailed) {
     return <div className="fluid-waves-fallback" data-testid="fluid-waves-fallback" aria-hidden="true" />
