@@ -379,7 +379,11 @@
         font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
         font-size: 12px; line-height: 1.4; letter-spacing: 0.01em;
         text-transform: lowercase; color: #F5F2EC;
+        transition: opacity 400ms ease;
       }
+      /* main.tsx adds .loader--handoff at ~80% of the bleed → labels fade out
+         as the hero text rises in, so the loader chrome doesn't snap away. */
+      #loader.loader--handoff .loader-meta { opacity: 0; }
       .loader-meta--bl { bottom: 28px; left: 28px; text-align: left; }
       .loader-meta--br { bottom: 28px; right: 28px; text-align: right; }
       @media (max-width: 640px) {

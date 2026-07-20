@@ -14,9 +14,9 @@ export function Hero(): ReactElement {
   const { prefersReducedMotion, entranceDone, entranceBypassed } = useMotion()
 
   // Entrance rise. The ink-bleed loader reveals the shader; the hero text then
-  // rises out of its clip masks once the bleed completes (main.tsx resolves
-  // entranceDone at that point). Reduced-motion and SPA back-nav skip straight
-  // to the settled state — no rise, text present from first paint.
+  // slides up into place (no overflow clip) once the bleed nears completion
+  // (main.tsx resolves entranceDone at ~80% of the bleed). Reduced-motion and
+  // SPA back-nav skip straight to the settled state — no rise.
   const instant = prefersReducedMotion || entranceBypassed
   const [entered, setEntered] = useState(instant)
   useEffect(() => {
@@ -92,13 +92,13 @@ export function Hero(): ReactElement {
       </div>
       <div className="hero-scrim" aria-hidden="true" />
 
-      <div className={`hero-bottom${entered ? ' is-entered' : ''}`}>
-        {/* Role line rises first out of its clip mask; the inner Framer
-            AnimatePresence owns the separate click/keyboard cycle swap. */}
+      <div className="hero-bottom">
+        {/* Role line slides up first; the inner Framer AnimatePresence owns the
+            separate click/keyboard cycle swap. */}
         <div className="hero-line-mask hero-role-line">
           <motion.div
-            initial={{ y: instant ? '0%' : '110%' }}
-            animate={{ y: entered ? '0%' : '110%' }}
+            initial={{ y: instant ? '0%' : '55%' }}
+            animate={{ y: entered ? '0%' : '55%' }}
             transition={rise(0)}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -131,8 +131,8 @@ export function Hero(): ReactElement {
           <span className="hero-line-mask">
             <motion.span
               className="hero-line"
-              initial={{ y: instant ? '0%' : '110%' }}
-              animate={{ y: entered ? '0%' : '110%' }}
+              initial={{ y: instant ? '0%' : '55%' }}
+              animate={{ y: entered ? '0%' : '55%' }}
               transition={rise(0.08)}
             >
               {t('hero.name1')}
@@ -141,8 +141,8 @@ export function Hero(): ReactElement {
           <span className="hero-line-mask">
             <motion.span
               className="hero-line"
-              initial={{ y: instant ? '0%' : '110%' }}
-              animate={{ y: entered ? '0%' : '110%' }}
+              initial={{ y: instant ? '0%' : '55%' }}
+              animate={{ y: entered ? '0%' : '55%' }}
               transition={rise(0.16)}
             >
               {t('hero.name2')}

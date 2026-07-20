@@ -108,6 +108,15 @@ const liftCurtain = (): void => {
     finishLoader()
     return
   }
+  // Overlap the reveal with the tail of the bleed: at ~80% (the ink is
+  // essentially gone, only the last stains are finishing) fire the hero rise
+  // and fade the loader labels, so there's no dead gap between "ink cleared"
+  // and "text starts". finishLoader still removes the loader at 100%.
+  const handoff = (): void => {
+    loaderEl.classList.add('loader--handoff')
+    resolveCurtain()
+    resolveEntrance()
+  }
   // If GSAP ever throws building the bleed, finish immediately rather than
   // stranding the loader (and the scroll lock) on screen.
   try {
@@ -115,6 +124,7 @@ const liftCurtain = (): void => {
     stains.forEach((c, i) => {
       tl.to(c, { attr: { r: ENDS[i] ?? 55 }, duration: STAIN_DURATION, ease: 'house' }, DELAYS[i] ?? 0)
     })
+    tl.call(handoff, undefined, tl.duration() * 0.8)
   } catch {
     finishLoader()
   }

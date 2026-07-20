@@ -274,16 +274,12 @@ strong {
   gap: 18px;
 }
 
-/* Clip mask for the entrance rise: each row hides its line below the edge, and
-   Framer translates the inner element from y:110% to 0% once the loader bleed
-   completes. Overflow is released to visible after entrance (.is-entered) so
-   the role's focus ring and any glyph descenders aren't clipped at rest. */
+/* Entrance-rise row wrapper. No overflow clip — Framer slides the inner
+   element up from y:55% to 0% on entrance, fully visible (a clip made the
+   rise feel cut; unclipped reads smoother). Kept as a block row so each name
+   line stacks and the role's focus ring / descenders never get clipped. */
 .hero-line-mask {
   display: block;
-  overflow: hidden;
-}
-.hero-bottom.is-entered .hero-line-mask {
-  overflow: visible;
 }
 
 /* Role line: left-aligns the inline role above the name with a tiny breathing
@@ -415,7 +411,11 @@ html[data-loading='true'] {
   letter-spacing: 0.01em;
   text-transform: lowercase;
   color: #F5F2EC; /* --text — fallback hex */
+  transition: opacity 400ms ease;
 }
+/* main.tsx adds .loader--handoff at ~80% of the bleed → labels fade out as the
+   hero text rises in, so the loader chrome doesn't snap away. */
+#loader.loader--handoff .loader-meta { opacity: 0; }
 
 .loader-meta--bl { bottom: 28px; left: 28px; text-align: left; }
 .loader-meta--br { bottom: 28px; right: 28px; text-align: right; }
