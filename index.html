@@ -323,22 +323,18 @@
       type="font/woff2"
       crossorigin="anonymous"
     />
-    <!-- Critical loader CSS, inlined so the dark ink curtain paints with the
+    <!-- Critical loader CSS, inlined so the dark ink loader paints with the
          first frame of HTML — before the Vite-bundled stylesheet arrives.
          Mirrors src/index.css; the cascade is a no-op once the bundled sheet
          replaces them.
 
-         Structure & LCP trick: at first paint there's a single
-         .loader-mark--whole text span centered in the viewport ("ks" + a
-         styled blue dot), sitting on top of two solid ink panels. Its
-         bounding rect is what Chrome's LCP algorithm measures, so LCP
-         locks here before React boots. Two extra tear-half siblings render
-         the same markup; they're clipped via clip-path to top/bottom halves
-         and visibility:hidden at first paint so they don't count as LCP
-         candidates. On exit, the whole-mark flips visibility:hidden and
-         the two halves flip visibility:visible (pixel-identical swap) then
-         translate ±50vh with the panels — re-creating the tear effect
-         while keeping the whole-mark's LCP timestamp locked. -->
+         Structure: a full-viewport ink SVG <rect> masked by static "ks."
+         glyph windows (paths extracted from Plus Jakarta Sans 700 — no font
+         dependency, no FOUT) over a dim tricolor stand-in gradient that reads
+         as paint pre-React. On mount main.tsx fades the stand-in (revealing
+         the live hero canvas behind #loader) and grows the mask's stain
+         circles via GSAP to dissolve the ink and reveal the settled hero.
+         Corner meta blocks are crisp cream HTML on the ink. -->
     <style>
       html[data-loading='true'] { overflow: hidden; }
       @font-face {
@@ -351,53 +347,53 @@
       }
       #loader {
         position: fixed; inset: 0; z-index: 9999;
-        pointer-events: none;
-        display: flex; align-items: center; justify-content: center;
+        pointer-events: none; overflow: hidden;
       }
-      .loader-half {
-        position: fixed; left: 0; width: 100vw; height: 50vh;
-        background: #0B0E14;
-        transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
+      /* Dim tricolor stand-in behind the windows: reads as paint before React
+         mounts the live shader (mirrors the hero fallback gradient). Subtly
+         animated (spec §3) via a compositor-cheap transform drift so the paint
+         breathes pre-React; the mount fade uses opacity (separate channel). */
+      .loader-standin {
+        position: absolute; inset: 0; z-index: 0;
+        background:
+          radial-gradient(60% 80% at 20% 30%, rgba(230, 77, 102, 0.50), transparent 70%),
+          radial-gradient(50% 70% at 80% 25%, rgba(77, 128, 230, 0.50), transparent 70%),
+          radial-gradient(70% 60% at 55% 80%, rgba(230, 204, 77, 0.35), transparent 70%),
+          #0B0E14;
+        opacity: 1;
+        transition: opacity 300ms ease-out;
+        animation: loaderStandinDrift 7s ease-in-out infinite alternate;
         will-change: transform;
       }
-      .loader-half--top    { top: 0;    }
-      .loader-half--bottom { bottom: 0; }
-      .loader-mark {
+      @keyframes loaderStandinDrift {
+        from { transform: scale(1) translate3d(0, 0, 0); }
+        to   { transform: scale(1.05) translate3d(-1.5%, 1.5%, 0); }
+      }
+      /* On React mount main.tsx adds .loader--mounted → fade the stand-in so the
+         windows reveal the live (already-looping) hero canvas behind #loader. */
+      #loader.loader--mounted .loader-standin { opacity: 0; }
+      .loader-ink { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; }
+      .loader-meta {
+        position: absolute; z-index: 2;
+        display: flex; flex-direction: column; gap: 2px;
         font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        font-size: clamp(140px, 30vw, 320px);
-        font-weight: 700; line-height: 1; letter-spacing: -0.05em;
+        font-size: 12px; line-height: 1.4; letter-spacing: 0.01em;
         text-transform: lowercase; color: #F5F2EC;
-        white-space: nowrap;
       }
-      .loader-mark__dot {
-        display: inline-block;
-        width: 0.18em; height: 0.18em;
-        border-radius: 50%;
-        background: #4D80E6; /* --accent-blue — fallback hex */
-        vertical-align: baseline;
-        margin-left: 0.02em;
+      .loader-meta--tl { top: 28px; left: 28px; text-align: left; }
+      .loader-meta--tr { top: 28px; right: 28px; text-align: right; }
+      .loader-meta--bl { bottom: 28px; left: 28px; text-align: left; }
+      .loader-meta--br { bottom: 28px; right: 28px; text-align: right; }
+      @media (max-width: 640px) {
+        .loader-meta { font-size: 10px; }
+        .loader-meta--tl, .loader-meta--bl { left: 18px; }
+        .loader-meta--tr, .loader-meta--br { right: 18px; }
       }
-      .loader-mark--whole { position: relative; z-index: 1; }
-      .loader-mark--top,
-      .loader-mark--bottom {
-        position: absolute; top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 2; visibility: hidden;
-        transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
-      }
-      .loader-mark--top    { clip-path: inset(0 0 50% 0); }
-      .loader-mark--bottom { clip-path: inset(50% 0 0 0); }
-      #loader.loader--exit .loader-half--top    { transform: translateY(-100%); }
-      #loader.loader--exit .loader-half--bottom { transform: translateY(100%);  }
-      #loader.loader--exit .loader-mark--whole  { visibility: hidden; }
-      #loader.loader--exit .loader-mark--top,
-      #loader.loader--exit .loader-mark--bottom { visibility: visible; }
-      #loader.loader--exit .loader-mark--top    { transform: translate(-50%, calc(-50% - 50vh)); }
-      #loader.loader--exit .loader-mark--bottom { transform: translate(-50%, calc(-50% + 50vh)); }
+      /* Reduced motion: no bleed — fade the whole loader out; no stand-in drift. */
       @media (prefers-reduced-motion: reduce) {
-        .loader-half, .loader-mark--top, .loader-mark--bottom { transition: none; }
         #loader { transition: opacity 150ms ease-out; }
         #loader.loader--exit { opacity: 0; }
+        .loader-standin { transition: none; animation: none; }
       }
     </style>
     <script>
@@ -414,21 +410,41 @@
     </script>
   </head>
   <body>
-    <!-- LOADER + CURTAIN. Two ink .loader-half panels paint at first frame;
-         the .loader-mark--whole text span on top of them is the LCP
-         candidate (locked at first paint per W3C LCP spec, before React
-         mounts). The two tear-half siblings render the same "ks." markup
-         — they're visibility:hidden so they don't count as LCP candidates
-         until exit. When main.tsx adds .loader--exit, the whole-mark
-         hides, the two halves become visible at the exact same pixel
-         position (instant, invisible swap) and then animate ±50vh with
-         their panels, re-creating the tear effect. -->
+    <!-- LOADER. Ink SVG rect masked by static ks. glyph windows (paths extracted
+         from Plus Jakarta Sans 700 — no font dependency, no FOUT). The stains
+         group is grown by GSAP (main.tsx) to dissolve the ink and reveal the
+         settled hero. Corner meta is crisp cream HTML on the ink. -->
     <div id="loader" aria-hidden="true">
-      <div class="loader-half loader-half--top"></div>
-      <div class="loader-half loader-half--bottom"></div>
-      <span class="loader-mark loader-mark--whole">ks<span class="loader-mark__dot"></span></span>
-      <span class="loader-mark loader-mark--top" aria-hidden="true">ks<span class="loader-mark__dot"></span></span>
-      <span class="loader-mark loader-mark--bottom" aria-hidden="true">ks<span class="loader-mark__dot"></span></span>
+      <div class="loader-standin"></div>
+      <svg class="loader-ink" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="loader-stain-rough" x="-30%" y="-30%" width="160%" height="160%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="1" seed="7" result="n" />
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <mask id="loader-mask">
+            <rect x="-20" y="-20" width="140" height="140" fill="#fff" />
+            <g transform="translate(30.74 39.34) scale(0.02861)" fill="#000">
+              <path d="M60.5 745.0V-12.0H191.75V484.25L141.75 469.5L397.75 201.5H560.75L359.75 420.25L564.75 745.0H414.75L237.25 463.0L314.5 447.5L151.0 623.5L191.75 542.75V745.0Z" />
+              <path d="M814.5 757.0Q727.75 757.0 663.375 715.375Q599.0 673.75 574.5 603.0L672.75 556.5Q694.25 601.75 731.625 627.75Q769.0 653.75 814.5 653.75Q850.5 653.75 871.5 638.125Q892.5 622.5 892.5 595.75Q892.5 579.75 884.0 569.25Q875.5 558.75 861.25 551.25Q847.0 543.75 829.5 539.0L740.5 514.0Q671.75 494.5 636.5 453.125Q601.25 411.75 601.25 355.75Q601.25 305.75 626.75 268.5Q652.25 231.25 697.75 210.375Q743.25 189.5 801.5 189.5Q878.5 189.5 937.75 226.5Q997.0 263.5 1021.5 330.25L922.25 376.75Q908.25 340.0 875.25 318.25Q842.25 296.5 800.75 296.5Q767.75 296.5 748.625 311.25Q729.5 326.0 729.5 350.5Q729.5 365.5 737.5 376.25Q745.5 387.0 760.25 394.25Q775.0 401.5 793.5 407.0L881.0 433.0Q948.25 452.75 984.375 493.125Q1020.5 533.5 1020.5 591.25Q1020.5 640.5 994.5 677.75Q968.5 715.0 922.5 736.0Q876.5 757.0 814.5 757.0Z" />
+              <path d="M1153.5 745.0V605.0H1286.0V745.0Z" />
+            </g>
+            <g class="loader-stains" filter="url(#loader-stain-rough)" fill="#000">
+              <circle cx="28" cy="30" r="0" />
+              <circle cx="72" cy="26" r="0" />
+              <circle cx="24" cy="72" r="0" />
+              <circle cx="76" cy="74" r="0" />
+              <circle cx="50" cy="50" r="0" />
+              <circle cx="52" cy="36" r="0" />
+            </g>
+          </mask>
+        </defs>
+        <rect x="-20" y="-20" width="140" height="140" fill="#0B0E14" mask="url(#loader-mask)" />
+      </svg>
+      <div class="loader-meta loader-meta--tl"><span>kevin shibuya</span><span>senior front-end engineer</span></div>
+      <div class="loader-meta loader-meta--tr"><span>porto alegre, br</span><span>−30.03, −51.23</span></div>
+      <div class="loader-meta loader-meta--bl"><span>portfolio · 2026</span></div>
+      <div class="loader-meta loader-meta--br"><span>react · typescript · webgl</span></div>
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

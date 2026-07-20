@@ -1,10 +1,12 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import { gsap } from 'gsap'
+import { CustomEase } from 'gsap/CustomEase'
 import './i18n'
 import './index.css'
 import App from './App.tsx'
-import { MotionProvider, resolveCurtain } from './context/MotionContext'
+import { MotionProvider, resolveCurtain, resolveEntrance } from './context/MotionContext'
 
 // Take ownership of scroll restoration so the browser doesn't fight our
 // per-route handling: full reload starts at top + plays the hero entrance
@@ -39,60 +41,78 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Curtain controller. The loader in index.html paints at first frame
-// (LCP candidate locked there). We lift the curtain when BOTH:
-//   (a) React has mounted and committed at least one paint (double rAF), AND
-//   (b) a minimum dwell has elapsed (so even instant React mounts on cached
-//       reloads still show the loader long enough to be perceived).
-// A 3 s hard fallback always lifts the curtain even if React stalls.
-//
-// After lifting:
-//   1. .loader--exit class triggers the CSS transitions (panels slide apart
-//      over 600 ms, or 150 ms opacity fade under prefers-reduced-motion).
-//   2. setTimeout removes the loader element from the DOM.
-//   3. resolveCurtain() flips the MotionContext signal that the Hero GSAP
-//      entrance effect awaits before starting its paint-bloom + rise timeline.
+// Loader controller. The ink SVG loader in index.html paints at first byte;
+// the ks. glyph windows show the stand-in gradient, then (post-mount) the live
+// hero shader. We dissolve the ink with a GSAP stain bleed once React has
+// painted + a min dwell has elapsed, then resolve the curtain + entrance gates.
+gsap.registerPlugin(CustomEase)
+CustomEase.create('house', '0.22,1,0.36,1') // idempotent; Hero also registers it
+
 const reduceMotion = (() => {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches }
   catch { return false }
 })()
 const MIN_DWELL_MS = reduceMotion ? 200 : 600
 const MAX_WAIT_MS = 3000
-// MUST match .loader-half transition-duration in src/index.css (and the
-// reduced-motion #loader opacity transition there). If the CSS changes,
-// update this number too — otherwise the loader is removed mid-transition.
-const TRANSITION_MS = reduceMotion ? 150 : 600
 
 const loaderEl = document.getElementById('loader')
 const startedAt = performance.now()
 let lifted = false
 
+// Stamp the loader gate for the scroll-lock CSS + e2e specs (Task 1). The
+// hook useScrollLockDuringEntrance also drives this attribute; both writers
+// converge on 'done' once resolveEntrance() fires.
+document.body.dataset.loaderState = 'loading'
+
+const finishLoader = (): void => {
+  loaderEl?.remove()
+  document.documentElement.removeAttribute('data-loading')
+  document.body.dataset.loaderState = 'done'
+  resolveCurtain()
+  resolveEntrance()
+}
+
 const liftCurtain = (): void => {
   if (lifted) return
   lifted = true
-  if (loaderEl) {
-    loaderEl.classList.add('loader--exit')
-    window.setTimeout(() => {
-      loaderEl.remove()
-      document.documentElement.removeAttribute('data-loading')
-      resolveCurtain()
-    }, TRANSITION_MS + 50)
-  } else {
-    // No loader element (defensive): still resolve the curtain so the hero
-    // entrance doesn't stall in a misconfigured deploy.
+  if (!loaderEl) {
+    // Defensive: no loader element (misconfigured deploy). Still release the
+    // scroll lock so the page isn't frozen, and resolve both gates.
+    document.documentElement.removeAttribute('data-loading')
+    document.body.dataset.loaderState = 'done'
     resolveCurtain()
+    resolveEntrance()
+    return
   }
+  if (reduceMotion) {
+    // No bleed: fade the whole loader (CSS opacity 150ms), then remove.
+    loaderEl.classList.add('loader--exit')
+    window.setTimeout(finishLoader, 200)
+    return
+  }
+  // Ink bleed: grow the stains in the SVG mask to fully dissolve the ink.
+  const stains = loaderEl.querySelectorAll<SVGCircleElement>('.loader-stains circle')
+  const ENDS = [55, 55, 55, 55, 50, 48]
+  const DELAYS = [0, 0.08, 0.16, 0.1, 0.2, 0.26]
+  if (stains.length === 0) {
+    finishLoader()
+    return
+  }
+  const tl = gsap.timeline({ onComplete: finishLoader })
+  stains.forEach((c, i) => {
+    tl.to(c, { attr: { r: ENDS[i] ?? 55 }, duration: 0.6, ease: 'house' }, DELAYS[i] ?? 0)
+  })
 }
 
-// Hard fallback — always lift within MAX_WAIT, no matter what.
+// Hard fallback — always start the lift within MAX_WAIT.
 window.setTimeout(liftCurtain, MAX_WAIT_MS)
 
-// Schedule the normal lift: after React has painted at least once
-// (double rAF) AND min-dwell has elapsed.
+// After React has painted at least once (double rAF): reveal the live shader
+// through the windows (fade the stand-in), then start the bleed after dwell.
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
+    loaderEl?.classList.add('loader--mounted')
     const elapsed = performance.now() - startedAt
-    const remaining = Math.max(0, MIN_DWELL_MS - elapsed)
-    window.setTimeout(liftCurtain, remaining)
+    window.setTimeout(liftCurtain, Math.max(0, MIN_DWELL_MS - elapsed))
   })
 })

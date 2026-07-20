@@ -361,20 +361,20 @@ strong {
 }
 
 /* =========================================================================
-   LOADER + CURTAIN — paints at first frame from index.html, lifts via
-   main.tsx after React mounts + min-dwell.
+   LOADER — ink SVG loader, paints at first frame from index.html, bleeds
+   away via main.tsx after React mounts + min-dwell.
 
-   Structure: two solid ink .loader-half panels + three text spans that
-   each render "ks" + a styled blue dot ("ks." brand mark). The
-   .loader-mark--whole is visible at first paint and serves as the LCP
-   candidate; the two tear-halves are visibility:hidden clip-pathed copies
-   positioned at the same pixel coordinates. On .loader--exit the
-   whole-mark flips hidden, the halves flip visible (pixel-identical
-   swap), and each half translates ±50vh with its panel — the mark
-   appears to tear horizontally as the curtain opens.
+   Structure: a full-viewport ink SVG <rect> masked by static "ks." glyph
+   windows (paths extracted from Plus Jakarta Sans 700 — no font dependency,
+   no FOUT) over a dim tricolor .loader-standin gradient that reads as paint
+   pre-React. On mount main.tsx adds .loader--mounted to fade the stand-in
+   (revealing the live hero canvas behind #loader) and grows the mask's stain
+   circles via GSAP to dissolve the ink. Corner .loader-meta blocks are crisp
+   cream HTML on the ink.
 
-   Same rules are inlined in index.html so the curtain paints with the
-   first byte of HTML, before this bundled stylesheet arrives.
+   Same rules are inlined in index.html so the loader paints with the first
+   byte of HTML, before this bundled stylesheet arrives; the cascade here is
+   a no-op re-declaration.
    ========================================================================= */
 html[data-loading='true'] {
   overflow: hidden;
@@ -385,86 +385,75 @@ html[data-loading='true'] {
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
 }
 
-.loader-half {
-  position: fixed;
-  left: 0;
-  width: 100vw;
-  height: 50vh;
-  background: #0B0E14; /* --bg — fallback hex; token may not be parsed yet for the loader's first paint */
-  transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
+/* Dim tricolor stand-in behind the windows: reads as paint before React
+   mounts the live shader (mirrors the hero fallback gradient). Subtly
+   animated (spec §3) via a compositor-cheap transform drift so the paint
+   breathes pre-React; the mount fade uses opacity (separate channel). */
+.loader-standin {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(60% 80% at 20% 30%, rgba(230, 77, 102, 0.50), transparent 70%),
+    radial-gradient(50% 70% at 80% 25%, rgba(77, 128, 230, 0.50), transparent 70%),
+    radial-gradient(70% 60% at 55% 80%, rgba(230, 204, 77, 0.35), transparent 70%),
+    #0B0E14;
+  opacity: 1;
+  transition: opacity 300ms ease-out;
+  animation: loaderStandinDrift 7s ease-in-out infinite alternate;
   will-change: transform;
 }
 
-.loader-half--top    { top: 0;    }
-.loader-half--bottom { bottom: 0; }
+@keyframes loaderStandinDrift {
+  from { transform: scale(1) translate3d(0, 0, 0); }
+  to   { transform: scale(1.05) translate3d(-1.5%, 1.5%, 0); }
+}
 
-.loader-mark {
+/* On React mount main.tsx adds .loader--mounted → fade the stand-in so the
+   windows reveal the live (already-looping) hero canvas behind #loader. */
+#loader.loader--mounted .loader-standin { opacity: 0; }
+
+.loader-ink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.loader-meta {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: clamp(140px, 30vw, 320px);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.05em;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
   text-transform: lowercase;
   color: #F5F2EC; /* --text — fallback hex */
-  white-space: nowrap;
 }
 
-.loader-mark__dot {
-  display: inline-block;
-  width: 0.18em;
-  height: 0.18em;
-  border-radius: 50%;
-  background: #4D80E6; /* --accent-blue — fallback hex */
-  vertical-align: baseline;
-  margin-left: 0.02em;
+.loader-meta--tl { top: 28px; left: 28px; text-align: left; }
+.loader-meta--tr { top: 28px; right: 28px; text-align: right; }
+.loader-meta--bl { bottom: 28px; left: 28px; text-align: left; }
+.loader-meta--br { bottom: 28px; right: 28px; text-align: right; }
+
+@media (max-width: 640px) {
+  .loader-meta { font-size: 10px; }
+  .loader-meta--tl, .loader-meta--bl { left: 18px; }
+  .loader-meta--tr, .loader-meta--br { right: 18px; }
 }
 
-.loader-mark--whole {
-  position: relative;
-  z-index: 1; /* sits above the .loader-half panels */
-}
-
-.loader-mark--top,
-.loader-mark--bottom {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  visibility: hidden; /* hidden so they aren't counted as LCP candidates */
-  transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
-}
-
-.loader-mark--top    { clip-path: inset(0 0 50% 0); } /* keep only the top half */
-.loader-mark--bottom { clip-path: inset(50% 0 0 0); } /* keep only the bottom half */
-
-/* Curtain exit: triggered by main.tsx adding .loader--exit to #loader. */
-#loader.loader--exit .loader-half--top    { transform: translateY(-100%); }
-#loader.loader--exit .loader-half--bottom { transform: translateY(100%);  }
-#loader.loader--exit .loader-mark--whole  { visibility: hidden; }
-#loader.loader--exit .loader-mark--top,
-#loader.loader--exit .loader-mark--bottom { visibility: visible; }
-#loader.loader--exit .loader-mark--top    { transform: translate(-50%, calc(-50% - 50vh)); }
-#loader.loader--exit .loader-mark--bottom { transform: translate(-50%, calc(-50% + 50vh)); }
-
-/* Reduced motion: skip the slide; fade the whole loader out instead. */
+/* Reduced motion: no bleed — fade the whole loader out; no stand-in drift. */
 @media (prefers-reduced-motion: reduce) {
-  .loader-half,
-  .loader-mark--top,
-  .loader-mark--bottom {
-    transition: none;
-  }
-  #loader {
-    transition: opacity 150ms ease-out;
-  }
-  #loader.loader--exit {
-    opacity: 0;
-  }
+  #loader { transition: opacity 150ms ease-out; }
+  #loader.loader--exit { opacity: 0; }
+  .loader-standin { transition: none; animation: none; }
 }
 
 /* Scramble lettering — cursor affordance + design-system focus ring.

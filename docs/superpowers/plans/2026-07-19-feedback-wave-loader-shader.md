@@ -570,7 +570,7 @@ git commit -m "feat(stage): contact/footer backdrop = FluidWaves backdrop; delet
 
 **Design (ratified spec §3):** full-viewport `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">` — ink `<rect>` masked by `#loader-mask` = white rect (ink visible) + black `ks.` glyph paths (transparent windows) + a `.loader-stains` group (black circles, start `r=0`, grown by GSAP to dissolve the ink). Behind the SVG, a `.loader-standin` div paints the dim tricolor gradient so windows read as paint pre-React; on mount it fades to reveal the live hero canvas behind `#loader`. Four corner cream-on-ink HTML meta blocks. `xMidYMid slice` guarantees the ink always covers the viewport and the mark stays centered + undistorted (square viewBox scales uniformly); covering the whole `0..100` box covers any aspect-ratio crop.
 
-- [ ] **Step 1: Replace the loader `<style>` block in `index.html`**
+- [x] **Step 1: Replace the loader `<style>` block in `index.html`**
 
 Replace the entire `<style>…</style>` block currently at lines ~342–402 (the `html[data-loading]`, `#loader`, `.loader-half*`, `.loader-mark*`, exit, reduced-motion rules — keep the `@font-face` rule) with:
 
@@ -638,7 +638,7 @@ Replace the entire `<style>…</style>` block currently at lines ~342–402 (the
     </style>
 ```
 
-- [ ] **Step 2: Replace the `<div id="loader">` markup in `index.html`**
+- [x] **Step 2: Replace the `<div id="loader">` markup in `index.html`**
 
 Replace the whole `<div id="loader" aria-hidden="true">…</div>` block (the two `.loader-half` panels + three `.loader-mark` spans) with:
 
@@ -683,11 +683,11 @@ Replace the whole `<div id="loader" aria-hidden="true">…</div>` block (the two
 
 (Note: minus signs in the TR coords are the U+2212 MINUS `−`, matching the hero anatomy convention; separators are `·`.)
 
-- [ ] **Step 3: Mirror the loader CSS in `src/index.css`**
+- [x] **Step 3: Mirror the loader CSS in `src/index.css`**
 
 Replace the entire `/* LOADER + CURTAIN … */` block (~lines 363–468, from `html[data-loading='true']` through the reduced-motion `@media` closing brace) with the SAME rules as Step 1 (minus the `@font-face`, which lives elsewhere in the sheet). Keep the block comment header describing the new structure. The rules must be identical to the inline ones so the bundled sheet is a no-op re-declaration — this INCLUDES the animated `.loader-standin` (`animation: loaderStandinDrift …`), the `@keyframes loaderStandinDrift`, and the reduced-motion `.loader-standin { animation: none; }` override. Do not drop the keyframes when mirroring.
 
-- [ ] **Step 4: Rewrite the curtain controller in `src/main.tsx`**
+- [x] **Step 4: Rewrite the curtain controller in `src/main.tsx`**
 
 Replace everything from the `const reduceMotion = …` line to end-of-file with the bleed orchestration. Add the GSAP imports at the top of the file (after the existing imports):
 
@@ -775,17 +775,17 @@ import { MotionProvider, resolveCurtain, resolveEntrance } from './context/Motio
 ```
 (`resolveEntrance` is already exported from MotionContext — see its `export { resolveCurtain, resolveEntrance }`.)
 
-- [ ] **Step 5: Typecheck + lint**
+- [x] **Step 5: Typecheck + lint**
 
 Run: `npm run build && npm run lint`
 Expected: clean. (AttrPlugin for `attr:{r}` is in gsap core — no extra registration.)
 
-- [ ] **Step 6: e2e loader**
+- [x] **Step 6: e2e loader**
 
 Run: `npm run test:e2e -- loader`
 Expected: GREEN (SVG mask + 3 glyph paths + 4 meta blocks present; `kevin shibuya` visible; loader removed after bleed; zero console errors; reduced-motion fade path removes the loader).
 
-- [ ] **Step 7: Real-browser mount smoke (boot-path, per Global Constraints) — scoped to what Task 4 can show**
+- [x] **Step 7: Real-browser mount smoke (boot-path, per Global Constraints) — scoped to what Task 4 can show**
 
 > **Important (review fix):** at THIS task the hero is not yet settled — `.hero-canvas` is still CSS `opacity: 0` and the Hero GSAP timeline holds it at `autoAlpha 0` until `curtainGone` (both removed in Task 5). So once the stand-in fades on mount, the glyph windows reveal an opacity-0 hero canvas = ink-on-ink → the `ks.` mark reads as invisible/ink here, BY DESIGN, until Task 5. Do NOT try to confirm "windows show live shader paint" or "bleed reveals the settled hero" in Task 4 — those move to Task 5's smoke.
 
