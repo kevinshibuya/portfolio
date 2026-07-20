@@ -45,8 +45,15 @@ createRoot(document.getElementById('root')!).render(
 // the ks. glyph windows show the stand-in gradient, then (post-mount) the live
 // hero shader. We dissolve the ink with a GSAP stain bleed once React has
 // painted + a min dwell has elapsed, then resolve the curtain + entrance gates.
-gsap.registerPlugin(CustomEase)
-CustomEase.create('house', '0.22,1,0.36,1') // idempotent; Hero also registers it
+// Guarded so a GSAP init failure can never abort this module before the hard
+// fallback below is armed — otherwise data-loading would leave the page
+// scroll-locked on a blank screen forever.
+try {
+  gsap.registerPlugin(CustomEase)
+  CustomEase.create('house', '0.22,1,0.36,1') // idempotent; Hero also registers it
+} catch {
+  // 'house' ease unavailable — the bleed falls back to a default ease below.
+}
 
 const reduceMotion = (() => {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches }
@@ -98,10 +105,16 @@ const liftCurtain = (): void => {
     finishLoader()
     return
   }
-  const tl = gsap.timeline({ onComplete: finishLoader })
-  stains.forEach((c, i) => {
-    tl.to(c, { attr: { r: ENDS[i] ?? 55 }, duration: 0.6, ease: 'house' }, DELAYS[i] ?? 0)
-  })
+  // If GSAP ever throws building the bleed, finish immediately rather than
+  // stranding the loader (and the scroll lock) on screen.
+  try {
+    const tl = gsap.timeline({ onComplete: finishLoader })
+    stains.forEach((c, i) => {
+      tl.to(c, { attr: { r: ENDS[i] ?? 55 }, duration: 0.6, ease: 'house' }, DELAYS[i] ?? 0)
+    })
+  } catch {
+    finishLoader()
+  }
 }
 
 // Hard fallback — always start the lift within MAX_WAIT.

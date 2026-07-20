@@ -957,7 +957,8 @@ html[data-loading='true'] {
 
 /* =========================================================================
    LOADER SCROLL LOCK — keyed off body[data-loader-state="loading"], which
-   useScrollLockDuringLoader sets on mount and clears when handoff resolves.
+   main.tsx sets on mount (and useScrollLockDuringEntrance mirrors it),
+   cleared when the entrance handoff resolves.
    Belt-and-braces: lock both <html> and <body>; pin touch-action so iOS
    Safari doesn't bypass overflow:hidden via momentum scroll.
    ========================================================================= */

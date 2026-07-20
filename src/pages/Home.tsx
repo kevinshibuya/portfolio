@@ -53,7 +53,7 @@ export function Home() {
   // The contact/footer WebGL backdrop (canvas #2) is the heaviest below-the-fold
   // asset, so it mounts only once the user scrolls within 120% of the stage —
   // an IntersectionObserver on the stage wrapper flips this once, then
-  // disconnects. Until then the three.js chunk never loads. A React 19
+  // disconnects. Until then the backdrop canvas never mounts. A React 19
   // cleanup-returning callback ref arms the observer the moment the stage node
   // commits (it sits behind the outer Suspense, so a plain mount effect could
   // fire before the node exists).
