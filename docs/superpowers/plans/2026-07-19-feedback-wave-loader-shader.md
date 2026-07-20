@@ -966,7 +966,7 @@ Expected: build clean; `tests/unit/WorkRow.test.tsx` (existing) GREEN; `tests/un
 Run: `npm run test:e2e -- rows-hover`
 Expected: GREEN (rows tint on hover; stagger finishes). Manually confirm at `npx vite preview` that the Projects/Archive float appears AT the cursor on first hover (no diagonal fly-in from the top-left).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/ui/WorkRow.tsx
