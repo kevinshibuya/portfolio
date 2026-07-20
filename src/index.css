@@ -238,12 +238,13 @@ strong {
 }
 
 /* Canvas layer — FluidWaves (position:absolute; inset:0) fills this box.
-   opacity 0 at first paint; the entrance fades in + settles the 1.045 scale. */
+   Settled from first paint (opacity 1): the ink-bleed loader IS the entrance,
+   dissolving onto an already-final hero — no timeline holds this hidden. */
 .hero-canvas {
   position: absolute;
   inset: 0;
   z-index: 0;
-  opacity: 0;
+  opacity: 1;
 }
 
 /* MANDATORY contrast scrim (contrast table) — darkens the bottom band where
@@ -275,7 +276,7 @@ strong {
      the top scrim has decayed (~0.36 alpha at 132px) and axe abstains over
      canvas — faded's 13px AA margin is unprovable there. */
   color: var(--text-muted);
-  opacity: 0; /* entrance fades this in */
+  opacity: 1; /* settled from first paint — the loader bleed is the entrance */
 }
 
 .hero-bottom {
@@ -289,22 +290,12 @@ strong {
   gap: 18px;
 }
 
-/* Overflow-clip wrapper for every rise — nothing overflows the mask mid-flight. */
-.hero-mask {
-  display: block;
-  overflow: hidden;
-}
-.hero-role-mask {
+/* Role line: keeps the layout role the retired clip wrapper held (left-align
+   the inline role above the name, tiny breathing space). No overflow clip —
+   the entrance rise is gone; Framer Motion owns the inner .hero-role cycle. */
+.hero-role-line {
   align-self: flex-start;
   padding-bottom: 2px;
-}
-
-/* GSAP animates this wrapper's yPercent (the entrance rise); the deferred
-   effect gsap.set's the hidden state before the curtain lifts, so no CSS
-   pre-transform is needed (a CSS translateY would compound with yPercent).
-   Framer Motion owns the inner .hero-role (cycle swap) — separate element. */
-.hero-role-rise {
-  display: inline-block;
 }
 .hero-role {
   display: inline-block;
@@ -334,17 +325,10 @@ strong {
   text-transform: lowercase;
   color: var(--text);
 }
-/* GSAP animates each line's yPercent (staggered rise). Hidden state is set by
-   the deferred effect (gsap.set) behind the loader curtain — see .hero-role-rise. */
+/* Name lines. Each on its own row; settled at identity transform from first
+   paint (no entrance rise). Kept as a class for stable CSS + e2e selectors. */
 .hero-line {
   display: block;
-}
-
-/* Reduced motion: rest the fade layers visible so the deferred snap has
-   nothing to flash past (the entrance effect gsap.set's the same final state). */
-@media (prefers-reduced-motion: reduce) {
-  .hero-canvas { opacity: 1; }
-  .hero-meta { opacity: 1; }
 }
 
 /* Visually-hidden helper (screen-reader-only text). Standard a11y pattern. */
