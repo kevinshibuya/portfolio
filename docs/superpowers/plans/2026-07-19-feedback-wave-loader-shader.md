@@ -427,17 +427,17 @@ git commit -m "test(wave): RED batch — FluidWaves, ink-bleed loader, backdrop 
    (Under reduced motion there is no loop, but `data-paused="true"` off-screen is still semantically correct and satisfies the contract; no e2e asserts its ABSENCE.)
 5. **Backdrop dimming is CSS only (spec §2):** the backdrop canvas is opaque paint; `.fluid-waves-canvas--backdrop { opacity: 0.22; filter: saturate(0.7); }` composites it toward the stage ink. **Note the value is 0.22, not the spec's ~0.32** — see Task 7 and Spec Concerns for the AA rationale; this is the AA-verified murmur strength. An opaque canvas with CSS `opacity` over the `#0B0E14` stage bg is the correct, shader-change-free dimming.
 
-- [ ] **Step 1: Create `src/components/canvas/FluidWaves.tsx`** per the contract above (smooth shader, both variants, rAF-from-mount, `alpha:false`, IO/reduced-motion/context-loss preserved). No `entranceDone` import.
+- [x] **Step 1: Create `src/components/canvas/FluidWaves.tsx`** per the contract above (smooth shader, both variants, rAF-from-mount, `alpha:false`, IO/reduced-motion/context-loss preserved). No `entranceDone` import.
 
-- [ ] **Step 2: Point Hero at the shared component**
+- [x] **Step 2: Point Hero at the shared component**
 
 In `src/components/sections/Hero.tsx`: change the import `import { FluidWavesHero } from '../canvas/FluidWavesHero'` → `import { FluidWaves } from '../canvas/FluidWaves'`, and the JSX inside `.hero-canvas` from `<FluidWavesHero />` → `<FluidWaves variant="hero" />`. (Hero's entrance timeline is untouched here — Task 5 removes it.)
 
-- [ ] **Step 3: Delete the old component**
+- [x] **Step 3: Delete the old component**
 
 Run: `git rm src/components/canvas/FluidWavesHero.tsx`
 
-- [ ] **Step 4: Add backdrop CSS**
+- [x] **Step 4: Add backdrop CSS**
 
 In `src/index.css`, in the `/* FLUID WAVES (canvas #1) */` block (~line 1745), append:
 ```css
@@ -454,17 +454,17 @@ In `src/index.css`, in the `/* FLUID WAVES (canvas #1) */` block (~line 1745), a
 }
 ```
 
-- [ ] **Step 5: Typecheck + lint + unit**
+- [x] **Step 5: Typecheck + lint + unit**
 
 Run: `npm run build && npm run test:unit -- FluidWaves && npm run lint`
 Expected: build clean; `tests/unit/FluidWaves.test.tsx` GREEN (both variants); lint clean.
 
-- [ ] **Step 6: e2e hero shader**
+- [x] **Step 6: e2e hero shader**
 
 Run: `npm run test:e2e -- hero-shader`
 Expected: GREEN (hero canvas `data-canvas="fluid-waves"` mounts, pauses off-screen, reduced-motion static). Manually confirm at `npx vite preview` that the hero paint is smooth (no quantization blocks) and animates immediately (no frozen-shader delay).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/components/canvas/FluidWaves.tsx src/components/sections/Hero.tsx src/index.css
