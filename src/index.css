@@ -842,8 +842,9 @@ html[data-loading='true'] {
 .contact-row:hover .contact-label-arrow { opacity: 1; }
 .contact-meta {
   font-size: 13px;
-  /* --text #F5F2EC, not the retired light-era cream #F6F9FC */
-  color: rgba(245, 242, 236, 0.5);
+  /* --text #F5F2EC. Alpha .5→.62: AA over the 0.22-dimmed backdrop worst case
+     (rgb(57,56,41)) = 5.17:1. Hover-reveal opacity 0→1 is separate + untouched. */
+  color: rgba(245, 242, 236, 0.62);
   text-transform: lowercase;
   opacity: 0;
   transform: translateX(8px);

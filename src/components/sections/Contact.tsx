@@ -97,7 +97,7 @@ function ContactRow({ num, label, meta, href, download }: ContactRowData) {
       download={download ? '' : undefined}
       className="contact-row"
     >
-      <span className="contact-num">{num}</span>
+      <span className="contact-num" aria-hidden="true">{num}</span>
       <span className="contact-label">
         {label}
         <span className="contact-label-arrow">→</span>

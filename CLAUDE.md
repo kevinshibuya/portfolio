@@ -41,6 +41,22 @@ Dark ink + WebGL shader craft. Lowercase, monumental, confident — cream text o
 - **Section flow**: Hero → Projects → Archive → WorkExperience (expandable) → Stats → Skills → Contact → Footer. Work-first order (baseline behavior; no reorder needed by this plan).
 - **NO**: Light cream/sand theme, bento cards, numbered-table embed rows, MarqueeDivider ghost-text dividers, ink-draw hero entrance (`HeroNameDrawing`, `glyphPaths`, extracted glyph paths), scramble text (`ScrambleText`/`useScramble`, deleted as dead code), the R3F hero accent (`HeroAccent3D`/`HeroAccentSilhouette`, `@react-three/fiber`/`@react-three/drei` removed), a third canvas anywhere on the page, spinning loaders, spaced em-dashes (` — `) in reader-facing prose — use `·`.
 - **Standing rule**: any palette/token change ships with a recomputed AA contrast audit across every affected text/background pair (the plan's contrast table is the authority for the current hexes) — verified, not hoped.
+- **Contact/Footer contrast over the dimmed `FluidWaves` backdrop stage** (webgl-pivot Task 7, ratified): the Contact/Footer stage's `FluidWaves` backdrop canvas composites at `.fluid-waves-canvas--backdrop { opacity: 0.22; filter: saturate(0.7); }` over `--bg` `#0B0E14` — note `0.22`, not the spec's ~0.32; this lower value is what makes the table below pass. Worst case = brightest tricolor `#E6CC4D` under `saturate(0.7)` composited at `0.22` over `#0B0E14` ≈ `rgb(57,56,41)`. Recomputed contrast (post-remedy):
+
+  | Contact/Footer text | color | size | ratio | AA needed | verdict |
+  |---|---|---|---|---|---|
+  | `.contact-title` | `--text` cream | huge | 8.9:1 | 3.0 (large) | ✅ |
+  | `.contact-title em` | `--blue-300` #7AA0ED | huge | 4.58:1 | 3.0 (large) | ✅ |
+  | `.contact-lede` | rgba(246,249,252,.6) | 18px | 5.19:1 | 4.5 | ✅ |
+  | `.section-index` (contact) | `--blue-200` #7AA0ED | small | 4.58:1 | 4.5 | ✅ |
+  | `.contact-label` | `--text` cream | 20–32px | 8.9:1 | 4.5 | ✅ |
+  | `.contact-icon` | `--blue-200` | 16px | 4.58:1 | 4.5 | ✅ |
+  | `.footer-name` | `--text` cream | huge | 8.9:1 | 3.0 | ✅ |
+  | `.footer-*` meta / `.footer-lang` | `--text-faded` #A8A49C | 11px | 4.79:1 | 4.5 | ✅ |
+  | `.contact-num` | rgba(246,249,252,.4) | 10px | 3.19:1 | — | ✅ decorative exemption (`aria-hidden="true"`, WCAG 1.4.3 note 1 — matches `.workrow-index`, `WorkRow.tsx`) |
+  | `.contact-meta` | rgba(245,242,236,.62) | 13px, hover-revealed | 5.17:1 | 4.5 | ✅ (remedy: alpha `.5`→`.62`) |
+
+  All always-visible pairs are ≥4.5:1 (or ≥3.0:1 for large text). `.contact-num` is purely ordinal enumeration (`'01'..'04'`) with no semantic role — its accessible name comes from `.contact-label`/`href` — so it is marked `aria-hidden="true"` and exempt from 1.4.3, the same pattern already used by `.workrow-index`; no recolor needed. `.contact-meta` (the real hover-revealed email/@handle/cv-filename text) got its color alpha raised `0.5`→`0.62` (4.95:1→5.17:1) — its `opacity: 0→1` hover-reveal transition is a separate mechanism, untouched by this change.
 
 ## Animation Library Usage Rules
 **NEVER mix these libraries for the same animation. Each has a lane:**
