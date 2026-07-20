@@ -223,7 +223,7 @@ strong {
 }
 
 /* =========================================================================
-   HERO — full-viewport dark stage. FluidWavesHero canvas behind, a contrast
+   HERO — full-viewport dark stage. FluidWaves canvas behind, a contrast
    scrim over it, then the text plane: right-aligned meta below the nav and a
    monumental bottom-anchored signature name with the role cycle directly
    above it. Entrance transforms (canvas fade/scale, clipped role + name
@@ -237,7 +237,7 @@ strong {
   background: var(--bg);
 }
 
-/* Canvas layer — FluidWavesHero (position:absolute; inset:0) fills this box.
+/* Canvas layer — FluidWaves (position:absolute; inset:0) fills this box.
    opacity 0 at first paint; the entrance fades in + settles the 1.045 scale. */
 .hero-canvas {
   position: absolute;
@@ -771,7 +771,7 @@ html[data-loading='true'] {
 /* =========================================================================
    CONTACT / FOOTER STAGE (canvas #2 backdrop)
    The stage owns the dark background so Contact + Footer sit transparent over
-   the LiningWaves canvas. --bg (#0B0E14) matches the shader's clear color, so
+   the FluidWaves backdrop canvas. --bg (#0B0E14) matches the shader's clear color, so
    the stage reads seamless before the lazy canvas mounts / if WebGL fails.
    ========================================================================= */
 .contact-footer-stage {

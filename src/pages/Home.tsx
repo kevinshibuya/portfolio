@@ -30,8 +30,6 @@ const Contact = lazy(() =>
 const Footer = lazy(() =>
   import('../components/layout/Footer').then((m) => ({ default: m.Footer }))
 )
-// Canvas #2. Default-export module → no unwrap. Deliberately NOT in the idle-warm
-// list: the three.js chunk must not load until the user scrolls near the stage.
 // Canvas #2. Named export → unwrap. Deliberately NOT idle-warmed: the WebGL
 // backdrop must not mount until the user scrolls near the stage.
 const FluidWavesBackdrop = lazy(() =>
