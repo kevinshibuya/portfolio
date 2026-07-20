@@ -274,12 +274,17 @@ strong {
   gap: 18px;
 }
 
-/* Entrance-rise row wrapper. No overflow clip — Framer slides the inner
-   element up from y:55% to 0% on entrance, fully visible (a clip made the
-   rise feel cut; unclipped reads smoother). Kept as a block row so each name
-   line stacks and the role's focus ring / descenders never get clipped. */
+/* Clip mask for the entrance rise: each row hides its line below the edge, and
+   Framer translates the inner element from y:110% to 0% so the letters emerge
+   out of nothing. Overflow is released to visible once the rise settles
+   (.hero-bottom.is-entered) so the role focus ring and glyph descenders aren't
+   clipped at rest. */
 .hero-line-mask {
   display: block;
+  overflow: hidden;
+}
+.hero-bottom.is-entered .hero-line-mask {
+  overflow: visible;
 }
 
 /* Role line: left-aligns the inline role above the name with a tiny breathing

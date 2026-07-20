@@ -14,19 +14,30 @@ export function Hero(): ReactElement {
   const { prefersReducedMotion, entranceDone, entranceBypassed } = useMotion()
 
   // Entrance rise. The ink-bleed loader reveals the shader; the hero text then
-  // slides up into place (no overflow clip) once the bleed nears completion
-  // (main.tsx resolves entranceDone at ~80% of the bleed). Reduced-motion and
-  // SPA back-nav skip straight to the settled state — no rise.
+  // rises out of its clip masks once the bleed nears completion (main.tsx
+  // resolves entranceDone at ~60% of the bleed). `riseSettled` releases the
+  // clip to overflow:visible only AFTER the rise finishes, so the role focus
+  // ring and glyph descenders aren't clipped at rest. Reduced-motion and SPA
+  // back-nav skip straight to the settled state — no rise.
   const instant = prefersReducedMotion || entranceBypassed
   const [entered, setEntered] = useState(instant)
+  const [riseSettled, setRiseSettled] = useState(instant)
   useEffect(() => {
     if (instant) return
     let cancelled = false
+    let releaseTimer: ReturnType<typeof setTimeout> | undefined
     entranceDone.then(() => {
-      if (!cancelled) setEntered(true)
+      if (cancelled) return
+      setEntered(true)
+      // Release the clip once the last line has finished rising (max delay
+      // 0.16 + duration 0.9, plus a small buffer).
+      releaseTimer = setTimeout(() => {
+        if (!cancelled) setRiseSettled(true)
+      }, 1150)
     })
     return () => {
       cancelled = true
+      if (releaseTimer) clearTimeout(releaseTimer)
     }
   }, [instant, entranceDone])
 
@@ -92,13 +103,13 @@ export function Hero(): ReactElement {
       </div>
       <div className="hero-scrim" aria-hidden="true" />
 
-      <div className="hero-bottom">
-        {/* Role line slides up first; the inner Framer AnimatePresence owns the
-            separate click/keyboard cycle swap. */}
+      <div className={`hero-bottom${riseSettled ? ' is-entered' : ''}`}>
+        {/* Role line rises first out of its clip mask; the inner Framer
+            AnimatePresence owns the separate click/keyboard cycle swap. */}
         <div className="hero-line-mask hero-role-line">
           <motion.div
-            initial={{ y: instant ? '0%' : '55%' }}
-            animate={{ y: entered ? '0%' : '55%' }}
+            initial={{ y: instant ? '0%' : '110%' }}
+            animate={{ y: entered ? '0%' : '110%' }}
             transition={rise(0)}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -131,8 +142,8 @@ export function Hero(): ReactElement {
           <span className="hero-line-mask">
             <motion.span
               className="hero-line"
-              initial={{ y: instant ? '0%' : '55%' }}
-              animate={{ y: entered ? '0%' : '55%' }}
+              initial={{ y: instant ? '0%' : '110%' }}
+              animate={{ y: entered ? '0%' : '110%' }}
               transition={rise(0.08)}
             >
               {t('hero.name1')}
@@ -141,8 +152,8 @@ export function Hero(): ReactElement {
           <span className="hero-line-mask">
             <motion.span
               className="hero-line"
-              initial={{ y: instant ? '0%' : '55%' }}
-              animate={{ y: entered ? '0%' : '55%' }}
+              initial={{ y: instant ? '0%' : '110%' }}
+              animate={{ y: entered ? '0%' : '110%' }}
               transition={rise(0.16)}
             >
               {t('hero.name2')}

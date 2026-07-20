@@ -102,29 +102,38 @@ const liftCurtain = (): void => {
   // staggered starts read as ink soaking outward rather than a snap.
   const stains = loaderEl.querySelectorAll<SVGCircleElement>('.loader-stains circle')
   const ENDS = [55, 55, 55, 55, 50, 48]
-  const DELAYS = [0, 0.16, 0.32, 0.2, 0.4, 0.54]
-  const STAIN_DURATION = 1.3
+  // Wide, uneven stagger + a gentle ease-out (power2, not the front-loaded
+  // house) so each stain visibly creeps outward across the whole duration
+  // rather than snapping to full size — reads as ink soaking, not a wipe.
+  const DELAYS = [0, 0.18, 0.36, 0.26, 0.5, 0.66]
+  const STAIN_DURATION = 1.8
+  const STAIN_EASE = 'power2.out'
   if (stains.length === 0) {
     finishLoader()
     return
   }
-  // Overlap the reveal with the tail of the bleed: at ~80% (the ink is
-  // essentially gone, only the last stains are finishing) fire the hero rise
-  // and fade the loader labels, so there's no dead gap between "ink cleared"
+  // Overlap the reveal with the tail of the bleed: at ~60% fire the hero rise
+  // and fade the loader labels, so there's no dead gap between "ink clearing"
   // and "text starts". finishLoader still removes the loader at 100%.
   const handoff = (): void => {
     loaderEl.classList.add('loader--handoff')
     resolveCurtain()
     resolveEntrance()
   }
+  // Total bleed span = latest start + one stain duration.
+  const BLEED_TOTAL = Math.max(...DELAYS) + STAIN_DURATION
   // If GSAP ever throws building the bleed, finish immediately rather than
   // stranding the loader (and the scroll lock) on screen.
   try {
     const tl = gsap.timeline({ onComplete: finishLoader })
     stains.forEach((c, i) => {
-      tl.to(c, { attr: { r: ENDS[i] ?? 55 }, duration: STAIN_DURATION, ease: 'house' }, DELAYS[i] ?? 0)
+      tl.to(c, { attr: { r: ENDS[i] ?? 55 }, duration: STAIN_DURATION, ease: STAIN_EASE }, DELAYS[i] ?? 0)
     })
-    tl.call(handoff, undefined, tl.duration() * 0.8)
+    // Fire the handoff at 60% of the bleed. Plain setTimeout (wall-clock) rather
+    // than a GSAP callback — both start when this runs, and GSAP's scheduled
+    // position callbacks proved unreliable here. The timeline keeps playing to
+    // onComplete → finishLoader removes the loader at 100%.
+    window.setTimeout(handoff, BLEED_TOTAL * 0.6 * 1000)
   } catch {
     finishLoader()
   }
