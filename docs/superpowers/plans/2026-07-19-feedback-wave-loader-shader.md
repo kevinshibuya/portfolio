@@ -825,11 +825,11 @@ git commit -m "feat(loader): ks. window mark + ink-bleed exit; main.tsx orchestr
 
 Net: `entranceDone` stays in the public shape and is resolved by `main.tsx` (fresh load, motion + reduced) and `bypassEntrance()` (SPA back-nav). Hero no longer resolves it. No consumer churns.
 
-- [ ] **Step 1: Delete the entrance effect + unused imports in `Hero.tsx`**
+- [x] **Step 1: Delete the entrance effect + unused imports in `Hero.tsx`**
 
 Remove the entire entrance `useEffect` (the `heroRef`-driven timeline: `gsap.utils.selector`, the reduced-motion/bypass `gsap.set` branch, the `gsap.context` timeline, `curtainGone.then(run)`, cleanup). Remove the now-unused imports: `gsap`, `CustomEase`, `curtainGone`, and the module-scope `gsap.registerPlugin(CustomEase)` + `CustomEase.create('house', …)` lines. Drop `resolveEntrance`, `entranceBypassed` from the `useMotion()` destructure (keep `prefersReducedMotion`). Keep `heroRef` only if still referenced; otherwise remove it and the `ref={heroRef}` on `<section>`.
 
-- [ ] **Step 2: Simplify the hero markup (masks retired)**
+- [x] **Step 2: Simplify the hero markup (masks retired)**
 
 The role + name no longer need clip-rise wrappers. Replace the `.hero-bottom` inner markup:
 ```tsx
@@ -868,7 +868,7 @@ The role + name no longer need clip-rise wrappers. Replace the `.hero-bottom` in
 ```
 Keep the `.hero-line` class on the two name spans (still styled `display:block`; the e2e no longer asserts a transform on it, but the class is harmless and keeps CSS stable). The Framer `AnimatePresence` role cycle is untouched (that is hover/state animation, not the retired entrance).
 
-- [ ] **Step 3: Hero settled CSS**
+- [x] **Step 3: Hero settled CSS**
 
 In `src/index.css`:
 - `.hero-canvas { … opacity: 0; }` → `opacity: 1;` (settled from first paint).
@@ -876,22 +876,22 @@ In `src/index.css`:
 - Delete the now-unreferenced `.hero-role-mask`, `.hero-role-rise` rules and the `overflow: hidden` `.hero-mask` rule IF `.hero-mask`/`.hero-role-rise`/`.hero-role-mask` no longer appear in any TSX (grep to confirm — Step 4). Add a minimal `.hero-role-line { align-self: flex-start; padding-bottom: 2px; }` to replace `.hero-role-mask`'s layout role.
 - Delete the reduced-motion `@media` block that force-set `.hero-canvas`/`.hero-meta` opacity to 1 (now the default) — or leave it as a harmless no-op; prefer deleting for cleanliness.
 
-- [ ] **Step 4: Grep for orphaned classes**
+- [x] **Step 4: Grep for orphaned classes**
 
 Run: `grep -rn "hero-mask\|hero-role-rise\|hero-role-mask\|curtainGone\|entranceBypassed" src`
 Confirm the only remaining hits are in `MotionContext.tsx` (`curtainGone`/`entranceBypassed` public API) and `Home.tsx`/`useScrollLockDuringEntrance.ts` (`bypassEntrance`/`entranceBypassed` consumers) — NOT in `Hero.tsx` or hero CSS. Record findings in the task notes. Remove any Hero-local orphans found.
 
-- [ ] **Step 5: Typecheck + lint + unit**
+- [x] **Step 5: Typecheck + lint + unit**
 
 Run: `npm run build && npm run test:unit -- Hero && npm run lint`
 Expected: build clean (no unused `gsap`/`curtainGone`), `tests/unit/Hero.test.tsx` GREEN, lint clean.
 
-- [ ] **Step 6: e2e entrance + shader + shell smokes**
+- [x] **Step 6: e2e entrance + shader + shell smokes**
 
 Run: `npm run test:e2e -- hero-entrance hero-shader section-enters reduced-motion`
 Expected: ALL GREEN — including the Task-5 discriminator (`.hero-line` at identity transform WHILE the loader is up), hero name settled (opacity 1, canonical role), nav `is-visible`, scroll released after bleed, reduced-motion fast+settled, sections still enter, shader unaffected.
 
-- [ ] **Step 7: Real-browser visual smoke (the confirmation deferred from Task 4)**
+- [x] **Step 7: Real-browser visual smoke (the confirmation deferred from Task 4)**
 
 Now that the hero is settled (canvas opacity 1, no timeline holding it), the full loader story is visible. At `npx vite preview --port 4173`, watch a fresh load on BOTH a wide and a narrow window and confirm by eye:
 - the `ks.` glyph windows show LIVE tricolor shader paint through the ink (stand-in → live-shader swap is seamless);
@@ -899,7 +899,7 @@ Now that the hero is settled (canvas opacity 1, no timeline holding it), the ful
 - the ink bleeds away via organic staggered stains and reveals the SETTLED hero (name + role in final position, no rise);
 - smooth shader on the hero; zero console errors.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/components/sections/Hero.tsx src/index.css
