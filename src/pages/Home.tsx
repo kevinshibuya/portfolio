@@ -32,7 +32,11 @@ const Footer = lazy(() =>
 )
 // Canvas #2. Default-export module → no unwrap. Deliberately NOT in the idle-warm
 // list: the three.js chunk must not load until the user scrolls near the stage.
-const LiningWavesBackdrop = lazy(() => import('../components/canvas/LiningWavesBackdrop'))
+// Canvas #2. Named export → unwrap. Deliberately NOT idle-warmed: the WebGL
+// backdrop must not mount until the user scrolls near the stage.
+const FluidWavesBackdrop = lazy(() =>
+  import('../components/canvas/FluidWaves').then((m) => ({ default: m.FluidWaves }))
+)
 
 const STORAGE_KEY = 'portfolio:home:scrollY'
 
@@ -238,7 +242,7 @@ export function Home() {
         <Skills />
         <div className="contact-footer-stage" ref={stageRef}>
           <Suspense fallback={null}>
-            {stageApproached && <LiningWavesBackdrop />}
+            {stageApproached && <FluidWavesBackdrop variant="backdrop" />}
           </Suspense>
           <Contact />
           <Footer />

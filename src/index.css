@@ -779,8 +779,6 @@ html[data-loading='true'] {
   background: var(--bg);
   isolation: isolate;
 }
-.lining-waves-backdrop { position: absolute; inset: 0; z-index: 0; }
-.lining-waves-backdrop canvas { display: block; width: 100%; height: 100%; }
 .contact-footer-stage > .section--contact,
 .contact-footer-stage > .footer {
   position: relative;

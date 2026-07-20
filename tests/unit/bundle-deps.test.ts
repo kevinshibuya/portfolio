@@ -6,7 +6,7 @@ describe('runtime dependency surface', () => {
     const allowed = new Set([
       '@tailwindcss/vite', 'framer-motion', 'gsap',
       'i18next', 'lenis', 'react', 'react-dom', 'react-i18next',
-      'react-router-dom', 'tailwindcss', 'three',
+      'react-router-dom', 'tailwindcss',
     ])
     for (const dep of Object.keys(pkg.dependencies)) {
       expect(allowed, `unexpected runtime dep: ${dep}`).toContain(dep)
