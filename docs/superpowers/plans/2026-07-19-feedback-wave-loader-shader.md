@@ -1009,7 +1009,7 @@ Every affected pair now passes AA or is a documented decorative exemption. Ratio
 - **`.contact-num`** renders `{num}` (`'01'..'04'`, purely ordinal enumeration) and — unlike the rest — carries NO semantic role; the row's accessible name comes from `.contact-label`/`href`. The codebase's own precedent is `.workrow-index`, which is `aria-hidden="true"` (`WorkRow.tsx:107`). Marking `.contact-num` `aria-hidden="true"` makes it a decoration exempt from WCAG 1.4.3 (contrast applies to text that conveys information; decorative text is exempt). This is the correct + codebase-consistent fix — no recolor needed.
 - **`.contact-meta`** renders `{meta}` (the email address, `@handle`, cv filename) — REAL informational text, hover-revealed. Computed: `#F5F2EC` at alpha `0.60` → 4.95:1, `0.62` → 5.17:1 over `rgb(57,56,41)`. Ship `0.62` for margin. The `opacity: 0 → 1` hover-reveal mechanism is untouched (that is `opacity`, separate from the color's alpha channel).
 
-- [ ] **Step 1: Decorative exemption for `.contact-num`**
+- [x] **Step 1: Decorative exemption for `.contact-num`**
 
 In `src/components/sections/Contact.tsx`, change line ~100:
 ```tsx
@@ -1020,7 +1020,7 @@ to:
 <span className="contact-num" aria-hidden="true">{num}</span>
 ```
 
-- [ ] **Step 2: Alpha remedy for `.contact-meta`**
+- [x] **Step 2: Alpha remedy for `.contact-meta`**
 
 In `src/index.css`, in the `.contact-meta` rule, change:
 ```css
@@ -1034,16 +1034,16 @@ to:
   color: rgba(245, 242, 236, 0.62);
 ```
 
-- [ ] **Step 3: Record the recomputed table in `CLAUDE.md`**
+- [x] **Step 3: Record the recomputed table in `CLAUDE.md`**
 
 In the Design Direction "Standing rule" / contrast area, add the table above (contact/footer text over the `0.22`-dimmed `FluidWaves` backdrop), stating: worst case `#E6CC4D` × `saturate(0.7)` @ 0.22 over `#0B0E14`; ALL affected pairs pass; `.contact-num` is a decorative exemption (`aria-hidden`, matching `.workrow-index`); `.contact-meta` alpha raised to `0.62` (5.17:1); backdrop opacity is `0.22` for AA (ratified, not the spec's ~0.32).
 
-- [ ] **Step 4: Verify + lint**
+- [x] **Step 4: Verify + lint**
 
 Run: `npm run build && npm run lint && npm run test:e2e -- dark-tokens`
 Expected: clean; `dark-tokens` still green (page renders on the dark system, zero console errors). Manually confirm at `npx vite preview` that the contact meta (email/handle) is legible over the brightest backdrop region on hover.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/sections/Contact.tsx src/index.css CLAUDE.md
@@ -1105,17 +1105,17 @@ git commit -m "docs(design): rewrite Canvases/Loader/Entrance/NO-list for the sh
 
 **Files:** none (verification + tick spec TODOs).
 
-- [ ] **Step 1: Full unit + typecheck + lint**
+- [x] **Step 1: Full unit + typecheck + lint**
 
 Run: `npm run build && npm run test:unit && npm run lint`
 Expected: build clean, unit ALL green (was 60; now 60 − 1 deleted FluidWavesHero + 1 FluidWaves(×2 cases) + 1 WorkRow.float ≈ 61–62), lint clean.
 
-- [ ] **Step 2: Full e2e**
+- [x] **Step 2: Full e2e**
 
 Run: `npm run test:e2e`
 Expected: all green (loader, hero-entrance, hero-shader, contact-waves, rows-hover, section-enters, reduced-motion, perf-budget, dark-tokens across desktop + mobile projects); prior skips preserved.
 
-- [ ] **Step 3: Lighthouse + LCP (preview, restart after build) — with a pre-agreed remediation ladder**
+- [x] **Step 3: Lighthouse + LCP (preview, restart after build) — with a pre-agreed remediation ladder**
 
 Run: `npm run build`, then `npx vite preview --port 4173`, then Lighthouse on `http://localhost:4173`. Record perf, and the LCP time AND element.
 
