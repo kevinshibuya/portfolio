@@ -380,14 +380,12 @@
         font-size: 12px; line-height: 1.4; letter-spacing: 0.01em;
         text-transform: lowercase; color: #F5F2EC;
       }
-      .loader-meta--tl { top: 28px; left: 28px; text-align: left; }
-      .loader-meta--tr { top: 28px; right: 28px; text-align: right; }
       .loader-meta--bl { bottom: 28px; left: 28px; text-align: left; }
       .loader-meta--br { bottom: 28px; right: 28px; text-align: right; }
       @media (max-width: 640px) {
         .loader-meta { font-size: 10px; }
-        .loader-meta--tl, .loader-meta--bl { left: 18px; }
-        .loader-meta--tr, .loader-meta--br { right: 18px; }
+        .loader-meta--bl { left: 18px; }
+        .loader-meta--br { right: 18px; }
       }
       /* Reduced motion: no bleed — fade the whole loader out; no stand-in drift. */
       @media (prefers-reduced-motion: reduce) {
@@ -441,8 +439,6 @@
         </defs>
         <rect x="-20" y="-20" width="140" height="140" fill="#0B0E14" mask="url(#loader-mask)" />
       </svg>
-      <div class="loader-meta loader-meta--tl"><span>kevin shibuya</span><span>senior front-end engineer</span></div>
-      <div class="loader-meta loader-meta--tr"><span>porto alegre, br</span><span>−30.03, −51.23</span></div>
       <div class="loader-meta loader-meta--bl"><span>portfolio · 2026</span></div>
       <div class="loader-meta loader-meta--br"><span>react · typescript · webgl</span></div>
     </div>

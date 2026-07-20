@@ -101,6 +101,10 @@ html, body {
      horizontal overflow from off-screen animations. */
   overflow-x: clip;
 }
+/* Reserve the scrollbar gutter at all times so releasing the loader's
+   overflow lock (data-loading / data-loader-state) doesn't reflow the page
+   sideways by a scrollbar width on devices with classic (non-overlay) bars. */
+html { scrollbar-gutter: stable; }
 body { font-weight: 400; }
 ::selection { background: var(--accent-blue); color: var(--bg); }
 
@@ -259,26 +263,6 @@ strong {
     linear-gradient(to bottom, rgba(11,14,20,0.75) 0%, rgba(11,14,20,0) 28%);
 }
 
-.hero-meta {
-  position: absolute;
-  top: 132px;
-  right: 80px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  text-align: right;
-  font-size: 13px;
-  line-height: 1.4;
-  letter-spacing: 0.01em;
-  text-transform: lowercase;
-  /* --text-muted, not --text-faded: this text floats over the shader where
-     the top scrim has decayed (~0.36 alpha at 132px) and axe abstains over
-     canvas — faded's 13px AA margin is unprovable there. */
-  color: var(--text-muted);
-  opacity: 1; /* settled from first paint — the loader bleed is the entrance */
-}
-
 .hero-bottom {
   position: absolute;
   left: 80px;
@@ -290,9 +274,20 @@ strong {
   gap: 18px;
 }
 
-/* Role line: keeps the layout role the retired clip wrapper held (left-align
-   the inline role above the name, tiny breathing space). No overflow clip —
-   the entrance rise is gone; Framer Motion owns the inner .hero-role cycle. */
+/* Clip mask for the entrance rise: each row hides its line below the edge, and
+   Framer translates the inner element from y:110% to 0% once the loader bleed
+   completes. Overflow is released to visible after entrance (.is-entered) so
+   the role's focus ring and any glyph descenders aren't clipped at rest. */
+.hero-line-mask {
+  display: block;
+  overflow: hidden;
+}
+.hero-bottom.is-entered .hero-line-mask {
+  overflow: visible;
+}
+
+/* Role line: left-aligns the inline role above the name with a tiny breathing
+   space; Framer Motion owns the inner .hero-role cycle swap. */
 .hero-role-line {
   align-self: flex-start;
   padding-bottom: 2px;
@@ -325,8 +320,8 @@ strong {
   text-transform: lowercase;
   color: var(--text);
 }
-/* Name lines. Each on its own row; settled at identity transform from first
-   paint (no entrance rise). Kept as a class for stable CSS + e2e selectors. */
+/* Name lines. Each sits inside its own .hero-line-mask row and rises from
+   y:110% to 0% on entrance (Framer, in Hero.tsx). */
 .hero-line {
   display: block;
 }
@@ -422,15 +417,13 @@ html[data-loading='true'] {
   color: #F5F2EC; /* --text — fallback hex */
 }
 
-.loader-meta--tl { top: 28px; left: 28px; text-align: left; }
-.loader-meta--tr { top: 28px; right: 28px; text-align: right; }
 .loader-meta--bl { bottom: 28px; left: 28px; text-align: left; }
 .loader-meta--br { bottom: 28px; right: 28px; text-align: right; }
 
 @media (max-width: 640px) {
   .loader-meta { font-size: 10px; }
-  .loader-meta--tl, .loader-meta--bl { left: 18px; }
-  .loader-meta--tr, .loader-meta--br { right: 18px; }
+  .loader-meta--bl { left: 18px; }
+  .loader-meta--br { right: 18px; }
 }
 
 /* Reduced motion: no bleed — fade the whole loader out; no stand-in drift. */
@@ -919,7 +912,6 @@ html[data-loading='true'] {
   /* Hero children are absolutely positioned (padding on .hero would inset
      the full-bleed canvas), so track the narrower page gutter directly. */
   .hero-bottom { left: 40px; right: 40px; }
-  .hero-meta { right: 40px; }
 }
 
 /* Skills steps down 3 → 2 → 1 col across desktop / tablet / mobile.
@@ -950,9 +942,8 @@ html[data-loading='true'] {
   .section { padding: 100px 20px; }
 
   /* Hero on a phone: hug the 20px gutter, lift the bottom anchor off the
-     home indicator, and drop the meta below the compact nav. */
+     home indicator. */
   .hero-bottom { left: 20px; right: 20px; bottom: 56px; gap: 14px; }
-  .hero-meta { top: 96px; right: 20px; font-size: 12px; }
 }
 
 /* =========================================================================

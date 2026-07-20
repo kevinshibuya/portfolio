@@ -6,10 +6,36 @@ import { FluidWaves } from '../canvas/FluidWaves'
 
 const ROLE_DURATION_MS = 5000
 
+const RISE_EASE = [0.22, 1, 0.36, 1] as const
+
 export function Hero(): ReactElement {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
-  const { prefersReducedMotion } = useMotion()
+  const { prefersReducedMotion, entranceDone, entranceBypassed } = useMotion()
+
+  // Entrance rise. The ink-bleed loader reveals the shader; the hero text then
+  // rises out of its clip masks once the bleed completes (main.tsx resolves
+  // entranceDone at that point). Reduced-motion and SPA back-nav skip straight
+  // to the settled state — no rise, text present from first paint.
+  const instant = prefersReducedMotion || entranceBypassed
+  const [entered, setEntered] = useState(instant)
+  useEffect(() => {
+    if (instant) return
+    let cancelled = false
+    entranceDone.then(() => {
+      if (!cancelled) setEntered(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [instant, entranceDone])
+
+  // Rise transition per line; instant (duration 0) under reduced-motion/bypass.
+  const rise = (delay: number) => ({
+    duration: instant ? 0 : 0.9,
+    ease: RISE_EASE,
+    delay: instant ? 0 : delay,
+  })
 
   const roles = useMemo(() => {
     const value = t('hero.roles', { returnObjects: true })
@@ -53,11 +79,11 @@ export function Hero(): ReactElement {
 
   const activeRole = roles[roleIdx] ?? ''
 
-  // No entrance timeline. The ink-bleed loader (main.tsx) IS the entrance: it
-  // dissolves onto a hero that is already in its final settled state from the
-  // first React paint. main.tsx is the sole resolver of the entrance gate
-  // (finishLoader → resolveEntrance) on the normal path; bypassEntrance() owns
-  // the SPA back-nav path. Hero only renders — it never resolves the gate.
+  // The loader bleed reveals the shader; then the hero text rises in (above).
+  // main.tsx is the sole resolver of the entrance gate (finishLoader →
+  // resolveEntrance) on the normal path, which flips `entered`; bypassEntrance()
+  // owns the SPA back-nav path (instant). Hero only reads the gate — it never
+  // resolves it.
 
   return (
     <section id="top" className="hero">
@@ -66,44 +92,62 @@ export function Hero(): ReactElement {
       </div>
       <div className="hero-scrim" aria-hidden="true" />
 
-      <div className="hero-meta">
-        <span>{t('hero.meta.location')}</span>
-        <span>{t('hero.meta.availability')}</span>
-      </div>
-
-      <div className="hero-bottom">
-        <div className="hero-role-line">
-          {/* Framer Motion animates the .hero-role span (the click/keyboard
-              cycle swap). No entrance rise wrapper — the hero is settled from
-              first paint. */}
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.span
-              key={`${lang}-${roleIdx}`}
-              initial={{ y: 12, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -12, opacity: 0 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              whileTap={{ scale: 0.94 }}
-              className="hero-role"
-              onClick={cycleRole}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  cycleRole()
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label={`cycle role — currently ${activeRole}`}
-            >
-              {activeRole}
-            </motion.span>
-          </AnimatePresence>
+      <div className={`hero-bottom${entered ? ' is-entered' : ''}`}>
+        {/* Role line rises first out of its clip mask; the inner Framer
+            AnimatePresence owns the separate click/keyboard cycle swap. */}
+        <div className="hero-line-mask hero-role-line">
+          <motion.div
+            initial={{ y: instant ? '0%' : '110%' }}
+            animate={{ y: entered ? '0%' : '110%' }}
+            transition={rise(0)}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={`${lang}-${roleIdx}`}
+                initial={{ y: 12, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -12, opacity: 0 }}
+                transition={{ duration: 0.45, ease: RISE_EASE }}
+                whileTap={{ scale: 0.94 }}
+                className="hero-role"
+                onClick={cycleRole}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    cycleRole()
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`cycle role — currently ${activeRole}`}
+              >
+                {activeRole}
+              </motion.span>
+            </AnimatePresence>
+          </motion.div>
         </div>
 
         <h1 className="hero-name" aria-label={`${t('hero.name1')} ${t('hero.name2')}`}>
-          <span className="hero-line">{t('hero.name1')}</span>
-          <span className="hero-line">{t('hero.name2')}</span>
+          <span className="hero-line-mask">
+            <motion.span
+              className="hero-line"
+              initial={{ y: instant ? '0%' : '110%' }}
+              animate={{ y: entered ? '0%' : '110%' }}
+              transition={rise(0.08)}
+            >
+              {t('hero.name1')}
+            </motion.span>
+          </span>
+          <span className="hero-line-mask">
+            <motion.span
+              className="hero-line"
+              initial={{ y: instant ? '0%' : '110%' }}
+              animate={{ y: entered ? '0%' : '110%' }}
+              transition={rise(0.16)}
+            >
+              {t('hero.name2')}
+            </motion.span>
+          </span>
         </h1>
       </div>
     </section>

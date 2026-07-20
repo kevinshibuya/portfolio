@@ -7,8 +7,8 @@ test('loader shows the ks. window mark + corner meta, bleeds away, zero console 
   // Loader present at first with the SVG ink mask and 3 glyph-window paths.
   await expect(page.locator('#loader svg.loader-ink')).toHaveCount(1)
   expect(await page.locator('#loader mask#loader-mask path').count()).toBe(3)
-  await expect(page.locator('#loader .loader-meta')).toHaveCount(4)
-  await expect(page.locator('#loader')).toContainText('kevin shibuya')
+  await expect(page.locator('#loader .loader-meta')).toHaveCount(2)
+  await expect(page.locator('#loader')).toContainText('portfolio · 2026')
   // Bleed completes → loader removed, gate resolved.
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done', null, { timeout: 5000 })
   await expect(page.locator('#loader')).toHaveCount(0)

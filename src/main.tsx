@@ -98,9 +98,12 @@ const liftCurtain = (): void => {
     return
   }
   // Ink bleed: grow the stains in the SVG mask to fully dissolve the ink.
+  // Slow, eased spread — each stain creeps then floods (house ease-out), the
+  // staggered starts read as ink soaking outward rather than a snap.
   const stains = loaderEl.querySelectorAll<SVGCircleElement>('.loader-stains circle')
   const ENDS = [55, 55, 55, 55, 50, 48]
-  const DELAYS = [0, 0.08, 0.16, 0.1, 0.2, 0.26]
+  const DELAYS = [0, 0.16, 0.32, 0.2, 0.4, 0.54]
+  const STAIN_DURATION = 1.3
   if (stains.length === 0) {
     finishLoader()
     return
@@ -110,7 +113,7 @@ const liftCurtain = (): void => {
   try {
     const tl = gsap.timeline({ onComplete: finishLoader })
     stains.forEach((c, i) => {
-      tl.to(c, { attr: { r: ENDS[i] ?? 55 }, duration: 0.6, ease: 'house' }, DELAYS[i] ?? 0)
+      tl.to(c, { attr: { r: ENDS[i] ?? 55 }, duration: STAIN_DURATION, ease: 'house' }, DELAYS[i] ?? 0)
     })
   } catch {
     finishLoader()

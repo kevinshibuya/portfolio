@@ -1,42 +1,56 @@
 import { test, expect } from '@playwright/test'
 
-test('monumental name is real settled text with the canonical role', async ({ page }) => {
+// Helper: read the vertical translate (matrix f-component) of a .hero-line.
+// Identity/none → 0; mid-rise or hidden-below-the-clip → non-zero.
+const lineTranslateY = (el: Element): number => {
+  const tf = getComputedStyle(el).transform
+  if (tf === 'none') return 0
+  const m = tf.match(/matrix\(([^)]+)\)/)
+  if (!m) return 0
+  const parts = m[1].split(',').map((n) => parseFloat(n))
+  return parts[5] ?? 0
+}
+
+test('monumental name rises to a settled, identity position after the loader', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('h1.hero-name')).toContainText('kevin', { timeout: 2000 })
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done', null, { timeout: 5000 })
-  // Final-state assertion (passes pre- and post-Task-5 — NOT the discriminator).
+  // The rise plays after 'done' (delay + 0.9s); wait for the name to settle at
+  // identity transform (fully risen out of its clip mask).
+  await page.waitForFunction(
+    () => {
+      const el = document.querySelector('.hero-line')
+      if (!el) return false
+      const tf = getComputedStyle(el).transform
+      if (tf === 'none') return true
+      const m = tf.match(/matrix\(([^)]+)\)/)
+      const f = m ? parseFloat(m[1].split(',')[5]) : 0
+      return Math.abs(f) < 0.5
+    },
+    null,
+    { timeout: 4000 },
+  )
   const op = await page.locator('h1.hero-name').evaluate((el) => parseFloat(getComputedStyle(el).opacity))
   expect(op).toBeGreaterThan(0.99)
   await expect(page.locator('.hero-role')).toContainText('senior front-end engineer · react/typescript')
   await expect(page.locator('header.nav.is-visible')).toHaveCount(1)
 })
 
-// DISCRIMINATOR for Task 5 (settled-from-first-paint). Computed opacity is 1
-// throughout the retired cascade too, so opacity alone is a hollow gate. The
-// real tell is the TRANSFORM: the retired GSAP entrance held .hero-line at
-// yPercent:112 (a non-identity transform) while the loader was up, then rose it
-// to 0. Settled-from-first-paint means .hero-line sits at identity transform
-// even during 'loading'. This fails RED against pre-Task-5 code (non-identity
-// translateY present) and passes only once the entrance timeline is deleted.
-test('name is settled from first paint — identity transform while the loader is up', async ({ page }) => {
+// DISCRIMINATOR: the name is HIDDEN below its clip mask while the loader is up,
+// and only rises after the bleed. The retired "settled from first paint" build
+// held .hero-line at identity during 'loading'; the re-introduced entrance
+// holds it translated down (y:110%). This asserts the non-identity offset while
+// the loader is present, which fails against a settled-from-first-paint build.
+test('name is held below its clip mask while the loader is up (rises after)', async ({ page }) => {
   await page.goto('/')
-  // The min dwell (≥600ms) guarantees a ~1.5s 'loading' window; wait for the
-  // stamp (waitForFunction throws if it is never observed) rather than a
-  // race-prone immediate read. By the time 'loading' is observable, React has
-  // committed and both the loader-lock effect and the (retired) Hero entrance
-  // effect have run — so a lingering yPercent transform is already applied.
   await page.waitForFunction(() => document.body.dataset.loaderState === 'loading', null, { timeout: 3000 })
-  const line = page.locator('.hero-line').first()
-  const op = await line.evaluate((el) => parseFloat(getComputedStyle(el).opacity))
-  expect(op).toBeGreaterThan(0.99)
-  const transform = await line.evaluate((el) => getComputedStyle(el).transform)
-  expect(transform === 'none' || /matrix\(1, 0, 0, 1, 0, 0\)/.test(transform)).toBeTruthy()
+  const offset = await page.locator('.hero-line').first().evaluate(lineTranslateY)
+  // 110% of a huge clamp(64px,12vw,200px) line → clearly non-trivial px offset.
+  expect(Math.abs(offset)).toBeGreaterThan(20)
 })
 
 test('body scroll is locked while the loader is up, released after the bleed', async ({ page }) => {
   await page.goto('/')
-  // Robustly observe the 'loading' stamp (throws if never seen) instead of a
-  // race-prone immediate read, then wait for release.
   await page.waitForFunction(() => document.body.dataset.loaderState === 'loading', null, { timeout: 3000 })
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done', null, { timeout: 5000 })
   const overflowAfter = await page.evaluate(() => getComputedStyle(document.body).overflow)
@@ -45,11 +59,14 @@ test('body scroll is locked while the loader is up, released after the bleed', a
 
 test.describe('reduced motion', () => {
   test.use({ contextOptions: { reducedMotion: 'reduce' } })
-  test('reduced motion: hero settled fast, no bleed', async ({ page }) => {
+  test('reduced motion: hero settled fast, no rise', async ({ page }) => {
     const start = Date.now()
     await page.goto('/')
     await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
     expect(Date.now() - start).toBeLessThan(2500)
+    // Instant path: the name is already at identity (no rise animation).
+    const offset = await page.locator('.hero-line').first().evaluate(lineTranslateY)
+    expect(Math.abs(offset)).toBeLessThan(0.5)
     const op = await page.locator('h1.hero-name').evaluate((el) => parseFloat(getComputedStyle(el).opacity))
     expect(op).toBeGreaterThan(0.99)
   })
