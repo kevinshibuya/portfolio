@@ -919,7 +919,7 @@ git commit -m "feat(hero): retire GSAP entrance cascade — settled from first p
 **Files:**
 - Modify: `src/components/ui/WorkRow.tsx` (the `onMouseEnter` handler)
 
-- [ ] **Step 1: Teleport the tracking values on enter**
+- [x] **Step 1: Teleport the tracking values on enter**
 
 In `WorkRow.tsx`, replace the `hoverHandlers` block:
 ```tsx
@@ -956,12 +956,12 @@ with:
 ```
 (`handleMove` is unchanged — it still `.set()`s cursorX/Y for the smooth in-row tracking.)
 
-- [ ] **Step 2: Typecheck + lint + unit**
+- [x] **Step 2: Typecheck + lint + unit**
 
 Run: `npm run build && npm run test:unit -- WorkRow && npm run lint`
 Expected: build clean; `tests/unit/WorkRow.test.tsx` (existing) GREEN; `tests/unit/WorkRow.float.test.tsx` GREEN (`jump` called with 640 and 360 on enter); lint clean.
 
-- [ ] **Step 3: e2e rows hover (regression)**
+- [x] **Step 3: e2e rows hover (regression)**
 
 Run: `npm run test:e2e -- rows-hover`
 Expected: GREEN (rows tint on hover; stagger finishes). Manually confirm at `npx vite preview` that the Projects/Archive float appears AT the cursor on first hover (no diagonal fly-in from the top-left).

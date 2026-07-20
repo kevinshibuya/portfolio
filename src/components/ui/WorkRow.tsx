@@ -94,10 +94,23 @@ export function WorkRow(props: WorkRowProps): React.ReactElement {
     cursorY.set(e.clientY)
   }
 
+  // First hover: teleport BOTH the source (cursorX/Y) and the bound spring
+  // (springX/Y) to the pointer BEFORE showing the float, so it materializes at
+  // the cursor instead of spring-flying in from the (-400,-400) origin.
+  // jump() sets the value instantly and ends the active spring animation
+  // (Framer Motion v12). Subsequent onMouseMove keeps the tracking spring feel.
+  function handleEnter(e: React.MouseEvent) {
+    cursorX.jump(e.clientX)
+    cursorY.jump(e.clientY)
+    springX.jump(e.clientX)
+    springY.jump(e.clientY)
+    floatVisible.set(1)
+  }
+
   const hoverHandlers = showFloat
     ? {
         onMouseMove: handleMove,
-        onMouseEnter: () => floatVisible.set(1),
+        onMouseEnter: handleEnter,
         onMouseLeave: () => floatVisible.set(0),
       }
     : {}
