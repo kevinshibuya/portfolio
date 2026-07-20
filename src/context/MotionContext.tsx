@@ -4,10 +4,10 @@ import { useReducedMotion } from 'framer-motion'
 type Resolver = () => void
 
 interface MotionContextValue {
-  /** Resolves once the hero's GSAP entrance timeline completes (or is
-   *  bypassed / reduced-motion-snapped). Header, SmoothScroll, and the
-   *  rest of the hero cascade await this before becoming visible /
-   *  interactive.
+  /** Resolves once the loader ink-bleed completes (main.tsx finishLoader),
+   *  or immediately when bypassed (back-nav). The hero itself is settled
+   *  from first paint; Header and SmoothScroll await this before becoming
+   *  visible / interactive.
    *
    *  Module-scoped so the SAME promise instance survives React 19
    *  StrictMode remounts and any future MotionProvider unmount/remount —
@@ -15,12 +15,12 @@ interface MotionContextValue {
    *  an orphaned cycle-1 promise. */
   entranceDone: Promise<void>
   resolveEntrance: Resolver
-  /** Skips the hero entrance animation entirely and resolves the gate.
-   *  Used when restoring Home from back-navigation so the GSAP entrance
-   *  doesn't replay. */
+  /** Resolves the entrance gate immediately, skipping the loader bleed.
+   *  Used when restoring Home from back-navigation so the intro doesn't
+   *  replay. */
   bypassEntrance: Resolver
-  /** True once bypassEntrance() has been called. The Hero entrance effect
-   *  and useScrollLockDuringEntrance read this to skip animation / lock. */
+  /** True once bypassEntrance() has been called.
+   *  useScrollLockDuringEntrance reads this to skip the scroll lock. */
   entranceBypassed: boolean
   prefersReducedMotion: boolean
 }
@@ -32,10 +32,10 @@ const _entranceDone: Promise<void> = new Promise<void>((res) => {
 const resolveEntrance: Resolver = () => _resolveEntrance?.()
 
 // Module-scoped curtain handshake. The static loader in index.html paints
-// at first frame. main.tsx calls resolveCurtain() after the curtain
-// transition finishes lifting; the Hero GSAP entrance effect awaits
-// curtainGone before starting its timeline, so the paint-bloom + clipped
-// rises play on a clean stage rather than under the curtain.
+// at first frame; main.tsx calls resolveCurtain() when the ink-bleed
+// dissolve begins. curtainGone is currently unconsumed (the Hero timeline
+// that awaited it was retired with the entrance) but kept in the public
+// shape for symmetry with entranceDone and future stage handoffs.
 let _resolveCurtain: Resolver | null = null
 const _curtainGone: Promise<void> = new Promise<void>((res) => {
   _resolveCurtain = res
