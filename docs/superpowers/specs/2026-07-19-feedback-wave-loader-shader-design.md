@@ -78,15 +78,15 @@ ProjectDetail dark polish, legacy CSS-var alias cleanup, pt.json `projectDetail.
 
 ## TODO (acceptance criteria — tick only on passing test + review)
 
-- [ ] Shader renders smooth (no visible quantization blocks) on both canvases; DPR cap 1.5 retained; scatter/tricolor character preserved.
-- [ ] Single shared `FluidWaves` component powers hero (full) and contact/footer backdrop (dimmed ~30%); `LiningWavesBackdrop` fully deleted (component, styles, tests, imports).
-- [ ] Backdrop keeps lazy mount near viewport, IO pause, reduced-motion static frame, WebGL-failure fallback; hero fallback test-id still passes.
-- [ ] Shader rAF loop runs from mount (no `entranceDone` gate): paint is visibly animating during the loader bleed and immediately on hero reveal.
-- [ ] Loader shows ks. glyph-window mark (path outlines, no font dependency) + four-corner cream meta from first paint; windows show paint pre-React via the gradient stand-in, live shader post-mount, seamless swap.
-- [ ] Ink-bleed exit: staggered organic stains dissolve the ink over ~900 ms revealing the settled hero; loader removed; `resolveCurtain()`/`resolveEntrance()` fire; reduced-motion path = simple fade + static frame.
-- [ ] Hero entrance cascade deleted; hero renders settled from first React paint; role cycling and back-nav behavior unchanged.
-- [ ] WorkRow float materializes at the cursor on first hover (no fly-in from top-left) in Projects and Archive; tracking spring feel unchanged within the row.
-- [ ] Full battery green: unit + e2e (updated as one pre-implementation batch), typecheck, lint.
-- [ ] Lighthouse on `npx vite preview`: perf ≥ 95, LCP ≤ 1.5 s (baseline 97 / 0.9 s recorded above).
-- [ ] AA contrast table recomputed for contact/footer text over dimmed paint; all affected pairs pass.
-- [ ] CLAUDE.md Design Direction + memory files updated to the new system.
+- [x] Shader renders smooth (no visible quantization blocks) on both canvases; DPR cap 1.5 retained; scatter/tricolor character preserved.
+- [x] Single shared `FluidWaves` component powers hero (full) and contact/footer backdrop (dimmed ~30%); `LiningWavesBackdrop` fully deleted (component, styles, tests, imports).
+- [x] Backdrop keeps lazy mount near viewport, IO pause, reduced-motion static frame, WebGL-failure fallback; hero fallback test-id still passes.
+- [x] Shader rAF loop runs from mount (no `entranceDone` gate): paint is visibly animating during the loader bleed and immediately on hero reveal.
+- [x] Loader shows ks. glyph-window mark (path outlines, no font dependency) + four-corner cream meta from first paint; windows show paint pre-React via the gradient stand-in, live shader post-mount, seamless swap.
+- [x] Ink-bleed exit: staggered organic stains dissolve the ink over ~900 ms revealing the settled hero; loader removed; `resolveCurtain()`/`resolveEntrance()` fire; reduced-motion path = simple fade + static frame.
+- [x] Hero entrance cascade deleted; hero renders settled from first React paint; role cycling and back-nav behavior unchanged.
+- [x] WorkRow float materializes at the cursor on first hover (no fly-in from top-left) in Projects and Archive; tracking spring feel unchanged within the row.
+- [x] Full battery green: unit + e2e (updated as one pre-implementation batch), typecheck, lint.
+- [x] Lighthouse on `npx vite preview`: perf ≥ 95, LCP ≤ 1.5 s (baseline 97 / 0.9 s recorded above).
+- [x] AA contrast table recomputed for contact/footer text over dimmed paint; all affected pairs pass.
+- [x] CLAUDE.md Design Direction + memory files updated to the new system.
