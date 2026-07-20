@@ -10,7 +10,6 @@ const COLOR_3: [number, number, number] = [0.902, 0.8, 0.302]
 const DPR_CAP = 1.5
 const FLOW_SPEED = 0.35
 const CONTRAST = 2.0
-const PIXEL_FILTER = 700.0
 
 const vertexShader = `
   attribute vec2 position;
@@ -24,6 +23,8 @@ const vertexShader = `
 // fluid-swirl fragment shader, de-spun: the polar-angle pre-pass
 // (new_pixel_angle / spin_* uniforms) is replaced by a seeded crossed-sine
 // domain warp, so the paint drifts as scattered waves instead of orbiting.
+// Pixel quantization removed (Task 2, spec §1) — the UV is now sampled
+// directly for smooth, block-free paint.
 const fragmentShader = `
   precision highp float;
 
@@ -34,14 +35,11 @@ const fragmentShader = `
   uniform vec3 colour_2;
   uniform vec3 colour_3;
   uniform float contrast;
-  uniform float pixel_filter;
 
   varying vec2 vUv;
 
   vec4 effect(vec2 screenSize, vec2 screen_coords) {
-    float pixel_size = length(screenSize.xy) / pixel_filter;
-    vec2 uv = (floor(screen_coords.xy * (1.0 / pixel_size)) * pixel_size
-               - 0.5 * screenSize.xy) / length(screenSize.xy);
+    vec2 uv = (screen_coords.xy - 0.5 * screenSize.xy) / length(screenSize.xy);
 
     uv *= 30.0;
     float speed = time * ${FLOW_SPEED.toFixed(2)};
@@ -85,10 +83,10 @@ const fragmentShader = `
   }
 `
 
-export function FluidWavesHero(): ReactElement {
+export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [webglFailed, setWebglFailed] = useState(false)
-  const { prefersReducedMotion, entranceDone } = useMotion()
+  const { prefersReducedMotion } = useMotion()
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -140,7 +138,6 @@ export function FluidWavesHero(): ReactElement {
     const colour2Loc = gl.getUniformLocation(program, 'colour_2')
     const colour3Loc = gl.getUniformLocation(program, 'colour_3')
     const contrastLoc = gl.getUniformLocation(program, 'contrast')
-    const pixelFilterLoc = gl.getUniformLocation(program, 'pixel_filter')
 
     const buffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
@@ -154,11 +151,6 @@ export function FluidWavesHero(): ReactElement {
     const startTime = performance.now()
     let rafId: number | null = null
     let inView = true
-    let cancelled = false
-    // The continuous rAF loop is held until the hero entrance settles so its
-    // heavy per-frame shader work can't starve the GSAP entrance timeline on
-    // the shared main thread. One bloom frame is still drawn immediately.
-    let allowLoop = false
 
     const resize = (): void => {
       const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP)
@@ -178,7 +170,6 @@ export function FluidWavesHero(): ReactElement {
       gl.uniform3fv(colour2Loc, COLOR_2)
       gl.uniform3fv(colour3Loc, COLOR_3)
       gl.uniform1f(contrastLoc, CONTRAST)
-      gl.uniform1f(pixelFilterLoc, PIXEL_FILTER)
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
       gl.enableVertexAttribArray(positionLoc)
       gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0)
@@ -191,7 +182,7 @@ export function FluidWavesHero(): ReactElement {
     }
 
     const start = (): void => {
-      if (allowLoop && rafId === null && !prefersReducedMotion) {
+      if (rafId === null && !prefersReducedMotion) {
         rafId = requestAnimationFrame(loop)
       }
     }
@@ -210,39 +201,34 @@ export function FluidWavesHero(): ReactElement {
       canvas.dataset.static = 'true'
       drawFrame(seed * 10)
     } else {
-      // Immediate bloom frame so the entrance fade has content; the animated
-      // loop starts once the entrance gate resolves (uncontested main thread).
+      // rAF loop starts at mount (spec §2) — no entrance gate. One frame is
+      // drawn immediately so the first paint has content, then the IO starts
+      // the continuous loop while in view.
       drawFrame((performance.now() - startTime) / 1000)
-      entranceDone
-        .then(() => {
-          if (cancelled) return
-          allowLoop = true
-          if (inView) start()
-        })
-        .catch(() => {})
+      if (inView) start()
     }
 
-    // Pause the loop when the hero is off-screen. Also repaint one frame on
-    // re-entry under reduced motion (resize may have cleared the buffer).
+    // Pause the loop when off-screen. data-paused reflects visibility for
+    // EVERY canvas — reduced motion included (codex P2-3 fix) — set/cleared
+    // BEFORE the reduced-motion branch. Under reduced motion there is no loop,
+    // but one frame is repainted on re-entry (resize may have cleared it).
     const io = new IntersectionObserver(([entry]) => {
       inView = entry.isIntersecting
+      // Every canvas reflects visibility via data-paused — reduced motion too.
+      if (inView) canvas.removeAttribute('data-paused')
+      else canvas.dataset.paused = 'true'
       if (prefersReducedMotion) {
-        if (inView) drawFrame(seed * 10)
+        if (inView) drawFrame(seed * 10) // one-frame repaint on re-entry
         return
       }
-      if (inView) {
-        canvas.removeAttribute('data-paused')
-        start()
-      } else {
-        canvas.dataset.paused = 'true'
-        stop()
-      }
+      if (inView) start()
+      else stop()
     })
     io.observe(canvas)
 
     // WebGL context loss (GPU reset, tab-backgrounding on some drivers): stop
-    // the loop and drop to the gradient fallback rather than rendering a frozen
-    // or black canvas. preventDefault keeps the context recoverable.
+    // the loop and drop to the fallback rather than rendering a frozen or black
+    // canvas. preventDefault keeps the context recoverable.
     const handleContextLost = (e: Event): void => {
       e.preventDefault()
       stop()
@@ -251,7 +237,6 @@ export function FluidWavesHero(): ReactElement {
     canvas.addEventListener('webglcontextlost', handleContextLost, false)
 
     return () => {
-      cancelled = true
       stop()
       io.disconnect()
       window.removeEventListener('resize', resize)
@@ -261,11 +246,22 @@ export function FluidWavesHero(): ReactElement {
       gl.deleteShader(fShader)
       gl.deleteBuffer(buffer)
     }
-  }, [prefersReducedMotion, entranceDone])
+  }, [prefersReducedMotion, variant])
 
   if (webglFailed) {
-    return <div className="fluid-waves-fallback" data-testid="fluid-waves-fallback" aria-hidden="true" />
+    // Hero: layered-gradient fallback so the stage never renders black-on-black.
+    // Backdrop: nothing — the stage ink (#0B0E14) stands on its own.
+    return variant === 'hero'
+      ? <div className="fluid-waves-fallback" data-testid="fluid-waves-fallback" aria-hidden="true" />
+      : <></>
   }
 
-  return <canvas ref={canvasRef} className="fluid-waves-canvas" data-canvas="fluid-waves" aria-hidden="true" />
+  return (
+    <canvas
+      ref={canvasRef}
+      className={variant === 'hero' ? 'fluid-waves-canvas' : 'fluid-waves-canvas fluid-waves-canvas--backdrop'}
+      data-canvas={variant === 'hero' ? 'fluid-waves' : 'fluid-waves-backdrop'}
+      aria-hidden="true"
+    />
+  )
 }

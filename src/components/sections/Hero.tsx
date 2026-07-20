@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { gsap } from 'gsap'
 import { CustomEase } from 'gsap/CustomEase'
 import { useMotion, curtainGone } from '../../context/MotionContext'
-import { FluidWavesHero } from '../canvas/FluidWavesHero'
+import { FluidWaves } from '../canvas/FluidWaves'
 
 // House ease registered ONCE at module scope (T1). CustomEase ships in the
 // public `gsap` package. Used for the role + name clipped rises.
@@ -128,7 +128,7 @@ export function Hero(): ReactElement {
   return (
     <section id="top" className="hero" ref={heroRef}>
       <div className="hero-canvas">
-        <FluidWavesHero />
+        <FluidWaves variant="hero" />
       </div>
       <div className="hero-scrim" aria-hidden="true" />
 

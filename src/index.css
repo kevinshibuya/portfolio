@@ -1761,6 +1761,18 @@ body[data-loader-state="loading"] {
     var(--bg);
 }
 
+/* Backdrop variant (canvas #2, contact/footer stage). Opaque paint dimmed to
+   an AA-verified murmur via CSS over the stage ink. 0.22 (not ~0.32): keeps
+   contact/footer accent + faded text ≥ 4.5:1 over worst-case dimmed yellow
+   (Task 7 contrast table). */
+.fluid-waves-canvas--backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.22;
+  filter: saturate(0.7);
+}
+
 /* =========================================================================
    WORKROW — shared tinted typographic row primitive
    (Projects / Archive / Embeds / WorkExperience adopt this in Tasks 6–8.)
