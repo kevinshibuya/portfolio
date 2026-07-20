@@ -488,7 +488,7 @@ git commit -m "feat(canvas): shared FluidWaves — smooth shader, rAF from mount
 - Modify: `package.json` (remove `three`; `@types/three` if present)
 - Modify: `tests/unit/bundle-deps.test.ts` (remove `'three'` from the allowlist Set)
 
-- [ ] **Step 1: Swap the lazy import in `Home.tsx`**
+- [x] **Step 1: Swap the lazy import in `Home.tsx`**
 
 Replace (line ~35):
 ```tsx
@@ -503,7 +503,7 @@ const FluidWavesBackdrop = lazy(() =>
 )
 ```
 
-- [ ] **Step 2: Swap the stage render in `Home.tsx`**
+- [x] **Step 2: Swap the stage render in `Home.tsx`**
 
 In the `.contact-footer-stage` block, replace:
 ```tsx
@@ -514,11 +514,11 @@ with:
 {stageApproached && <FluidWavesBackdrop variant="backdrop" />}
 ```
 
-- [ ] **Step 3: Delete the component**
+- [x] **Step 3: Delete the component**
 
 Run: `git rm src/components/canvas/LiningWavesBackdrop.tsx`
 
-- [ ] **Step 4: Delete its CSS**
+- [x] **Step 4: Delete its CSS**
 
 In `src/index.css` remove the two lines:
 ```css
@@ -527,26 +527,26 @@ In `src/index.css` remove the two lines:
 ```
 (Keep `.contact-footer-stage` and the `> .section--contact / > .footer` rules.)
 
-- [ ] **Step 5: Drop the `three` dependency**
+- [x] **Step 5: Drop the `three` dependency**
 
 Confirm no remaining importers: `grep -rn "from 'three'\|@react-three\|@types/three" src` (expect zero after the deletion). Then:
 Run: `npm uninstall three` (and `npm uninstall @types/three` only if it appears in `package.json` devDependencies).
 
-- [ ] **Step 6: Remove `three` from the dependency allowlist**
+- [x] **Step 6: Remove `three` from the dependency allowlist**
 
 In `tests/unit/bundle-deps.test.ts`, delete `'three',` from the `allowed` Set literal (line 9).
 
-- [ ] **Step 7: Typecheck + lint + unit**
+- [x] **Step 7: Typecheck + lint + unit**
 
 Run: `npm run build && npm run test:unit -- bundle-deps && npm run lint`
 Expected: build clean (no `three` resolution errors), `bundle-deps` GREEN, lint clean.
 
-- [ ] **Step 8: e2e backdrop**
+- [x] **Step 8: e2e backdrop**
 
 Run: `npm run test:e2e -- contact-waves`
 Expected: GREEN (`data-canvas="fluid-waves-backdrop"` mounts on approach; ≤2 canvases; reduced-motion `data-static`).
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/pages/Home.tsx src/index.css package.json package-lock.json tests/unit/bundle-deps.test.ts
