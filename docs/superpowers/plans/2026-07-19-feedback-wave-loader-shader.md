@@ -791,7 +791,7 @@ Expected: GREEN (SVG mask + 3 glyph paths + 4 meta blocks present; `kevin shibuy
 
 Run: `npm run test:e2e -- loader` at `npx vite preview` (Playwright's webServer builds+serves). Confirm the ACHIEVABLE-at-Task-4 set: page loads, `#root` renders, the loader SVG + 3 glyph-window paths + 4 corner meta are present, the ink visibly dissolves via organic staggered stains (no hard-edged wipe, no residual ink at any corner) on both a wide and a narrow window, `#loader` is removed, the gates resolve (`loaderState` reaches `done`), and there are ZERO console errors.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add index.html src/index.css src/main.tsx
