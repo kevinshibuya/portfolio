@@ -76,7 +76,7 @@ git commit -m "feat(motion): add motion token layer (durations + house ease)"
 
 Budget model (Framer nested containers accumulate): last-child start = `(childCount-1) * stagger`; nested = outer last-column start + inner last-item start. Section item counts are fixed in `src/data/*`: Skills 6 categories × 7 skills, Projects 9, Stats 5, WorkExperience 5.
 
-- [ ] **Step 1: Write the failing test.** Append to `tests/unit/animations.test.ts`:
+- [x] **Step 1: Write the failing test.** Append to `tests/unit/animations.test.ts`:
 
 ```ts
 import { STAGGER_PRESETS } from '../../src/utils/animations'
@@ -100,9 +100,9 @@ describe('stagger budgets stay under the 500ms motion-design ceiling', () => {
 })
 ```
 
-- [ ] **Step 2: Run it — expect FAIL** (current values overflow). Run: `npx vitest run tests/unit/animations.test.ts` — Expected: the `skills` case FAILS (0.6 + 0.36 = 0.96 ≥ 0.5) and `projects` FAILS (0.8 ≥ 0.5).
+- [x] **Step 2: Run it — expect FAIL** (current values overflow). Run: `npx vitest run tests/unit/animations.test.ts` — Expected: the `skills` case FAILS (0.6 + 0.36 = 0.96 ≥ 0.5) and `projects` FAILS (0.8 ≥ 0.5).
 
-- [ ] **Step 3: Update presets.** In `src/utils/animations.ts`, change `STAGGER_PRESETS`:
+- [x] **Step 3: Update presets.** In `src/utils/animations.ts`, change `STAGGER_PRESETS`:
 
 ```ts
 export const STAGGER_PRESETS = {
@@ -115,9 +115,9 @@ export const STAGGER_PRESETS = {
 } as const satisfies Record<string, number>
 ```
 
-- [ ] **Step 4: Run it — expect PASS.** Run: `npx vitest run tests/unit/animations.test.ts` — Expected: all green (skills 0.25 + 0.18 = 0.43; projects 0.4).
+- [x] **Step 4: Run it — expect PASS.** Run: `npx vitest run tests/unit/animations.test.ts` — Expected: all green (skills 0.25 + 0.18 = 0.43; projects 0.4).
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add src/utils/animations.ts tests/unit/animations.test.ts

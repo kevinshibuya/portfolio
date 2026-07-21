@@ -46,11 +46,14 @@ export type RecipeName = keyof typeof VARIANTS
 
 // Stagger presets keyed by section role. Values in seconds.
 // Mirrors the recipe→section mapping in spec §2.
+// Values in seconds. Tuned so nested/long staggers stay under the 500ms ceiling
+// (see tests/unit/animations.test.ts budget guard): skills 6col×7item = 0.43s,
+// projects 9 cards = 0.4s.
 export const STAGGER_PRESETS = {
   workRows: 0.1,
-  skillsColumns: 0.12,
-  skillsItems: 0.06,
-  projectCards: 0.1,
+  skillsColumns: 0.05,
+  skillsItems: 0.03,
+  projectCards: 0.05,
   embedRows: 0.05,
   statValues: 0.12,
 } as const satisfies Record<string, number>
