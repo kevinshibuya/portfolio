@@ -147,9 +147,9 @@ strong {
   opacity: 0;
   pointer-events: none;
   transition:
-    padding 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    background 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    padding 0.4s var(--ease-house),
+    background 0.4s var(--ease-house),
+    border-color 0.4s var(--ease-house),
     opacity 200ms ease-out;
 }
 .nav.is-visible {
@@ -427,7 +427,7 @@ html[data-loading='true'] {
   color: #F5F2EC; /* --text — fallback hex */
   transition: opacity 400ms ease;
 }
-/* main.tsx adds .loader--handoff at ~80% of the bleed → labels fade out as the
+/* main.tsx adds .loader--handoff at ~60% of the bleed → labels fade out as the
    hero text rises in, so the loader chrome doesn't snap away. */
 #loader.loader--handoff .loader-meta { opacity: 0; }
 

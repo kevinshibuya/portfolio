@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState, useId, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useMotion } from '../../context/MotionContext'
-
-const EASE = [0.22, 1, 0.36, 1] as const
+import { EASE_HOUSE as EASE } from '../../utils/animations'
 
 interface DropdownOption {
   value: string

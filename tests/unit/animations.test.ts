@@ -7,6 +7,7 @@ import {
   REDUCED_MOTION_VARIANT,
   type RecipeName,
 } from '../../src/utils/animations'
+import { skillCategories } from '../../src/data/skills'
 
 describe('SPRINGS', () => {
   it('exposes gentle, snappy, soft with type:spring', () => {
@@ -87,7 +88,9 @@ describe('REDUCED_MOTION_VARIANT', () => {
 
 // Guard: Framer nested-container stagger accumulates. The motion-design skill
 // caps total stagger at 500ms. Item counts are fixed in src/data/*:
-// Skills 6 categories x 7 skills, Projects 9, Stats 5, WorkExperience 5.
+// Projects 9, Stats 5, WorkExperience 5. Skills counts are derived from the
+// real data below (categories vary; DevOps has 8 skills), so the worst case is
+// checked against actual content, not a hard-coded assumption.
 describe('stagger budgets stay under the 500ms motion-design ceiling', () => {
   const CEIL = 0.5
   it('projects: 9 cards, last-card start < 0.5s', () => {
@@ -99,9 +102,11 @@ describe('stagger budgets stay under the 500ms motion-design ceiling', () => {
   it('workExperience: 5 rows, last start < 0.5s', () => {
     expect((5 - 1) * STAGGER_PRESETS.workRows).toBeLessThan(CEIL)
   })
-  it('skills: nested 6 columns x 7 items, last-dot start < 0.5s', () => {
-    const lastColumnStart = (6 - 1) * STAGGER_PRESETS.skillsColumns
-    const lastItemStart = (7 - 1) * STAGGER_PRESETS.skillsItems
+  it('skills: nested columns x items (real data), worst-case last-dot start < 0.5s', () => {
+    const columnCount = skillCategories.length
+    const maxItems = Math.max(...skillCategories.map((c) => c.skills.length))
+    const lastColumnStart = (columnCount - 1) * STAGGER_PRESETS.skillsColumns
+    const lastItemStart = (maxItems - 1) * STAGGER_PRESETS.skillsItems
     expect(lastColumnStart + lastItemStart).toBeLessThan(CEIL)
   })
 })

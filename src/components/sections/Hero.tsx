@@ -117,7 +117,13 @@ export function Hero(): ReactElement {
                 key={`${lang}-${roleIdx}`}
                 initial={{ y: 12, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -12, opacity: 0, transition: { duration: 0.3, ease: RISE_EASE } }}
+                exit={{
+                  y: -12,
+                  opacity: 0,
+                  // Shorter exit than enter (skill: exit < enter). Under reduced
+                  // motion keep the prior 0.45s so that path stays untouched.
+                  transition: { duration: prefersReducedMotion ? 0.45 : 0.3, ease: RISE_EASE },
+                }}
                 transition={{ duration: 0.45, ease: RISE_EASE }}
                 whileTap={{ scale: 0.94 }}
                 className="hero-role"

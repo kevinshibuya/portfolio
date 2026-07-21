@@ -43,13 +43,19 @@ the palette is one edit, not forty.
   ```
 - **TS** (`src/utils/animations.ts`):
   ```
-  export const DURATIONS = { quick: 0.18, standard: 0.6, slow: 0.9 } as const
   export const EASE_HOUSE = [0.22, 1, 0.36, 1] as const
   ```
-  Springs (`SPRINGS`) stay as-is. Only explicit-duration Framer values get tokenized.
+  `EASE_HOUSE` is consumed by this module's own variants (titleChar/taglineWord/pullquote*) and by
+  `ArchiveDropdown` (aliased as `EASE`). Springs (`SPRINGS`) stay as-is. **No TS `DURATIONS` mirror**
+  (post-review decision): the 3-tier duration palette lives in the CSS vars + Framer springs, and the
+  per-animation Framer durations (0.45/0.5/0.4…) don't map to a tier, so a TS duration constant would
+  be a dead export — dropped rather than shipped unused. Pre-existing per-file `EASE`/`RISE_EASE`
+  consts in other motion modules are left as-is (out of this pass's scope; a follow-up can alias them
+  to `EASE_HOUSE`).
 
 **Acceptance:** grep shows no *new* hardcoded `cubic-bezier(0.22,1,0.36,1)` literals introduced;
-the token vars exist and are consumed. Existing literals migrated where touched by other tasks.
+`EASE_HOUSE` and the CSS `--ease-house`/`--dur-*` tokens exist and are consumed (EASE_HOUSE by ≥4
+call sites in animations.ts + ArchiveDropdown).
 
 ### §2 — Tier 1: stagger budgets (skill CRITICAL: total stagger must stay < 500ms)
 
@@ -83,6 +89,11 @@ All interactive hovers currently 0.25–0.4s. Route through the hover tokens:
   prominent sites (nav, workrow, contact, btn). For minor pills/chips/dots, a single
   `var(--dur-hover-in)` symmetric transition is fine (avoid doubling ~17 declarations for
   imperceptible gain).
+  - **Post-review decision (workrow stays symmetric):** although workrow was listed among the
+    prominent sites above, its hover is a subtle *color tint* (not a movement/background like
+    nav/btn/contact-row). A slower exit on a faint color change is imperceptible, so
+    `.workrow-title/-index/-ornament/-arrow` use a flat symmetric `var(--dur-hover-in)` rather than
+    the base+`:hover` split. The asymmetric split applies to nav/btn/contact-row only.
 - **Multi-property transitions keep per-property durations** (e.g. `.contact-label` skews on one
   duration, colors on another) — tokenize each property's timing/ease independently; never collapse
   distinct per-property durations into one.
@@ -102,11 +113,13 @@ mid-stagger).
 
 Every CSS `transition` uses `var(--ease-house)`. The nav underline sweep
 (`cubic-bezier(0.65,0,0.35,1)`) migrates to house ease. No interactive element keeps browser
--default `ease`.
+-default `ease`. The `.nav` container's own state transition (padding/background/border-color on
+`.is-scrolled`/`.is-visible`) also migrates to `var(--ease-house)` (post-review — it's a state
+element); its `opacity 200ms ease-out` fade-in is an intentional appearance ease, left as-is.
 
 **Acceptance:** grep of `src/index.css` shows no `transition:` on an interactive/state element
-without `var(--ease-house)` (ambient `@keyframes` like `loaderStandinDrift` are exempt — they are
-`ease-in-out` loops by design).
+without `var(--ease-house)` (except intentional carve-outs: the `.nav` opacity fade-in's `ease-out`,
+and ambient `@keyframes` like `loaderStandinDrift` which are `ease-in-out` loops by design).
 
 ### §5 — Tier 2: ArchiveDropdown exit + asymmetric exits
 
