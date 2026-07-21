@@ -162,11 +162,11 @@ script — typecheck runs via `tsc -b` (the first half of `build`).
 
 ## TODO (acceptance checklist — tick only when the criterion passes AND review approves)
 
-- [ ] §1 — Motion tokens exist (CSS vars + TS `DURATIONS`/`EASE_HOUSE`) and are consumed
-- [ ] §2 — Skills/Projects stagger worst-case start < 0.5s (presets updated)
-- [ ] §3 — All interactive hovers ≤ 0.22s on `--ease-house`; `rows-hover` green
-- [ ] §4 — Every interactive CSS transition uses `--ease-house` (no default `ease`)
-- [ ] §5 — ArchiveDropdown collapses on close; panel/role-cycle exits < enters
-- [ ] §6 — `stampIn` scale 1.06; mockup mobile on house ease (no overshoot)
-- [ ] §7 — Loader comment fixed; ScrollCue bob 2.0s
-- [ ] Verify — typecheck + lint + unit + named e2e all green; visual preview pass
+- [x] §1 — Motion tokens exist (CSS vars + TS `DURATIONS`/`EASE_HOUSE`) and are consumed
+- [x] §2 — Skills/Projects stagger worst-case start < 0.5s (presets updated)
+- [x] §3 — All interactive hovers ≤ 0.22s on `--ease-house`; `rows-hover` green
+- [x] §4 — Every interactive CSS transition uses `--ease-house` (no default `ease`)
+- [x] §5 — ArchiveDropdown collapses on close; panel/role-cycle exits < enters
+- [x] §6 — `stampIn` scale 1.06; mockup mobile on house ease (no overshoot)
+- [x] §7 — Loader comment fixed; ScrollCue bob 2.0s
+- [x] Verify — typecheck + lint + unit + named e2e all green; visual preview pass

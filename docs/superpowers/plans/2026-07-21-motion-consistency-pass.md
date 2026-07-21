@@ -272,12 +272,12 @@ git commit -m "chore(motion): fix stale loader handoff comment, slow ScrollCue b
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Typecheck.** Run: `npx tsc -b` — Expected: exits 0.
-- [ ] **Step 2: Lint.** Run: `npm run lint` — Expected: 0 errors.
-- [ ] **Step 3: Unit.** Run: `npx vitest run` — Expected: all pass (62 baseline + new stagger-budget cases).
-- [ ] **Step 4: e2e (kill any stray `vite preview` first).** Run: `pkill -f "vite preview" 2>/dev/null; npm run test:e2e -- loader hero-entrance perf-budget rows-hover section-enters reduced-motion` — Expected: all green.
-- [ ] **Step 5: Visual pass.** Run: `pkill -f "vite preview"; rm -rf dist; npm run build && npx vite preview --port 4173`, then confirm: section reveals land tight (no laggy tail on Skills/Projects), hovers snappy-but-smooth, Archive dropdown collapses on close, Stats/Contact headings do a restrained stamp (not a punch), mobile mockup settles with no bounce, intro/hero rise unchanged. Optional: computer-use screenshot pass via the codex-computer-use skill.
-- [ ] **Step 6: Tick spec TODOs.** In the spec, tick §1–§7 + Verify as each acceptance criterion passes.
+- [x] **Step 1: Typecheck.** Run: `npx tsc -b` — Expected: exits 0.
+- [x] **Step 2: Lint.** Run: `npm run lint` — Expected: 0 errors.
+- [x] **Step 3: Unit.** Run: `npx vitest run` — Expected: all pass (62 baseline + new stagger-budget cases).
+- [x] **Step 4: e2e (kill any stray `vite preview` first).** Run: `pkill -f "vite preview" 2>/dev/null; npm run test:e2e -- loader hero-entrance perf-budget rows-hover section-enters reduced-motion` — Expected: all green.
+- [x] **Step 5: Visual pass.** Run: `pkill -f "vite preview"; rm -rf dist; npm run build && npx vite preview --port 4173`, then confirm: section reveals land tight (no laggy tail on Skills/Projects), hovers snappy-but-smooth, Archive dropdown collapses on close, Stats/Contact headings do a restrained stamp (not a punch), mobile mockup settles with no bounce, intro/hero rise unchanged. Optional: computer-use screenshot pass via the codex-computer-use skill.
+- [x] **Step 6: Tick spec TODOs.** In the spec, tick §1–§7 + Verify as each acceptance criterion passes.
 - [ ] **Step 7: Code review.** Invoke the review flow (fresh-context Opus, per CLAUDE.md) over the branch diff before finishing.
 
 ---
