@@ -112,7 +112,7 @@ const liftCurtain = (): void => {
     finishLoader()
     return
   }
-  // Overlap the reveal with the tail of the bleed: at ~60% fire the hero rise
+  // Overlap the reveal with the tail of the bleed: at ~40% fire the hero rise
   // and fade the loader labels, so there's no dead gap between "ink clearing"
   // and "text starts". finishLoader still removes the loader at 100%.
   const handoff = (): void => {
@@ -129,11 +129,11 @@ const liftCurtain = (): void => {
     stains.forEach((c, i) => {
       tl.to(c, { attr: { r: ENDS[i] ?? 55 }, duration: STAIN_DURATION, ease: STAIN_EASE }, DELAYS[i] ?? 0)
     })
-    // Fire the handoff at 60% of the bleed. Plain setTimeout (wall-clock) rather
+    // Fire the handoff at 40% of the bleed. Plain setTimeout (wall-clock) rather
     // than a GSAP callback — both start when this runs, and GSAP's scheduled
     // position callbacks proved unreliable here. The timeline keeps playing to
     // onComplete → finishLoader removes the loader at 100%.
-    window.setTimeout(handoff, BLEED_TOTAL * 0.6 * 1000)
+    window.setTimeout(handoff, BLEED_TOTAL * 0.4 * 1000)
   } catch {
     finishLoader()
   }

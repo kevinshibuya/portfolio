@@ -108,8 +108,8 @@ export function Hero(): ReactElement {
             AnimatePresence owns the separate click/keyboard cycle swap. */}
         <div className="hero-line-mask hero-role-line">
           <motion.div
-            initial={{ y: instant ? '0%' : '110%' }}
-            animate={{ y: entered ? '0%' : '110%' }}
+            initial={{ y: instant ? '0%' : '125%' }}
+            animate={{ y: entered ? '0%' : '125%' }}
             transition={rise(0)}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -148,8 +148,8 @@ export function Hero(): ReactElement {
           <span className="hero-line-mask">
             <motion.span
               className="hero-line"
-              initial={{ y: instant ? '0%' : '110%' }}
-              animate={{ y: entered ? '0%' : '110%' }}
+              initial={{ y: instant ? '0%' : '125%' }}
+              animate={{ y: entered ? '0%' : '125%' }}
               transition={rise(0.08)}
             >
               {t('hero.name1')}
@@ -158,8 +158,8 @@ export function Hero(): ReactElement {
           <span className="hero-line-mask">
             <motion.span
               className="hero-line"
-              initial={{ y: instant ? '0%' : '110%' }}
-              animate={{ y: entered ? '0%' : '110%' }}
+              initial={{ y: instant ? '0%' : '125%' }}
+              animate={{ y: entered ? '0%' : '125%' }}
               transition={rise(0.16)}
             >
               {t('hero.name2')}

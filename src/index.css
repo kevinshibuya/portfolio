@@ -114,6 +114,27 @@ html, body {
    overflow lock (data-loading / data-loader-state) doesn't reflow the page
    sideways by a scrollbar width on devices with classic (non-overlay) bars. */
 html { scrollbar-gutter: stable; }
+
+/* Scrollbar — invisible track, a faint cream bar that reads with the ink
+   aesthetic (rounded, inset off the edge, brightens on hover). Firefox uses the
+   two-value shorthand; WebKit/Blink use the pseudo-elements. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 242, 236, 0.18) transparent;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(245, 242, 236, 0.16);
+  border-radius: 999px;
+  /* transparent border + padding-box clip = the bar floats inset from the edge
+     and reads thinner, matching the hairline restraint of the page. */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(245, 242, 236, 0.30); }
+::-webkit-scrollbar-corner { background: transparent; }
+
 body { font-weight: 400; }
 ::selection { background: var(--accent-blue); color: var(--bg); }
 
@@ -295,6 +316,17 @@ strong {
 .hero-bottom.is-entered .hero-line-mask {
   overflow: visible;
 }
+/* The bottom name line ("shibuya.") carries a descender (the "y" leg). With the
+   tight line-height:0.92 the clip box ends at the baseline, so overflow:hidden
+   amputates the leg for the whole rise (until the is-entered release). Extend the
+   clip region down into the descender (content inside padding stays visible under
+   overflow:hidden), and cancel the layout shift with an equal negative margin —
+   the 125% hidden travel (Hero.tsx) still starts the line fully below this taller
+   box, so nothing peeks before the rise. */
+.hero-name .hero-line-mask:last-child {
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
+}
 
 /* Role line: left-aligns the inline role above the name with a tiny breathing
    space; Framer Motion owns the inner .hero-role cycle swap. */
@@ -427,7 +459,7 @@ html[data-loading='true'] {
   color: #F5F2EC; /* --text — fallback hex */
   transition: opacity 400ms ease;
 }
-/* main.tsx adds .loader--handoff at ~60% of the bleed → labels fade out as the
+/* main.tsx adds .loader--handoff at ~40% of the bleed → labels fade out as the
    hero text rises in, so the loader chrome doesn't snap away. */
 #loader.loader--handoff .loader-meta { opacity: 0; }
 
