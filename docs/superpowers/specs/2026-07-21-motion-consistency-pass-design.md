@@ -74,13 +74,25 @@ total < 0.5s. Reduced-motion path (no stagger) unchanged.
 ### §3 — Tier 1: hover latency
 
 All interactive hovers currently 0.25–0.4s. Route through the hover tokens:
-- **Enter → `var(--dur-hover-in)` (0.18s)**, **exit → `var(--dur-hover-out)` (0.22s)** where the
-  element distinguishes states; single-value transitions use `--dur-hover-in`.
-- **Ease → `var(--ease-house)`** (replaces browser-default `ease`).
-- Sites: `.nav-link` color + `::after` underline, `.workrow-*` color/rotate, `.contact-row`,
-  `.contact-label` skew, `.contact-meta`, `.pill`, `.chip`, `.archive-chip`,
-  `.archive-dropdown-trigger`, `.skills-item`, `.skills-dot`, `.btn`, `.btn-arrow`, `.nav-lang`,
-  `.footer-lang`, `.stats-row-link`.
+- **Enter → `var(--dur-hover-in)` (0.18s)**, **exit → `var(--dur-hover-out)` (0.22s)**, **ease →
+  `var(--ease-house)`** (replaces browser-default `ease`).
+- **CSS asymmetry mechanics:** a plain CSS `transition` is symmetric. To get slower-exit, put the
+  **exit** duration on the base rule and the **enter** duration on the `:hover`/`:focus-visible`
+  rule — e.g. `.nav-link { transition: color var(--dur-hover-out) var(--ease-house) }` and
+  `.nav-link:hover { transition-duration: var(--dur-hover-in) }`. Apply this split only to the
+  prominent sites (nav, workrow, contact, btn). For minor pills/chips/dots, a single
+  `var(--dur-hover-in)` symmetric transition is fine (avoid doubling ~17 declarations for
+  imperceptible gain).
+- **Multi-property transitions keep per-property durations** (e.g. `.contact-label` skews on one
+  duration, colors on another) — tokenize each property's timing/ease independently; never collapse
+  distinct per-property durations into one.
+- **Carve-out:** the `.nav-link::after` underline is a *directional reveal* flourish, not a state
+  toggle — it uses **`var(--dur-hover-out)` (0.22s)** + `var(--ease-house)` (migrating off its own
+  `cubic-bezier(0.65,0,0.35,1)`), NOT the 0.18s enter, which reads abrupt on a left-to-right sweep.
+- Sites: `.nav-link` color + `::after` underline (carve-out above), `.workrow-*` color/rotate,
+  `.contact-row`, `.contact-label` skew, `.contact-meta`, `.contact-label-arrow`, `.pill`, `.chip`,
+  `.archive-chip`, `.archive-dropdown-trigger`, `.skills-item`, `.skills-dot`, `.btn`, `.btn-arrow`,
+  `.nav-lang`, `.footer-lang`, `.stats-row-link`.
 
 **Acceptance:** every interactive hover transition ≤ 0.22s and uses `--ease-house`;
 `rows-hover.spec.ts` still green (tint appears on hover; entrance completes when hovered
@@ -137,11 +149,16 @@ overshoot curve (both y-values = 1, no undershoot) and is expected to remain.
 
 ## Verification
 
-- `npm run typecheck` · `npm run lint` · `npm run test:unit` (62/62)
-- `npm run test:e2e -- loader hero-entrance perf-budget rows-hover section-enters reduced-motion`
-- `npm run build` + `npx vite preview --port 4173` → visual pass on: section reveals (staggers feel
-  tight, not laggy), hovers (snappy but smooth), dropdown close (collapses), Stats/Contact headings
-  (restrained stamp), mobile mockup (no bounce). Optional computer-use screenshot pass.
+Real scripts (from `package.json`): `test:unit` = `vitest run`, `test:e2e` = `playwright test`,
+`lint` = `eslint .`, `build` = `tsc -b && vite build`. There is **no** standalone `typecheck`
+script — typecheck runs via `tsc -b` (the first half of `build`).
+
+- **Typecheck:** `npx tsc -b` · **Lint:** `npm run lint` · **Unit:** `npm run test:unit` (62/62)
+- **E2e:** `npm run test:e2e -- loader hero-entrance perf-budget rows-hover section-enters reduced-motion`
+  (Playwright's own `webServer` rebuilds; kill any stray manual `vite preview` first).
+- **Visual:** `npm run build` + `npx vite preview --port 4173` → pass on: section reveals (staggers
+  feel tight, not laggy), hovers (snappy but smooth), dropdown close (collapses), Stats/Contact
+  headings (restrained stamp), mobile mockup (no bounce). Optional computer-use screenshot pass.
 
 ## TODO (acceptance checklist — tick only when the criterion passes AND review approves)
 
