@@ -255,11 +255,11 @@ git commit -m "polish(motion): ArchiveDropdown collapses on close instead of pop
 - Modify: `src/main.tsx` (stale comment)
 - Modify: `src/components/projectDetail/ScrollCue.tsx` (bob duration)
 
-- [ ] **Step 1: Fix the loader handoff comment.** In `src/main.tsx`, find the comment near the `handoff` `setTimeout` that says the handoff fires at "~80%" and correct it to "~60%" to match the `BLEED_TOTAL * 0.6` literal. (Comment only — do NOT change the `0.6` factor.)
-- [ ] **Step 2: Slow the ScrollCue bob.** In `src/components/projectDetail/ScrollCue.tsx`, the arrow bob `transition` `duration: 1.6` → `2.0` (keep `ease: 'easeInOut'`, `repeat: Infinity`, and the reduced-motion `{ y: 0 }` gate).
-- [ ] **Step 3: Typecheck.** Run: `npx tsc -b` — Expected: exits 0.
-- [ ] **Step 4: Verify.** Run: `grep -n "60%\|0.6" src/main.tsx | head` and `grep -n "2.0\|duration: 2" src/components/projectDetail/ScrollCue.tsx` — Expected: comment reads 60%, bob is 2.0.
-- [ ] **Step 5: Commit.**
+- [x] **Step 1: Fix the loader handoff comment.** In `src/main.tsx`, find the comment near the `handoff` `setTimeout` that says the handoff fires at "~80%" and correct it to "~60%" to match the `BLEED_TOTAL * 0.6` literal. (Comment only — do NOT change the `0.6` factor.)
+- [x] **Step 2: Slow the ScrollCue bob.** In `src/components/projectDetail/ScrollCue.tsx`, the arrow bob `transition` `duration: 1.6` → `2.0` (keep `ease: 'easeInOut'`, `repeat: Infinity`, and the reduced-motion `{ y: 0 }` gate).
+- [x] **Step 3: Typecheck.** Run: `npx tsc -b` — Expected: exits 0.
+- [x] **Step 4: Verify.** Run: `grep -n "60%\|0.6" src/main.tsx | head` and `grep -n "2.0\|duration: 2" src/components/projectDetail/ScrollCue.tsx` — Expected: comment reads 60%, bob is 2.0.
+- [x] **Step 5: Commit.**
 
 ```bash
 git add src/main.tsx src/components/projectDetail/ScrollCue.tsx
