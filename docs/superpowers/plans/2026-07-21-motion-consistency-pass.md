@@ -206,12 +206,12 @@ Route every interactive-element transition through the tokens. **Prominent** sit
 
 **Do NOT touch:** `.nav` container transition (~140), `.loader-standin` (385), `#loader` (419/436), `.loader-standin` reduced (438) — these are reveal/loader/ambient, out of scope.
 
-- [ ] **Step 1: Apply the map.** Edit each row above in `src/index.css`. For prominent sites, add the `:hover` `transition-duration` override.
-- [ ] **Step 2: No stray default `ease` on interactive transitions.** Run: `grep -nE "transition:" src/index.css | grep -vE "ease-house|loader|#loader|standin|\.nav \{|140:"` and eyeball — Expected: only the exempt loader/nav-container lines remain without `--ease-house`.
-- [ ] **Step 3: No new house-ease literals introduced.** Run: `grep -c "cubic-bezier(0.22, 1, 0.36, 1)" src/index.css` — Expected: count DROPPED from baseline (the interactive ones migrated to `var(--ease-house)`; only non-transition uses, if any, remain).
-- [ ] **Step 4: Typecheck/build sanity.** Run: `npx tsc -b` — Expected: exits 0 (CSS isn't typechecked, but confirms nothing else broke).
-- [ ] **Step 5: e2e hover contract.** Run: `npm run test:e2e -- rows-hover` — Expected: green (rows tint on hover; entrance completes when hovered mid-stagger).
-- [ ] **Step 6: Commit.**
+- [x] **Step 1: Apply the map.** Edit each row above in `src/index.css`. For prominent sites, add the `:hover` `transition-duration` override.
+- [x] **Step 2: No stray default `ease` on interactive transitions.** Run: `grep -nE "transition:" src/index.css | grep -vE "ease-house|loader|#loader|standin|\.nav \{|140:"` and eyeball — Expected: only the exempt loader/nav-container lines remain without `--ease-house`.
+- [x] **Step 3: No new house-ease literals introduced.** Run: `grep -c "cubic-bezier(0.22, 1, 0.36, 1)" src/index.css` — Expected: count DROPPED from baseline (the interactive ones migrated to `var(--ease-house)`; only non-transition uses, if any, remain).
+- [x] **Step 4: Typecheck/build sanity.** Run: `npx tsc -b` — Expected: exits 0 (CSS isn't typechecked, but confirms nothing else broke).
+- [x] **Step 5: e2e hover contract.** Run: `npm run test:e2e -- rows-hover` — Expected: green (rows tint on hover; entrance completes when hovered mid-stagger).
+- [x] **Step 6: Commit.**
 
 ```bash
 git add src/index.css
