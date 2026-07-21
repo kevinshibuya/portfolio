@@ -228,7 +228,7 @@ git commit -m "polish(motion): unify hovers on tokens (0.18/0.22 house ease) acr
 **Interfaces:**
 - Consumes: Framer `AnimatePresence`/`motion` (already a project dependency); `useReducedMotion` (check existing import in the file).
 
-- [ ] **Step 1: Invoke frontend-design** (per CLAUDE.md) to confirm the collapse feel, then implement. The option list currently renders conditionally (`{open && <ul>…</ul>}`) with no exit. Wrap it:
+- [x] **Step 1: Invoke frontend-design** (per CLAUDE.md) to confirm the collapse feel, then implement. The option list currently renders conditionally (`{open && <ul>…</ul>}`) with no exit. Wrap it:
   - Import `AnimatePresence, motion` from `framer-motion` and (if not present) `useReducedMotion`.
   - Replace the `<ul className="archive-dropdown-list">` with `<motion.ul>` inside `<AnimatePresence>`, keyed, with:
     - `initial={{ height: 0, opacity: 0 }}`
@@ -237,10 +237,10 @@ git commit -m "polish(motion): unify hovers on tokens (0.18/0.22 house ease) acr
     - `transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}` on enter; give `exit` a `transition` of `duration: prefersReducedMotion ? 0 : 0.14`.
     - `style={{ overflow: 'hidden' }}` so the height collapse clips cleanly.
 
-- [ ] **Step 2: Typecheck.** Run: `npx tsc -b` — Expected: exits 0.
-- [ ] **Step 3: Visual check.** In the running preview, open the Archive editorial dropdown and close it — Expected: it collapses+fades over ~0.14s instead of vanishing instantly. Reduced-motion: instant.
-- [ ] **Step 4: e2e regression.** Run: `npm run test:e2e -- section-enters reduced-motion` — Expected: green.
-- [ ] **Step 5: Commit.**
+- [x] **Step 2: Typecheck.** Run: `npx tsc -b` — Expected: exits 0.
+- [x] **Step 3: Visual check.** In the running preview, open the Archive editorial dropdown and close it — Expected: it collapses+fades over ~0.14s instead of vanishing instantly. Reduced-motion: instant.
+- [x] **Step 4: e2e regression.** Run: `npm run test:e2e -- section-enters reduced-motion` — Expected: green.
+- [x] **Step 5: Commit.**
 
 ```bash
 git add src/components/ui/ArchiveDropdown.tsx
