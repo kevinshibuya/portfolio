@@ -1,5 +1,10 @@
 import type { Variants, Transition } from 'framer-motion'
 
+// Duration palette (seconds) + signature ease — the TS mirror of the CSS motion tokens
+// in index.css (:root). Keep the two in sync.
+export const DURATIONS = { quick: 0.18, standard: 0.6, slow: 0.9 } as const
+export const EASE_HOUSE = [0.22, 1, 0.36, 1] as const
+
 // Spring presets (from hotmart-bunde reference). Tune in-place if visual feel needs adjustment.
 export const SPRINGS = {
   gentle: { type: 'spring', stiffness: 100, damping: 20, mass: 1.0 },

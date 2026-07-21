@@ -81,6 +81,15 @@
   --periwinkle-200: #6B94EA;
   --periwinkle-300: #7AA0ED;
 
+  /* Motion tokens (motion-consistency-pass, 2026-07-21). Signature = house ease.
+     Pacing keeps the grandeur: unify values, don't speed up reveals. */
+  --ease-house: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-quick: 0.18s;      /* small state changes */
+  --dur-standard: 0.6s;    /* section entrances */
+  --dur-slow: 0.9s;        /* hero rise / dramatic reveals */
+  --dur-hover-in: 0.18s;
+  --dur-hover-out: 0.22s;
+
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 

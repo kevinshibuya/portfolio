@@ -31,7 +31,7 @@
 - Produces (CSS): `--ease-house`, `--dur-quick`, `--dur-standard`, `--dur-slow`, `--dur-hover-in`, `--dur-hover-out` — consumed by Task 4/5/6.
 - Produces (TS): `export const DURATIONS = { quick: 0.18, standard: 0.6, slow: 0.9 } as const`; `export const EASE_HOUSE = [0.22, 1, 0.36, 1] as const` — consumed by Task 3.
 
-- [ ] **Step 1: Add CSS tokens.** In `src/index.css`, inside the existing `:root { ... }` block (the dark-ink token block starting ~line 48), add a motion sub-block:
+- [x] **Step 1: Add CSS tokens.** In `src/index.css`, inside the existing `:root { ... }` block (the dark-ink token block starting ~line 48), add a motion sub-block:
 
 ```css
   /* Motion tokens (motion-consistency-pass, 2026-07-21). Signature = house ease. */
@@ -43,7 +43,7 @@
   --dur-hover-out: 0.22s;
 ```
 
-- [ ] **Step 2: Add TS tokens.** In `src/utils/animations.ts`, directly under the `import` line (before `SPRINGS`), add:
+- [x] **Step 2: Add TS tokens.** In `src/utils/animations.ts`, directly under the `import` line (before `SPRINGS`), add:
 
 ```ts
 // Duration palette (seconds) + signature ease — the TS mirror of the CSS motion tokens.
@@ -51,11 +51,11 @@ export const DURATIONS = { quick: 0.18, standard: 0.6, slow: 0.9 } as const
 export const EASE_HOUSE = [0.22, 1, 0.36, 1] as const
 ```
 
-- [ ] **Step 3: Typecheck.** Run: `npx tsc -b` — Expected: exits 0, no errors (new exports are unused for now, which is fine — no `noUnusedLocals` on module exports).
+- [x] **Step 3: Typecheck.** Run: `npx tsc -b` — Expected: exits 0, no errors (new exports are unused for now, which is fine — no `noUnusedLocals` on module exports).
 
-- [ ] **Step 4: Verify tokens present.** Run: `grep -c "\-\-ease-house\|EASE_HOUSE" src/index.css src/utils/animations.ts` — Expected: `src/index.css:1`, `src/utils/animations.ts:1`.
+- [x] **Step 4: Verify tokens present.** Run: `grep -c "\-\-ease-house\|EASE_HOUSE" src/index.css src/utils/animations.ts` — Expected: `src/index.css:1`, `src/utils/animations.ts:1`.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add src/index.css src/utils/animations.ts
