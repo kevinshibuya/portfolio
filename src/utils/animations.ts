@@ -25,7 +25,9 @@ export const VARIANTS = {
     visible: { opacity: 1, scale: 1, transition: SPRINGS.snappy },
   },
   stampIn: {
-    hidden:  { opacity: 0, scale: 1.15, filter: 'blur(2px)' },
+    // Restrained "stamp" — scale 1.06 (was 1.15) reads Premium, keeps a whisper
+    // of the motif on the Stats/Contact headings.
+    hidden:  { opacity: 0, scale: 1.06, filter: 'blur(2px)' },
     visible: { opacity: 1, scale: 1, filter: 'blur(0px)', transition: SPRINGS.snappy },
   },
   cardReveal: {

@@ -37,7 +37,7 @@ describe('VARIANTS', () => {
   })
 
   it('stampIn includes a blur filter on hidden', () => {
-    expect(VARIANTS.stampIn.hidden).toMatchObject({ opacity: 0, scale: 1.15, filter: 'blur(2px)' })
+    expect(VARIANTS.stampIn.hidden).toMatchObject({ opacity: 0, scale: 1.06, filter: 'blur(2px)' })
     expect(VARIANTS.stampIn.visible).toMatchObject({ opacity: 1, scale: 1, filter: 'blur(0px)' })
   })
 

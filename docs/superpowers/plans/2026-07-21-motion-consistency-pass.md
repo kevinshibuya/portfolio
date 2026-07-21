@@ -137,7 +137,7 @@ git commit -m "fix(motion): stagger budgets under 500ms (skills/projects) + guar
 **Interfaces:**
 - Consumes: `EASE_HOUSE` from Task 1.
 
-- [ ] **Step 1: Restrain stampIn.** In `src/utils/animations.ts`, `VARIANTS.stampIn`, change the hidden scale `1.15` → `1.06` (keep blur):
+- [x] **Step 1: Restrain stampIn.** In `src/utils/animations.ts`, `VARIANTS.stampIn`, change the hidden scale `1.15` → `1.06` (keep blur):
 
 ```ts
   stampIn: {
@@ -146,19 +146,19 @@ git commit -m "fix(motion): stagger budgets under 500ms (skills/projects) + guar
   },
 ```
 
-- [ ] **Step 2: Flatten mockup overshoot.** In `src/components/projectDetail/MockupFrame.tsx`, the mobile variant's `transition` ease `[0.34, 1.56, 0.64, 1]` → import and use `EASE_HOUSE`. Add `EASE_HOUSE` to the existing `from '../../utils/animations'` import, then replace the inline `ease: [0.34, 1.56, 0.64, 1]` with `ease: EASE_HOUSE`. Keep the `rotate: -3 → 0`, `y`, `opacity`, and `duration: 1.0`.
+- [x] **Step 2: Flatten mockup overshoot.** In `src/components/projectDetail/MockupFrame.tsx`, the mobile variant's `transition` ease `[0.34, 1.56, 0.64, 1]` → import and use `EASE_HOUSE`. Add `EASE_HOUSE` to the existing `from '../../utils/animations'` import, then replace the inline `ease: [0.34, 1.56, 0.64, 1]` with `ease: EASE_HOUSE`. Keep the `rotate: -3 → 0`, `y`, `opacity`, and `duration: 1.0`.
 
-- [ ] **Step 3: Shorten WorkRow panel exit.** In `src/components/ui/WorkRow.tsx`, the expand-panel `AnimatePresence` child currently uses one `transition={{ duration: prefersReducedMotion ? 0 : 0.32, ease: EASE }}` for both enter and exit. Give the exit its own shorter duration by splitting the transition onto the `animate`/`exit` props:
+- [x] **Step 3: Shorten WorkRow panel exit.** In `src/components/ui/WorkRow.tsx`, the expand-panel `AnimatePresence` child currently uses one `transition={{ duration: prefersReducedMotion ? 0 : 0.32, ease: EASE }}` for both enter and exit. Give the exit its own shorter duration by splitting the transition onto the `animate`/`exit` props:
   - enter (`animate`): `transition={{ duration: prefersReducedMotion ? 0 : 0.32, ease: EASE }}`
   - exit (`exit`): add `transition={{ duration: prefersReducedMotion ? 0 : 0.22, ease: EASE }}`
 
   (`EASE` is the local `[0.22,1,0.36,1]` const already in the file; leave it as-is.)
 
-- [ ] **Step 4: Shorten Hero role-cycle exit.** In `src/components/sections/Hero.tsx`, the role-cycle `AnimatePresence` `motion` element uses `transition={{ duration: 0.45, ease: RISE_EASE }}`. Move the exit to a shorter duration: keep enter at `0.45`, set the `exit` variant's transition to `{ duration: 0.3, ease: RISE_EASE }`. Do NOT touch the rise (`entered`) logic, `RISE_EASE`, or the `0.9s` name-line rise.
+- [x] **Step 4: Shorten Hero role-cycle exit.** In `src/components/sections/Hero.tsx`, the role-cycle `AnimatePresence` `motion` element uses `transition={{ duration: 0.45, ease: RISE_EASE }}`. Move the exit to a shorter duration: keep enter at `0.45`, set the `exit` variant's transition to `{ duration: 0.3, ease: RISE_EASE }`. Do NOT touch the rise (`entered`) logic, `RISE_EASE`, or the `0.9s` name-line rise.
 
-- [ ] **Step 5: Typecheck + unit.** Run: `npx tsc -b && npx vitest run` — Expected: exits 0, 62+ tests pass (the Hero/WorkRow unit tests still green).
+- [x] **Step 5: Typecheck + unit.** Run: `npx tsc -b && npx vitest run` — Expected: exits 0, 62+ tests pass (the Hero/WorkRow unit tests still green).
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```bash
 git add src/utils/animations.ts src/components/projectDetail/MockupFrame.tsx src/components/ui/WorkRow.tsx src/components/sections/Hero.tsx

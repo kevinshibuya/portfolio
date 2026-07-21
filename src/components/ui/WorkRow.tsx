@@ -164,7 +164,11 @@ export function WorkRow(props: WorkRowProps): React.ReactElement {
               className="workrow-panel-wrap"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
+              exit={{
+                height: 0,
+                opacity: 0,
+                transition: { duration: prefersReducedMotion ? 0 : 0.22, ease: EASE },
+              }}
               transition={{ duration: prefersReducedMotion ? 0 : 0.32, ease: EASE }}
               style={{ overflow: 'hidden' }}
             >
