@@ -15,7 +15,7 @@ export function Hero(): ReactElement {
 
   // Entrance rise. The loader explosion reveals the shader; the hero text then
   // rises out of its clip masks once the explosion nears completion (main.tsx
-  // resolves entranceDone at ~89% of the explosion). `riseSettled` releases the
+  // resolves entranceDone at ~92% of the explosion). `riseSettled` releases the
   // clip to overflow:visible only AFTER the rise finishes, so the role focus
   // ring and glyph descenders aren't clipped at rest. Reduced-motion and SPA
   // back-nav skip straight to the settled state — no rise.

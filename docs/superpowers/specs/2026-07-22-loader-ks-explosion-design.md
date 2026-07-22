@@ -23,7 +23,7 @@ signature house ease where a decelerate is wanted, accelerate family for the exi
 | 2 | Anticipation | Mask glyph group scales 1 → **0.96** | **0.18s** | house `0.22,1,0.36,1` (decelerate into the crouch) | Subtle gather; Premium-subtle 4% |
 | 3 | Explosion | Mask glyph group scales 0.96 → **~45** | **~1.1s** | accelerating ease-in (`power4.in` start point; `expo.in` if too soft — tuned visually) | Slow creep out of the crouch, then blow-through. No inOut: the decel tail would play off-screen. No overshoot (it exits) |
 | 3b | Secondary: meta labels | Both corner labels drift **~12px outward+down** and fade to 0 | **0.22s** | ease-in (accelerate — they exit) | Fires as the explosion launches. Not opacity-only |
-| 4 | Handoff | `resolveCurtain()` + `resolveEntrance()` → hero text rise (unchanged) | fires at **~89% of the explosion** (centered-origin amendment; was ~80% with the k-stem origin) | — | GSAP `power4.in` is quintic (t⁵): with the centered origin the ink clears the lower-left name region (scale ≈ 25.5×) at ~89% of the explosion. Keep the wall-clock `setTimeout` pattern (GSAP position callbacks proved unreliable here) |
+| 4 | Handoff | `resolveCurtain()` + `resolveEntrance()` → hero text rise (unchanged) | fires at **~92% of the explosion** (ks-optical-centering amendment; was ~80% k-stem, ~89% first centering) | — | GSAP `power4.in` is quintic (t⁵): with the s-spine origin the ink clears the lower-left name region (scale ≈ 29×) at ~92% of the explosion. Keep the wall-clock `setTimeout` pattern (GSAP position callbacks proved unreliable here) |
 | 5 | Cleanup | `finishLoader()` at explosion end | — | — | Unchanged: remove loader, release scroll lock, `data-loader-state="done"` |
 
 Motion layers: **primary** = mask expansion; **secondary** = label drift+fade; **ambient** =
@@ -41,14 +41,16 @@ overall despite the longer savor).
   than the current bleed (which pushes six circles through an `feTurbulence` displacement filter
   per frame). Rejected alternative: CSS-transforming the whole SVG (GPU layer magnification →
   blurry edges at 45×).
-- **Scale origin = exact viewBox center (50, 50)** — amended post-ship (2026-07-22): the
-  original k-stem origin (34.35, 49.8) made the expansion read right-biased (Kevin);
-  (50, 50) sits inside the s glyph's upper-bowl stroke (verified via `isPointInFill`;
-  band extents from origin: left 2.0 / right 1.75 / up 4.25 / down 3.2 viewBox units), so the
-  blow-through still ends fully transparent. Origin math is viewport-independent
+- **Scale origin = (53.65, 50), mid-band in the s upper-bowl spine** — amended twice
+  post-ship (2026-07-22): (1) the original k-stem origin (34.35, 49.8) made the expansion
+  read right-biased (Kevin) → moved to viewBox center; (2) the mark was then optically
+  re-centered on "ks" excluding the trailing dot (positioning group `translate(34.52 …)`,
+  was 30.74), which shifted the s spine to vb 51.8–55.5 — the origin sits at its middle,
+  3.65 units right of true center (imperceptible). All fill checks via `isPointInFill`
+  probes against the live mask. Origin math is viewport-independent
   (`preserveAspectRatio="xMidYMid slice"` crops what's visible, never the mask geometry).
-- **End scale 45**: worst-case (bottom-left screen corner) needs ~32× to cover the
-  viewport; 45 gives ~40% margin.
+- **End scale 45**: worst-case (bottom-left screen corner) needs ~35.6× to cover the
+  viewport; 45 gives ~26% margin.
 - Implementation: transform about a fixed point = `translate(ox oy) scale(s) translate(-ox -oy)`
   composed inside the wrapper `<g>`, driven by a single GSAP tween on a proxy value.
 
@@ -86,10 +88,10 @@ overall despite the longer savor).
 ## TODO
 
 - [x] Stain circles, turbulence filter, and stain constants deleted; mask gains the `.loader-ks` wrapper group
-- [x] Anticipation (0.96×, 0.18s, house) → explosion (→45×, ~1.1s, accelerating ease-in) timeline drives the mask wrapper about origin (50, 50) (amended: centered per Kevin; was (34.35, 49.8))
+- [x] Anticipation (0.96×, 0.18s, house) → explosion (→45×, ~1.1s, accelerating ease-in) timeline drives the mask wrapper about origin (53.65, 50) (amended twice per Kevin: k-stem (34.35, 49.8) → center (50, 50) → s-spine mid-band after the ks-optical mark shift)
 - [x] Savor dwell extended to 1200ms (reduced-motion dwell stays 200ms)
 - [x] Corner meta labels drift ~12px outward+down while fading (0.22s ease-in) at explosion launch
-- [x] Handoff (`resolveCurtain`/`resolveEntrance`) fires when the ink has cleared the name region (~89% of explosion with the centered origin) via wall-clock setTimeout
+- [x] Handoff (`resolveCurtain`/`resolveEntrance`) fires when the ink has cleared the name region (~92% of explosion with the s-spine origin) via wall-clock setTimeout
 - [x] Explosion fully clears the viewport at 390×844, 16:9, and 21:9 (no ink slivers)
 - [x] Reduced-motion, hard-fallback, and defensive paths behave exactly as before
 - [x] e2e loader/hero-entrance specs updated and green serial; unit + tsc green

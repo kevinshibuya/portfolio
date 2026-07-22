@@ -122,23 +122,24 @@ const liftCurtain = (): void => {
   const ksEl = loaderEl.querySelector<SVGGElement>('.loader-ks')
   const metaBl = loaderEl.querySelector<HTMLElement>('.loader-meta--bl')
   const metaBr = loaderEl.querySelector<HTMLElement>('.loader-meta--br')
-  // Scale origin = exact viewBox center (50, 50) so the expansion reads as
-  // perfectly centered on screen. That point sits inside the s glyph's
-  // upper-bowl stroke (verified via isPointInFill; band extents from the
-  // origin: left 2.0 / right 1.75 / up 4.25 / down 3.2 viewBox units), so the
-  // blow-through ends fully transparent at any aspect ratio (xMidYMid slice
-  // crops what's visible, never the mask geometry). Min clearing scale ≈ 32
-  // (bottom-left screen corner is binding); 45 gives ~40% margin.
-  const ORIGIN_X = 50
+  // Scale origin sits mid-band in the s glyph's upper-bowl spine — the fill
+  // point nearest screen center now that the mark is optically centered on
+  // "ks" (the trailing dot hangs right, so the spine lands at vb 51.8–55.5;
+  // verified via isPointInFill probes). 3.65 units right of true center is
+  // imperceptible; the blow-through still ends fully transparent at any
+  // aspect ratio (xMidYMid slice crops what's visible, never the mask
+  // geometry). Min clearing scale ≈ 35.6 (bottom-left screen corner is
+  // binding); 45 gives ~26% margin.
+  const ORIGIN_X = 53.65
   const ORIGIN_Y = 50
   const ANTICIPATION_SCALE = 0.96
   const ANTICIPATION_S = 0.18
   const EXPLOSION_SCALE = 45
   const EXPLOSION_S = 1.1
   // GSAP power4.in is quintic (t⁵). The ink clears the lower-left name region
-  // (bottom-left name corner needs scale ≈ 25.5×) at ~89% of the explosion;
+  // (bottom-left name corner needs scale ≈ 29×) at ~92% of the explosion;
   // at the 50% wall-clock midpoint the cutout is still only ≈ 2.3×.
-  const HANDOFF_FRACTION = 0.89
+  const HANDOFF_FRACTION = 0.92
   if (!ksEl) {
     finishLoader()
     return

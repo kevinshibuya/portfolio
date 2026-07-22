@@ -372,3 +372,18 @@ at viewBox x=34.35 (~34% of screen width). Amended values (all shipped in a foll
 - `EXPLOSION_SCALE` stays **45**: worst case (bottom-left screen corner) needs ≈ 32.1× → ~40% margin.
 - Sweep progress points → `[0.3, 0.7, 0.91, 0.99]` (creep ≈ 6× at 0.7; handoff frame at 0.91).
 - Docs synced: CLAUDE.md loader bullet, spec mechanics/handoff/TODO wording, Hero.tsx comment (~89%).
+
+## Amendment 2 (2026-07-22): optical centering of the mark ("ks" without the dot)
+
+Kevin: the mark should be optically centered on the "ks" letters only — the trailing "."
+shouldn't count. Shipped values:
+
+- Positioning group translate-x **30.74 → 34.52** ("ks" spans glyph-x 60.5–1021.5 → mark
+  center lands at viewBox 50; the dot hangs right to vb 71.3 — ~15px from the right edge on
+  390px mobile, accepted).
+- The old origin (50, 50) landed in the k–s GAP after the shift (ink — would break the
+  zoom-through). New origin = **(53.65, 50)**, mid-band of the shifted s spine (vb 51.8–55.5,
+  re-probed via isPointInFill). 3.65 right of true center — imperceptible.
+- `HANDOFF_FRACTION` → **0.92** (name bottom-left corner clears at scale ≈ 29).
+- `EXPLOSION_SCALE` stays **45**: worst corner (bottom-left) needs ≈ 35.6× → ~26% margin.
+- Sweep points → `[0.3, 0.7, 0.93, 0.99]`; all 12 frames green at the three widths.
