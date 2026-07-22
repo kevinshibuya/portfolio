@@ -52,21 +52,21 @@ UI/taste rule: sonnet-5 (taste 7) clears the ≥7 bar for the UI slices; opus re
 
 **Purpose:** Confirm the tree matches the recorded baseline before any change. Values already measured by the plan author on 2026-07-22 (recorded under Global Constraints). Re-run to confirm on the executor's machine.
 
-- [ ] **Step 1: Kill any stale preview on 4173**
+- [x] **Step 1: Kill any stale preview on 4173**
 
 Run: `lsof -ti:4173 | xargs kill 2>/dev/null; echo cleared`
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `npx tsc -b`
 Expected: exit 0, no output.
 
-- [ ] **Step 3: Unit tests**
+- [x] **Step 3: Unit tests**
 
 Run: `npm run test:unit`
 Expected: `Test Files  12 passed (12)`, `Tests  66 passed (66)`.
 
-- [ ] **Step 4: Build, then start a FRESH vite preview (never reuse a pre-build preview — stale sirv 404s hashed assets)**
+- [x] **Step 4: Build, then start a FRESH vite preview (never reuse a pre-build preview — stale sirv 404s hashed assets)**
 
 Run:
 ```bash
@@ -77,7 +77,7 @@ sleep 6 && curl -sf -o /dev/null -w "%{http_code}\n" http://localhost:4173/
 ```
 Expected: build succeeds; probe prints `200`.
 
-- [ ] **Step 5: Lighthouse desktop performance baseline**
+- [x] **Step 5: Lighthouse desktop performance baseline**
 
 Run:
 ```bash
@@ -87,11 +87,11 @@ node -e "const r=require('/tmp/lh.json');console.log('PERF',Math.round(r.categor
 ```
 Expected: `PERF` ≈ **89–92**. Record the run's value. The gate floor for Task 11 is **≥ 89**.
 
-- [ ] **Step 6: Kill the preview**
+- [x] **Step 6: Kill the preview**
 
 Run: `lsof -ti:4173 | xargs kill 2>/dev/null; echo killed`
 
-- [ ] **Step 7: Serial e2e baseline**
+- [x] **Step 7: Serial e2e baseline**
 
 Run: `npx playwright test --workers=1`
 Expected (recorded baseline): **43 passed, 1 failed, 2 skipped**. The single failure is `tests/e2e/perf-budget.spec.ts:30 › no long task > 200ms during scroll` (deterministic ~211–234 ms on desktop-chromium, pre-existing). If ANY OTHER test is red or the counts differ, STOP and reconcile before Task 1 — do not start feature work on an unknown baseline.
@@ -99,6 +99,8 @@ Expected (recorded baseline): **43 passed, 1 failed, 2 skipped**. The single fai
 **Acceptance check (read-only):** the recorded numbers above reproduce. No code is written in this task.
 
 **Boundaries:** Out of scope: fixing anything. This task only measures and confirms.
+
+**Task 0 OUTCOME (2026-07-22, executor run — controller-adjudicated):** tsc clean; unit 66/66 (12 files); Lighthouse desktop perf **94** (above the 89–92 window; the ≥89 gate floor stands); serial e2e **44 passed / 0 failed / 2 skipped** — `perf-budget.spec.ts:30` PASSED this run. Reconciled with the plan author's 3× isolated failures (211–234 ms under plan-authoring load): the long task is **load-marginal, not deterministic** — the 200 ms budget sits inside the task's own noise band, so it flips red under machine load. Task 1 therefore skips the trace step (nothing reproduces idle) and applies branch (b) directly, with the comment documenting both observations. Evidence: qa-runs `20260722-1618*-task0-*` (5 logs), report `.superpowers/sdd/2026-07-22-selected-work-card-stack-task-0-report.md`.
 
 ---
 
