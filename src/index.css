@@ -1959,3 +1959,142 @@ body[data-loader-state="loading"] {
     display: none;
   }
 }
+
+/* =========================================================================
+   SELECTED WORK — CARD STACK (pinned scroll-scrubbed stage)
+   Replaces the retired .projects-list WorkRow list. Canonical tokens only.
+   ========================================================================= */
+.projects-stack-section { overflow: visible; } /* never clip the sticky descendant */
+
+.stack-scroll {
+  position: relative;
+  height: 400svh; /* COUPLED to Projects.tsx: featured count n=4 → n×100svh (3 transitions,
+                     one viewport each + settle edges). If the top-4 curation ever changes
+                     size, update this and the JS `n` TOGETHER. */
+  margin-top: 96px;
+}
+.stack-sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden; /* clip the exiting card as it flies to y 340 */
+  display: grid;
+  place-items: center;
+}
+.stack-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+}
+
+/* Gooey title */
+.gooey-title {
+  position: relative;
+  margin: 0;
+  text-align: center;
+  text-transform: lowercase;
+}
+.gooey-title-defs { position: absolute; width: 0; height: 0; }
+.gooey-title-stage { position: relative; display: inline-grid; }
+.gooey-title-span {
+  grid-area: 1 / 1; /* stack both spans in the same cell so they morph in place */
+  display: block;
+  font-size: clamp(30px, 5vw, 64px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text);
+  will-change: filter, opacity;
+}
+
+/* Meta line */
+.stack-meta {
+  margin: 0;
+  color: var(--text-faded);
+  font-size: clamp(12px, 1.4vw, 13px);
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  font-variant-numeric: tabular-nums;
+}
+.stack-meta .num { color: var(--row-tint); }
+
+/* Card stack */
+.stack-cards {
+  position: relative;
+  width: min(46vw, 620px);
+  aspect-ratio: 16 / 9.5;
+}
+.stack-card {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+  background: var(--bg-tonal);
+  /* No will-change here: Framer manages the compositor hint on its own animated
+     transforms, and the spec sanctions will-change ONLY on the two title spans
+     (CLAUDE.md: "will-change only when animating"). */
+}
+.stack-card--buried { pointer-events: none; }
+.stack-card img,
+.stack-card-fallback { width: 100%; height: 100%; object-fit: cover; display: block; }
+.stack-card-fallback { background: linear-gradient(145deg, var(--bg-tonal), var(--bg)); }
+.stack-card-link,
+.stack-card-inert { display: block; position: absolute; inset: 0; }
+.stack-card-link:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+
+/* view project bar — hero-scrim rule: ink gradient ≥ 0.88 alpha behind text */
+.stack-card-bar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  color: var(--text);
+  font-size: 14px;
+  text-transform: lowercase;
+  /* Hero-scrim rule: alpha must be ≥ 0.88 across the WHOLE text-bearing region.
+     The flex-centered CTA text sits in the band up to ~72% of the bar height
+     (18px padding + line box); the fade to transparent begins only ABOVE it. */
+  background: linear-gradient(
+    to top,
+    rgba(11, 14, 20, 0.92) 0%,
+    rgba(11, 14, 20, 0.88) 72%,
+    rgba(11, 14, 20, 0) 100%
+  );
+}
+.stack-card-arrow {
+  color: var(--row-tint);
+  transition: transform var(--dur-hover-in, 0.2s) var(--ease-house);
+}
+.stack-card-link:hover .stack-card-arrow,
+.stack-card-link:focus-visible .stack-card-arrow { transform: translate(3px, -3px); }
+
+/* Skip-link project index — visually hidden until focused */
+.stack-skiplinks { position: absolute; }
+.stack-skiplink { position: absolute; left: -9999px; }
+.stack-skiplink:focus-visible {
+  position: fixed;
+  left: 50%; top: 16px;
+  transform: translateX(-50%);
+  z-index: 50;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  color: var(--text);
+  text-transform: lowercase;
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .stack-cards { width: 88vw; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gooey-title-span { will-change: auto; }
+  .stack-card-arrow { transition: none; }
+}
