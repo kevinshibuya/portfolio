@@ -122,21 +122,23 @@ const liftCurtain = (): void => {
   const ksEl = loaderEl.querySelector<SVGGElement>('.loader-ks')
   const metaBl = loaderEl.querySelector<HTMLElement>('.loader-meta--bl')
   const metaBr = loaderEl.querySelector<HTMLElement>('.loader-meta--br')
-  // Scale origin (viewBox coords) sits inside the k stem — glyph-x 60.5–191.75
-  // maps to viewBox-x 32.5–36.2, solid fill for viewBox-y 39.0–52.8 — so the
+  // Scale origin = exact viewBox center (50, 50) so the expansion reads as
+  // perfectly centered on screen. That point sits inside the s glyph's
+  // upper-bowl stroke (verified via isPointInFill; band extents from the
+  // origin: left 2.0 / right 1.75 / up 4.25 / down 3.2 viewBox units), so the
   // blow-through ends fully transparent at any aspect ratio (xMidYMid slice
-  // crops what's visible, never the mask geometry). Min clearing scale ≈ 35
-  // (right stem edge → far viewport edge at origin-x 34.35); 45 ≈ 28% margin.
-  const ORIGIN_X = 34.35
-  const ORIGIN_Y = 49.8
+  // crops what's visible, never the mask geometry). Min clearing scale ≈ 32
+  // (bottom-left screen corner is binding); 45 gives ~40% margin.
+  const ORIGIN_X = 50
+  const ORIGIN_Y = 50
   const ANTICIPATION_SCALE = 0.96
   const ANTICIPATION_S = 0.18
   const EXPLOSION_SCALE = 45
   const EXPLOSION_S = 1.1
   // GSAP power4.in is quintic (t⁵). The ink clears the lower-left name region
-  // (viewBox x ≥ 5 needs scale ≈ 15.6×) at ~80% of the explosion; at the 50%
-  // wall-clock midpoint the cutout is still only ≈ 2.3× — far too early.
-  const HANDOFF_FRACTION = 0.8
+  // (bottom-left name corner needs scale ≈ 25.5×) at ~89% of the explosion;
+  // at the 50% wall-clock midpoint the cutout is still only ≈ 2.3×.
+  const HANDOFF_FRACTION = 0.89
   if (!ksEl) {
     finishLoader()
     return

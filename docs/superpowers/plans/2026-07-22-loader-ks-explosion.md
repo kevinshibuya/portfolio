@@ -356,3 +356,19 @@ git commit -m "docs(loader): sync CLAUDE.md + spec/plan boxes for the KS explosi
 1. Plan review before Task 1: fresh-context Opus pass over this plan (runtime/boot assumptions, forward-compat traps) + one codex-review cross-vendor pass. Findings fix the PLAN first.
 2. Task 0 is the mandated full-suite baseline (includes every e2e spec named here).
 3. No numeric perf budgets are set by this plan (timings are design values, not measured budgets) — n/a.
+
+---
+
+## Amendment (2026-07-22, post-review): centered explosion origin
+
+Kevin's live feedback after shipping: the expansion read right-biased — the k-stem origin sits
+at viewBox x=34.35 (~34% of screen width). Amended values (all shipped in a follow-up commit):
+
+- `ORIGIN_X/ORIGIN_Y` → **(50, 50)** — exact viewBox center, inside the **s glyph's upper-bowl
+  stroke**. Verified empirically via `isPointInFill` probes (`tmp/origin-probe*.mjs` pattern:
+  load the built page, walk rays from the origin through the mask paths). Band extents from
+  origin: left 2.0 / right 1.75 / up 4.25 / down 3.2 viewBox units.
+- `HANDOFF_FRACTION` → **0.89** (name region now clears at scale ≈ 25.5 → t = (24.54/44.04)^(1/5)).
+- `EXPLOSION_SCALE` stays **45**: worst case (bottom-left screen corner) needs ≈ 32.1× → ~40% margin.
+- Sweep progress points → `[0.3, 0.7, 0.91, 0.99]` (creep ≈ 6× at 0.7; handoff frame at 0.91).
+- Docs synced: CLAUDE.md loader bullet, spec mechanics/handoff/TODO wording, Hero.tsx comment (~89%).
