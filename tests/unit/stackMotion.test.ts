@@ -5,6 +5,7 @@ import {
   segmentFor,
   settleFrac,
   depthTransform,
+  cardStyleAt,
   morphValues,
 } from '../../src/utils/stackMotion'
 
@@ -71,15 +72,15 @@ describe('settleFrac (plateau remap, window 0.15–0.85)', () => {
   })
 })
 
-describe('depthTransform (slots 12/-16/-44, scales 1/.95/.9, exit y 340)', () => {
+describe('depthTransform (slots 12/-16/-44, scales 1/.95/.9, exit y 440)', () => {
   it('front card (depth 0) sits at slot 0 when settled', () => {
     expect(depthTransform(0, 0)).toMatchObject({ y: 12, scale: 1, opacity: 1 })
   })
-  it('front card exits to y 340 and fades to .85 across the window', () => {
-    expect(depthTransform(0, 1)).toMatchObject({ y: 340, opacity: 0.85 })
+  it('front card exits to y 440 and fades to .85 across the window', () => {
+    expect(depthTransform(0, 1)).toMatchObject({ y: 440, opacity: 0.85 })
   })
-  it('front-card exit accelerates (ease-in lags the linear midpoint 176)', () => {
-    expect(depthTransform(0, 0.5).y).toBeLessThan(176)
+  it('front-card exit accelerates (ease-in lags the linear midpoint 226)', () => {
+    expect(depthTransform(0, 0.5).y).toBeLessThan(226)
   })
   it('depth 1 promotes into the front slot', () => {
     expect(depthTransform(1, 0)).toMatchObject({ y: -16, scale: 0.95, opacity: 1 })
@@ -99,6 +100,38 @@ describe('depthTransform (slots 12/-16/-44, scales 1/.95/.9, exit y 340)', () =>
   it('shadow strength tracks slot linearly', () => {
     expect(depthTransform(0, 0).shadow).toBeCloseTo(1, 6)
     expect(depthTransform(2, 0).shadow).toBeCloseTo(0.3, 6)
+  })
+})
+
+describe('cardStyleAt (single-channel rel = cardIndex − segCont)', () => {
+  it('parks any fully-exited card (rel ≤ −1) at EXIT_Y, opacity/shadow 0', () => {
+    expect(cardStyleAt(-1)).toEqual({ y: 440, scale: 1, opacity: 0, shadow: 0 })
+    expect(cardStyleAt(-1.5)).toEqual({ y: 440, scale: 1, opacity: 0, shadow: 0 })
+    expect(cardStyleAt(-3)).toEqual({ y: 440, scale: 1, opacity: 0, shadow: 0 })
+  })
+  it('integer rest states equal depthTransform(depth, 0)', () => {
+    expect(cardStyleAt(0)).toEqual(depthTransform(0, 0)) // front at rest
+    expect(cardStyleAt(1)).toEqual(depthTransform(1, 0))
+    expect(cardStyleAt(2)).toEqual(depthTransform(2, 0))
+    expect(cardStyleAt(3)).toEqual(depthTransform(3, 0)) // incoming, opacity 0 at back slot
+  })
+  it('mid-exit (rel −0.5) decomposes to depthTransform(0, 0.5)', () => {
+    expect(cardStyleAt(-0.5)).toEqual(depthTransform(0, 0.5))
+  })
+  it('mid-promotion (rel 0.5) decomposes to depthTransform(1, 0.5)', () => {
+    expect(cardStyleAt(0.5)).toEqual(depthTransform(1, 0.5))
+  })
+  it('is continuous approaching the park boundary, then the park drops opacity', () => {
+    // rel = −1 + ε → depthTransform(0, 1 − ε): y → 440, opacity → 0.85, shadow → 1.
+    const nearY = cardStyleAt(-1 + 1e-4)
+    expect(nearY.y).toBeGreaterThan(439.9)
+    expect(nearY.y).toBeLessThanOrEqual(440)
+    expect(nearY.opacity).toBeCloseTo(0.85, 3)
+    // The only discontinuity at rel = −1 is the park branch: opacity 0.85 → 0.
+    const parked = cardStyleAt(-1)
+    expect(parked.y).toBe(440)
+    expect(parked.opacity).toBe(0)
+    expect(parked.shadow).toBe(0)
   })
 })
 

@@ -143,3 +143,20 @@ NO-list stays otherwise intact. Framer scroll-scrub is added as a sanctioned lan
       re-recorded baseline, Lighthouse on `npx vite preview` ≥ measured pre-change baseline.
 - [ ] Safari visual check of the gooey morph (degrade flag decision recorded).
 - [ ] CLAUDE.md design-direction amendment committed with the feature.
+
+## Ratified deviations (branch review 2026-07-22)
+
+The consolidated Opus review + codex cross-vendor pass ratified two intentional departures
+from the prose above; both are controller-sanctioned and shipped in the branch-review fix wave.
+
+1. **Meta line: discrete midpoint swap, not a crossfade.** The spec sketched a title-style
+   crossfade for the meta line; the implementation keeps a single discrete swap at the settle
+   midpoint. Crossfade was rejected: stacked hidden meta spans would pollute the `innerText`
+   the scrub e2e asserts on, and the swap lands at peak title blur where a 12px faded-text pop
+   is invisible. The visible morph is carried entirely by the gooey title.
+
+2. **Card exit clearance: `EXIT_Y` raised 340 → 440.** At the 620px width cap a card is ~368px
+   tall; exit y 340 left a ~40px occlusion band (exited card still overlapping the promoted card)
+   during the end-plateau and, once cards stay mounted, permanently. 440 clears the 368px card
+   plus ~22px shadow bleed with margin; the fully-exited card is also parked at opacity 0
+   (`cardStyleAt`, rel ≤ −1) so the terminal band is clean regardless.

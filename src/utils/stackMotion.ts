@@ -58,7 +58,7 @@ const SLOTS: ReadonlyArray<{ y: number; scale: number; shadow: number }> = [
   { y: -16, scale: 0.95, shadow: 0.6 },
   { y: -44, scale: 0.9, shadow: 0.3 },
 ]
-const EXIT_Y = 340
+const EXIT_Y = 440
 
 /**
  * Interpolated style for a card currently at logical `depth` (0 = front,
@@ -85,6 +85,21 @@ export function depthTransform(depth: number, frac: number): DepthStyle {
     opacity: depth >= 3 ? lerp(0, 1, f) : 1,
     shadow: lerp(from.shadow, to.shadow, f),
   }
+}
+
+/**
+ * Style for a card at continuous relative depth `rel = cardIndex − segCont`,
+ * the single scroll-derived channel that drives every per-frame card visual.
+ * rel ≤ −1 → fully exited: parked at EXIT_Y, opacity 0 (invisible while parked).
+ * Otherwise decomposes to the integer-depth grammar:
+ * depthTransform(ceil(rel), ceil(rel) − rel) — e.g. rel −0.5 = depthTransform(0, 0.5)
+ * (mid-exit), rel 0.5 = depthTransform(1, 0.5) (mid-promotion), rel k = depthTransform(k, 0)
+ * (a settled slot).
+ */
+export function cardStyleAt(rel: number): DepthStyle {
+  if (rel <= -1) return { y: EXIT_Y, scale: 1, opacity: 0, shadow: 0 }
+  const d = Math.ceil(rel)
+  return depthTransform(d, d - rel)
 }
 
 export interface MorphStyle {

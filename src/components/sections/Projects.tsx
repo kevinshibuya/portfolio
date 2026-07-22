@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useScroll, useTransform, useMotionValueEvent } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMotion } from '../../context/MotionContext'
 import { SectionHeading } from '../ui/SectionHeading'
@@ -32,35 +33,38 @@ export function Projects() {
     offset: ['start start', 'end end'],
   })
 
-  // Per-frame settled progress within the active segment — a MotionValue, never state.
-  const settled = useTransform(scrollYProgress, (p) => settleFrac(segmentFor(p, n).frac))
+  // The ONE scroll-derived visual channel: continuous 0..n-1, plateaus at integers.
+  // EVERY per-frame card/title visual derives from this single MotionValue via pure
+  // functions (cardStyleAt / spanMorph) — no React state in the visual path, so an
+  // identity-state lag can no longer tear card/title rendering at a segment boundary.
+  const segCont = useTransform(scrollYProgress, (p) => {
+    const { index, frac } = segmentFor(p, n)
+    return index + settleFrac(frac)
+  })
 
-  // Discrete states — flip a handful of times total, never per frame.
-  const [baseIndex, setBaseIndex] = useState(0)
+  // Non-visual discrete state — flips a handful of times total, never per frame.
   const [frontIndex, setFrontIndex] = useState(0)
 
   // Why this setState is safe (re-render-kills-entrance lesson): the SectionHeading
   // entrance (whileInView, once) sits ABOVE the pinned stage and completes before the
   // user scrolls into the scrub; the stack cards animate off MotionValues, never
   // whileInView — so a segment-index setState here cannot freeze an in-flight entrance
-  // stagger. The guards below also skip setState when the index is unchanged, so a
-  // full segment scrolls through with zero re-renders once base/front have settled.
+  // stagger. The guard below skips setState when the index is unchanged, so a full
+  // segment scrolls through with zero re-renders once frontIndex has settled. And since
+  // all visuals are single-channel (segCont), this state now feeds ONLY non-visual attrs
+  // (the interactive <Link>, aria, meta text, --row-tint, staticTitle) — its frame-lag
+  // can no longer tear the card/title flight.
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
     const { index, frac } = segmentFor(p, n)
-    const nextBase = index
     const nextFront = prefersReducedMotion
       ? Math.min(Math.round(p * (n - 1)), n - 1) // RM: swap at segment midpoint
       : Math.min(index + (settleFrac(frac) >= 0.5 ? 1 : 0), n - 1) // scrub: at settle-midpoint
-    setBaseIndex((c) => (c === nextBase ? c : nextBase))
     setFrontIndex((c) => (c === nextFront ? c : nextFront))
   })
 
-  const interactiveDepth = Math.min(Math.max(frontIndex - baseIndex, 0), 1)
   const front = featured[frontIndex]
-  const fromTitle = cards[baseIndex]?.title ?? ''
-  const toTitle = cards[Math.min(baseIndex + 1, n - 1)]?.title ?? ''
-  // Resting title tracks frontIndex (NOT baseIndex): it is the accessible name and
-  // the whole RM render, and must swap with the cards/meta at the settle-midpoint.
+  // Resting title tracks frontIndex: it is the accessible name and the whole RM
+  // render, and must swap with the cards/meta at the settle-midpoint.
   const staticTitle = cards[frontIndex]?.title ?? ''
 
   const metaTech = front.techStack.slice(0, 2).map((s) => s.toLowerCase()).join(' · ')
@@ -82,9 +86,9 @@ export function Projects() {
       {/* Keyboard/SR path: visually-hidden-until-focused project index, no scroll-jacking. */}
       <nav className="stack-skiplinks" aria-label={t('sections.projects.stack.indexLabel')}>
         {featured.map((p) => (
-          <a key={p.id} className="stack-skiplink" href={`/projects/${p.slug}`}>
+          <Link key={p.id} className="stack-skiplink" to={`/projects/${p.slug}`}>
             {p.title[lang]}
-          </a>
+          </Link>
         ))}
       </nav>
 
@@ -92,10 +96,9 @@ export function Projects() {
         <div className="stack-sticky">
           <div className="stack-inner" style={stageStyle}>
             <GooeyTitle
-              from={fromTitle}
-              to={toTitle}
+              titles={cards.map((c) => c.title)}
+              seg={segCont}
               staticTitle={staticTitle}
-              progress={settled}
               reducedMotion={prefersReducedMotion}
             />
             <p className="stack-meta">
@@ -103,10 +106,8 @@ export function Projects() {
             </p>
             <ProjectCardStack
               cards={cards}
-              baseIndex={baseIndex}
-              frontIndex={frontIndex}
-              interactiveDepth={interactiveDepth}
-              progress={settled}
+              seg={segCont}
+              interactiveIndex={frontIndex}
               reducedMotion={prefersReducedMotion}
               viewProjectLabel={t('sections.projects.stack.viewProject')}
             />

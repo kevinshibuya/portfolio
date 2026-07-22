@@ -1,16 +1,15 @@
 import { useId } from 'react'
 import { motion, useTransform, type MotionValue } from 'framer-motion'
-import { morphValues } from '../../utils/stackMotion'
+import { morphValues, type MorphStyle } from '../../utils/stackMotion'
 
 export interface GooeyTitleProps {
-  /** Outgoing (segment-start) project title — morph span. */
-  from: string
-  /** Incoming (segment-end) project title — morph span. */
-  to: string
-  /** Resting (front) project title: the accessible name and the entire RM render. Track frontIndex. */
+  /** All N project titles, index-aligned with the card stack — one morph span each. */
+  titles: string[]
+  /** Continuous scroll-derived channel (0..n-1, plateaus at integers). The SINGLE
+      source for every per-span blur/opacity — no React state in the visual path. */
+  seg: MotionValue<number>
+  /** Resting (front) project title: the accessible name and the entire RM render. Tracks frontIndex. */
   staticTitle: string
-  /** Settled transition progress within the current segment (0..1). */
-  progress: MotionValue<number>
   reducedMotion: boolean
   /** WebKit degrade flag: false drops the threshold feColorMatrix, keeps the blur/opacity crossfade. */
   thresholdFilter?: boolean
@@ -28,11 +27,42 @@ const srOnly: React.CSSProperties = {
   whiteSpace: 'nowrap',
 }
 
+/**
+ * Blur/opacity for span i at relative position `rel = segCont − i`.
+ * rel ∈ [0, 1]  → this title is the OUTgoing one: crisp at rel 0, dissolving by rel 1.
+ * rel ∈ (−1, 0) → this title is the INcoming one: sharpening as rel → 0.
+ * else          → distant/parked: fully blurred, transparent (never composited).
+ * At any transition exactly two spans are non-transparent (the classic two-span
+ * gooey morph), so the threshold filter only ever merges the crossing pair.
+ */
+function spanMorph(rel: number): MorphStyle {
+  if (rel >= 0 && rel <= 1) return morphValues(rel).outgoing
+  if (rel > -1 && rel < 0) return morphValues(1 + rel).incoming
+  return { blur: 100, opacity: 0 }
+}
+
+function TitleSpan({
+  index,
+  title,
+  seg,
+}: {
+  index: number
+  title: string
+  seg: MotionValue<number>
+}): React.ReactElement {
+  const filter = useTransform(seg, (s) => `blur(${spanMorph(s - index).blur}px)`)
+  const opacity = useTransform(seg, (s) => spanMorph(s - index).opacity)
+  return (
+    <motion.span className="gooey-title-span" style={{ filter, opacity }}>
+      {title}
+    </motion.span>
+  )
+}
+
 export function GooeyTitle({
-  from,
-  to,
+  titles,
+  seg,
   staticTitle,
-  progress,
   reducedMotion,
   thresholdFilter = true,
   className,
@@ -40,10 +70,6 @@ export function GooeyTitle({
   // Hooks run unconditionally (rules-of-hooks); the RM branch returns after them.
   const rawId = useId()
   const filterId = `gooey-${rawId.replace(/[^a-zA-Z0-9]/g, '')}`
-  const outBlur = useTransform(progress, (p) => `blur(${morphValues(p).outgoing.blur}px)`)
-  const outOpacity = useTransform(progress, (p) => morphValues(p).outgoing.opacity)
-  const inBlur = useTransform(progress, (p) => `blur(${morphValues(p).incoming.blur}px)`)
-  const inOpacity = useTransform(progress, (p) => morphValues(p).incoming.opacity)
 
   const cls = `gooey-title ${className ?? ''}`.trim()
 
@@ -74,12 +100,9 @@ export function GooeyTitle({
         aria-hidden="true"
         style={thresholdFilter ? { filter: `url(#${filterId})` } : undefined}
       >
-        <motion.span className="gooey-title-span" style={{ filter: outBlur, opacity: outOpacity }}>
-          {from}
-        </motion.span>
-        <motion.span className="gooey-title-span" style={{ filter: inBlur, opacity: inOpacity }}>
-          {to}
-        </motion.span>
+        {titles.map((title, i) => (
+          <TitleSpan key={i} index={i} title={title} seg={seg} />
+        ))}
       </span>
     </h2>
   )

@@ -1461,12 +1461,12 @@ git commit -m "docs(claude): selected-work card-stack design direction + scroll-
 
 **Files:** none (verification + review handoff).
 
-- [ ] **Step 1: Typecheck + unit**
+- [x] **Step 1: Typecheck + unit**
 
 Run: `npx tsc -b && npm run test:unit`
 Expected: exit 0; unit **66 + new stackMotion tests** all green (≈ 66 + ~8 files → confirm the new file's cases pass).
 
-- [ ] **Step 2: Build + fresh preview + Lighthouse ≥ 89**
+- [x] **Step 2: Build + fresh preview + Lighthouse ≥ 89** (measured PERF 94)
 
 Run:
 ```bash
@@ -1478,14 +1478,14 @@ node -e "const r=require('/tmp/lh-final.json');const s=Math.round(r.categories.p
 ```
 Expected: `PERF ≥ 89`. If below 89, the filter repaint / scrub cost regressed perf (spec risk 2) — investigate `will-change` scope and the filter-on-title cost before claiming done. Kill the preview after.
 
-- [ ] **Step 3: Serial e2e — re-record the baseline**
+- [x] **Step 3: Serial e2e — re-record the baseline** (measured: 48 passed, 0 skipped, 0 failed, 2.2m, `npx playwright test --workers=1`; perf-budget.spec.ts long-task test passed under the 300ms ceiling — spec asserts per-entry but does not log actual durations to stdout, so the exact max ms was not surfaced by this run; re-run with instrumentation would be needed to capture it)
 
 Run: `lsof -ti:4173 | xargs kill 2>/dev/null; npx playwright test --workers=1`
 Expected: green. Do NOT pre-compute the total from spec-file arithmetic — specs run per Playwright project (desktop-chromium AND mobile-chromium Pixel 5), so counts double per file and any `test.use`/skip conditions shift them. Take the MEASURED passed/skipped totals from this run and RECORD them here as the new baseline for future plans.
 
 Additionally re-measure the long-task ceiling headroom over the NEW scrub section (review finding — Task 1's 300 ms ceiling was chosen before the feature existed): run `npx playwright test tests/e2e/perf-budget.spec.ts --workers=1 --project=desktop-chromium` and capture the actual max long-task duration from the spec's output/trace, not just pass/fail. RECORD the measured max here. If it sits within ~15% of the ceiling, flag it in the PR description as a watch item — a near-ceiling pass is a regression signal, not a clean bill.
 
-- [ ] **Step 4: Manual Safari visual check of the gooey morph (spec risk 1)**
+- [x] **Step 4: Manual Safari visual check of the gooey morph (spec risk 1)** *(run via codex computer-use in REAL Safari 26.2, 26 screenshots: thresholdFilter SMOOTH → KEPT true; boundaryPop NONE; scrim PASS)*
 
 Open `http://localhost:4173/#projects` in Safari (WebKit). Scrub through the stack and watch the title morph — including slow back-and-forth passes across all three SEGMENT BOUNDARIES (the frame-desync pop surface, review finding #3). Decide the `thresholdFilter` degrade flag:
 - If the `filter: url(#…)` threshold morph is smooth in Safari → keep `thresholdFilter` default `true`.
@@ -1542,3 +1542,12 @@ Applied before Task 1 per the standing workflow rule, from the fresh-context Opu
 9. **[opus nits] `will-change` scoped to the two title spans only (CLAUDE.md standard); 400svh↔n coupling comment; Task 11 count arithmetic replaced with measured totals + long-task headroom re-measurement.**
 
 Not applied: the "política essencial vs hotmart-bunde" naming nit — `hotmart-bunde` is the id/slug and "política essencial" its display title; the spec's curation list is correct as written.
+
+## Branch-review fix wave (2026-07-22)
+
+From the consolidated Opus review (adversarially verified) + the codex cross-vendor pass, applied as ONE commit on `feat/selected-work-stack`:
+
+1. **[medium] Boundary identity/position tear → single-channel derivation.** Introduced one derived MotionValue `segCont` (continuous 0..n-1) in `Projects.tsx`; every per-frame visual (card y/scale/opacity/shadow/zIndex, title span blur/opacity) now derives from it via pure `cardStyleAt`/`spanMorph`. `ProjectCardStack` renders ALL n cards keyed by slug (identity never re-assigned); `GooeyTitle` is N-span. React `frontIndex` state survives only for non-visual attrs (interactive Link, aria, meta text, `--row-tint`, staticTitle); `baseIndex` and the from/to title derivation deleted. RM branches keep their static state-driven behavior.
+2. **[low] Meta hard-swap vs "crossfade" → ratified as-is.** Discrete midpoint swap kept (crossfade pollutes `innerText` e2e assertions; swap lands at peak blur). Recorded in the spec's Ratified-deviations section.
+3. **[low] Skip-links full-reload → react-router.** `Projects.tsx` skip-links are `<Link to=…>`, not raw `<a href=…>`.
+4. **[codex P2] Exit clearance → `EXIT_Y` 340 → 440.** Clears the ~368px card + shadow bleed so the exiting card no longer occludes the promoted one during flight; unit expectations updated (exit y 440, accelerate-midpoint bound 226) plus a new `cardStyleAt` describe-block.
