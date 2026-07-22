@@ -85,6 +85,11 @@ let lifted = false
 document.body.dataset.loaderState = 'loading'
 
 const finishLoader = (): void => {
+  // Drop the verification hooks with the loader — keeps the completed
+  // timeline (and its detached-SVG closure) from being retained for the
+  // page lifetime. No-op on paths that never set them (reduced motion).
+  delete window.__loaderTl
+  delete window.__loaderHandoffT
   loaderEl?.remove()
   document.documentElement.removeAttribute('data-loading')
   document.body.dataset.loaderState = 'done'
