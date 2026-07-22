@@ -1164,7 +1164,7 @@ git commit -m "style(stack): pinned card-stack stage on canonical tokens, scrim-
 - Modify: `src/i18n/locales/en.json`
 - Modify: `src/i18n/locales/pt.json`
 
-- [ ] **Step 1: Add the `stack` sub-object under `sections.projects` in `en.json`**
+- [x] **Step 1: Add the `stack` sub-object under `sections.projects` in `en.json`**
 
 In `src/i18n/locales/en.json`, `sections.projects` currently ends after `"description"`. Add a trailing key so it reads:
 ```json
@@ -1180,7 +1180,7 @@ In `src/i18n/locales/en.json`, `sections.projects` currently ends after `"descri
     },
 ```
 
-- [ ] **Step 2: Add the matching `stack` sub-object in `pt.json`**
+- [x] **Step 2: Add the matching `stack` sub-object in `pt.json`**
 
 In `src/i18n/locales/pt.json`, `sections.projects`:
 ```json
@@ -1196,12 +1196,12 @@ In `src/i18n/locales/pt.json`, `sections.projects`:
     },
 ```
 
-- [ ] **Step 3: Validate JSON + i18n unit tests**
+- [x] **Step 3: Validate JSON + i18n unit tests**
 
 Run: `node -e "require('./src/i18n/locales/en.json');require('./src/i18n/locales/pt.json');console.log('json ok')" && npm run test:unit -- i18n`
 Expected: `json ok`; i18n unit tests green.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/i18n/locales/en.json src/i18n/locales/pt.json
