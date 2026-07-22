@@ -2,11 +2,10 @@ import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useMotion } from '../../context/MotionContext'
+import { EASE_HOUSE } from '../../utils/animations'
 import { FluidWaves } from '../canvas/FluidWaves'
 
 const ROLE_DURATION_MS = 5000
-
-const RISE_EASE = [0.22, 1, 0.36, 1] as const
 
 export function Hero(): ReactElement {
   const { t, i18n } = useTranslation()
@@ -44,7 +43,7 @@ export function Hero(): ReactElement {
   // Rise transition per line; instant (duration 0) under reduced-motion/bypass.
   const rise = (delay: number) => ({
     duration: instant ? 0 : 0.9,
-    ease: RISE_EASE,
+    ease: EASE_HOUSE,
     delay: instant ? 0 : delay,
   })
 
@@ -122,9 +121,9 @@ export function Hero(): ReactElement {
                   opacity: 0,
                   // Shorter exit than enter (skill: exit < enter). Under reduced
                   // motion keep the prior 0.45s so that path stays untouched.
-                  transition: { duration: prefersReducedMotion ? 0.45 : 0.3, ease: RISE_EASE },
+                  transition: { duration: prefersReducedMotion ? 0.45 : 0.3, ease: EASE_HOUSE },
                 }}
-                transition={{ duration: 0.45, ease: RISE_EASE }}
+                transition={{ duration: 0.45, ease: EASE_HOUSE }}
                 whileTap={{ scale: 0.94 }}
                 className="hero-role"
                 onClick={cycleRole}

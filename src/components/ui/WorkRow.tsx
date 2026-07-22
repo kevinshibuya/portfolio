@@ -9,6 +9,7 @@ import {
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMotion } from '../../context/MotionContext'
+import { EASE_HOUSE } from '../../utils/animations'
 import { accentFor } from '../../utils/palette'
 
 export interface WorkRowPreview {
@@ -40,8 +41,6 @@ export interface WorkRowProps {
   /** Optional trailing ornament (e.g. archive ★). */
   ornament?: React.ReactNode
 }
-
-const EASE = [0.22, 1, 0.36, 1] as const
 
 /** Desktop hover + fine pointer: the only environment that shows the tracking float. */
 function canHoverFine(): boolean {
@@ -167,9 +166,9 @@ export function WorkRow(props: WorkRowProps): React.ReactElement {
               exit={{
                 height: 0,
                 opacity: 0,
-                transition: { duration: prefersReducedMotion ? 0 : 0.22, ease: EASE },
+                transition: { duration: prefersReducedMotion ? 0 : 0.22, ease: EASE_HOUSE },
               }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.32, ease: EASE }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.32, ease: EASE_HOUSE }}
               style={{ overflow: 'hidden' }}
             >
               <div className="workrow-panel">{children}</div>
@@ -209,7 +208,7 @@ export function WorkRow(props: WorkRowProps): React.ReactElement {
   }
 
   return (
-    <div className="workrow" style={rootStyle} data-tint={accentFor(index)}>
+    <div className="workrow" style={rootStyle}>
       {interactive}
       {showFloat && preview && (
         <WorkRowFloat x={springX} y={springY} visible={floatVisible} preview={preview} />
@@ -238,7 +237,7 @@ function WorkRowFloat({ x, y, visible, preview }: WorkRowFloatProps): React.Reac
         className="workrow-float-inner"
         style={preview.src ? undefined : { backgroundImage: preview.gradient }}
         animate={shown ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.3, ease: EASE }}
+        transition={{ duration: 0.3, ease: EASE_HOUSE }}
       >
         {preview.src && <img src={preview.src} alt={preview.alt ?? ''} />}
       </motion.div>

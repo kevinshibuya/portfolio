@@ -15,6 +15,7 @@ import {
 } from '../../data/archive'
 import { resolveTitle } from '../../types/content'
 import type { ArchiveItem } from '../../types/content'
+import { EASE_HOUSE } from '../../utils/animations'
 
 const PAGE_SIZE = 12
 const STAGGER_MS = 40
@@ -248,7 +249,7 @@ function ArchiveRow({ idx, item, lang, reduced }: ArchiveRowProps) {
   const motionProps = {
     initial: { opacity: 0, x: reduced ? 0 : -16 },
     animate: inView ? { opacity: 1, x: 0 } : { opacity: 0, x: reduced ? 0 : -16 },
-    transition: { duration: reduced ? 0 : 0.5, ease: [0.22, 1, 0.36, 1] as const, delay },
+    transition: { duration: reduced ? 0 : 0.5, ease: EASE_HOUSE, delay },
   }
 
   return (

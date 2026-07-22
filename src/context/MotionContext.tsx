@@ -32,17 +32,6 @@ const _entranceDone: Promise<void> = new Promise<void>((res) => {
 })
 const resolveEntrance: Resolver = () => _resolveEntrance?.()
 
-// Module-scoped curtain handshake. The static loader in index.html paints
-// at first frame; main.tsx calls resolveCurtain() when the explosion
-// handoff fires. curtainGone is currently unconsumed (the Hero timeline
-// that awaited it was retired with the entrance) but kept in the public
-// shape for symmetry with entranceDone and future stage handoffs.
-let _resolveCurtain: Resolver | null = null
-const _curtainGone: Promise<void> = new Promise<void>((res) => {
-  _resolveCurtain = res
-})
-const resolveCurtain: Resolver = () => _resolveCurtain?.()
-
 // Module-scoped flag is the survive-everything source of truth (StrictMode
 // double-mount, MotionProvider remount). The provider also mirrors it in
 // state so calling bypassEntrance() triggers a context re-render and
@@ -61,10 +50,6 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     _entranceBypassed = true
     setBypassed(true)
     resolveEntrance()
-    // Back-nav from project detail: there's no full reload, so the loader
-    // never rendered. Pre-resolve the curtain so the Hero entrance effect's
-    // await in this scenario doesn't stall.
-    resolveCurtain()
   }
 
   const value = useMemo<MotionContextValue>(
@@ -89,9 +74,7 @@ export function useMotion(): MotionContextValue {
   return v
 }
 
-// Module-level exports for non-React consumers (main.tsx) and for components
-// that need to await the curtain handoff (the Hero entrance effect) without
-// going through the React context. Mirrors the `_entranceDone` accessor pattern.
-export const curtainGone = _curtainGone
+// Module-level exports for non-React consumers (main.tsx) without going
+// through the React context. Mirrors the `_entranceDone` accessor pattern.
 export const entranceDone = _entranceDone
-export { resolveCurtain, resolveEntrance }
+export { resolveEntrance }

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
-// Force reduced motion so the entrance effect snaps to its final state and
-// resolves the (module-scoped) entrance gate immediately, instead of leaving
-// a pending GSAP timeline awaiting the curtain promise. We assert only on
-// rendered content, never on un-resolved entrance state (promise pollution).
+// Force reduced motion so the entrance effect snaps to its final state
+// instead of leaving the rise pending on the (module-scoped) entrance gate.
+// We assert only on rendered content, never on un-resolved entrance state
+// (promise pollution).
 vi.mock('framer-motion', async () => {
   const actual = await vi.importActual<typeof import('framer-motion')>('framer-motion')
   return { ...actual, useReducedMotion: () => true }

@@ -6,7 +6,7 @@ import { CustomEase } from 'gsap/CustomEase'
 import './i18n'
 import './index.css'
 import App from './App.tsx'
-import { MotionProvider, resolveCurtain, resolveEntrance } from './context/MotionContext'
+import { MotionProvider, resolveEntrance } from './context/MotionContext'
 
 declare global {
   interface Window {
@@ -55,13 +55,13 @@ createRoot(document.getElementById('root')!).render(
 // the ks. glyph windows show the stand-in gradient, then (post-mount) the live
 // hero shader. We exit via the KS vignette explosion (anticipation, then an
 // accelerating zoom-through of the mask cutout) once React has painted + a
-// min dwell has elapsed, then resolve the curtain + entrance gates.
+// min dwell has elapsed, then resolve the entrance gate.
 // Guarded so a GSAP init failure can never abort this module before the hard
 // fallback below is armed — otherwise data-loading would leave the page
 // scroll-locked on a blank screen forever.
 try {
   gsap.registerPlugin(CustomEase)
-  CustomEase.create('house', '0.22,1,0.36,1') // idempotent; Hero also registers it
+  CustomEase.create('house', '0.22,1,0.36,1')
 } catch {
   // 'house' ease unavailable — the exit falls back to a default ease below.
 }
@@ -93,7 +93,6 @@ const finishLoader = (): void => {
   loaderEl?.remove()
   document.documentElement.removeAttribute('data-loading')
   document.body.dataset.loaderState = 'done'
-  resolveCurtain()
   resolveEntrance()
 }
 
@@ -102,10 +101,9 @@ const liftCurtain = (): void => {
   lifted = true
   if (!loaderEl) {
     // Defensive: no loader element (misconfigured deploy). Still release the
-    // scroll lock so the page isn't frozen, and resolve both gates.
+    // scroll lock so the page isn't frozen, and resolve the entrance gate.
     document.documentElement.removeAttribute('data-loading')
     document.body.dataset.loaderState = 'done'
-    resolveCurtain()
     resolveEntrance()
     return
   }
@@ -148,7 +146,6 @@ const liftCurtain = (): void => {
   // between "ink clearing" and "text starts". finishLoader still removes the
   // loader at 100%.
   const handoff = (): void => {
-    resolveCurtain()
     resolveEntrance()
   }
   const proxy = { s: 1 }
