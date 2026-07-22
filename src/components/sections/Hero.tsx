@@ -13,9 +13,9 @@ export function Hero(): ReactElement {
   const lang = i18n.language
   const { prefersReducedMotion, entranceDone, entranceBypassed } = useMotion()
 
-  // Entrance rise. The ink-bleed loader reveals the shader; the hero text then
-  // rises out of its clip masks once the bleed nears completion (main.tsx
-  // resolves entranceDone at ~60% of the bleed). `riseSettled` releases the
+  // Entrance rise. The loader explosion reveals the shader; the hero text then
+  // rises out of its clip masks once the explosion nears completion (main.tsx
+  // resolves entranceDone at ~80% of the explosion). `riseSettled` releases the
   // clip to overflow:visible only AFTER the rise finishes, so the role focus
   // ring and glyph descenders aren't clipped at rest. Reduced-motion and SPA
   // back-nav skip straight to the settled state — no rise.
@@ -90,7 +90,7 @@ export function Hero(): ReactElement {
 
   const activeRole = roles[roleIdx] ?? ''
 
-  // The loader bleed reveals the shader; then the hero text rises in (above).
+  // The loader explosion reveals the shader; then the hero text rises in (above).
   // main.tsx is the sole resolver of the entrance gate (finishLoader →
   // resolveEntrance) on the normal path, which flips `entered`; bypassEntrance()
   // owns the SPA back-nav path (instant). Hero only reads the gate — it never

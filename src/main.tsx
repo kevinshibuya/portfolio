@@ -8,6 +8,16 @@ import './index.css'
 import App from './App.tsx'
 import { MotionProvider, resolveCurtain, resolveEntrance } from './context/MotionContext'
 
+declare global {
+  interface Window {
+    // Deterministic verification hooks: let a Playwright sweep pause/seek the
+    // loader exit (and cancel the wall-clock handoff timer) to screenshot
+    // exact frames. Harmless in production.
+    __loaderTl?: gsap.core.Timeline
+    __loaderHandoffT?: number
+  }
+}
+
 // Take ownership of scroll restoration so the browser doesn't fight our
 // per-route handling: full reload starts at top + plays the hero entrance
 // fresh; in-tab back-navigation runs our useLayoutEffect-driven restore
@@ -43,8 +53,9 @@ createRoot(document.getElementById('root')!).render(
 
 // Loader controller. The ink SVG loader in index.html paints at first byte;
 // the ks. glyph windows show the stand-in gradient, then (post-mount) the live
-// hero shader. We dissolve the ink with a GSAP stain bleed once React has
-// painted + a min dwell has elapsed, then resolve the curtain + entrance gates.
+// hero shader. We exit via the KS vignette explosion (anticipation, then an
+// accelerating zoom-through of the mask cutout) once React has painted + a
+// min dwell has elapsed, then resolve the curtain + entrance gates.
 // Guarded so a GSAP init failure can never abort this module before the hard
 // fallback below is armed — otherwise data-loading would leave the page
 // scroll-locked on a blank screen forever.
@@ -52,14 +63,16 @@ try {
   gsap.registerPlugin(CustomEase)
   CustomEase.create('house', '0.22,1,0.36,1') // idempotent; Hero also registers it
 } catch {
-  // 'house' ease unavailable — the bleed falls back to a default ease below.
+  // 'house' ease unavailable — the exit falls back to a default ease below.
 }
 
 const reduceMotion = (() => {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches }
   catch { return false }
 })()
-const MIN_DWELL_MS = reduceMotion ? 200 : 600
+// Savor beat: the live shader visibly drifts inside the ks. windows before
+// the explosion (reduced motion keeps the old brief dwell).
+const MIN_DWELL_MS = reduceMotion ? 200 : 1200
 const MAX_WAIT_MS = 3000
 
 const loaderEl = document.getElementById('loader')
@@ -92,48 +105,66 @@ const liftCurtain = (): void => {
     return
   }
   if (reduceMotion) {
-    // No bleed: fade the whole loader (CSS opacity 150ms), then remove.
+    // No explosion: fade the whole loader (CSS opacity 150ms), then remove.
     loaderEl.classList.add('loader--exit')
     window.setTimeout(finishLoader, 200)
     return
   }
-  // Ink bleed: grow the stains in the SVG mask to fully dissolve the ink.
-  // Slow, eased spread — each stain creeps then floods (house ease-out), the
-  // staggered starts read as ink soaking outward rather than a snap.
-  const stains = loaderEl.querySelectorAll<SVGCircleElement>('.loader-stains circle')
-  const ENDS = [55, 55, 55, 55, 50, 48]
-  // Wide, uneven stagger + a gentle ease-out (power2, not the front-loaded
-  // house) so each stain visibly creeps outward across the whole duration
-  // rather than snapping to full size — reads as ink soaking, not a wipe.
-  const DELAYS = [0, 0.18, 0.36, 0.26, 0.5, 0.66]
-  const STAIN_DURATION = 1.8
-  const STAIN_EASE = 'power2.out'
-  if (stains.length === 0) {
+  // Vignette explosion: the ks. cutout contracts slightly (anticipation),
+  // then blows outward until the viewport sits entirely inside the k-stem
+  // window — ink fully gone, hero revealed. Accelerating ease on the
+  // explosion: an inOut's decel tail would play entirely off-screen.
+  const ksEl = loaderEl.querySelector<SVGGElement>('.loader-ks')
+  const metaBl = loaderEl.querySelector<HTMLElement>('.loader-meta--bl')
+  const metaBr = loaderEl.querySelector<HTMLElement>('.loader-meta--br')
+  // Scale origin (viewBox coords) sits inside the k stem — glyph-x 60.5–191.75
+  // maps to viewBox-x 32.5–36.2, solid fill for viewBox-y 39.0–52.8 — so the
+  // blow-through ends fully transparent at any aspect ratio (xMidYMid slice
+  // crops what's visible, never the mask geometry). Min clearing scale ≈ 35
+  // (right stem edge → far viewport edge at origin-x 34.35); 45 ≈ 28% margin.
+  const ORIGIN_X = 34.35
+  const ORIGIN_Y = 49.8
+  const ANTICIPATION_SCALE = 0.96
+  const ANTICIPATION_S = 0.18
+  const EXPLOSION_SCALE = 45
+  const EXPLOSION_S = 1.1
+  // GSAP power4.in is quintic (t⁵). The ink clears the lower-left name region
+  // (viewBox x ≥ 5 needs scale ≈ 15.6×) at ~80% of the explosion; at the 50%
+  // wall-clock midpoint the cutout is still only ≈ 2.3× — far too early.
+  const HANDOFF_FRACTION = 0.8
+  if (!ksEl) {
     finishLoader()
     return
   }
-  // Overlap the reveal with the tail of the bleed: at ~40% fire the hero rise
-  // and fade the loader labels, so there's no dead gap between "ink clearing"
-  // and "text starts". finishLoader still removes the loader at 100%.
+  // Fire the hero rise while the explosion blows through — no dead gap
+  // between "ink clearing" and "text starts". finishLoader still removes the
+  // loader at 100%.
   const handoff = (): void => {
-    loaderEl.classList.add('loader--handoff')
     resolveCurtain()
     resolveEntrance()
   }
-  // Total bleed span = latest start + one stain duration.
-  const BLEED_TOTAL = Math.max(...DELAYS) + STAIN_DURATION
-  // If GSAP ever throws building the bleed, finish immediately rather than
+  const proxy = { s: 1 }
+  const applyScale = (): void => {
+    ksEl.setAttribute(
+      'transform',
+      `translate(${ORIGIN_X} ${ORIGIN_Y}) scale(${proxy.s}) translate(${-ORIGIN_X} ${-ORIGIN_Y})`,
+    )
+  }
+  // If GSAP ever throws building the exit, finish immediately rather than
   // stranding the loader (and the scroll lock) on screen.
   try {
     const tl = gsap.timeline({ onComplete: finishLoader })
-    stains.forEach((c, i) => {
-      tl.to(c, { attr: { r: ENDS[i] ?? 55 }, duration: STAIN_DURATION, ease: STAIN_EASE }, DELAYS[i] ?? 0)
-    })
-    // Fire the handoff at 40% of the bleed. Plain setTimeout (wall-clock) rather
-    // than a GSAP callback — both start when this runs, and GSAP's scheduled
-    // position callbacks proved unreliable here. The timeline keeps playing to
-    // onComplete → finishLoader removes the loader at 100%.
-    window.setTimeout(handoff, BLEED_TOTAL * 0.4 * 1000)
+    tl.to(proxy, { s: ANTICIPATION_SCALE, duration: ANTICIPATION_S, ease: 'house', onUpdate: applyScale }, 0)
+    tl.to(proxy, { s: EXPLOSION_SCALE, duration: EXPLOSION_S, ease: 'power4.in', onUpdate: applyScale }, ANTICIPATION_S)
+    // Secondary motion layer: corner labels drift outward+down while fading
+    // as the explosion launches (accelerate — they exit). Not opacity-only.
+    if (metaBl) tl.to(metaBl, { x: -12, y: 12, opacity: 0, duration: 0.22, ease: 'power2.in' }, ANTICIPATION_S)
+    if (metaBr) tl.to(metaBr, { x: 12, y: 12, opacity: 0, duration: 0.22, ease: 'power2.in' }, ANTICIPATION_S)
+    window.__loaderTl = tl
+    // Wall-clock setTimeout rather than a GSAP position callback — GSAP's
+    // scheduled callbacks proved unreliable here (see git history). The id is
+    // exposed so the verification sweep can cancel it after pausing the tl.
+    window.__loaderHandoffT = window.setTimeout(handoff, (ANTICIPATION_S + EXPLOSION_S * HANDOFF_FRACTION) * 1000)
   } catch {
     finishLoader()
   }
@@ -143,7 +174,7 @@ const liftCurtain = (): void => {
 window.setTimeout(liftCurtain, MAX_WAIT_MS)
 
 // After React has painted at least once (double rAF): reveal the live shader
-// through the windows (fade the stand-in), then start the bleed after dwell.
+// through the windows (fade the stand-in), then start the explosion after dwell.
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     loaderEl?.classList.add('loader--mounted')

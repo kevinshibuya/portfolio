@@ -34,7 +34,7 @@
 
 **Files:** none (read-only gate)
 
-- [ ] **Step 1: Kill stale preview, run the full suite**
+- [x] **Step 1: Kill stale preview, run the full suite**
 
 ```bash
 cd ~/keki/dev/personal_projects/portfolio
@@ -62,7 +62,7 @@ Expected: tsc clean · 66 unit passed · 44 e2e passed, 2 skipped. Any red here 
 - Consumes: existing `finishLoader()`, `resolveCurtain()`/`resolveEntrance()`, `liftCurtain()` scaffolding in `main.tsx` — unchanged.
 - Produces: `<g class="loader-ks">` wrapper in the mask (Task 2's sweep script queries it via `window.__loaderTl`); `window.__loaderTl?: gsap.core.Timeline` test hook.
 
-- [ ] **Step 1: index.html — restructure the mask**
+- [x] **Step 1: index.html — restructure the mask**
 
 Replace the `<defs>` content (delete the `#loader-stain-rough` filter and the `.loader-stains` group; wrap the positioning group):
 
@@ -83,7 +83,7 @@ The three `<path d="...">` elements move inside unchanged. Nothing else in the S
 
 Also update the body `<!-- LOADER ... -->` comment just above `<div id="loader">` (~415–418): replace `The stains group is grown by GSAP (main.tsx) to dissolve the ink and reveal the settled hero.` with `GSAP (main.tsx) contracts then explodes the ks. cutout to reveal the settled hero.`
 
-- [ ] **Step 2: index.html — CSS + comment updates**
+- [x] **Step 2: index.html — CSS + comment updates**
 
 a) In the big loader comment (~lines 331–337), replace the last two sentences:
 
@@ -110,13 +110,13 @@ c) Delete the `.loader--handoff` rule and its comment:
 
 d) In the reduced-motion comment, `no bleed` → `no explosion`.
 
-- [ ] **Step 3: src/index.css — mirror the same edits**
+- [x] **Step 3: src/index.css — mirror the same edits**
 
 Same three CSS edits as Step 2 (b/c/d) on the mirrored block (~lines 448–479), plus update the header comment (~385–393): replace `bleeds` in the section title line with `explodes`, and the `grows the mask's stain circles via GSAP to dissolve the ink` sentence with `then GSAP contracts the ks. cutout (anticipation) and explodes it outward until the viewport sits inside a letterform window`.
 
 Also line ~275: `the ink-bleed loader IS the entrance` → `the loader explosion IS the entrance`.
 
-- [ ] **Step 4: src/main.tsx — dwell + explosion timeline**
+- [x] **Step 4: src/main.tsx — dwell + explosion timeline**
 
 a) After the imports, add the test-hook type:
 
@@ -206,7 +206,7 @@ e) Stray bleed comments elsewhere in main.tsx (outside the replaced block):
 - Line ~95: `// No bleed: fade the whole loader (CSS opacity 150ms), then remove.` → `// No explosion: fade the whole loader (CSS opacity 150ms), then remove.`
 - Line ~146: `then start the bleed after dwell.` → `then start the explosion after dwell.`
 
-- [ ] **Step 4½: Stale lifecycle comments in Hero.tsx / MotionContext.tsx / hero-entrance.spec.ts**
+- [x] **Step 4½: Stale lifecycle comments in Hero.tsx / MotionContext.tsx / hero-entrance.spec.ts**
 
 Comment/title wording only — zero code changes:
 - `src/components/sections/Hero.tsx` ~16–18: rewrite the lifecycle note to `The loader explosion reveals the shader; the hero text rises out of its clip masks once the explosion nears completion (main.tsx resolves entranceDone at ~80% of the explosion).` Line ~93: `The loader bleed reveals the shader.` → `The loader explosion reveals the shader.`
@@ -216,17 +216,17 @@ Comment/title wording only — zero code changes:
 Then a marked straggler check — expect ZERO hits outside docs/:
 `grep -rn "stain\|bleed" index.html src/ tests/ | grep -v docs`
 
-- [ ] **Step 5: tests/e2e/loader.spec.ts — rename + wrapper assertion**
+- [x] **Step 5: tests/e2e/loader.spec.ts — rename + wrapper assertion**
 
 - Title: `'loader shows the ks. window mark + corner meta, bleeds away, zero console errors'` → `'loader shows the ks. window mark + corner meta, explodes away, zero console errors'`
 - After the 3-path count assertion, add: `await expect(page.locator('#loader mask#loader-mask g.loader-ks')).toHaveCount(1)`
 - Comment `// Bleed completes` → `// Explosion completes`; reduced-motion title `(no bleed)` → `(no explosion)`.
 
-- [ ] **Step 6: Typecheck**
+- [x] **Step 6: Typecheck**
 
 Run: `npx tsc -b` — Expected: clean.
 
-- [ ] **Step 7: Intro e2e serial**
+- [x] **Step 7: Intro e2e serial**
 
 ```bash
 lsof -ti:4173 | xargs kill 2>/dev/null; sleep 1
@@ -235,7 +235,7 @@ npx playwright test loader hero-entrance reduced-motion --workers=1
 
 Expected: all pass (new exit total ≈ 2.5s post-paint, under the specs' 5s waits).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add index.html src/index.css src/main.tsx tests/e2e/loader.spec.ts

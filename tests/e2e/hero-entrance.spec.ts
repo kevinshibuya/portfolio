@@ -37,7 +37,7 @@ test('monumental name rises to a settled, identity position after the loader', a
 })
 
 // DISCRIMINATOR: the name is HIDDEN below its clip mask while the loader is up,
-// and only rises after the bleed. The retired "settled from first paint" build
+// and only rises after the explosion handoff. The retired "settled from first paint" build
 // held .hero-line at identity during 'loading'; the re-introduced entrance
 // holds it translated down (y:110%). This asserts the non-identity offset while
 // the loader is present, which fails against a settled-from-first-paint build.
@@ -49,7 +49,7 @@ test('name is held below its clip mask while the loader is up (rises after)', as
   expect(Math.abs(offset)).toBeGreaterThan(20)
 })
 
-test('body scroll is locked while the loader is up, released after the bleed', async ({ page }) => {
+test('body scroll is locked while the loader is up, released after the explosion', async ({ page }) => {
   await page.goto('/')
   await page.waitForFunction(() => document.body.dataset.loaderState === 'loading', null, { timeout: 3000 })
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done', null, { timeout: 5000 })

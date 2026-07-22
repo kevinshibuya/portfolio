@@ -4,7 +4,8 @@ import { useReducedMotion } from 'framer-motion'
 type Resolver = () => void
 
 interface MotionContextValue {
-  /** Resolves once the loader ink-bleed completes (main.tsx finishLoader),
+  /** Resolves once the loader explosion handoff fires (main.tsx; finishLoader
+   *  also resolves it as a backstop),
    *  or immediately when bypassed (back-nav). The hero itself is settled
    *  from first paint; Header and SmoothScroll await this before becoming
    *  visible / interactive.
@@ -15,7 +16,7 @@ interface MotionContextValue {
    *  an orphaned cycle-1 promise. */
   entranceDone: Promise<void>
   resolveEntrance: Resolver
-  /** Resolves the entrance gate immediately, skipping the loader bleed.
+  /** Resolves the entrance gate immediately, skipping the loader explosion.
    *  Used when restoring Home from back-navigation so the intro doesn't
    *  replay. */
   bypassEntrance: Resolver
@@ -32,8 +33,8 @@ const _entranceDone: Promise<void> = new Promise<void>((res) => {
 const resolveEntrance: Resolver = () => _resolveEntrance?.()
 
 // Module-scoped curtain handshake. The static loader in index.html paints
-// at first frame; main.tsx calls resolveCurtain() when the ink-bleed
-// dissolve begins. curtainGone is currently unconsumed (the Hero timeline
+// at first frame; main.tsx calls resolveCurtain() when the explosion
+// handoff fires. curtainGone is currently unconsumed (the Hero timeline
 // that awaited it was retired with the entrance) but kept in the public
 // shape for symmetry with entranceDone and future stage handoffs.
 let _resolveCurtain: Resolver | null = null

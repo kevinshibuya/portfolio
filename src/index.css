@@ -272,8 +272,8 @@ strong {
 }
 
 /* Canvas layer — FluidWaves (position:absolute; inset:0) fills this box.
-   Settled from first paint (opacity 1): the ink-bleed loader IS the entrance,
-   dissolving onto an already-final hero — no timeline holds this hidden. */
+   Settled from first paint (opacity 1): the loader explosion IS the entrance,
+   blowing open onto an already-final hero — no timeline holds this hidden. */
 .hero-canvas {
   position: absolute;
   inset: 0;
@@ -382,16 +382,17 @@ strong {
 }
 
 /* =========================================================================
-   LOADER — ink SVG loader, paints at first frame from index.html, bleeds
+   LOADER — ink SVG loader, paints at first frame from index.html, explodes
    away via main.tsx after React mounts + min-dwell.
 
    Structure: a full-viewport ink SVG <rect> masked by static "ks." glyph
    windows (paths extracted from Plus Jakarta Sans 700 — no font dependency,
    no FOUT) over a dim tricolor .loader-standin gradient that reads as paint
    pre-React. On mount main.tsx adds .loader--mounted to fade the stand-in
-   (revealing the live hero canvas behind #loader) and grows the mask's stain
-   circles via GSAP to dissolve the ink. Corner .loader-meta blocks are crisp
-   cream HTML on the ink.
+   (revealing the live hero canvas behind #loader), then GSAP contracts the
+   ks. cutout (anticipation) and explodes it outward until the viewport sits
+   inside a letterform window. Corner .loader-meta blocks are crisp cream
+   HTML on the ink.
 
    Same rules are inlined in index.html so the loader paints with the first
    byte of HTML, before this bundled stylesheet arrives; the cascade here is
@@ -457,11 +458,7 @@ html[data-loading='true'] {
   letter-spacing: 0.01em;
   text-transform: lowercase;
   color: #F5F2EC; /* --text — fallback hex */
-  transition: opacity 400ms ease;
 }
-/* main.tsx adds .loader--handoff at ~40% of the bleed → labels fade out as the
-   hero text rises in, so the loader chrome doesn't snap away. */
-#loader.loader--handoff .loader-meta { opacity: 0; }
 
 .loader-meta--bl { bottom: 28px; left: 28px; text-align: left; }
 .loader-meta--br { bottom: 28px; right: 28px; text-align: right; }
@@ -472,7 +469,7 @@ html[data-loading='true'] {
   .loader-meta--br { right: 18px; }
 }
 
-/* Reduced motion: no bleed — fade the whole loader out; no stand-in drift. */
+/* Reduced motion: no explosion — fade the whole loader out; no stand-in drift. */
 @media (prefers-reduced-motion: reduce) {
   #loader { transition: opacity 150ms ease-out; }
   #loader.loader--exit { opacity: 0; }
