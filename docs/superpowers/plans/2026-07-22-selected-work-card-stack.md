@@ -823,7 +823,7 @@ Design intent (integrator judgment; skeleton provided — hold the two invariant
 
 Why the setState is safe (document in a comment): the `SectionHeading` entrance (`whileInView`, `once`) sits ABOVE the pinned stage and completes before the user scrolls into the scrub; the stack cards animate off MotionValues, never `whileInView` — so a segment-index setState cannot freeze an in-flight entrance stagger (re-render-kills-entrance lesson).
 
-- [ ] **Step 1: Rewrite `src/components/sections/Projects.tsx` (transcribe skeleton; keep both invariants)**
+- [x] **Step 1: Rewrite `src/components/sections/Projects.tsx` (transcribe skeleton; keep both invariants)**
 
 ```tsx
 import { useRef, useState } from 'react'
@@ -940,16 +940,16 @@ export function Projects() {
 }
 ```
 
-- [ ] **Step 2: Remove the two stale `#projects` WorkRow tests in `tests/e2e/rows-hover.spec.ts`**
+- [x] **Step 2: Remove the two stale `#projects` WorkRow tests in `tests/e2e/rows-hover.spec.ts`**
 
 Delete the first two `test(...)` blocks (`'featured rows render as WorkRows and tint on hover'` and `'rows finish their entrance even when hovered mid-stagger'`) — they assert `#projects .workrow` / `.workrow-wrap`, which the rebuild removes. KEEP `'work experience rows expand with aria-expanded'` unchanged. Coverage of the new Projects section moves to Tasks 8 and 9.
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 Run: `npx tsc -b`
 Expected: exit 0.
 
-- [ ] **Step 4: Build + fresh preview + smoke the section renders with no console errors**
+- [x] **Step 4: Build + fresh preview + smoke the section renders with no console errors** *(pin/boundary-pop deferred to Task 6 smoke — CSS not yet landed; structural smoke: 3 .stack-card, 1 .gooey-title, 4 skiplinks, 0 console errors)*
 
 Run:
 ```bash
@@ -960,12 +960,12 @@ Then a Playwright smoke (create ad-hoc or via the Task 9 spec once it exists): l
 
 **Boundary-pop check (review finding — frame-desync hazard):** `settled` jumps 1→0 via Framer's rAF at the exact scroll delta where `baseIndex` flips via a React commit; a one-frame ordering gap can flash the just-exited card back at slot 0 at each of the three segment boundaries. In the same smoke (or by hand in the preview), scrub slowly back and forth across a segment boundary and watch for a single-frame pop of the front card. If observed: re-key the cards by PROJECT index instead of depth (card identity = project; depth derived per frame from a MotionValue), so React reconciliation never re-assigns content across the boundary — do not ship the pop.
 
-- [ ] **Step 5: Existing section specs still green (SectionHeading kept)**
+- [x] **Step 5: Existing section specs still green (SectionHeading kept)** *(14 passed: section-enters + reduced-motion + rows-hover work-experience expand)*
 
 Run: `npx playwright test tests/e2e/section-enters.spec.ts tests/e2e/reduced-motion.spec.ts tests/e2e/rows-hover.spec.ts --workers=1`
 Expected: all green (`#projects .section-title` still transitions to opacity > 0.99; work-experience expand test intact).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit** *(7dd0c29)*
 
 ```bash
 git add src/components/sections/Projects.tsx tests/e2e/rows-hover.spec.ts
