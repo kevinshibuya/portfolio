@@ -3,9 +3,10 @@ import { useMotion } from '../../context/MotionContext'
 
 // Tricolor as GLSL vec3s — #E64D66, #4D80E6, #E6CC4D (contrast-audited in
 // the plan; the hero scrim guarantees AA for text above the paint).
-const COLOR_1: [number, number, number] = [0.902, 0.302, 0.4]
-const COLOR_2: [number, number, number] = [0.302, 0.502, 0.902]
-const COLOR_3: [number, number, number] = [0.902, 0.8, 0.302]
+// Pre-baked as Float32Arrays so uniform3fv uploads don't convert per call.
+const COLOR_1 = new Float32Array([0.902, 0.302, 0.4])
+const COLOR_2 = new Float32Array([0.302, 0.502, 0.902])
+const COLOR_3 = new Float32Array([0.902, 0.8, 0.302])
 
 const DPR_CAP = 1.5
 const FLOW_SPEED = 0.35
@@ -152,6 +153,19 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     let rafId: number | null = null
     let inView = true
 
+    // One-time GL state. This canvas owns a private context and nothing below
+    // touches program/attribute/uniform bindings again, so everything constant
+    // after link is uploaded once here; per-frame work is time + drawArrays,
+    // per-resize work is resolution (see resize()).
+    gl.useProgram(program)
+    gl.uniform1f(seedLoc, seed)
+    gl.uniform3fv(colour1Loc, COLOR_1)
+    gl.uniform3fv(colour2Loc, COLOR_2)
+    gl.uniform3fv(colour3Loc, COLOR_3)
+    gl.uniform1f(contrastLoc, CONTRAST)
+    gl.enableVertexAttribArray(positionLoc)
+    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0)
+
     const resize = (): void => {
       const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP)
       const w = canvas.clientWidth
@@ -159,6 +173,7 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       canvas.width = Math.max(1, Math.round(w * dpr))
       canvas.height = Math.max(1, Math.round(h * dpr))
       gl.viewport(0, 0, canvas.width, canvas.height)
+      gl.uniform2f(resolutionLoc, canvas.width, canvas.height)
       // Setting canvas.width/height reallocates AND clears the drawing buffer
       // (opaque black with {alpha:false}). Under reduced motion no loop will
       // repaint it and the IO only repaints on viewport re-entry — so an
@@ -168,17 +183,7 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     }
 
     const drawFrame = (timeSec: number): void => {
-      gl.useProgram(program)
-      gl.uniform2f(resolutionLoc, canvas.width, canvas.height)
       gl.uniform1f(timeLoc, timeSec)
-      gl.uniform1f(seedLoc, seed)
-      gl.uniform3fv(colour1Loc, COLOR_1)
-      gl.uniform3fv(colour2Loc, COLOR_2)
-      gl.uniform3fv(colour3Loc, COLOR_3)
-      gl.uniform1f(contrastLoc, CONTRAST)
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-      gl.enableVertexAttribArray(positionLoc)
-      gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     }
 
