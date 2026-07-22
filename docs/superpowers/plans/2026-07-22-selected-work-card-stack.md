@@ -1315,7 +1315,7 @@ git commit -m "test(stack): reduced-motion e2e — pin, no filter, instant swap"
 **Files:**
 - Create: `tests/e2e/stack-scrub.spec.ts`
 
-- [ ] **Step 1: Write the spec (transcribe)**
+- [x] **Step 1: Write the spec (transcribe)**
 
 Create `tests/e2e/stack-scrub.spec.ts`:
 ```ts
@@ -1384,12 +1384,12 @@ test.describe('selected-work scrub', () => {
 })
 ```
 
-- [ ] **Step 2: Run it (serial)**
+- [x] **Step 2: Run it (serial)** *(4 passed: desktop-chromium + mobile-chromium, no fraction adjustments needed)*
 
 Run: `npx playwright test tests/e2e/stack-scrub.spec.ts --workers=1`
 Expected: green on both projects. Mobile (Pixel 5) uses the same scrub scaled — if it flakes on `svh` under the mobile URL-bar model, adjust the fraction tolerances, not the pin (spec risk 3).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/e2e/stack-scrub.spec.ts
