@@ -1221,7 +1221,7 @@ git commit -m "i18n(projects): stack view-project + skip-link labels (en/pt)"
 **Files:**
 - Create: `tests/e2e/stack-reduced-motion.spec.ts`
 
-- [ ] **Step 1: Write the spec (transcribe)**
+- [x] **Step 1: Write the spec (transcribe)**
 
 Create `tests/e2e/stack-reduced-motion.spec.ts`:
 ```ts
@@ -1290,12 +1290,12 @@ test('reduced motion: stage pins, no SVG filter, content swaps without flight', 
 })
 ```
 
-- [ ] **Step 2: Run it (serial)**
+- [x] **Step 2: Run it (serial)**
 
 Run: `npx playwright test tests/e2e/stack-reduced-motion.spec.ts --workers=1`
 Expected: green on both projects. If the front card does not swap, the RM `frontIndex` midpoint logic in Task 5 is wrong — fix Task 5, not the assertion.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/e2e/stack-reduced-motion.spec.ts
