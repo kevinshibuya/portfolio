@@ -7,6 +7,14 @@ import { FluidWaves } from '../canvas/FluidWaves'
 
 const ROLE_DURATION_MS = 5000
 
+// Entrance rise choreography: per-line duration + stagger delays (role line,
+// name line 1, name line 2). The clip release is derived from these so tuning
+// the rise can never de-sync it — releasing early pops glyphs mid-rise;
+// releasing never leaves the 'y' descender + role focus ring clipped at rest.
+const RISE_DURATION = 0.9
+const LINE_DELAYS = [0, 0.08, 0.16] as const
+const RELEASE_MS = (Math.max(...LINE_DELAYS) + RISE_DURATION) * 1000 + 90
+
 export function Hero(): ReactElement {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
@@ -28,11 +36,11 @@ export function Hero(): ReactElement {
     entranceDone.then(() => {
       if (cancelled) return
       setEntered(true)
-      // Release the clip once the last line has finished rising (max delay
-      // 0.16 + duration 0.9, plus a small buffer).
+      // Release the clip once the last line has finished rising (derived
+      // from the rise constants above, plus a small buffer).
       releaseTimer = setTimeout(() => {
         if (!cancelled) setRiseSettled(true)
-      }, 1150)
+      }, RELEASE_MS)
     })
     return () => {
       cancelled = true
@@ -42,7 +50,7 @@ export function Hero(): ReactElement {
 
   // Rise transition per line; instant (duration 0) under reduced-motion/bypass.
   const rise = (delay: number) => ({
-    duration: instant ? 0 : 0.9,
+    duration: instant ? 0 : RISE_DURATION,
     ease: EASE_HOUSE,
     delay: instant ? 0 : delay,
   })
@@ -109,7 +117,7 @@ export function Hero(): ReactElement {
           <motion.div
             initial={{ y: instant ? '0%' : '125%' }}
             animate={{ y: entered ? '0%' : '125%' }}
-            transition={rise(0)}
+            transition={rise(LINE_DELAYS[0])}
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.span
@@ -149,7 +157,7 @@ export function Hero(): ReactElement {
               className="hero-line"
               initial={{ y: instant ? '0%' : '125%' }}
               animate={{ y: entered ? '0%' : '125%' }}
-              transition={rise(0.08)}
+              transition={rise(LINE_DELAYS[1])}
             >
               {t('hero.name1')}
             </motion.span>
@@ -159,7 +167,7 @@ export function Hero(): ReactElement {
               className="hero-line"
               initial={{ y: instant ? '0%' : '125%' }}
               animate={{ y: entered ? '0%' : '125%' }}
-              transition={rise(0.16)}
+              transition={rise(LINE_DELAYS[2])}
             >
               {t('hero.name2')}
             </motion.span>
