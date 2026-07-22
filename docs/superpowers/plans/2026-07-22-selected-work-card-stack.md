@@ -629,7 +629,7 @@ Mapping contract (correctness rests on this):
 - **Non-RM:** render depths `0,1,2,3`; the card at `depth d` shows `cards[baseIndex + d]` (skip if out of range); geometry from `depthTransform(d, progress)`. The interactive/linked card is the one at `depth === interactiveDepth`; all others are buried (`aria-hidden`, `tabIndex={-1}`, `pointer-events:none`). This keeps the front card correct at every settle plateau including the terminal one (where `interactiveDepth` is 1).
 - **RM:** render depths `0,1,2` statically; the card at `depth d` shows `cards[frontIndex + d]` (skip if out of range); geometry frozen at `depthTransform(d, 0)`; interactive card = depth 0. Content swaps instantly when `frontIndex` changes.
 
-- [ ] **Step 1: Implement the component (transcribe)**
+- [x] **Step 1: Implement the component (transcribe)**
 
 Create `src/components/ui/ProjectCardStack.tsx`:
 ```tsx
@@ -785,12 +785,12 @@ export function ProjectCardStack({
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `npx tsc -b`
 Expected: exit 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/ui/ProjectCardStack.tsx
