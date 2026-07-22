@@ -16,7 +16,7 @@
 - Reduced motion: 200ms dwell + 150ms whole-loader opacity fade, **no explosion** — behavior byte-identical to today.
 - 3s hard fallback (`MAX_WAIT_MS`), scroll-lock lifecycle, `data-loader-state` stamps, defensive no-loader/GSAP-throw paths all preserved.
 - Loader CSS is duplicated in `index.html` (inline, first-paint) and `src/index.css` — every CSS change lands in BOTH.
-- Motion values (from spec, exact): dwell 1200ms · anticipation scale 0.96 dur 0.18s ease house · explosion scale 45 dur 1.1s ease power4.in · label drift ±12px x, +12px y, 0.22s power2.in · handoff fraction 0.72 · origin viewBox (34.35, 49.8).
+- Motion values (from spec, exact): dwell 1200ms · anticipation scale 0.96 dur 0.18s ease house · explosion scale 45 dur 1.1s ease power4.in (NB: GSAP power4 = quintic, t⁵) · label drift ±12px x, +12px y, 0.22s power2.in · handoff fraction 0.80 · origin viewBox (34.35, 49.8).
 - Before e2e runs: kill any stale preview on port 4173 (`lsof -ti:4173 | xargs kill` — otherwise Playwright's `reuseExistingServer` serves the old build; known trap).
 - Intro e2e specs run `--workers=1` (parallel red = contention, not regression).
 
@@ -51,10 +51,12 @@ Expected: tsc clean · 66 unit passed · 44 e2e passed, 2 skipped. Any red here 
 ### Task 1: The explosion exit
 
 **Files:**
-- Modify: `index.html` (mask structure ~419–448, loader comment ~326–337, loader CSS ~376–393)
-- Modify: `src/index.css` (mirrored loader CSS ~385–472)
-- Modify: `src/main.tsx` (dwell + exit timeline, ~44–140)
+- Modify: `index.html` (mask structure ~419–448, head loader comment ~326–337, body loader comment ~415–418, loader CSS ~376–393)
+- Modify: `src/index.css` (mirrored loader CSS ~385–472, hero comment ~275)
+- Modify: `src/main.tsx` (dwell + exit timeline, ~44–140, plus stray bleed comments at 55/95/146)
 - Modify: `tests/e2e/loader.spec.ts` (titles, `.loader-ks` assertion)
+- Modify: `tests/e2e/hero-entrance.spec.ts` (title/comment wording only — waits are timing-agnostic)
+- Modify: `src/components/sections/Hero.tsx`, `src/context/MotionContext.tsx` (stale lifecycle comments only, no code)
 
 **Interfaces:**
 - Consumes: existing `finishLoader()`, `resolveCurtain()`/`resolveEntrance()`, `liftCurtain()` scaffolding in `main.tsx` — unchanged.
@@ -78,6 +80,8 @@ Replace the `<defs>` content (delete the `#loader-stain-rough` filter and the `.
 ```
 
 The three `<path d="...">` elements move inside unchanged. Nothing else in the SVG changes.
+
+Also update the body `<!-- LOADER ... -->` comment just above `<div id="loader">` (~415–418): replace `The stains group is grown by GSAP (main.tsx) to dissolve the ink and reveal the settled hero.` with `GSAP (main.tsx) contracts then explodes the ks. cutout to reveal the settled hero.`
 
 - [ ] **Step 2: index.html — CSS + comment updates**
 
@@ -110,6 +114,8 @@ d) In the reduced-motion comment, `no bleed` → `no explosion`.
 
 Same three CSS edits as Step 2 (b/c/d) on the mirrored block (~lines 448–479), plus update the header comment (~385–393): replace `bleeds` in the section title line with `explodes`, and the `grows the mask's stain circles via GSAP to dissolve the ink` sentence with `then GSAP contracts the ks. cutout (anticipation) and explodes it outward until the viewport sits inside a letterform window`.
 
+Also line ~275: `the ink-bleed loader IS the entrance` → `the loader explosion IS the entrance`.
+
 - [ ] **Step 4: src/main.tsx — dwell + explosion timeline**
 
 a) After the imports, add the test-hook type:
@@ -117,9 +123,11 @@ a) After the imports, add the test-hook type:
 ```ts
 declare global {
   interface Window {
-    // Deterministic verification hook: lets a Playwright sweep pause/seek the
-    // loader exit to screenshot exact frames. Harmless in production.
+    // Deterministic verification hooks: let a Playwright sweep pause/seek the
+    // loader exit (and cancel the wall-clock handoff timer) to screenshot
+    // exact frames. Harmless in production.
     __loaderTl?: gsap.core.Timeline
+    __loaderHandoffT?: number
   }
 }
 ```
@@ -149,9 +157,10 @@ d) Replace everything in `liftCurtain` from the `// Ink bleed:` comment down to 
   const ANTICIPATION_S = 0.18
   const EXPLOSION_SCALE = 45
   const EXPLOSION_S = 1.1
-  // With power4.in the ink clears the lower-left name region at ~72% of the
-  // explosion (scale ≈ 15×); the 50% wall-clock midpoint is still ~94% inked.
-  const HANDOFF_FRACTION = 0.72
+  // GSAP power4.in is quintic (t⁵). The ink clears the lower-left name region
+  // (viewBox x ≥ 5 needs scale ≈ 15.6×) at ~80% of the explosion; at the 50%
+  // wall-clock midpoint the cutout is still only ≈ 2.3× — far too early.
+  const HANDOFF_FRACTION = 0.8
   if (!ksEl) {
     finishLoader()
     return
@@ -182,14 +191,30 @@ d) Replace everything in `liftCurtain` from the `// Ink bleed:` comment down to 
     if (metaBr) tl.to(metaBr, { x: 12, y: 12, opacity: 0, duration: 0.22, ease: 'power2.in' }, ANTICIPATION_S)
     window.__loaderTl = tl
     // Wall-clock setTimeout rather than a GSAP position callback — GSAP's
-    // scheduled callbacks proved unreliable here (see git history).
-    window.setTimeout(handoff, (ANTICIPATION_S + EXPLOSION_S * HANDOFF_FRACTION) * 1000)
+    // scheduled callbacks proved unreliable here (see git history). The id is
+    // exposed so the verification sweep can cancel it after pausing the tl.
+    window.__loaderHandoffT = window.setTimeout(handoff, (ANTICIPATION_S + EXPLOSION_S * HANDOFF_FRACTION) * 1000)
   } catch {
     finishLoader()
   }
 ```
 
 Deleted along the way: `stains` query, `ENDS`, `DELAYS`, `STAIN_DURATION`, `STAIN_EASE`, `BLEED_TOTAL`, the `loader--handoff` class-add, and their comments.
+
+e) Stray bleed comments elsewhere in main.tsx (outside the replaced block):
+- Line ~55: `'house' ease unavailable — the bleed falls back to a default ease below.` → `'house' ease unavailable — the exit falls back to a default ease below.`
+- Line ~95: `// No bleed: fade the whole loader (CSS opacity 150ms), then remove.` → `// No explosion: fade the whole loader (CSS opacity 150ms), then remove.`
+- Line ~146: `then start the bleed after dwell.` → `then start the explosion after dwell.`
+
+- [ ] **Step 4½: Stale lifecycle comments in Hero.tsx / MotionContext.tsx / hero-entrance.spec.ts**
+
+Comment/title wording only — zero code changes:
+- `src/components/sections/Hero.tsx` ~16–18: rewrite the lifecycle note to `The loader explosion reveals the shader; the hero text rises out of its clip masks once the explosion nears completion (main.tsx resolves entranceDone at ~80% of the explosion).` Line ~93: `The loader bleed reveals the shader.` → `The loader explosion reveals the shader.`
+- `src/context/MotionContext.tsx` ~7/18/35: replace `ink-bleed` / `loader bleed` / `when the ink-bleed dissolve begins` wording with `loader explosion` / `when the explosion handoff fires`.
+- `tests/e2e/hero-entrance.spec.ts`: title `released after the bleed` → `released after the explosion`; comment `only rises after the bleed` → `only rises after the explosion handoff`.
+
+Then a marked straggler check — expect ZERO hits outside docs/:
+`grep -rn "stain\|bleed" index.html src/ tests/ | grep -v docs`
 
 - [ ] **Step 5: tests/e2e/loader.spec.ts — rename + wrapper assertion**
 
@@ -252,17 +277,24 @@ const viewports = [
   { name: 'desktop-1600x900', width: 1600, height: 900 },
   { name: 'ultrawide-2100x900', width: 2100, height: 900 },
 ]
-// Timeline progress points (total 1.28s): 0.30 = early creep out of the
-// anticipation, 0.76 = the handoff frame (name region must be ink-free),
-// 0.95 = near-end (no residual ink sliver at any corner).
-const points = [0.3, 0.76, 0.95]
+// Timeline progress points (total 1.28s, quintic explosion): 0.30 = crouch
+// sanity (scale ≈ rest — anticipation done, explosion barely begun), 0.65 =
+// creep reads (scale ≈ 6×), 0.83 = the handoff frame (scale ≈ 15.6× — name
+// region must be ink-free), 0.99 = near-end (scale ≈ 42× — no residual ink
+// sliver at any corner). NOT 1.0: progress(1) fires onComplete → loader gone.
+const points = [0.3, 0.65, 0.83, 0.99]
 
 const browser = await chromium.launch()
 for (const vp of viewports) {
   const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } })
   await page.goto(BASE)
   await page.waitForFunction(() => window.__loaderTl !== undefined, null, { timeout: 10000 })
-  await page.evaluate(() => window.__loaderTl.pause())
+  // Pause the timeline AND cancel the wall-clock handoff timer — otherwise the
+  // hero rise fires ~0.97s in and pollutes the paused frames nondeterministically.
+  await page.evaluate(() => {
+    window.__loaderTl.pause()
+    clearTimeout(window.__loaderHandoffT)
+  })
   for (const p of points) {
     await page.evaluate((pr) => window.__loaderTl.progress(pr), p)
     await page.screenshot({ path: `tmp/explosion-shots/${vp.name}-p${String(p).replace('.', '')}.png` })
@@ -275,9 +307,9 @@ console.log('sweep done → tmp/explosion-shots/')
 
 - [ ] **Step 3: Run the sweep and judge the frames**
 
-Run: `node tmp/explosion-sweep.mjs` then inspect all 9 screenshots.
+Run: `mkdir -p tmp/explosion-shots && node tmp/explosion-sweep.mjs` then inspect all 12 screenshots.
 
-Pass criteria: p0.3 — cutout visibly larger than rest but screen still mostly ink (the creep reads); p0.76 — lower-left name region fully clear of ink at all three widths; p0.95 — no ink sliver at any corner/edge at all three widths. If p0.76 fails, raise `HANDOFF_FRACTION` (or soften the ease to `power3.in`); if p0.95 fails, raise `EXPLOSION_SCALE`. Re-run tsc + the sweep after any constant change, and re-commit.
+Pass criteria: p0.3 — cutout ≈ at rest (anticipation settled; a correct build shows almost no growth yet — do NOT "fix" this); p0.65 — cutout visibly swollen (~6×), creep reads; p0.83 — lower-left name region fully clear of ink at all three widths; p0.99 — no ink sliver at any corner/edge at all three widths. If p0.83 fails, raise `HANDOFF_FRACTION` (or soften the ease to `power3.in` and re-derive the fraction); if p0.99 fails, raise `EXPLOSION_SCALE`. Re-run tsc + the sweep after any constant change, and re-commit.
 
 - [ ] **Step 4: Watch the real thing once**
 
@@ -287,9 +319,9 @@ Reload `http://localhost:4173` in a headed browser (or `npx playwright open http
 
 a) Rewrite the `**Loader + entrance ...**` bullet: title `(bleed reveals the shader, then the text rises)` → `(the ks. vignette explodes, then the text rises)`; delete the `plus a stain <g> grown by GSAP` clause; replace the exit sentence (`after React paints + ~600 ms dwell ... grows six stains at duration 1.3 house-ease over ~1.8 s to dissolve the ink (slow, eased spread), then removes the loader`) with:
 
-> after React paints + a ~1.2 s savor dwell (reduced-motion 200 ms, 3 s hard fallback), it contracts the whole `ks.` cutout to 0.96× (0.18 s, house — anticipation) then explodes it to 45× (1.1 s, `power4.in` — accelerating; an inOut's decel tail would play off-screen) about a fixed origin inside the k stem (viewBox 34.35, 49.8), so the viewport ends inside a letterform window — ink gone, hero revealed; corner labels drift 12 px outward+down while fading (0.22 s) at launch, and the handoff (`resolveCurtain()` + `resolveEntrance()`) fires at ~72% of the explosion (wall-clock setTimeout), when the ink has cleared the name region
+> after React paints + a ~1.2 s savor dwell (reduced-motion 200 ms, 3 s hard fallback), it contracts the whole `ks.` cutout to 0.96× (0.18 s, house — anticipation) then explodes it to 45× (1.1 s, `power4.in` quintic — accelerating; an inOut's decel tail would play off-screen) about a fixed origin inside the k stem (viewBox 34.35, 49.8), so the viewport ends inside a letterform window — ink gone, hero revealed; corner labels drift 12 px outward+down while fading (0.22 s) at launch, and the handoff (`resolveCurtain()` + `resolveEntrance()`) fires at ~80% of the explosion (wall-clock setTimeout), when the ink has cleared the name region
 
-Also update `no bleed` → `no explosion` in the reduced-motion sentence, and the hero-rise sentence's `(at bleed completion)` → `(at the ~72% handoff)`.
+Also update `no bleed` → `no explosion` in the reduced-motion sentence, and the hero-rise sentence's `(at bleed completion)` → `(at the ~80% handoff)`.
 
 b) NO list: append `, the six-stain ink-bleed loader exit (stain circles + the feTurbulence roughen filter — replaced by the ks. vignette explosion)`.
 

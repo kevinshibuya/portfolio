@@ -23,7 +23,7 @@ signature house ease where a decelerate is wanted, accelerate family for the exi
 | 2 | Anticipation | Mask glyph group scales 1 → **0.96** | **0.18s** | house `0.22,1,0.36,1` (decelerate into the crouch) | Subtle gather; Premium-subtle 4% |
 | 3 | Explosion | Mask glyph group scales 0.96 → **~45** | **~1.1s** | accelerating ease-in (`power4.in` start point; `expo.in` if too soft — tuned visually) | Slow creep out of the crouch, then blow-through. No inOut: the decel tail would play off-screen. No overshoot (it exits) |
 | 3b | Secondary: meta labels | Both corner labels drift **~12px outward+down** and fade to 0 | **0.22s** | ease-in (accelerate — they exit) | Fires as the explosion launches. Not opacity-only |
-| 4 | Handoff | `resolveCurtain()` + `resolveEntrance()` → hero text rise (unchanged) | fires at **~72% of the explosion** (tuned visually with the final curve) | — | With an accelerating curve, the ink clears the lower-left name region at ~70–75% of the timeline, not 50%. Keep the wall-clock `setTimeout` pattern (GSAP position callbacks proved unreliable here) |
+| 4 | Handoff | `resolveCurtain()` + `resolveEntrance()` → hero text rise (unchanged) | fires at **~80% of the explosion** (tuned visually with the final curve) | — | GSAP `power4.in` is quintic (t⁵): the ink clears the lower-left name region (scale ≈ 15.6×) at ~80% of the explosion, not 50%. Keep the wall-clock `setTimeout` pattern (GSAP position callbacks proved unreliable here) |
 | 5 | Cleanup | `finishLoader()` at explosion end | — | — | Unchanged: remove loader, release scroll lock, `data-loader-state="done"` |
 
 Motion layers: **primary** = mask expansion; **secondary** = label drift+fade; **ambient** =
@@ -87,7 +87,7 @@ overall despite the longer savor).
 - [ ] Anticipation (0.96×, 0.18s, house) → explosion (→45×, ~1.1s, accelerating ease-in) timeline drives the mask wrapper about origin (34.35, 49.8)
 - [ ] Savor dwell extended to 1200ms (reduced-motion dwell stays 200ms)
 - [ ] Corner meta labels drift ~12px outward+down while fading (0.22s ease-in) at explosion launch
-- [ ] Handoff (`resolveCurtain`/`resolveEntrance`) fires when the ink has cleared the name region (~72% of explosion, visually tuned) via wall-clock setTimeout
+- [ ] Handoff (`resolveCurtain`/`resolveEntrance`) fires when the ink has cleared the name region (~80% of explosion, visually tuned) via wall-clock setTimeout
 - [ ] Explosion fully clears the viewport at 390×844, 16:9, and 21:9 (no ink slivers)
 - [ ] Reduced-motion, hard-fallback, and defensive paths behave exactly as before
 - [ ] e2e loader/hero-entrance specs updated and green serial; unit + tsc green
