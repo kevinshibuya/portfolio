@@ -44,7 +44,7 @@ export function MockupFrame({ src, variant, alt }: Props) {
         viewport={{ once: true, amount: 0.3 }}
         transition={{
           duration: prefersReducedMotion ? 0.2 : 1.0,
-          ease: [0.34, 1.56, 0.64, 1], // back-ease so the tilt settles
+          ease: EASE, // house ease (was back-ease overshoot; flattened for Premium consistency)
         }}
       >
         <img src={src} alt={alt} loading="lazy" decoding="async" />

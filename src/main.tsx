@@ -1,10 +1,22 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import { gsap } from 'gsap'
+import { CustomEase } from 'gsap/CustomEase'
 import './i18n'
 import './index.css'
 import App from './App.tsx'
-import { MotionProvider, resolveCurtain } from './context/MotionContext'
+import { MotionProvider, resolveEntrance } from './context/MotionContext'
+
+declare global {
+  interface Window {
+    // Deterministic verification hooks: let a Playwright sweep pause/seek the
+    // loader exit (and cancel the wall-clock handoff timer) to screenshot
+    // exact frames. Harmless in production.
+    __loaderTl?: gsap.core.Timeline
+    __loaderHandoffT?: number
+  }
+}
 
 // Take ownership of scroll restoration so the browser doesn't fight our
 // per-route handling: full reload starts at top + plays the hero entrance
@@ -39,60 +51,139 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Curtain controller. The loader in index.html paints at first frame
-// (LCP candidate locked there). We lift the curtain when BOTH:
-//   (a) React has mounted and committed at least one paint (double rAF), AND
-//   (b) a minimum dwell has elapsed (so even instant React mounts on cached
-//       reloads still show the loader long enough to be perceived).
-// A 3 s hard fallback always lifts the curtain even if React stalls.
-//
-// After lifting:
-//   1. .loader--exit class triggers the CSS transitions (panels slide apart
-//      over 600 ms, or 150 ms opacity fade under prefers-reduced-motion).
-//   2. setTimeout removes the loader element from the DOM.
-//   3. resolveCurtain() flips the MotionContext signal that HeroNameDrawing
-//      awaits before starting its trace animation.
+// Loader controller. The ink SVG loader in index.html paints at first byte;
+// the ks. glyph windows show the stand-in gradient, then (post-mount) the live
+// hero shader. We exit via the KS vignette explosion (anticipation, then an
+// accelerating zoom-through of the mask cutout) once React has painted + a
+// min dwell has elapsed, then resolve the entrance gate.
+// Guarded so a GSAP init failure can never abort this module before the hard
+// fallback below is armed — otherwise data-loading would leave the page
+// scroll-locked on a blank screen forever.
+try {
+  gsap.registerPlugin(CustomEase)
+  CustomEase.create('house', '0.22,1,0.36,1')
+} catch {
+  // 'house' ease unavailable — the exit falls back to a default ease below.
+}
+
 const reduceMotion = (() => {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches }
   catch { return false }
 })()
-const MIN_DWELL_MS = reduceMotion ? 200 : 600
+// Savor beat: the live shader visibly drifts inside the ks. windows before
+// the explosion (reduced motion keeps the old brief dwell).
+const MIN_DWELL_MS = reduceMotion ? 200 : 1200
 const MAX_WAIT_MS = 3000
-// MUST match .loader-half transition-duration in src/index.css (and the
-// reduced-motion #loader opacity transition there). If the CSS changes,
-// update this number too — otherwise the loader is removed mid-transition.
-const TRANSITION_MS = reduceMotion ? 150 : 600
 
 const loaderEl = document.getElementById('loader')
 const startedAt = performance.now()
 let lifted = false
 
+// Stamp the loader gate for the scroll-lock CSS + e2e specs (Task 1). The
+// hook useScrollLockDuringEntrance also drives this attribute; both writers
+// converge on 'done' once resolveEntrance() fires.
+document.body.dataset.loaderState = 'loading'
+
+const finishLoader = (): void => {
+  // Drop the verification hooks with the loader — keeps the completed
+  // timeline (and its detached-SVG closure) from being retained for the
+  // page lifetime. No-op on paths that never set them (reduced motion).
+  delete window.__loaderTl
+  delete window.__loaderHandoffT
+  loaderEl?.remove()
+  document.documentElement.removeAttribute('data-loading')
+  document.body.dataset.loaderState = 'done'
+  resolveEntrance()
+}
+
 const liftCurtain = (): void => {
   if (lifted) return
   lifted = true
-  if (loaderEl) {
+  if (!loaderEl) {
+    // Defensive: no loader element (misconfigured deploy). Still release the
+    // scroll lock so the page isn't frozen, and resolve the entrance gate.
+    document.documentElement.removeAttribute('data-loading')
+    document.body.dataset.loaderState = 'done'
+    resolveEntrance()
+    return
+  }
+  if (reduceMotion) {
+    // No explosion: fade the whole loader (CSS opacity 150ms), then remove.
     loaderEl.classList.add('loader--exit')
-    window.setTimeout(() => {
-      loaderEl.remove()
-      document.documentElement.removeAttribute('data-loading')
-      resolveCurtain()
-    }, TRANSITION_MS + 50)
-  } else {
-    // No loader element (defensive): still resolve the curtain so the hero
-    // entrance doesn't stall in a misconfigured deploy.
-    resolveCurtain()
+    window.setTimeout(finishLoader, 200)
+    return
+  }
+  // Vignette explosion: the ks. cutout contracts slightly (anticipation),
+  // then blows outward until the viewport sits entirely inside the k-stem
+  // window — ink fully gone, hero revealed. Accelerating ease on the
+  // explosion: an inOut's decel tail would play entirely off-screen.
+  const ksEl = loaderEl.querySelector<SVGGElement>('.loader-ks')
+  const metaBl = loaderEl.querySelector<HTMLElement>('.loader-meta--bl')
+  const metaBr = loaderEl.querySelector<HTMLElement>('.loader-meta--br')
+  // Scale origin sits mid-band in the s glyph's upper-bowl spine — the fill
+  // point nearest screen center now that the mark is optically centered on
+  // "ks" (the trailing dot hangs right, so the spine lands at vb 51.8–55.5;
+  // verified via isPointInFill probes). 3.65 units right of true center is
+  // imperceptible; the blow-through still ends fully transparent at any
+  // aspect ratio (xMidYMid slice crops what's visible, never the mask
+  // geometry). Min clearing scale ≈ 35.6 (bottom-left screen corner is
+  // binding); 45 gives ~26% margin.
+  const ORIGIN_X = 53.65
+  const ORIGIN_Y = 50
+  const ANTICIPATION_SCALE = 0.96
+  const ANTICIPATION_S = 0.18
+  const EXPLOSION_SCALE = 45
+  const EXPLOSION_S = 1.1
+  // GSAP power4.in is quintic (t⁵). The ink clears the lower-left name region
+  // (bottom-left name corner needs scale ≈ 29×) at ~92% of the explosion;
+  // at the 50% wall-clock midpoint the cutout is still only ≈ 2.3×.
+  const HANDOFF_FRACTION = 0.92
+  if (!ksEl) {
+    finishLoader()
+    return
+  }
+  // Fire the hero rise while the explosion blows through — no dead gap
+  // between "ink clearing" and "text starts". finishLoader still removes the
+  // loader at 100%.
+  const handoff = (): void => {
+    resolveEntrance()
+  }
+  const proxy = { s: 1 }
+  const applyScale = (): void => {
+    ksEl.setAttribute(
+      'transform',
+      `translate(${ORIGIN_X} ${ORIGIN_Y}) scale(${proxy.s}) translate(${-ORIGIN_X} ${-ORIGIN_Y})`,
+    )
+  }
+  // If GSAP ever throws building the exit, finish immediately rather than
+  // stranding the loader (and the scroll lock) on screen.
+  try {
+    const tl = gsap.timeline({ onComplete: finishLoader })
+    tl.to(proxy, { s: ANTICIPATION_SCALE, duration: ANTICIPATION_S, ease: 'house', onUpdate: applyScale }, 0)
+    tl.to(proxy, { s: EXPLOSION_SCALE, duration: EXPLOSION_S, ease: 'power4.in', onUpdate: applyScale }, ANTICIPATION_S)
+    // Secondary motion layer: corner labels drift outward+down while fading
+    // as the explosion launches (accelerate — they exit). Not opacity-only.
+    if (metaBl) tl.to(metaBl, { x: -12, y: 12, opacity: 0, duration: 0.22, ease: 'power2.in' }, ANTICIPATION_S)
+    if (metaBr) tl.to(metaBr, { x: 12, y: 12, opacity: 0, duration: 0.22, ease: 'power2.in' }, ANTICIPATION_S)
+    window.__loaderTl = tl
+    // Wall-clock setTimeout rather than a GSAP position callback — GSAP's
+    // scheduled callbacks proved unreliable here (see git history). The id is
+    // exposed so the verification sweep can cancel it after pausing the tl.
+    window.__loaderHandoffT = window.setTimeout(handoff, (ANTICIPATION_S + EXPLOSION_S * HANDOFF_FRACTION) * 1000)
+  } catch {
+    finishLoader()
   }
 }
 
-// Hard fallback — always lift within MAX_WAIT, no matter what.
+// Hard fallback — always start the lift within MAX_WAIT.
 window.setTimeout(liftCurtain, MAX_WAIT_MS)
 
-// Schedule the normal lift: after React has painted at least once
-// (double rAF) AND min-dwell has elapsed.
+// After React has painted at least once (double rAF): reveal the live shader
+// through the windows (fade the stand-in), then start the explosion after dwell.
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
+    loaderEl?.classList.add('loader--mounted')
     const elapsed = performance.now() - startedAt
-    const remaining = Math.max(0, MIN_DWELL_MS - elapsed)
-    window.setTimeout(liftCurtain, remaining)
+    window.setTimeout(liftCurtain, Math.max(0, MIN_DWELL_MS - elapsed))
   })
 })

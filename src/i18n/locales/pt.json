@@ -10,24 +10,13 @@
   "hero": {
     "name1": "kevin",
     "name2": "shibuya.",
-    "rolePrefix": "sou",
     "roles": [
-      "um engenheiro de software sênior",
-      "um desenvolvedor full-stack",
-      "um arquiteto de sistemas",
-      "um líder técnico",
-      "um engenheiro de ia"
-    ],
-    "description": "<strong>do esboço ao produto final.</strong> um time de um homem só.",
-    "cta": {
-      "collaborate": "colaborar",
-      "resume": "currículo"
-    },
-    "stats": {
-      "years": "anos entregando",
-      "embeds": "interativos entregues",
-      "projects": "estudos de caso"
-    }
+      "engenheiro front-end sênior · react/typescript",
+      "desenvolvedor full-stack",
+      "arquiteto de sistemas",
+      "líder técnico",
+      "engenheiro de ia"
+    ]
   },
   "stats": {
     "heading": "o trabalho, em <em>números.</em>",
@@ -46,9 +35,7 @@
       "index": "01 · destaques",
       "label": "",
       "title": "obras <em>em foco.</em>",
-      "description": "highlights pessoais. do briefing à entrega.",
-      "caseStudy": "estudo de caso",
-      "viewProject": "ver projeto"
+      "description": "highlights pessoais. do briefing à entrega."
     },
     "archive": {
       "index": "02 · arquivo",
@@ -113,7 +100,9 @@
   "footer": {
     "copyright": "© {{year}} kevin shibuya · todos os direitos reservados",
     "builtWith": "feito com react, typescript & capricho",
-    "bigText": "kevin shibuya"
+    "bigText": "kevin shibuya",
+    "location": "porto alegre, brasil",
+    "langSwitch": "trocar idioma"
   },
   "projectDetail": {
     "back": "voltar para projetos",

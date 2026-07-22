@@ -32,48 +32,65 @@
    TOKENS (Tailwind v4 @theme + CSS vars)
    ========================================================================= */
 @theme {
-  --color-cream:       #F6F9FC;
-  --color-sand:        #EAF2F8;
-  --color-mist:        #D4E5F2;
-  --color-ink:         #111822;
-  --color-bark:        #2A4060;
-  --color-dust:        #4A6A88;
-
-  --color-blue-50:     #F4F8FE;
-  --color-blue-100:    #DCF0FF;
-  --color-blue-200:    #A2D2FF;
-  --color-blue-300:    #6DB8FF;
-  --color-blue-400:    #3A96E8;
-  --color-blue-500:    #1C6EC4;
-
-  --color-periwinkle-100: #C8D8F0;
-  --color-periwinkle-200: #8AAADA;
-  --color-periwinkle-300: #5078B8;
+  /* Canonical dark-ink tokens (new work styles against these). */
+  --color-bg:          #0B0E14;
+  --color-bg-tonal:    #131722;
+  --color-text:        #F5F2EC;
+  --color-text-muted:  #C9C4BA;
+  --color-text-faded:  #A8A49C;
+  --color-accent-pink:   #E64D66;
+  --color-accent-blue:   #4D80E6;
+  --color-accent-yellow: #E6CC4D;
 
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 :root {
-  --cream:    #F6F9FC;
-  --sand:     #EAF2F8;
-  --mist:     #D4E5F2;
-  --ink:      #111822;
-  --bark:     #2A4060;
-  --dust:     #4A6A88;
+  /* Canonical dark-ink tokens. Contrast-audited in the plan — do not
+     change hexes without recomputing the AA table. */
+  --bg:         #0B0E14;
+  --bg-tonal:   #131722;
+  --text:       #F5F2EC;
+  --text-muted: #C9C4BA;
+  --text-faded: #A8A49C;
+  --hairline:   rgba(245, 242, 236, 0.13);
+  --accent-pink:   #E64D66;
+  --accent-blue:   #4D80E6;
+  --accent-yellow: #E6CC4D;
 
-  --blue-50:  #F4F8FE;
-  --blue-100: #DCF0FF;
-  --blue-200: #A2D2FF;
-  --blue-300: #6DB8FF;
-  --blue-400: #3A96E8;
-  --blue-500: #1C6EC4;
+  /* LEGACY ALIASES — remapped onto the dark system so the whole light-era
+     stylesheet flips in one commit. Semantics: in the light theme --cream
+     was "page background" and --ink was "text"; those ROLES keep their
+     var names, so --cream is now dark and --ink is now light. Sections
+     migrate to the canonical names above as they're restyled. */
+  --cream:    #0B0E14;             /* page bg */
+  --sand:     #131722;             /* tonal section bg */
+  --mist:     rgba(245, 242, 236, 0.14); /* borders/hairlines */
+  --ink:      #F5F2EC;             /* primary text */
+  --bark:     #C9C4BA;             /* secondary text */
+  --dust:     #A8A49C;             /* faded text */
 
-  --periwinkle-100: #C8D8F0;
-  --periwinkle-200: #8AAADA;
-  --periwinkle-300: #5078B8;
+  --blue-50:  #131722;             /* was near-white tint bg */
+  --blue-100: #1B2233;             /* chip/tint bg */
+  --blue-200: #7AA0ED;
+  --blue-300: #7AA0ED;
+  --blue-400: #4D80E6;             /* accent slot */
+  --blue-500: #7AA0ED;             /* hover: lighter, not darker, on dark */
+
+  --periwinkle-100: #2A3450;       /* was pale bg */
+  --periwinkle-200: #6B94EA;
+  --periwinkle-300: #7AA0ED;
+
+  /* Motion tokens (motion-consistency-pass, 2026-07-21). Signature = house ease.
+     Pacing keeps the grandeur: unify values, don't speed up reveals. */
+  --ease-house: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-quick: 0.18s;      /* small state changes */
+  --dur-standard: 0.6s;    /* section entrances */
+  --dur-slow: 0.9s;        /* hero rise / dramatic reveals */
+  --dur-hover-in: 0.18s;
+  --dur-hover-out: 0.22s;
 
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SF Mono, Menlo, monospace;
 }
 
 /* =========================================================================
@@ -93,8 +110,33 @@ html, body {
      horizontal overflow from off-screen animations. */
   overflow-x: clip;
 }
+/* Reserve the scrollbar gutter at all times so releasing the loader's
+   overflow lock (data-loading / data-loader-state) doesn't reflow the page
+   sideways by a scrollbar width on devices with classic (non-overlay) bars. */
+html { scrollbar-gutter: stable; }
+
+/* Scrollbar — invisible track, a faint cream bar that reads with the ink
+   aesthetic (rounded, inset off the edge, brightens on hover). Firefox uses the
+   two-value shorthand; WebKit/Blink use the pseudo-elements. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 242, 236, 0.18) transparent;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(245, 242, 236, 0.16);
+  border-radius: 999px;
+  /* transparent border + padding-box clip = the bar floats inset from the edge
+     and reads thinner, matching the hairline restraint of the page. */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(245, 242, 236, 0.30); }
+::-webkit-scrollbar-corner { background: transparent; }
+
 body { font-weight: 400; }
-::selection { background: var(--blue-300); color: var(--cream); }
+::selection { background: var(--accent-blue); color: var(--bg); }
 
 a { color: inherit; text-decoration: none; }
 button {
@@ -112,12 +154,9 @@ strong {
   color: var(--ink);
   font-style: normal;
 }
-/* Defensive override for ink-background sections — Contact + Footer use
-   color: var(--cream) on their text so global strong { color: var(--ink) }
-   would render invisibly. */
 .section--contact strong,
 .footer strong {
-  color: var(--cream);
+  color: var(--text);
 }
 
 /* =========================================================================
@@ -129,9 +168,9 @@ strong {
   opacity: 0;
   pointer-events: none;
   transition:
-    padding 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    background 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    padding 0.4s var(--ease-house),
+    background 0.4s var(--ease-house),
+    border-color 0.4s var(--ease-house),
     opacity 200ms ease-out;
 }
 .nav.is-visible {
@@ -140,10 +179,10 @@ strong {
 }
 .nav.is-scrolled {
   padding: 12px 40px;
-  background: rgba(246, 249, 252, 0.85);
+  background: rgba(11, 14, 20, 0.78);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--mist);
+  border-bottom: 1px solid var(--hairline);
 }
 .nav-inner {
   display: grid;
@@ -157,8 +196,8 @@ strong {
 .nav-mark {
   width: 30px; height: 30px;
   border-radius: 8px;
-  background: var(--ink);
-  color: var(--cream);
+  background: var(--text);
+  color: var(--bg);
   font-size: 14px; font-weight: 700;
   text-transform: lowercase;
   letter-spacing: -0.04em;
@@ -174,43 +213,39 @@ strong {
   display: inline-block;
   width: 4px; height: 4px;
   border-radius: 50%;
-  background: var(--blue-400);
+  background: var(--accent-blue);
   vertical-align: baseline;
   margin-left: 1px;
-}
-.nav-brand-text {
-  font-size: 13px; font-weight: 500; color: var(--ink);
-  letter-spacing: -0.01em;
 }
 .nav-links { display: flex; gap: 26px; justify-self: center; }
 .nav-link {
   position: relative;
   font-size: 12px; font-weight: 500;
-  color: var(--bark);
+  color: var(--text-faded);
   text-transform: lowercase;
   letter-spacing: 0.02em;
   padding: 6px 0;
-  transition: color 0.3s;
+  transition: color var(--dur-hover-out) var(--ease-house);
 }
 .nav-link::after {
   content: '';
   position: absolute;
   left: 0; right: 100%; bottom: 2px;
   height: 1px;
-  background: var(--blue-400);
-  transition: right 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+  background: var(--accent-blue);
+  transition: right var(--dur-hover-out) var(--ease-house);
 }
-.nav-link:hover { color: var(--ink); }
+.nav-link:hover { color: var(--text); transition-duration: var(--dur-hover-in); }
 .nav-link:hover::after { right: 0; }
 .nav-right { display: flex; align-items: center; gap: 14px; justify-self: end; }
 .nav-lang {
   font-size: 11px; font-weight: 600;
-  color: var(--ink);
+  color: var(--text);
   letter-spacing: 0.15em;
   padding: 4px 0;
-  transition: color 0.2s;
+  transition: color var(--dur-hover-in) var(--ease-house);
 }
-.nav-lang:hover { color: var(--ink); }
+.nav-lang:hover { color: var(--text); }
 
 @media (max-width: 720px) {
   .nav-brand { min-height: 44px; }
@@ -222,43 +257,118 @@ strong {
 }
 
 /* =========================================================================
-   HERO
+   HERO — full-viewport dark stage. FluidWaves canvas behind, a contrast
+   scrim over it, then the text plane: right-aligned meta below the nav and a
+   monumental bottom-anchored signature name with the role cycle directly
+   above it. Entrance transforms (canvas fade/scale, clipped role + name
+   rises) are PRE-SET here so the deferred GSAP timeline reveals
+   already-laid-out text rather than a first mount (LCP is the name).
    ========================================================================= */
 .hero {
   position: relative;
-  min-height: 100vh;
-  padding: 140px 80px 60px;
-  display: grid;
-  grid-template-rows: 1fr auto auto;
-  gap: 40px;
+  min-height: 100svh;
   overflow: hidden;
-  max-width: 1440px;
-  margin: 0 auto;
-}
-.hero-main {
-  position: relative; z-index: 1;
-  align-self: center;
-  max-width: 1200px;
-  display: flex;
-  flex-direction: column;
-}
-.hero-name {
-  font-size: clamp(64px, 11vw, 192px);
-  font-weight: 700;
-  line-height: 0.92;
-  letter-spacing: -0.05em;
-  text-transform: lowercase;
-  margin: 0;
-  color: var(--ink);
-}
-.hero-name-line { display: block; }
-.hero-name-line--ghost {
-  color: var(--mist);
-  -webkit-text-stroke: 1px var(--blue-300);
+  background: var(--bg);
 }
 
-/* Visually-hidden helper used by HeroNameDrawing's screen-reader h1.
-   Standard a11y pattern. */
+/* Canvas layer — FluidWaves (position:absolute; inset:0) fills this box.
+   Settled from first paint (opacity 1): the loader explosion IS the entrance,
+   blowing open onto an already-final hero — no timeline holds this hidden. */
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 1;
+}
+
+/* MANDATORY contrast scrim (contrast table) — darkens the bottom band where
+   the name sits and the top under nav + meta, leaving the mid-canvas open. */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(to top, rgba(11,14,20,0.88) 0%, rgba(11,14,20,0.55) 32%, rgba(11,14,20,0) 60%),
+    linear-gradient(to bottom, rgba(11,14,20,0.75) 0%, rgba(11,14,20,0) 28%);
+}
+
+.hero-bottom {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  bottom: 72px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Clip mask for the entrance rise: each row hides its line below the edge, and
+   Framer translates the inner element from y:110% to 0% so the letters emerge
+   out of nothing. Overflow is released to visible once the rise settles
+   (.hero-bottom.is-entered) so the role focus ring and glyph descenders aren't
+   clipped at rest. */
+.hero-line-mask {
+  display: block;
+  overflow: hidden;
+}
+.hero-bottom.is-entered .hero-line-mask {
+  overflow: visible;
+}
+/* The bottom name line ("shibuya.") carries a descender (the "y" leg). With the
+   tight line-height:0.92 the clip box ends at the baseline, so overflow:hidden
+   amputates the leg for the whole rise (until the is-entered release). Extend the
+   clip region down into the descender (content inside padding stays visible under
+   overflow:hidden), and cancel the layout shift with an equal negative margin —
+   the 125% hidden travel (Hero.tsx) still starts the line fully below this taller
+   box, so nothing peeks before the rise. */
+.hero-name .hero-line-mask:last-child {
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
+}
+
+/* Role line: left-aligns the inline role above the name with a tiny breathing
+   space; Framer Motion owns the inner .hero-role cycle swap. */
+.hero-role-line {
+  align-self: flex-start;
+  padding-bottom: 2px;
+}
+.hero-role {
+  display: inline-block;
+  font-size: clamp(15px, 1.6vw, 22px);
+  font-weight: 500;
+  color: var(--text);
+  text-transform: lowercase;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  border-radius: 2px;
+  transition: color var(--dur-hover-in) var(--ease-house);
+}
+.hero-role:hover { color: var(--accent-blue); }
+.hero-role:focus-visible {
+  outline: 2px solid var(--blue-300);
+  outline-offset: 6px;
+}
+
+.hero-name {
+  margin: 0;
+  font-size: clamp(64px, 12vw, 200px);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  text-transform: lowercase;
+  color: var(--text);
+}
+/* Name lines. Each sits inside its own .hero-line-mask row and rises from
+   y:110% to 0% on entrance (Framer, in Hero.tsx). */
+.hero-line {
+  display: block;
+}
+
+/* Visually-hidden helper (screen-reader-only text). Standard a11y pattern. */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -272,20 +382,21 @@ strong {
 }
 
 /* =========================================================================
-   LOADER + CURTAIN — paints at first frame from index.html, lifts via
-   main.tsx after React mounts + min-dwell.
+   LOADER — ink SVG loader, paints at first frame from index.html, explodes
+   away via main.tsx after React mounts + min-dwell.
 
-   Structure: two solid ink .loader-half panels + three text spans that
-   each render "ks" + a styled blue dot ("ks." brand mark). The
-   .loader-mark--whole is visible at first paint and serves as the LCP
-   candidate; the two tear-halves are visibility:hidden clip-pathed copies
-   positioned at the same pixel coordinates. On .loader--exit the
-   whole-mark flips hidden, the halves flip visible (pixel-identical
-   swap), and each half translates ±50vh with its panel — the mark
-   appears to tear horizontally as the curtain opens.
+   Structure: a full-viewport ink SVG <rect> masked by static "ks." glyph
+   windows (paths extracted from Plus Jakarta Sans 700 — no font dependency,
+   no FOUT) over a dim tricolor .loader-standin gradient that reads as paint
+   pre-React. On mount main.tsx adds .loader--mounted to fade the stand-in
+   (revealing the live hero canvas behind #loader), then GSAP contracts the
+   ks. cutout (anticipation) and explodes it outward until the viewport sits
+   inside a letterform window. Corner .loader-meta blocks are crisp cream
+   HTML on the ink.
 
-   Same rules are inlined in index.html so the curtain paints with the
-   first byte of HTML, before this bundled stylesheet arrives.
+   Same rules are inlined in index.html so the loader paints with the first
+   byte of HTML, before this bundled stylesheet arrives; the cascade here is
+   a no-op re-declaration.
    ========================================================================= */
 html[data-loading='true'] {
   overflow: hidden;
@@ -296,131 +407,73 @@ html[data-loading='true'] {
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
 }
 
-.loader-half {
-  position: fixed;
-  left: 0;
-  width: 100vw;
-  height: 50vh;
-  background: #111822; /* ink — fallback hex; --ink token may not be parsed yet for the loader's first paint */
-  transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
+/* Dim tricolor stand-in behind the windows: reads as paint before React
+   mounts the live shader (mirrors the hero fallback gradient). Subtly
+   animated (spec §3) via a compositor-cheap transform drift so the paint
+   breathes pre-React; the mount fade uses opacity (separate channel). */
+.loader-standin {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(60% 80% at 20% 30%, rgba(230, 77, 102, 0.50), transparent 70%),
+    radial-gradient(50% 70% at 80% 25%, rgba(77, 128, 230, 0.50), transparent 70%),
+    radial-gradient(70% 60% at 55% 80%, rgba(230, 204, 77, 0.35), transparent 70%),
+    #0B0E14;
+  opacity: 1;
+  transition: opacity 300ms ease-out;
+  animation: loaderStandinDrift 7s ease-in-out infinite alternate;
   will-change: transform;
 }
 
-.loader-half--top    { top: 0;    }
-.loader-half--bottom { bottom: 0; }
-
-.loader-mark {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: clamp(140px, 30vw, 320px);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  text-transform: lowercase;
-  color: #F6F9FC; /* cream — fallback hex */
-  white-space: nowrap;
+@keyframes loaderStandinDrift {
+  from { transform: scale(1) translate3d(0, 0, 0); }
+  to   { transform: scale(1.05) translate3d(-1.5%, 1.5%, 0); }
 }
 
-.loader-mark__dot {
-  display: inline-block;
-  width: 0.18em;
-  height: 0.18em;
-  border-radius: 50%;
-  background: #3A96E8; /* --blue-400 — fallback hex */
-  vertical-align: baseline;
-  margin-left: 0.02em;
-}
+/* On React mount main.tsx adds .loader--mounted → fade the stand-in so the
+   windows reveal the live (already-looping) hero canvas behind #loader. */
+#loader.loader--mounted .loader-standin { opacity: 0; }
 
-.loader-mark--whole {
-  position: relative;
-  z-index: 1; /* sits above the .loader-half panels */
-}
-
-.loader-mark--top,
-.loader-mark--bottom {
+.loader-ink {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.loader-meta {
+  position: absolute;
   z-index: 2;
-  visibility: hidden; /* hidden so they aren't counted as LCP candidates */
-  transition: transform 600ms cubic-bezier(0.85, 0, 0.15, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+  color: #F5F2EC; /* --text — fallback hex */
 }
 
-.loader-mark--top    { clip-path: inset(0 0 50% 0); } /* keep only the top half */
-.loader-mark--bottom { clip-path: inset(50% 0 0 0); } /* keep only the bottom half */
+.loader-meta--bl { bottom: 28px; left: 28px; text-align: left; }
+.loader-meta--br { bottom: 28px; right: 28px; text-align: right; }
 
-/* Curtain exit: triggered by main.tsx adding .loader--exit to #loader. */
-#loader.loader--exit .loader-half--top    { transform: translateY(-100%); }
-#loader.loader--exit .loader-half--bottom { transform: translateY(100%);  }
-#loader.loader--exit .loader-mark--whole  { visibility: hidden; }
-#loader.loader--exit .loader-mark--top,
-#loader.loader--exit .loader-mark--bottom { visibility: visible; }
-#loader.loader--exit .loader-mark--top    { transform: translate(-50%, calc(-50% - 50vh)); }
-#loader.loader--exit .loader-mark--bottom { transform: translate(-50%, calc(-50% + 50vh)); }
+@media (max-width: 640px) {
+  .loader-meta { font-size: 10px; }
+  .loader-meta--bl { left: 18px; }
+  .loader-meta--br { right: 18px; }
+}
 
-/* Reduced motion: skip the slide; fade the whole loader out instead. */
+/* Reduced motion: no explosion — fade the whole loader out; no stand-in drift. */
 @media (prefers-reduced-motion: reduce) {
-  .loader-half,
-  .loader-mark--top,
-  .loader-mark--bottom {
-    transition: none;
-  }
-  #loader {
-    transition: opacity 150ms ease-out;
-  }
-  #loader.loader--exit {
-    opacity: 0;
-  }
-}
-
-/* =========================================================================
-   HERO NAME DRAWING — SVG glyph paths animated as ink-trace + ink-fill.
-   This component IS the hero title (it replaces the static <h1>).
-   Each <path> is a glyph outline extracted from Plus Jakarta Sans Bold;
-   stroke-dashoffset 1→0 produces the trace, then the .--ink / .--ghost
-   classes swap stroke for fill to land on the final h1-equivalent state.
-   ========================================================================= */
-.hero-name-drawing {
-  display: block;
-  /* Aggressive vw component so the title scales toward full-width on
-     mobile/tablet; the 192px max keeps it composed on desktop. */
-  font-size: clamp(72px, 22vw, 192px);
-  line-height: 0.92;
-}
-.hero-name-drawing-word {
-  display: block;
-  width: auto;
-  height: 1em;
-  overflow: visible;
-}
-.hero-name-drawing-glyph {
-  fill: transparent;
-  stroke: var(--blue-400);
-  /* Stroke is in 1000-em viewBox units. 14 ≈ 2.7px @ 192px font — thin
-     and elegant trace, not a thick brush. */
-  stroke-width: 14;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-/* Final state of "kevin": solid ink fill, no stroke (matches the previous
-   .hero-name-line --ink). */
-.hero-name-drawing-glyph--ink {
-  fill: var(--ink);
-  stroke: transparent;
-}
-/* Final state of "shibuya.": ghost (cream/mist fill + thin blue stroke,
-   matches the previous .hero-name-line--ghost). */
-.hero-name-drawing-glyph--ghost {
-  fill: var(--mist);
-  stroke: var(--blue-300);
-  stroke-width: 4;
+  #loader { transition: opacity 150ms ease-out; }
+  #loader.loader--exit { opacity: 0; }
+  .loader-standin { transition: none; animation: none; }
 }
 
 /* Scramble lettering — cursor affordance + design-system focus ring.
@@ -431,83 +484,13 @@ html[data-loading='true'] {
   cursor: pointer;
   outline: none;
   border-radius: 2px;
-  transition: text-decoration-color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: text-decoration-color var(--dur-hover-in) var(--ease-house);
 }
 .scramble:focus-visible {
   outline: 2px solid var(--blue-300);
   outline-offset: 6px;
 }
 .scramble-static { /* reduced-motion fallback — render as plain text */ }
-.hero-role-line {
-  display: flex; align-items: baseline; gap: 16px;
-  flex-wrap: wrap;
-  margin-top: 36px;
-}
-.hero-role-prefix {
-  font-size: clamp(22px, 2.4vw, 36px);
-  font-weight: 300;
-  color: var(--bark);
-  text-transform: lowercase;
-  letter-spacing: -0.02em;
-}
-.hero-role {
-  font-size: clamp(24px, 2.6vw, 40px);
-  font-weight: 600;
-  color: var(--ink);
-  text-transform: lowercase;
-  letter-spacing: -0.02em;
-  border-bottom: 2px solid var(--blue-200);
-  padding-bottom: 4px;
-  display: inline-block;
-}
-/* Click-to-cycle: cursor + accessible focus ring + smooth color shift on hover. */
-.hero-role--clickable {
-  cursor: pointer;
-  user-select: none;
-  outline: none;
-  border-radius: 2px;
-  transition: color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-              border-bottom-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.hero-role--clickable:hover {
-  color: var(--blue-500, #1C6EC4);
-  border-bottom-color: var(--blue-400);
-}
-.hero-role--clickable:focus-visible {
-  outline: 2px solid var(--blue-300);
-  outline-offset: 6px;
-}
-.hero-desc {
-  font-size: 17px;
-  color: var(--bark);
-  max-width: 560px;
-  line-height: 1.75;
-  margin: 24px 0 0;
-  text-transform: lowercase;
-}
-.hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
-
-.hero-stats {
-  position: relative; z-index: 1;
-  display: flex; flex-wrap: wrap; gap: 64px;
-  padding-top: 40px;
-  border-top: 1px solid var(--mist);
-  max-width: 720px;
-}
-.hero-stat { display: flex; flex-direction: column; gap: 4px; }
-.hero-stat-v {
-  font-size: 40px; font-weight: 700;
-  color: var(--ink);
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-.hero-stat-l {
-  font-size: 11px;
-  color: var(--dust);
-  text-transform: lowercase;
-  letter-spacing: 0.08em;
-}
 
 /* =========================================================================
    BUTTONS
@@ -520,7 +503,7 @@ html[data-loading='true'] {
   letter-spacing: 0.04em;
   padding: 16px 28px;
   border-radius: 999px;
-  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: all var(--dur-hover-out) var(--ease-house);
   white-space: nowrap;
 }
 .btn--primary {
@@ -541,7 +524,8 @@ html[data-loading='true'] {
   background: var(--ink);
   color: var(--cream);
 }
-.btn-arrow { display: inline-block; transition: transform 0.3s; }
+.btn-arrow { display: inline-block; transition: transform var(--dur-hover-in) var(--ease-house); }
+.btn:hover { transition-duration: var(--dur-hover-in); }
 .btn:hover .btn-arrow { transform: translateX(3px); }
 .btn--ghost:hover .btn-arrow { transform: translateY(3px); }
 
@@ -615,7 +599,7 @@ html[data-loading='true'] {
   padding: 6px 12px;
   border-radius: 999px;
   text-transform: lowercase;
-  transition: all 0.25s;
+  transition: all var(--dur-hover-in) var(--ease-house);
 }
 .pill:hover {
   background: var(--blue-100);
@@ -634,7 +618,7 @@ html[data-loading='true'] {
   border-radius: 999px;
   text-transform: lowercase;
   letter-spacing: 0.02em;
-  transition: all 0.25s;
+  transition: all var(--dur-hover-in) var(--ease-house);
 }
 .chip:hover { border-color: var(--blue-300); color: var(--ink); }
 .chip.is-active {
@@ -644,103 +628,44 @@ html[data-loading='true'] {
 }
 
 /* =========================================================================
-   WORK HISTORY (accordion)
+   WORK HISTORY (expandable WorkRows — see WORKROW primitive)
    ========================================================================= */
 .work-list {
-  background: var(--cream);
-  border: 1px solid var(--mist);
-  border-radius: 18px;
-  overflow: hidden;
+  border-top: 1px solid var(--hairline);
 }
-.work-row { border-bottom: 1px solid var(--mist); }
-.work-row:last-child { border-bottom: none; }
-.work-row.is-open { background: var(--sand); }
-.work-row-head {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 56px 1fr 28px;
-  gap: 24px;
+.work-meta-line {
+  display: flex;
   align-items: center;
-  padding: 28px 32px;
-  text-align: left;
-  transition: background 0.35s;
-}
-.work-row-head:hover { background: var(--sand); }
-.work-num {
-  font-size: 11px;
-  color: var(--dust);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.1em;
-}
-.work-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.work-title-line {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
-}
-.work-role-title {
-  font-size: 24px; font-weight: 500;
-  color: var(--ink);
-  margin: 0;
-  text-transform: lowercase;
-  letter-spacing: -0.02em;
-  transition: color 0.3s;
-}
-.work-row-head:hover .work-role-title,
-.work-row.is-open .work-role-title { color: var(--blue-400); }
-.work-period {
-  font-size: 11px;
-  color: var(--bark);
-  text-transform: lowercase;
-  letter-spacing: 0.08em;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.work-byline {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.work-byline-text {
+  margin-bottom: 16px;
   font-size: 13px;
   text-transform: lowercase;
   letter-spacing: 0.02em;
-  color: var(--dust);
+  color: var(--text-faded);
 }
-.work-company {
-  color: var(--periwinkle-300);
-  font-weight: 600;
+.work-location {
+  color: var(--text-faded);
 }
-.work-byline-sep { color: var(--dust); opacity: 0.6; }
-.work-location { color: var(--dust); }
 .work-mode-pill {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 10px;
-  background: var(--blue-50);
+  background: rgba(245, 242, 236, 0.08);
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--bark);
+  color: var(--text-muted);
   text-transform: lowercase;
   letter-spacing: 0.06em;
   white-space: nowrap;
 }
 .work-mode-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--periwinkle-300);
-}
-.work-toggle {
-  font-size: 24px;
-  color: var(--ink);
-  font-weight: 300;
-  line-height: 1;
-  display: inline-block;
-  justify-self: end;
-}
-.work-body {
-  overflow: hidden;
-}
-.work-body-inner {
-  padding: 0 32px 36px 112px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--row-tint);
 }
 .work-bullets {
   margin-bottom: 24px;
@@ -748,7 +673,7 @@ html[data-loading='true'] {
 }
 .work-bullets li {
   font-size: 14px;
-  color: var(--bark);
+  color: var(--text-muted);
   line-height: 1.6;
   padding-left: 18px;
   position: relative;
@@ -759,11 +684,11 @@ html[data-loading='true'] {
   position: absolute;
   left: 0; top: 0.65em;
   width: 8px; height: 1px;
-  background: var(--blue-300);
+  background: var(--row-tint);
 }
 .work-highlight {
-  background: var(--blue-50);
-  border-left: 3px solid var(--blue-400);
+  background: rgba(245, 242, 236, 0.06);
+  border-left: 3px solid var(--row-tint);
   padding: 14px 20px;
   border-radius: 0 10px 10px 0;
   margin-bottom: 20px;
@@ -771,7 +696,7 @@ html[data-loading='true'] {
 }
 .work-highlight-label {
   font-size: 10px; font-weight: 600;
-  color: var(--blue-500);
+  color: var(--row-tint);
   text-transform: uppercase;
   letter-spacing: 0.15em;
   display: block;
@@ -779,7 +704,7 @@ html[data-loading='true'] {
 }
 .work-highlight p {
   font-size: 13px;
-  color: var(--ink);
+  color: var(--text);
   line-height: 1.5;
   margin: 0;
   text-transform: lowercase;
@@ -798,257 +723,84 @@ html[data-loading='true'] {
 .skills-col-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
 .skills-num {
   font-size: 11px; font-weight: 600;
-  color: var(--blue-400);
+  color: var(--text-faded);
   letter-spacing: 0.1em;
   font-variant-numeric: tabular-nums;
 }
 .skills-title {
   font-size: 18px; font-weight: 600;
-  color: var(--ink);
+  color: var(--text);
   margin: 0;
   text-transform: lowercase;
   letter-spacing: -0.01em;
   padding-bottom: 10px;
-  border-bottom: 1px solid var(--mist);
+  border-bottom: 1px solid var(--hairline);
   flex: 1;
 }
 .skills-list { display: flex; flex-direction: column; gap: 10px; }
 .skills-item {
   display: flex; align-items: center; gap: 12px;
   font-size: 14px;
-  color: var(--bark);
+  color: var(--text-muted);
   text-transform: lowercase;
   padding: 8px 0;
   border-bottom: 1px dashed transparent;
-  transition: all 0.25s;
+  transition: all var(--dur-hover-in) var(--ease-house);
 }
 .skills-item:hover {
-  color: var(--ink);
-  border-bottom-color: var(--blue-200);
+  color: var(--text);
+  border-bottom-color: var(--accent-blue);
   transform: translateX(3px);
 }
 .skills-dot {
   width: 5px; height: 5px;
   border-radius: 50%;
-  background: var(--blue-300);
-  transition: all 0.25s;
+  background: var(--accent-blue);
+  transition: all var(--dur-hover-in) var(--ease-house);
   flex-shrink: 0;
 }
+/* Tricolor dots rotate by column index — skills-grid is a 3-col layout, so
+   nth-child(3n+k) targets the same visual column across every row. Stagger
+   wraps each .skills-col in its own motion.div, so the nth-child count must
+   run over .skills-grid's direct children (the wrappers), not .skills-col
+   itself — see the identical .stats-rows wrapper note above. */
+.skills-grid > :nth-child(3n+1) .skills-dot { background: var(--accent-pink); }
+.skills-grid > :nth-child(3n+2) .skills-dot { background: var(--accent-blue); }
+.skills-grid > :nth-child(3n+3) .skills-dot { background: var(--accent-yellow); }
 .skills-item:hover .skills-dot {
-  background: var(--blue-500);
   transform: scale(1.6);
 }
 
 /* =========================================================================
-   BENTO v04 (featured work)
+   PROJECTS — tinted WorkRow list (featured work)
    ========================================================================= */
-.bento {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 1fr;
-  aspect-ratio: 2 / 1;
-  gap: 12px;
-}
-.bento-card {
-  position: relative;
-  border-radius: 14px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  cursor: pointer;
-  overflow: hidden;
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  grid-column: span 1;
-}
-.bento-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(17, 24, 34, 0.08);
-}
-.bento-card--lg {
-  grid-column: span 2;
-  grid-row: span 2;
-  padding: 28px;
-}
-.bento-card--md {
-  grid-column: span 2;
-}
-.bento-desc-top {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink);
-  text-transform: lowercase;
-  letter-spacing: 0.08em;
-}
-.bento-card.is-dark .bento-desc-top { color: var(--blue-200); }
-.bento-bottom { display: flex; flex-direction: column; gap: 8px; }
-.bento-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--ink);
-  margin: 0;
-  text-transform: lowercase;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-.bento-card--lg .bento-title {
-  font-size: clamp(28px, 2.6vw, 36px);
-}
-.bento-card.is-dark .bento-title { color: var(--cream); }
-.bento-cs {
-  font-size: 11px;
-  color: var(--ink);
-  opacity: 0.7;
-  text-transform: lowercase;
-  transition: transform 0.3s;
-  display: inline-block;
-}
-.bento-card.is-dark .bento-cs { color: var(--cream); opacity: 0.85; }
-.bento-card:hover .bento-cs { transform: translateX(3px); }
-
-/* Bento mockup layers ===================================================== */
-.bento-mockup-wrap {
-  position: absolute;
-  inset: 22% 8% 30% 8%;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  pointer-events: none;
-  --cursor-tilt: none;
-}
-.bento-card--lg .bento-mockup-wrap {
-  inset: 14% 6% 22% 6%;
-}
-.bento-card--md .bento-mockup-wrap {
-  inset: 14% 6% 22% 38%;
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 14px;
-}
-.bento-mockup {
-  position: relative;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-}
-.bento-card--md .bento-mockup--mobile {
-  flex: 0 0 auto;
-  max-width: 26%;
-}
-.bento-mockup-img {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  transform: var(--cursor-tilt);
-  transform-origin: center center;
-  transition:
-    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform, opacity;
-}
-.bento-mockup-img--tonal {
-  filter: grayscale(1) brightness(1.05);
-  mix-blend-mode: luminosity;
-  opacity: 1;
-}
-.bento-mockup-img--color {
-  mix-blend-mode: normal;
-  opacity: 0;
-}
-.bento-card:hover .bento-mockup-img--color {
-  opacity: 1;
+.projects-list {
+  border-top: 1px solid var(--hairline);
 }
 
-/* md text-column layout */
-.bento-card--md .bento-text-col {
+/* =========================================================================
+   CONTACT / FOOTER STAGE (canvas #2 backdrop)
+   The stage owns the dark background so Contact + Footer sit transparent over
+   the FluidWaves backdrop canvas. --bg (#0B0E14) matches the shader's clear color, so
+   the stage reads seamless before the lazy canvas mounts / if WebGL fails.
+   ========================================================================= */
+.contact-footer-stage {
+  position: relative;
+  background: var(--bg);
+  isolation: isolate;
+}
+.contact-footer-stage > .section--contact,
+.contact-footer-stage > .footer {
   position: relative;
   z-index: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 38%;
-  height: 100%;
-}
-
-/* Reduced motion: disable layer crossfade and per-frame transforms — show
-   color image at rest, no animation. The card-side hover transitions are
-   already gated by the existing prefers-reduced-motion CSS elsewhere. */
-@media (prefers-reduced-motion: reduce) {
-  .bento-mockup-img--tonal { opacity: 0; }
-  .bento-mockup-img--color { opacity: 1; }
-  .bento-mockup-img { transition: none; transform: none; }
-}
-
-/* Touch (coarse pointer): keep the resting card-toned look — no hover-only
-   color reveal. Pairs with useCursorTilt's no-op on coarse pointers. */
-@media (pointer: coarse) {
-  .bento-card:hover .bento-mockup-img--color { opacity: 0; }
 }
 
 /* =========================================================================
-   FEATURED WORK — bento grid
-   ========================================================================= */
-
-.project-cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 60;
-  pointer-events: none;
-}
-.project-cursor__rotor {
-  position: relative;
-  width: 0;
-  height: 0;
-  transform-origin: 0% 0%;
-}
-.project-cursor__pill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  /* Center horizontally on cursor X; float 14px above cursor Y. */
-  transform: translate(-50%, calc(-100% - 14px));
-  display: inline-block;
-  white-space: nowrap;
-  background: var(--blue-400);
-  color: var(--cream);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 8px 14px;
-  border-radius: 6px;
-  box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--blue-500) 60%, transparent);
-}
-
-/* Hide the cursor follower below the desktop breakpoint. */
-@media (max-width: 900px) {
-  .project-cursor { display: none; }
-}
-
-/* Touch: cursor follower can't be hovered usefully. */
-@media (hover: none) {
-  .project-cursor { display: none; }
-}
-
-/* Reduced motion: no cursor follower. */
-@media (prefers-reduced-motion: reduce) {
-  .project-cursor { display: none; }
-}
-
-/* =========================================================================
-   CONTACT (dark ink)
+   CONTACT (transparent over the stage)
    ========================================================================= */
 .section--contact {
-  background: var(--ink);
-  color: var(--cream);
+  background: transparent;
+  color: var(--text);
   padding: 160px 80px 120px;
   max-width: none;
 }
@@ -1061,7 +813,7 @@ html[data-loading='true'] {
   letter-spacing: -0.05em;
   text-transform: lowercase;
   margin: 16px 0 32px;
-  color: var(--cream);
+  color: var(--text);
 }
 .contact-title em {
   font-style: italic;
@@ -1084,11 +836,13 @@ html[data-loading='true'] {
   gap: 20px;
   padding: 24px 0;
   border-bottom: 1px solid rgba(246, 249, 252, 0.12);
-  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: all var(--dur-hover-out) var(--ease-house);
 }
 .contact-row:hover {
+  transition-duration: var(--dur-hover-in);
   padding-left: 20px;
-  background: linear-gradient(90deg, rgba(58, 150, 232, 0.06), transparent);
+  /* --color-accent-blue #4D80E6, not the retired light-era #3A96E8 */
+  background: linear-gradient(90deg, rgba(77, 128, 230, 0.06), transparent);
 }
 .contact-num {
   font-size: 10px;
@@ -1099,9 +853,10 @@ html[data-loading='true'] {
 .contact-label {
   font-size: clamp(20px, 2.2vw, 32px);
   font-weight: 500;
-  color: var(--cream);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  color: var(--text);
+  /* lowercase site voice — the light-era uppercase treatment is retired */
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
   /* inline-block + transform-origin so skewX animates from the left edge
      without horizontal drift. font-weight is not interpolable so it
      stays out of the transition list and snaps on hover; that's
@@ -1110,8 +865,8 @@ html[data-loading='true'] {
   transform: skewX(0);
   transform-origin: 0 50%;
   transition:
-    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    color 0.3s;
+    transform var(--dur-hover-out) var(--ease-house),
+    color var(--dur-hover-in) var(--ease-house);
 }
 /* Progressive skew replaces the previous font-style: italic swap, which
    was an instant glyph-pop because Plus Jakarta Italic is a separate
@@ -1121,15 +876,17 @@ html[data-loading='true'] {
   color: var(--blue-300);
   font-weight: 600;
 }
-.contact-label-arrow { display: inline-block; margin-left: 6px; opacity: 0; transition: opacity 0.3s; }
+.contact-label-arrow { display: inline-block; margin-left: 6px; opacity: 0; transition: opacity var(--dur-hover-in) var(--ease-house); }
 .contact-row:hover .contact-label-arrow { opacity: 1; }
 .contact-meta {
   font-size: 13px;
-  color: rgba(246, 249, 252, 0.5);
+  /* --text #F5F2EC. Alpha .5→.62: AA over the 0.22-dimmed backdrop worst case
+     (rgb(57,56,41)) = 5.17:1. Hover-reveal opacity 0→1 is separate + untouched. */
+  color: rgba(245, 242, 236, 0.62);
   text-transform: lowercase;
   opacity: 0;
   transform: translateX(8px);
-  transition: all 0.3s;
+  transition: all var(--dur-hover-in) var(--ease-house);
   white-space: nowrap;
 }
 .contact-row:hover .contact-meta { opacity: 1; transform: translateX(0); }
@@ -1143,109 +900,63 @@ html[data-loading='true'] {
    FOOTER
    ========================================================================= */
 .footer {
-  background: var(--ink);
-  color: var(--cream);
+  background: transparent;
+  color: var(--text);
   padding: 60px 80px 40px;
-  border-top: 1px solid rgba(246, 249, 252, 0.08);
+  border-top: 1px solid var(--hairline);
 }
 /* =========================================================================
-   FOOTER NAME MARQUEE
-   "kevin shibuya" stroke-dashoffset trace then infinite leftward marquee.
-   The trace and marquee both render in cream-25% — no color shift. Track
-   lives inside .footer (which has 80px LR padding); negative margin on the
-   container breaks out so the marquee runs edge-to-edge of the viewport
-   while the bottom meta row keeps its gutter.
-
-   Track sizing: width:max-content forces the track to size to its two
-   children, so translateX(-50%) translates by exactly one copy-width
-   (= seamless wrap). Without it, the track defaults to 100% of its parent
-   (~100vw) and -50% becomes -50vw, which doesn't line up with copy width
-   on most viewports → visible snap mid-loop.
+   FOOTER NAME
+   "kevin shibuya" set as a large lowercase typographic display — no outline
+   or trace trickery (the ink-draw marquee was retired in the WebGL pivot).
    ========================================================================= */
-.footer-marquee {
-  margin-left: -80px;
-  margin-right: -80px;
-  margin-bottom: 48px;
-  overflow: hidden;
-}
-.footer-marquee-track {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0;
-  width: max-content;
-  font-size: clamp(80px, 18vw, 280px);
-}
-.footer-marquee-track-copy {
-  display: block;
-  flex-shrink: 0;
-  height: 1em;
-  width: auto;
-  overflow: visible;
-}
-.footer-marquee-glyph {
-  fill: transparent;
-  stroke: rgba(246, 249, 252, 0.25);
-  stroke-width: 6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-.footer-marquee-track--marquee {
-  animation: footer-marquee-scroll 45s linear infinite;
-  will-change: transform;
-}
-@keyframes footer-marquee-scroll {
-  from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(-50%, 0, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* Reset will-change too — under rmotion the --marquee class is still
-     applied (component initializes to phase='marquee'), so leaving the
-     base rule's will-change:transform active would waste a GPU layer
-     on a static element. */
-  .footer-marquee-track--marquee {
-    animation: none;
-    will-change: auto;
-  }
+.footer-name {
+  margin: 0 0 48px;
+  font-size: clamp(48px, 10vw, 160px);
+  font-weight: 650;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+  color: var(--text);
 }
 .footer-bottom {
   display: flex; justify-content: space-between; align-items: center;
   padding-top: 24px;
-  border-top: 1px solid rgba(246, 249, 252, 0.08);
+  border-top: 1px solid var(--hairline);
   font-size: 11px;
-  color: var(--mist);
+  color: var(--text-faded);
   text-transform: lowercase;
   letter-spacing: 0.04em;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 16px;
 }
+.footer-meta-left,
+.footer-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.footer-meta-sep { opacity: 0.5; }
+.footer-lang {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-faded);
+  transition: color var(--dur-hover-in) var(--ease-house);
+}
+.footer-lang:hover { color: var(--text); }
 
 /* =========================================================================
    RESPONSIVE
    ========================================================================= */
 @media (max-width: 1100px) {
-  .nav, .hero, .section, .section--contact, .footer {
+  .nav, .section, .section--contact, .footer {
     padding-left: 40px;
     padding-right: 40px;
   }
-  .footer-marquee {
-    margin-left: -40px;
-    margin-right: -40px;
-  }
-  /* 2-col grid auto-places into 3 rows (lg / sm sm / md) — drive shapes
-     per-card so geometry doesn't depend on row-count. */
-  .bento {
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: auto;
-    aspect-ratio: auto;
-  }
-  .bento-card { aspect-ratio: 1 / 1; }
-  .bento-card--lg, .bento-card--md {
-    grid-column: span 2;
-    aspect-ratio: 2 / 1;
-  }
-  .bento-card--lg { grid-row: auto; }
+  /* Hero children are absolutely positioned (padding on .hero would inset
+     the full-bleed canvas), so track the narrower page gutter directly. */
+  .hero-bottom { left: 40px; right: 40px; }
 }
 
 /* Skills steps down 3 → 2 → 1 col across desktop / tablet / mobile.
@@ -1266,65 +977,24 @@ html[data-loading='true'] {
   .nav.is-scrolled { padding: 12px 20px; }
   .nav-links { display: none; }
   .nav-inner { grid-template-columns: auto 1fr; }
-  .hero, .section, .section--contact, .footer {
+  .section, .section--contact, .footer {
     padding-left: 20px;
     padding-right: 20px;
   }
-  .footer-marquee {
-    margin-left: -20px;
-    margin-right: -20px;
-  }
-  .hero { padding-top: 120px; }
-  .hero-stats { gap: 32px; }
-  .work-row-head { grid-template-columns: 32px 1fr 24px; padding: 20px; gap: 14px; }
-  .work-body-inner { padding: 0 20px 28px 20px; }
-  .bento {
-    grid-template-columns: 1fr;
-    grid-auto-rows: auto;
-    aspect-ratio: auto;
-  }
-  .bento-card { aspect-ratio: 4 / 3; }
-  /* Below 720px, lg + md fall back to the sm card layout — single mockup
-     centered, tagline top, title+CTA bottom — so the dual-mockup md split
-     and the oversized lg title don't crowd narrow viewports. */
-  .bento-card--lg, .bento-card--md {
-    grid-column: span 1;
-    aspect-ratio: 4 / 3;
-    padding: 20px;
-  }
-  .bento-card--lg .bento-title { font-size: 20px; }
-  .bento-card--lg .bento-mockup-wrap,
-  .bento-card--md .bento-mockup-wrap {
-    inset: 22% 8% 30% 8%;
-    flex-direction: row;
-    gap: 0;
-  }
-  .bento-card--md .bento-text-col { display: contents; }
-  .bento-card--md .bento-mockup--mobile { display: none; }
   .contact-row { grid-template-columns: 32px 1fr 24px; }
   .contact-meta { display: none; }
   .section-header { margin-bottom: 40px; }
   .section { padding: 100px 20px; }
-  .hero-accent-mount { display: none; }
 
-  /* Hero typography — desktop values read bookish on a 6" screen.
-     Drop description from "novel body" (17/1.75) to "informative
-     caption" (15/1.55), soften strong from 700 → 600, open the
-     role/prefix hierarchy gap, and compress inter-block rhythm
-     ~25% so the hero feels composed instead of scroll-y. */
-  .hero-role-line { margin-top: 28px; gap: 12px; }
-  .hero-role-prefix { font-size: 18px; }
-  .hero-role { font-size: 22px; border-bottom-width: 1px; }
-  .hero-desc { font-size: 15px; line-height: 1.55; }
-  .hero-desc strong { font-weight: 600; }
-  .hero-main .hero-name + .hero-supplementary { margin-top: 32px; }
-  .hero-supplementary .hero-role-line + .hero-desc { margin-top: 20px; }
-  .hero-supplementary .hero-desc + .hero-cta { margin-top: 32px; }
+  /* Hero on a phone: hug the 20px gutter, lift the bottom anchor off the
+     home indicator. */
+  .hero-bottom { left: 20px; right: 20px; bottom: 56px; gap: 14px; }
 }
 
 /* =========================================================================
    LOADER SCROLL LOCK — keyed off body[data-loader-state="loading"], which
-   useScrollLockDuringLoader sets on mount and clears when handoff resolves.
+   main.tsx sets on mount (and useScrollLockDuringEntrance mirrors it),
+   cleared when the entrance handoff resolves.
    Belt-and-braces: lock both <html> and <body>; pin touch-action so iOS
    Safari doesn't bypass overflow:hidden via momentum scroll.
    ========================================================================= */
@@ -1335,33 +1005,8 @@ body[data-loader-state="loading"] {
   touch-action: none;
 }
 
-/* Hero left column inter-element gaps (spec §1) */
-.hero-main .hero-name + .hero-supplementary { margin-top: 48px; }
-.hero-supplementary .hero-role-line + .hero-desc { margin-top: 32px; }
-.hero-supplementary .hero-desc + .hero-cta { margin-top: 48px; }
-
-/* Right-side HeroAccent3D mount. The previous container (.hero-fragments)
-   was a half-width grid of multiple SVG fragments + the 3D accent; that
-   component was deleted in Task 9. The lone surviving accent re-mounts
-   here, positioned absolutely so it sits beside .hero-main without
-   pushing the grid layout. Hidden at ≤720px where the hero layout
-   collapses single-column and the accent would crowd hero-main's
-   content. Between 721–1100px the accent stays mounted; right:80px
-   continues to track section padding at those widths. */
-.hero-accent-mount {
-  position: absolute;
-  top: 50%;
-  right: 80px;
-  transform: translateY(-50%);
-  width: 280px;
-  height: 280px;
-  pointer-events: none;
-  z-index: 0;
-}
 /* Stats numbered-receipt section. Two-column editorial layout on desktop
-   (heading left, numbered rows right), single column on mobile. The
-   slim-band/.hero-stat-* classes are no longer referenced from this
-   section but stay in place for Hero. */
+   (heading left, numbered rows right), single column on mobile. */
 .stats {
   padding: 128px 80px;
   background: var(--cream);
@@ -1382,14 +1027,14 @@ body[data-loader-state="loading"] {
   display: block;
   font-size: 11px;
   font-weight: 600;
-  color: var(--blue-500);
+  color: var(--accent-blue);
   text-transform: lowercase;
   letter-spacing: 0.15em;
   margin-bottom: 14px;
 }
 .stats-rows {
   position: relative;
-  border-left: 1px solid var(--mist);
+  border-left: 1px solid var(--hairline);
   padding-left: 80px;
   display: flex;
   flex-direction: column;
@@ -1400,7 +1045,7 @@ body[data-loader-state="loading"] {
   column-gap: 24px;
   align-items: start;
   padding: 56px 0;
-  border-bottom: 1px solid var(--mist);
+  border-bottom: 1px solid var(--hairline);
 }
 /* Stagger wraps each .stats-row in a motion.div, so .stats-row:first-child
    would (incorrectly) match every row. Target the wrapper instead. */
@@ -1412,7 +1057,7 @@ body[data-loader-state="loading"] {
 .stats-row-num {
   font-size: 13px;
   font-weight: 600;
-  color: var(--dust);
+  color: var(--text-faded);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.08em;
   line-height: 1;
@@ -1423,7 +1068,7 @@ body[data-loader-state="loading"] {
 .stats-row-value {
   font-size: 56px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--text);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -1431,7 +1076,7 @@ body[data-loader-state="loading"] {
 }
 .stats-row-ann {
   font-size: 16px;
-  color: var(--bark);
+  color: var(--text-muted);
   line-height: 1.55;
   text-transform: lowercase;
   /* Same optical nudge as .stats-row-num so the annotation's first-line
@@ -1439,19 +1084,18 @@ body[data-loader-state="loading"] {
   padding-top: 6px;
 }
 .stats-row-link {
-  color: var(--blue-500);
+  color: var(--accent-blue);
   text-decoration: none;
   border-bottom: 1px solid transparent;
-  transition: border-bottom-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-              color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: border-bottom-color var(--dur-hover-in) var(--ease-house),
+              color var(--dur-hover-in) var(--ease-house);
   margin-left: 6px;
 }
 .stats-row-link:hover {
-  color: var(--blue-400);
-  border-bottom-color: var(--blue-400);
+  border-bottom-color: var(--accent-blue);
 }
 .stats-row-link:focus-visible {
-  outline: 2px solid var(--blue-300);
+  outline: 2px solid var(--accent-blue);
   outline-offset: 4px;
   border-radius: 2px;
 }
@@ -1490,9 +1134,9 @@ body[data-loader-state="loading"] {
 .archive-dropdown-trigger {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 8px 14px;
-  border: 1px solid var(--mist);
+  border: 1px solid var(--hairline);
   border-radius: 999px;
-  background: var(--cream);
+  background: var(--bg-tonal);
   color: var(--ink);
   font: inherit;
   font-size: 12px;
@@ -1500,35 +1144,35 @@ body[data-loader-state="loading"] {
   text-transform: lowercase;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color var(--dur-hover-in) var(--ease-house), background var(--dur-hover-in) var(--ease-house);
 }
-.archive-dropdown-trigger:hover { border-color: var(--blue-300); }
-.archive-dropdown-trigger.is-open { border-color: var(--blue-400); background: var(--sand); }
-.archive-dropdown-label { color: var(--dust); }
+.archive-dropdown-trigger:hover { border-color: var(--accent-blue); }
+.archive-dropdown-trigger.is-open { border-color: var(--accent-blue); background: var(--bg); }
+.archive-dropdown-label { color: var(--text-faded); }
 .archive-dropdown-value { color: var(--ink); font-weight: 600; }
-.archive-dropdown-caret { font-size: 10px; color: var(--bark); }
+.archive-dropdown-caret { font-size: 10px; color: var(--text-muted); }
 .archive-dropdown-list {
   position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
   min-width: 100%;
   max-height: 280px; overflow-y: auto;
   margin: 0; padding: 6px;
   list-style: none;
-  background: var(--cream);
-  border: 1px solid var(--mist);
+  background: var(--bg-tonal);
+  border: 1px solid var(--hairline);
   border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(17, 24, 34, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 .archive-dropdown-option {
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 12px;
-  color: var(--bark);
+  color: var(--text-muted);
   text-transform: lowercase;
   cursor: pointer;
   white-space: nowrap;
 }
-.archive-dropdown-option.is-active { background: var(--sand); color: var(--ink); }
-.archive-dropdown-option.is-selected { color: var(--blue-400); font-weight: 600; }
+.archive-dropdown-option.is-active { background: var(--bg); color: var(--ink); }
+.archive-dropdown-option.is-selected { color: var(--accent-blue); font-weight: 600; }
 
 /* =========================================================================
    ARCHIVE — toolbar, chips, list
@@ -1541,21 +1185,22 @@ body[data-loader-state="loading"] {
 .archive-search {
   flex: 1 1 240px;
   min-width: 200px;
-  padding: 9px 14px;
-  border: 1px solid var(--mist);
-  border-radius: 999px;
-  background: var(--cream);
+  padding: 9px 14px 9px 0;
+  border: none;
+  border-bottom: 1px solid var(--hairline);
+  border-radius: 0;
+  background: transparent;
   font: inherit;
   font-size: 12px;
   color: var(--ink);
   letter-spacing: 0.02em;
-  transition: border-color 0.2s;
+  transition: border-color var(--dur-hover-in) var(--ease-house);
 }
-.archive-search:focus { outline: none; border-color: var(--blue-400); }
-.archive-search::placeholder { color: var(--dust); text-transform: lowercase; }
+.archive-search:focus { outline: none; border-color: var(--accent-blue); }
+.archive-search::placeholder { color: var(--text-faded); text-transform: lowercase; }
 
 @media (max-width: 720px) {
-  .archive-search { min-height: 44px; padding: 11px 16px; }
+  .archive-search { min-height: 44px; padding: 11px 0; }
   .archive-dropdown-trigger { min-height: 44px; padding: 8px 16px; }
 }
 
@@ -1563,109 +1208,40 @@ body[data-loader-state="loading"] {
 .archive-chip {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 12px;
-  border: 1px solid var(--mist);
+  border: 1px solid var(--hairline);
   border-radius: 999px;
   background: transparent;
   font: inherit; font-size: 11px;
-  color: var(--bark);
+  color: var(--text-muted);
   text-transform: lowercase;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background var(--dur-hover-in) var(--ease-house), border-color var(--dur-hover-in) var(--ease-house), color var(--dur-hover-in) var(--ease-house);
 }
-.archive-chip:hover { background: var(--cream); border-color: var(--blue-300); }
+.archive-chip:hover { background: var(--bg-tonal); border-color: var(--accent-blue); color: var(--ink); }
 
 .archive-count {
   font-size: 12px;
-  color: var(--bark);
+  color: var(--text-faded);
   text-transform: lowercase;
   letter-spacing: 0.04em;
   margin-bottom: 24px;
 }
 .archive-count strong { color: var(--ink); font-weight: 600; }
 
-.archive-list {
-  border: 1px solid var(--mist);
-  border-radius: 18px;
-  overflow: hidden;
-  background: var(--cream);
-}
-.archive-row-wrap { display: block; }
-.archive-row {
-  display: grid;
-  grid-template-columns: 36px 56px 1fr 90px 120px 140px 110px 24px;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--mist);
-  text-decoration: none;
-  color: inherit;
-  transition: background 0.25s;
-}
-.archive-row-wrap:last-child .archive-row { border-bottom: none; }
-.archive-row:hover { background: var(--sand); }
-.archive-row--highlight {
-  background: var(--cream);
-  box-shadow: inset 3px 0 0 var(--blue-400);
-}
-.archive-row--highlight:hover {
-  background: var(--sand);
-}
 .archive-star {
-  color: var(--blue-400);
-  margin-right: 6px;
+  color: var(--accent-blue);
   font-size: 14px;
-  vertical-align: 1px;
 }
-.archive-num {
-  font-size: 11px; font-weight: 500;
-  color: var(--dust); letter-spacing: 0.04em;
-}
-.archive-preview {
-  width: 56px; height: 40px;
-  border-radius: 8px;
-  transition: transform 0.3s;
-}
-.archive-row:hover .archive-preview { transform: scale(1.08); }
-.archive-title {
-  font-size: 13px; font-weight: 600;
-  color: var(--ink);
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  transition: transform 0.3s;
-}
-.archive-row:hover .archive-title {
-  transform: translateX(4px);
-  color: var(--blue-400);
-}
-.archive-kind, .archive-type, .archive-editorial, .archive-date {
-  font-size: 11px; color: var(--bark);
-  text-transform: uppercase; letter-spacing: 0.04em;
-}
-.archive-arrow {
-  font-size: 14px; color: var(--bark);
-  opacity: 0; transition: opacity 0.3s;
-  text-align: right;
-}
-.archive-row:hover .archive-arrow { opacity: 1; }
 
 .archive-more { display: flex; justify-content: center; margin-top: 32px; }
 
-@media (max-width: 1100px) {
-  .archive-row {
-    grid-template-columns: 32px 56px 1fr 110px 24px;
-  }
-  .archive-kind, .archive-type, .archive-editorial { display: none; }
+.archive-list {
+  border-top: 1px solid var(--hairline);
 }
-@media (max-width: 720px) {
-  .archive-row {
-    grid-template-columns: 32px 1fr 24px;
-    gap: 12px;
-    padding: 14px 16px;
-  }
-  .archive-preview, .archive-date { display: none; }
-  /* Tighten the counter→list gap: utility is 96px desktop, ~32px mobile. */
-  .archive-list.section-spacing-content { margin-top: 32px; }
-}
+
+/* Archive rows are denser than featured work rows — tighten the title scale
+   the WorkRow primitive uses by default. */
+#archive .workrow-title { font-size: clamp(20px, 2.6vw, 34px); }
 
 /* =====================================================================
  * Project detail page
@@ -1721,7 +1297,7 @@ body[data-loader-state="loading"] {
   text-transform: lowercase;
   color: var(--bark);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color var(--dur-hover-in) var(--ease-house);
 }
 .project-detail-back:hover { color: var(--blue-400); }
 @media (max-width: 720px) {
@@ -2173,4 +1749,213 @@ body[data-loader-state="loading"] {
   padding-left: 1.2em;
   font-size: 12px;
   line-height: 1.5;
+}
+
+/* FLUID WAVES (canvas #1) */
+.fluid-waves-canvas,
+.fluid-waves-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+/* No-WebGL fallback: same tricolor as layered radial gradients so the hero
+   never renders black-on-black. */
+.fluid-waves-fallback {
+  background:
+    radial-gradient(60% 80% at 20% 30%, rgba(230, 77, 102, 0.50), transparent 70%),
+    radial-gradient(50% 70% at 80% 25%, rgba(77, 128, 230, 0.50), transparent 70%),
+    radial-gradient(70% 60% at 55% 80%, rgba(230, 204, 77, 0.35), transparent 70%),
+    var(--bg);
+}
+
+/* Backdrop variant (canvas #2, contact/footer stage). Opaque paint dimmed to
+   an AA-verified murmur via CSS over the stage ink. 0.22 (not ~0.32): keeps
+   contact/footer accent + faded text ≥ 4.5:1 over worst-case dimmed yellow
+   (Task 7 contrast table). */
+.fluid-waves-canvas--backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.22;
+  filter: saturate(0.7);
+}
+
+/* =========================================================================
+   WORKROW — shared tinted typographic row primitive
+   (Projects / Archive / Embeds / WorkExperience adopt this in Tasks 6–8.)
+   Open editorial rows: index · [touch thumb] · oversized lowercase title ·
+   ·-joined meta · trailing ↗ / + arrow. Per-row shader tint via --row-tint
+   (set inline by the component). The list OWNER draws the top hairline; the
+   primitive only draws row bottoms.
+   ========================================================================= */
+.workrow {
+  position: relative;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.workrow-link,
+.workrow-toggle {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2.4vw, 40px);
+  width: 100%;
+  padding: clamp(18px, 2.6vw, 34px) 0;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+.workrow-toggle {
+  cursor: pointer;
+}
+
+.workrow-index {
+  flex: none;
+  font-size: clamp(11px, 1vw, 13px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--text-faded);
+  transition: color var(--dur-hover-in) var(--ease-house);
+}
+
+.workrow-title {
+  font-size: clamp(28px, 4.6vw, 64px);
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text);
+  transition: color var(--dur-hover-in) var(--ease-house);
+}
+
+.workrow-meta {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-size: clamp(11px, 1vw, 13px);
+  /* site voice is lowercase everywhere; archive types arrive UPPERCASE from the CSV */
+  text-transform: lowercase;
+  color: var(--text-faded);
+}
+.workrow-meta-item + .workrow-meta-item::before {
+  content: "·";
+  margin: 0 0.55em;
+  color: var(--text-faded);
+}
+
+.workrow-ornament {
+  flex: none;
+  color: var(--text-faded);
+  transition: color var(--dur-hover-in) var(--ease-house);
+}
+
+.workrow-arrow {
+  flex: none;
+  margin-left: auto;
+  font-size: clamp(18px, 1.8vw, 24px);
+  line-height: 1;
+  color: var(--text-faded);
+  transition:
+    color var(--dur-hover-in) var(--ease-house),
+    transform var(--dur-hover-in) var(--ease-house);
+}
+
+/* Hover / focus: title + arrow take the row tint / full cream. */
+.workrow-link:hover .workrow-title,
+.workrow-toggle:hover .workrow-title,
+.workrow:focus-within .workrow-title {
+  color: var(--row-tint);
+}
+.workrow-link:hover .workrow-arrow,
+.workrow-link:hover .workrow-index,
+.workrow-toggle:hover .workrow-arrow,
+.workrow-toggle:hover .workrow-index,
+.workrow:focus-within .workrow-arrow,
+.workrow:focus-within .workrow-index {
+  color: var(--text);
+}
+
+/* Static (non-link) rows don't invite interaction. */
+.workrow-link--static {
+  cursor: default;
+}
+
+/* Expandable variant: `+` rotates to `×` when open. */
+.workrow-toggle[aria-expanded="true"] .workrow-arrow {
+  transform: rotate(45deg);
+}
+.workrow-panel {
+  padding: 0 0 clamp(20px, 2.4vw, 34px);
+  color: var(--text-muted);
+}
+
+/* Focus ring — visible cream ring per spec. */
+.workrow-link:focus-visible,
+.workrow-toggle:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Inline touch thumbnail: rendered in DOM whenever a preview exists, but only
+   shown on no-hover (touch) devices — desktop uses the tracking float instead. */
+.workrow-thumb {
+  display: none;
+  flex: none;
+  width: 64px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+.workrow-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Desktop hover float: fixed preview that tracks the pointer (JS-gated to
+   hover + fine pointer + motion-on; positioned via MotionValues). */
+.workrow-float {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+.workrow-float-inner {
+  translate: 28px -50%;
+  width: 300px;
+  height: 200px;
+  border-radius: 10px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  transform-origin: left center;
+  will-change: transform, opacity;
+}
+.workrow-float-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@media (hover: none) {
+  .workrow-thumb {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workrow-float {
+    display: none;
+  }
 }

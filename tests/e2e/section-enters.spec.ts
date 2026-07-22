@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('section enter on viewport', () => {
-  // Every section — including Projects, reverted to the bento grid — renders
+  // Every section — including Projects, now WorkRow rows — renders
   // its title via SectionHeading as `.section-title`.
   const titleSelectorFor = (id: string): string => `${id} .section-title`
 
-  for (const id of ['#projects', '#embeds', '#work', '#skills', '#contact']) {
+  for (const id of ['#projects', '#archive', '#work', '#skills', '#contact']) {
     test(`${id} title transitions from hidden to visible on scroll`, async ({ page }) => {
       await page.goto('/')
       await page.waitForFunction(() => document.body.dataset.loaderState === 'done')

@@ -51,7 +51,7 @@ export function ScrollCue() {
           transition={
             prefersReducedMotion || dismissed
               ? { duration: 0 }
-              : { duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: APPEAR_DELAY_S }
+              : { duration: 2.0, repeat: Infinity, ease: 'easeInOut', delay: APPEAR_DELAY_S }
           }
         >
           ↓

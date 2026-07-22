@@ -7,6 +7,7 @@ import {
   REDUCED_MOTION_VARIANT,
   type RecipeName,
 } from '../../src/utils/animations'
+import { skillCategories } from '../../src/data/skills'
 
 describe('SPRINGS', () => {
   it('exposes gentle, snappy, soft with type:spring', () => {
@@ -37,7 +38,7 @@ describe('VARIANTS', () => {
   })
 
   it('stampIn includes a blur filter on hidden', () => {
-    expect(VARIANTS.stampIn.hidden).toMatchObject({ opacity: 0, scale: 1.15, filter: 'blur(2px)' })
+    expect(VARIANTS.stampIn.hidden).toMatchObject({ opacity: 0, scale: 1.06, filter: 'blur(2px)' })
     expect(VARIANTS.stampIn.visible).toMatchObject({ opacity: 1, scale: 1, filter: 'blur(0px)' })
   })
 
@@ -67,9 +68,9 @@ describe('staggerContainer', () => {
 describe('STAGGER_PRESETS', () => {
   it('exposes named presets used by sections', () => {
     expect(STAGGER_PRESETS.workRows).toBeCloseTo(0.1)
-    expect(STAGGER_PRESETS.skillsColumns).toBeCloseTo(0.12)
-    expect(STAGGER_PRESETS.skillsItems).toBeCloseTo(0.06)
-    expect(STAGGER_PRESETS.projectCards).toBeCloseTo(0.1)
+    expect(STAGGER_PRESETS.skillsColumns).toBeCloseTo(0.05)
+    expect(STAGGER_PRESETS.skillsItems).toBeCloseTo(0.03)
+    expect(STAGGER_PRESETS.projectCards).toBeCloseTo(0.05)
     expect(STAGGER_PRESETS.embedRows).toBeCloseTo(0.05)
     expect(STAGGER_PRESETS.statValues).toBeCloseTo(0.12)
   })
@@ -82,5 +83,30 @@ describe('REDUCED_MOTION_VARIANT', () => {
       opacity: 1,
       transition: { duration: 0.2, ease: 'easeOut' },
     })
+  })
+})
+
+// Guard: Framer nested-container stagger accumulates. The motion-design skill
+// caps total stagger at 500ms. Item counts are fixed in src/data/*:
+// Projects 9, Stats 5, WorkExperience 5. Skills counts are derived from the
+// real data below (categories vary; DevOps has 8 skills), so the worst case is
+// checked against actual content, not a hard-coded assumption.
+describe('stagger budgets stay under the 500ms motion-design ceiling', () => {
+  const CEIL = 0.5
+  it('projects: 9 cards, last-card start < 0.5s', () => {
+    expect((9 - 1) * STAGGER_PRESETS.projectCards).toBeLessThan(CEIL)
+  })
+  it('stats: 5 values, last start < 0.5s', () => {
+    expect((5 - 1) * STAGGER_PRESETS.statValues).toBeLessThan(CEIL)
+  })
+  it('workExperience: 5 rows, last start < 0.5s', () => {
+    expect((5 - 1) * STAGGER_PRESETS.workRows).toBeLessThan(CEIL)
+  })
+  it('skills: nested columns x items (real data), worst-case last-dot start < 0.5s', () => {
+    const columnCount = skillCategories.length
+    const maxItems = Math.max(...skillCategories.map((c) => c.skills.length))
+    const lastColumnStart = (columnCount - 1) * STAGGER_PRESETS.skillsColumns
+    const lastItemStart = (maxItems - 1) * STAGGER_PRESETS.skillsItems
+    expect(lastColumnStart + lastItemStart).toBeLessThan(CEIL)
   })
 })

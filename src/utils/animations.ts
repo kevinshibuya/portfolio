@@ -1,5 +1,12 @@
 import type { Variants, Transition } from 'framer-motion'
 
+// Signature "house" ease — the TS mirror of the CSS --ease-house token in
+// index.css (:root). Consumed by the variants below (and re-exported to motion
+// modules) so the curve lives in one place. The 3-tier duration palette lives in
+// CSS vars + Framer springs; per-animation durations stay inline where they
+// don't map to a tier, so there is no TS DURATIONS mirror.
+export const EASE_HOUSE = [0.22, 1, 0.36, 1] as const
+
 // Spring presets (from hotmart-bunde reference). Tune in-place if visual feel needs adjustment.
 export const SPRINGS = {
   gentle: { type: 'spring', stiffness: 100, damping: 20, mass: 1.0 },
@@ -20,7 +27,9 @@ export const VARIANTS = {
     visible: { opacity: 1, scale: 1, transition: SPRINGS.snappy },
   },
   stampIn: {
-    hidden:  { opacity: 0, scale: 1.15, filter: 'blur(2px)' },
+    // Restrained "stamp" — scale 1.06 (was 1.15) reads Premium, keeps a whisper
+    // of the motif on the Stats/Contact headings.
+    hidden:  { opacity: 0, scale: 1.06, filter: 'blur(2px)' },
     visible: { opacity: 1, scale: 1, filter: 'blur(0px)', transition: SPRINGS.snappy },
   },
   cardReveal: {
@@ -39,13 +48,15 @@ export const VARIANTS = {
 
 export type RecipeName = keyof typeof VARIANTS
 
-// Stagger presets keyed by section role. Values in seconds.
-// Mirrors the recipe→section mapping in spec §2.
+// Stagger presets keyed by section role. Values in seconds. Mirrors the
+// recipe→section mapping in spec §2. Tuned so nested/long staggers stay under the
+// 500ms ceiling (see tests/unit/animations.test.ts budget guard): skills worst
+// case (6 col × 8 items) = 0.46s, projects 9 cards = 0.4s.
 export const STAGGER_PRESETS = {
   workRows: 0.1,
-  skillsColumns: 0.12,
-  skillsItems: 0.06,
-  projectCards: 0.1,
+  skillsColumns: 0.05,
+  skillsItems: 0.03,
+  projectCards: 0.05,
   embedRows: 0.05,
   statValues: 0.12,
 } as const satisfies Record<string, number>
@@ -80,7 +91,7 @@ export const titleChar: Variants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.6, ease: EASE_HOUSE },
   },
 }
 
@@ -96,7 +107,7 @@ export const taglineWord: Variants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.45, ease: EASE_HOUSE },
   },
 }
 
@@ -104,7 +115,7 @@ export const pullquoteStripe: Variants = {
   hidden: { scaleX: 0 },
   visible: {
     scaleX: 1,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.5, ease: EASE_HOUSE },
   },
 }
 
@@ -113,6 +124,6 @@ export const pullquoteText: Variants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, delay: 0.25, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.4, delay: 0.25, ease: EASE_HOUSE },
   },
 }

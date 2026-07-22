@@ -50,22 +50,3 @@ test('no long task > 200ms during scroll', async ({ page }) => {
 
   for (const d of longTasks) expect(d).toBeLessThan(200)
 })
-
-test.describe('mobile viewport disables R3F accent', () => {
-  test.use({ viewport: { width: 375, height: 800 } })
-
-  test('R3F is not loaded on mobile', async ({ page }) => {
-    const requests: string[] = []
-    page.on('request', (req) => requests.push(req.url()))
-
-    await page.goto('/')
-    await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
-
-    // Check the DOM-level flag: r3fAccentEnabled should be false at 375px.
-    // Also verify no HeroAccent3D chunk was requested over the network.
-    // We narrow to "HeroAccent3D" only (not "three") because three may appear
-    // in innocuous chunk filenames unrelated to the accent lazy import.
-    const r3fChunkLoaded = requests.some((u) => u.includes('HeroAccent3D'))
-    expect(r3fChunkLoaded).toBeFalsy()
-  })
-})

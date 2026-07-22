@@ -10,24 +10,13 @@
   "hero": {
     "name1": "kevin",
     "name2": "shibuya.",
-    "rolePrefix": "i am",
     "roles": [
-      "a senior software engineer",
-      "a full-stack developer",
-      "a system architect",
-      "a tech lead",
-      "an ai engineer"
-    ],
-    "description": "<strong>rough ideas → shipped products.</strong> a team of one.",
-    "cta": {
-      "collaborate": "collaborate",
-      "resume": "resume"
-    },
-    "stats": {
-      "years": "years shipping",
-      "embeds": "interactives shipped",
-      "projects": "case studies"
-    }
+      "senior front-end engineer · react/typescript",
+      "full-stack developer",
+      "system architect",
+      "tech lead",
+      "ai engineer"
+    ]
   },
   "stats": {
     "heading": "the work, in <em>numbers.</em>",
@@ -46,9 +35,7 @@
       "index": "01 · featured",
       "label": "",
       "title": "selected <em>work.</em>",
-      "description": "personal highlights. from brief to ship.",
-      "caseStudy": "case study",
-      "viewProject": "view project"
+      "description": "personal highlights. from brief to ship."
     },
     "archive": {
       "index": "02 · everything",
@@ -113,7 +100,9 @@
   "footer": {
     "copyright": "© {{year}} kevin shibuya · all rights reserved",
     "builtWith": "built with react, typescript & care",
-    "bigText": "kevin shibuya"
+    "bigText": "kevin shibuya",
+    "location": "porto alegre, brazil",
+    "langSwitch": "switch language"
   },
   "projectDetail": {
     "back": "back to projects",

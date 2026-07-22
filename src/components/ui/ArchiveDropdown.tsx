@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState, useId, useCallback } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useMotion } from '../../context/MotionContext'
+import { EASE_HOUSE as EASE } from '../../utils/animations'
 
 interface DropdownOption {
   value: string
@@ -20,6 +23,7 @@ export function ArchiveDropdown({
   onChange,
   disabled = false,
 }: ArchiveDropdownProps) {
+  const { prefersReducedMotion } = useMotion()
   const [open, setOpen] = useState(false)
   const [activeIdx, setActiveIdx] = useState(0)
   const wrapRef = useRef<HTMLDivElement | null>(null)
@@ -111,8 +115,9 @@ export function ArchiveDropdown({
         <span className="archive-dropdown-value">{selected?.label ?? '—'}</span>
         <span className="archive-dropdown-caret" aria-hidden={true}>▾</span>
       </button>
-      {open && (
-        <ul
+      <AnimatePresence initial={false}>
+        {open && (
+        <motion.ul
           ref={listRef}
           id={listId}
           className="archive-dropdown-list"
@@ -120,6 +125,16 @@ export function ArchiveDropdown({
           tabIndex={-1}
           aria-activedescendant={options[activeIdx] ? optionId(activeIdx) : undefined}
           onKeyDown={onListKey}
+          initial={{ opacity: 0, y: -4, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{
+            opacity: 0,
+            y: -4,
+            scale: 0.98,
+            transition: { duration: prefersReducedMotion ? 0 : 0.14, ease: EASE },
+          }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: EASE }}
+          style={{ transformOrigin: 'top' }}
         >
           {options.map((o, i) => (
             <li
@@ -139,8 +154,9 @@ export function ArchiveDropdown({
               {o.label}
             </li>
           ))}
-        </ul>
-      )}
+        </motion.ul>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
