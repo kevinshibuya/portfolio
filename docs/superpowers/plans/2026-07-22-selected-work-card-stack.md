@@ -989,7 +989,7 @@ git commit -m "feat(projects): rebuild selected work as pinned scroll-scrubbed c
 
 **Invoke `frontend-design:frontend-design` before editing** (mandatory for visual work).
 
-- [ ] **Step 1: Append the stack styles (transcribe)**
+- [x] **Step 1: Append the stack styles (transcribe)**
 
 Add to `src/index.css`:
 ```css
@@ -1133,17 +1133,17 @@ Add to `src/index.css`:
 }
 ```
 
-- [ ] **Step 2: Build + fresh preview + visual smoke**
+- [x] **Step 2: Build + fresh preview + visual smoke** *(includes Task-5-deferred pin + boundary-pop checks)*
 
 Run: `npm run build && lsof -ti:4173 | xargs kill 2>/dev/null; nohup npx vite preview --port 4173 >/tmp/vite-preview.log 2>&1 & sleep 6`
 Confirm at `http://localhost:4173/#projects`: the stage pins for ~4 viewport-heights, the front card shows the `view project` bar with legible cream text, cards stack with depth, the title reads centered. Kill the preview after.
 
-- [ ] **Step 3: Typecheck + lint (CSS is not typed, but keep the tree clean)**
+- [x] **Step 3: Typecheck + lint (CSS is not typed, but keep the tree clean)**
 
 Run: `npx tsc -b`
 Expected: exit 0.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/index.css
