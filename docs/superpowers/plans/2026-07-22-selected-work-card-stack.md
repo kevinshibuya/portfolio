@@ -1492,11 +1492,11 @@ Open `http://localhost:4173/#projects` in Safari (WebKit). Scrub through the sta
 - If it glitches (edge artifacts, flashing) → set `<GooeyTitle thresholdFilter={false}` in `Projects.tsx` (keeps the blur/opacity crossfade, drops the matrix) and re-commit.
 Record the decision (kept `true` / dropped to `false`) in the PR description and tick the spec's Safari TODO.
 
-- [ ] **Step 5: Fresh-context code review handoff**
+- [x] **Step 5: Fresh-context code review handoff** *(branch-review workflow [opus xhigh + adversarial verify, 6 agents]: 3 confirmed findings; codex cross-vendor: 1 P2 confirmed empirically; ALL fixed in fea6050 — single-channel segCont refactor, EXIT_Y 440, router skip-links, meta swap ratified in spec)*
 
 Dispatch a fresh-context **reviewer-opus-high** (never the implementer's model, never Sonnet) over the full branch diff vs `staging`, plus a **codex-review** cross-vendor pass (per CLAUDE.md). Reviewer scope: the re-render-trap invariants in `Projects.tsx`, a11y (buried cards inert, skip-links, gooey aria), the scrim gradient alpha, RM correctness, and the Task-1 budget decision. Fix findings before finishing the branch.
 
-- [ ] **Step 6: Tick spec TODOs**
+- [x] **Step 6: Tick spec TODOs** *(all 11 ticked: acceptance tests green + review approved post-fix-wave)*
 
 For each `- [ ]` in `docs/superpowers/specs/2026-07-22-selected-work-card-stack-design.md` whose acceptance test now passes AND review approved, edit it to `- [x]`. (Editing the spec's checkboxes is the ONE sanctioned spec edit — do not alter spec prose.)
 

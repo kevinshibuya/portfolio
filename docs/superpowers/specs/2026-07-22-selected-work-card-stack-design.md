@@ -125,24 +125,24 @@ NO-list stays otherwise intact. Framer scroll-scrub is added as a sanctioned lan
 
 ## TODO (acceptance criteria)
 
-- [ ] `src/utils/stackMotion.ts` pure helpers with explicit return types; unit tests cover
+- [x] `src/utils/stackMotion.ts` pure helpers with explicit return types; unit tests cover
       segment boundaries, plateau clamps, morph formula caps (TDD — tests first).
-- [ ] `GooeyTitle` (`src/components/ui/GooeyTitle.tsx`): progress-driven two-span morph,
+- [x] `GooeyTitle` (`src/components/ui/GooeyTitle.tsx`): progress-driven two-span morph,
       per-instance filter id, threshold-off degrade flag, RM = plain text no filter.
-- [ ] `ProjectCardStack` (`src/components/ui/ProjectCardStack.tsx`): progress-driven depth
+- [x] `ProjectCardStack` (`src/components/ui/ProjectCardStack.tsx`): progress-driven depth
       grammar per the motion table; front-card link; buried cards inert; RM = instant swaps.
-- [ ] `Projects.tsx` rebuilt: 400svh wrapper + sticky stage + SectionHeading + meta line +
+- [x] `Projects.tsx` rebuilt: 400svh wrapper + sticky stage + SectionHeading + meta line +
       skip-link project index; WorkRow import gone from this section.
-- [ ] Styles on canonical tokens; `--row-tint` via `accentFor(index)`; view-project bar
+- [x] Styles on canonical tokens; `--row-tint` via `accentFor(index)`; view-project bar
       meets the ≥ 0.88-alpha scrim rule.
-- [ ] i18n: all new strings (meta labels, `view project`, skip-link labels) in EN + PT.
-- [ ] Reduced-motion e2e: pin present, instant swaps, no filter, no card flight.
-- [ ] Scrub e2e: scroll to segment midpoints ⇒ title/meta/front-card change; reversing
+- [x] i18n: all new strings (meta labels, `view project`, skip-link labels) in EN + PT.
+- [x] Reduced-motion e2e: pin present, instant swaps, no filter, no card flight.
+- [x] Scrub e2e: scroll to segment midpoints ⇒ title/meta/front-card change; reversing
       scroll restores the previous project; front-card link navigates to the project page.
-- [ ] Full verify: `tsc -b` clean, unit green (66 + new), serial Playwright green with
+- [x] Full verify: `tsc -b` clean, unit green (66 + new), serial Playwright green with
       re-recorded baseline, Lighthouse on `npx vite preview` ≥ measured pre-change baseline.
-- [ ] Safari visual check of the gooey morph (degrade flag decision recorded).
-- [ ] CLAUDE.md design-direction amendment committed with the feature.
+- [x] Safari visual check of the gooey morph (degrade flag decision recorded).
+- [x] CLAUDE.md design-direction amendment committed with the feature.
 
 ## Ratified deviations (branch review 2026-07-22)
 
