@@ -114,11 +114,11 @@ Expected (recorded baseline): **43 passed, 1 failed, 2 skipped**. The single fai
 
 **Interfaces produced:** a green `perf-budget.spec.ts` with a documented, defensible long-task ceiling that Task 11 re-verifies unchanged.
 
-- [ ] **Step 1: Trace the offending long task**
+- [x] **Step 1: Trace the offending long task** *(skipped — not reproducible idle; controller-adjudicated per Task 0 OUTCOME)*
 
 Run: `npx playwright test tests/e2e/perf-budget.spec.ts:30 --workers=1 --project=desktop-chromium --trace on` then `npx playwright show-trace test-results/*long-task*/trace.zip` (or inspect the captured `longTasks` durations). Identify whether the >200 ms task is (a) newly-fixable synchronous work in a scroll path (e.g., a forced reflow, a synchronous shader/layout in a `whileInView` handler), or (b) inherent first-scroll compositor/hydration cost of the already-shipped page.
 
-- [ ] **Step 2: Decide and apply (judgment)**
+- [x] **Step 2: Decide and apply (judgment)**
 
 - If (a): fix the source (e.g., defer/throttle the synchronous work, move layout reads out of the scroll frame). Prefer this — keep the 200 ms budget.
 - If (b): raise the threshold to a measured ceiling with a documenting comment. Set it to **300 ms** (headroom above the 234 ms observed max AND above the feature's expected added cost), with a code comment recording: "measured pre-change baseline 211–234 ms on desktop-chromium (2026-07-22); 300 ms catches genuine regressions while tolerating first-scroll compositor cost." Do NOT set it so high it stops catching regressions.
@@ -128,17 +128,17 @@ Example (branch (b)):
   for (const d of longTasks) expect(d).toBeLessThan(300)
 ```
 
-- [ ] **Step 3: Confirm green 3×**
+- [x] **Step 3: Confirm green 3×**
 
 Run: `for i in 1 2 3; do npx playwright test tests/e2e/perf-budget.spec.ts --workers=1 --project=desktop-chromium 2>&1 | grep -E "passed|failed"; done`
 Expected: all three runs `2 passed`.
 
-- [ ] **Step 4: Full suite still green**
+- [x] **Step 4: Full suite still green**
 
 Run: `npx playwright test --workers=1`
 Expected: **44 passed / 2 skipped** (baseline restored).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests/e2e/perf-budget.spec.ts src/  # only the files actually touched
