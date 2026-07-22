@@ -172,7 +172,7 @@ export interface MorphStyle { blur: number; opacity: number }
 export function morphValues(frac: number): { incoming: MorphStyle; outgoing: MorphStyle }
 ```
 
-- [ ] **Step 1: Write the failing test file (verbatim)**
+- [x] **Step 1: Write the failing test file (verbatim)**
 
 Create `tests/unit/stackMotion.test.ts`:
 ```ts
@@ -311,12 +311,12 @@ describe('morphValues (gooey blur/opacity, capped, no Infinity)', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test — verify it FAILS**
+- [x] **Step 2: Run the test — verify it FAILS**
 
 Run: `npm run test:unit -- stackMotion`
 Expected: FAIL (`Cannot find module '../../src/utils/stackMotion'`).
 
-- [ ] **Step 3: Implement `src/utils/stackMotion.ts` (reference implementation — transcribe)**
+- [x] **Step 3: Implement `src/utils/stackMotion.ts` (reference implementation — transcribe)**
 
 Create `src/utils/stackMotion.ts`:
 ```ts
@@ -433,17 +433,17 @@ export function morphValues(frac: number): {
 }
 ```
 
-- [ ] **Step 4: Run the test — verify it PASSES**
+- [x] **Step 4: Run the test — verify it PASSES**
 
 Run: `npm run test:unit -- stackMotion`
 Expected: PASS (all describe blocks green).
 
-- [ ] **Step 5: Typecheck**
+- [x] **Step 5: Typecheck**
 
 Run: `npx tsc -b`
 Expected: exit 0.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/utils/stackMotion.ts tests/unit/stackMotion.test.ts
