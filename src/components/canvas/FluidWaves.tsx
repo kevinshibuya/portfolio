@@ -159,6 +159,12 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       canvas.width = Math.max(1, Math.round(w * dpr))
       canvas.height = Math.max(1, Math.round(h * dpr))
       gl.viewport(0, 0, canvas.width, canvas.height)
+      // Setting canvas.width/height reallocates AND clears the drawing buffer
+      // (opaque black with {alpha:false}). Under reduced motion no loop will
+      // repaint it and the IO only repaints on viewport re-entry — so an
+      // in-view resize (window resize, mobile URL-bar collapse) must redraw
+      // its one static frame here or the canvas stays black for the session.
+      if (prefersReducedMotion && inView) drawFrame(seed * 10)
     }
 
     const drawFrame = (timeSec: number): void => {
@@ -228,9 +234,9 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
 
     // WebGL context loss (GPU reset, tab-backgrounding on some drivers): stop
     // the loop and drop to the fallback rather than rendering a frozen or black
-    // canvas. preventDefault keeps the context recoverable.
-    const handleContextLost = (e: Event): void => {
-      e.preventDefault()
+    // canvas. The fallback is permanent by design — webglFailed unmounts the
+    // canvas, so no restore handshake is possible (or attempted).
+    const handleContextLost = (): void => {
       stop()
       setWebglFailed(true)
     }
