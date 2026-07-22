@@ -35,7 +35,11 @@
       "index": "01 · featured",
       "label": "",
       "title": "selected <em>work.</em>",
-      "description": "personal highlights. from brief to ship."
+      "description": "personal highlights. from brief to ship.",
+      "stack": {
+        "viewProject": "view project",
+        "indexLabel": "selected projects"
+      }
     },
     "archive": {
       "index": "02 · everything",
