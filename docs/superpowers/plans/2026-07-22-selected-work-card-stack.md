@@ -484,7 +484,7 @@ export interface GooeyTitleProps {
 export function GooeyTitle(props: GooeyTitleProps): React.ReactElement
 ```
 
-- [ ] **Step 1: Implement the component (transcribe)**
+- [x] **Step 1: Implement the component (transcribe)**
 
 Create `src/components/ui/GooeyTitle.tsx`:
 ```tsx
@@ -576,12 +576,12 @@ export function GooeyTitle({
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `npx tsc -b`
 Expected: exit 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/ui/GooeyTitle.tsx
