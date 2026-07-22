@@ -83,12 +83,12 @@ overall despite the longer savor).
 
 ## TODO
 
-- [ ] Stain circles, turbulence filter, and stain constants deleted; mask gains the `.loader-ks` wrapper group
-- [ ] Anticipation (0.96×, 0.18s, house) → explosion (→45×, ~1.1s, accelerating ease-in) timeline drives the mask wrapper about origin (34.35, 49.8)
-- [ ] Savor dwell extended to 1200ms (reduced-motion dwell stays 200ms)
-- [ ] Corner meta labels drift ~12px outward+down while fading (0.22s ease-in) at explosion launch
-- [ ] Handoff (`resolveCurtain`/`resolveEntrance`) fires when the ink has cleared the name region (~80% of explosion, visually tuned) via wall-clock setTimeout
-- [ ] Explosion fully clears the viewport at 390×844, 16:9, and 21:9 (no ink slivers)
-- [ ] Reduced-motion, hard-fallback, and defensive paths behave exactly as before
-- [ ] e2e loader/hero-entrance specs updated and green serial; unit + tsc green
-- [ ] CLAUDE.md loader/entrance bullets updated to match
+- [x] Stain circles, turbulence filter, and stain constants deleted; mask gains the `.loader-ks` wrapper group
+- [x] Anticipation (0.96×, 0.18s, house) → explosion (→45×, ~1.1s, accelerating ease-in) timeline drives the mask wrapper about origin (34.35, 49.8)
+- [x] Savor dwell extended to 1200ms (reduced-motion dwell stays 200ms)
+- [x] Corner meta labels drift ~12px outward+down while fading (0.22s ease-in) at explosion launch
+- [x] Handoff (`resolveCurtain`/`resolveEntrance`) fires when the ink has cleared the name region (~80% of explosion, visually tuned) via wall-clock setTimeout
+- [x] Explosion fully clears the viewport at 390×844, 16:9, and 21:9 (no ink slivers)
+- [x] Reduced-motion, hard-fallback, and defensive paths behave exactly as before
+- [x] e2e loader/hero-entrance specs updated and green serial; unit + tsc green
+- [x] CLAUDE.md loader/entrance bullets updated to match

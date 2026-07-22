@@ -254,7 +254,7 @@ git commit -m "feat(loader): KS vignette explosion exit replaces the stain bleed
 **Interfaces:**
 - Consumes: `window.__loaderTl` hook and `.loader-ks` wrapper from Task 1.
 
-- [ ] **Step 1: Fresh build + preview**
+- [x] **Step 1: Fresh build + preview**
 
 ```bash
 lsof -ti:4173 | xargs kill 2>/dev/null; sleep 1
@@ -264,7 +264,7 @@ npx vite preview --port 4173 &
 
 (Preview must be restarted after every build — stale sirv snapshot trap.)
 
-- [ ] **Step 2: Write the sweep script**
+- [x] **Step 2: Write the sweep script**
 
 `tmp/explosion-sweep.mjs`:
 
@@ -296,8 +296,12 @@ for (const vp of viewports) {
     clearTimeout(window.__loaderHandoffT)
   })
   for (const p of points) {
-    await page.evaluate((pr) => window.__loaderTl.progress(pr), p)
-    await page.screenshot({ path: `tmp/explosion-shots/${vp.name}-p${String(p).replace('.', '')}.png` })
+    // Braces matter: progress(v) returns the timeline itself — an implicit
+    // arrow return would make Playwright serialize the cyclic GSAP graph
+    // and hang forever. Screenshot needs an explicit timeout on this
+    // always-animating page.
+    await page.evaluate((pr) => { window.__loaderTl.progress(pr) }, p)
+    await page.screenshot({ path: `tmp/explosion-shots/${vp.name}-p${String(p).replace('.', '')}.png`, timeout: 10000 })
   }
   await page.close()
 }
@@ -305,17 +309,17 @@ await browser.close()
 console.log('sweep done → tmp/explosion-shots/')
 ```
 
-- [ ] **Step 3: Run the sweep and judge the frames**
+- [x] **Step 3: Run the sweep and judge the frames**
 
 Run: `mkdir -p tmp/explosion-shots && node tmp/explosion-sweep.mjs` then inspect all 12 screenshots.
 
 Pass criteria: p0.3 — cutout ≈ at rest (anticipation settled; a correct build shows almost no growth yet — do NOT "fix" this); p0.65 — cutout visibly swollen (~6×), creep reads; p0.83 — lower-left name region fully clear of ink at all three widths; p0.99 — no ink sliver at any corner/edge at all three widths. If p0.83 fails, raise `HANDOFF_FRACTION` (or soften the ease to `power3.in` and re-derive the fraction); if p0.99 fails, raise `EXPLOSION_SCALE`. Re-run tsc + the sweep after any constant change, and re-commit.
 
-- [ ] **Step 4: Watch the real thing once**
+- [x] **Step 4: Watch the real thing once**
 
 Reload `http://localhost:4173` in a headed browser (or `npx playwright open http://localhost:4173`) and watch the full sequence at natural speed: savor beat reads, anticipation reads as a gather not a glitch, explosion accelerates without a stall after the crouch, text rise overlaps with no dead gap. This is a feel-check; constants are Kevin's to fine-tune live afterwards.
 
-- [ ] **Step 5: CLAUDE.md sync**
+- [x] **Step 5: CLAUDE.md sync**
 
 a) Rewrite the `**Loader + entrance ...**` bullet: title `(bleed reveals the shader, then the text rises)` → `(the ks. vignette explodes, then the text rises)`; delete the `plus a stain <g> grown by GSAP` clause; replace the exit sentence (`after React paints + ~600 ms dwell ... grows six stains at duration 1.3 house-ease over ~1.8 s to dissolve the ink (slow, eased spread), then removes the loader`) with:
 
@@ -325,7 +329,7 @@ Also update `no bleed` → `no explosion` in the reduced-motion sentence, and th
 
 b) NO list: append `, the six-stain ink-bleed loader exit (stain circles + the feTurbulence roughen filter — replaced by the ks. vignette explosion)`.
 
-- [ ] **Step 6: Full verification suite**
+- [x] **Step 6: Full verification suite**
 
 ```bash
 npx tsc -b
@@ -336,7 +340,7 @@ npx playwright test --workers=1
 
 Expected: clean · 66 passed · 44 passed, 2 skipped (the new `.loader-ks` assertion lives inside an existing test — test count unchanged).
 
-- [ ] **Step 7: Tick spec TODOs + commit**
+- [x] **Step 7: Tick spec TODOs + commit**
 
 Tick every satisfied `- [ ]` in the spec's TODO section (all nine if green), then:
 
