@@ -35,7 +35,11 @@
       "index": "01 · destaques",
       "label": "",
       "title": "obras <em>em foco.</em>",
-      "description": "highlights pessoais. do briefing à entrega."
+      "description": "highlights pessoais. do briefing à entrega.",
+      "stack": {
+        "viewProject": "ver projeto",
+        "indexLabel": "projetos selecionados"
+      }
     },
     "archive": {
       "index": "02 · arquivo",
