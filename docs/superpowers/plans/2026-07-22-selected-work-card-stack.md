@@ -468,8 +468,12 @@ git commit -m "feat(stack): progress-driven motion helpers for the card stack"
 - Produces:
 ```ts
 export interface GooeyTitleProps {
-  from: string                 // outgoing (current front) project title
-  to: string                   // incoming (next) project title
+  from: string                 // outgoing (segment-start) project title — morph span
+  to: string                   // incoming (segment-end) project title — morph span
+  staticTitle: string          // RESTING (front) project title — accessible name + the entire RM render.
+                               // Driven by frontIndex, NOT baseIndex: from/to are segment-stable while
+                               // staticTitle flips at the settle-midpoint with the cards/meta (review fix:
+                               // baseIndex-driven RM title lagged a segment and was wrong on the last plateau)
   progress: MotionValue<number> // settled transition progress within the segment (0..1)
   reducedMotion: boolean
   thresholdFilter?: boolean    // WebKit degrade flag; false drops the feColorMatrix, keeps blur/opacity
@@ -487,10 +491,12 @@ import { motion, useTransform, type MotionValue } from 'framer-motion'
 import { morphValues } from '../../utils/stackMotion'
 
 export interface GooeyTitleProps {
-  /** Outgoing (current front) project title. */
+  /** Outgoing (segment-start) project title — morph span. */
   from: string
-  /** Incoming (next) project title. */
+  /** Incoming (segment-end) project title — morph span. */
   to: string
+  /** Resting (front) project title: the accessible name and the entire RM render. Track frontIndex. */
+  staticTitle: string
   /** Settled transition progress within the current segment (0..1). */
   progress: MotionValue<number>
   reducedMotion: boolean
@@ -513,6 +519,7 @@ const srOnly: React.CSSProperties = {
 export function GooeyTitle({
   from,
   to,
+  staticTitle,
   progress,
   reducedMotion,
   thresholdFilter = true,
@@ -528,14 +535,15 @@ export function GooeyTitle({
 
   const cls = `gooey-title ${className ?? ''}`.trim()
 
-  // Reduced motion: plain static title, no filter, no morph.
+  // Reduced motion: plain static title (the RESTING project, not the segment
+  // origin), no filter, no morph.
   if (reducedMotion) {
-    return <h2 className={cls}>{from}</h2>
+    return <h2 className={cls}>{staticTitle}</h2>
   }
 
   return (
     <h2 className={cls}>
-      <span style={srOnly}>{from}</span>
+      <span className="gooey-title-sr" style={srOnly}>{staticTitle}</span>
       {thresholdFilter && (
         <svg className="gooey-title-defs" aria-hidden="true" focusable="false">
           <defs>
@@ -578,7 +586,7 @@ git add src/components/ui/GooeyTitle.tsx
 git commit -m "feat(stack): progress-driven gooey title with WebKit degrade flag"
 ```
 
-**Acceptance check (read-only):** covered by the scrub + reduced-motion e2e specs (Tasks 8, 9) and `tsc -b`. UI component — no unit test (per CLAUDE.md UI exemption); acceptance criteria: renders `from`/`to` spans (non-RM), single plain `<h2>` (RM), per-instance `filterId`, filter absent when `thresholdFilter={false}`.
+**Acceptance check (read-only):** covered by the scrub + reduced-motion e2e specs (Tasks 8, 9) and `tsc -b`. UI component — no unit test (per CLAUDE.md UI exemption); acceptance criteria: renders `from`/`to` spans (non-RM) with a `.gooey-title-sr` accessible name showing `staticTitle`, single plain `<h2>` rendering `staticTitle` (RM), per-instance `filterId`, filter absent when `thresholdFilter={false}`.
 
 **Verify before returning:** `npx tsc -b` clean.
 
@@ -623,7 +631,7 @@ Mapping contract (correctness rests on this):
 
 Create `src/components/ui/ProjectCardStack.tsx`:
 ```tsx
-import { motion, useTransform, type MotionValue } from 'framer-motion'
+import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { depthTransform } from '../../utils/stackMotion'
 
@@ -680,7 +688,15 @@ function CardSlot({
 }: SlotProps): React.ReactElement {
   // Hooks run unconditionally; RM ignores the MotionValues via inline transform.
   const y = useTransform(progress, (p) => depthTransform(depth, p).y)
-  const scale = useTransform(progress, (p) => depthTransform(depth, p).scale)
+  // Spec motion table: fine-pointer hover on the interactive card scales ≤1.02,
+  // <100ms response, via MotionValues (no setState). Composed multiplicatively so
+  // the scrub scale and the hover scale never fight over one transform channel.
+  const hoverTarget = useMotionValue(1)
+  const hoverScale = useSpring(hoverTarget, { stiffness: 550, damping: 38 })
+  const scale = useTransform(
+    [progress, hoverScale] as [MotionValue<number>, MotionValue<number>],
+    ([p, h]: number[]) => depthTransform(depth, p).scale * h,
+  )
   const opacity = useTransform(progress, (p) => depthTransform(depth, p).opacity)
   const boxShadow = useTransform(progress, (p) => {
     const s = depthTransform(depth, p).shadow
@@ -710,8 +726,14 @@ function CardSlot({
   )
 
   const className = `stack-card${interactive ? '' : ' stack-card--buried'}`
+  const hoverable = interactive && !reducedMotion
   return (
-    <motion.div className={className} style={style}>
+    <motion.div
+      className={className}
+      style={style}
+      onHoverStart={hoverable ? () => hoverTarget.set(1.02) : undefined}
+      onHoverEnd={hoverable ? () => hoverTarget.set(1) : undefined}
+    >
       {interactive ? (
         <Link className="stack-card-link" to={`/projects/${card.slug}`} aria-label={card.title}>
           {inner}
@@ -773,7 +795,7 @@ git add src/components/ui/ProjectCardStack.tsx
 git commit -m "feat(stack): progress-driven project card stack with inert buried cards"
 ```
 
-**Acceptance check (read-only):** covered by scrub + reduced-motion e2e (Tasks 8, 9) and `tsc -b`. UI component — no unit test; criteria: front card is a `<Link>` to `/projects/:slug`; buried cards carry `aria-hidden` + `tabIndex={-1}` + (via CSS) `pointer-events:none`; RM renders 3 static slots, non-RM renders up to 4.
+**Acceptance check (read-only):** covered by scrub + reduced-motion e2e (Tasks 8, 9) and `tsc -b`. UI component — no unit test; criteria: front card is a `<Link>` to `/projects/:slug`; buried cards carry `aria-hidden` + `tabIndex={-1}` + (via CSS) `pointer-events:none`; RM renders 3 static slots, non-RM renders up to 4; the interactive card hover-scales to 1.02 through the composed MotionValue (no scale change under RM).
 
 **Verify before returning:** `npx tsc -b` clean.
 
@@ -857,6 +879,9 @@ export function Projects() {
   const front = featured[frontIndex]
   const fromTitle = cards[baseIndex]?.title ?? ''
   const toTitle = cards[Math.min(baseIndex + 1, n - 1)]?.title ?? ''
+  // Resting title tracks frontIndex (NOT baseIndex): it is the accessible name and
+  // the whole RM render, and must swap with the cards/meta at the settle-midpoint.
+  const staticTitle = cards[frontIndex]?.title ?? ''
 
   const metaTech = front.techStack.slice(0, 2).map((s) => s.toLowerCase()).join(' · ')
   const paddedFront = String(frontIndex + 1).padStart(2, '0')
@@ -889,6 +914,7 @@ export function Projects() {
             <GooeyTitle
               from={fromTitle}
               to={toTitle}
+              staticTitle={staticTitle}
               progress={settled}
               reducedMotion={prefersReducedMotion}
             />
@@ -930,6 +956,8 @@ nohup npx vite preview --port 4173 >/tmp/vite-preview.log 2>&1 & sleep 6
 ```
 Then a Playwright smoke (create ad-hoc or via the Task 9 spec once it exists): load `/`, wait for `document.body.dataset.loaderState === 'done'`, scroll to `#projects`, assert `#projects .stack-card` count ≥ 1 and `#projects .gooey-title` present, zero console errors. Kill the preview after.
 
+**Boundary-pop check (review finding — frame-desync hazard):** `settled` jumps 1→0 via Framer's rAF at the exact scroll delta where `baseIndex` flips via a React commit; a one-frame ordering gap can flash the just-exited card back at slot 0 at each of the three segment boundaries. In the same smoke (or by hand in the preview), scrub slowly back and forth across a segment boundary and watch for a single-frame pop of the front card. If observed: re-key the cards by PROJECT index instead of depth (card identity = project; depth derived per frame from a MotionValue), so React reconciliation never re-assigns content across the boundary — do not ship the pop.
+
 - [ ] **Step 5: Existing section specs still green (SectionHeading kept)**
 
 Run: `npx playwright test tests/e2e/section-enters.spec.ts tests/e2e/reduced-motion.spec.ts tests/e2e/rows-hover.spec.ts --workers=1`
@@ -946,7 +974,7 @@ git commit -m "feat(projects): rebuild selected work as pinned scroll-scrubbed c
 
 **Verify before returning:** `npx tsc -b` clean; the section renders in a real browser with zero console errors; `section-enters`/`reduced-motion`/`rows-hover` green.
 
-**Boundaries:** Out of scope: CSS (Task 6), i18n keys (Task 7 adds `sections.projects.stack.*`; until then the keys render as their fallback string — that is expected, Task 7 lands the copy). Do NOT reorder the page or touch Archive/WorkExperience/Stats/Skills/Contact. If `useScroll` does not pin under Lenis smooth-scroll, return `blocked: sticky pin vs Lenis` — the orchestrator escalates (this is spec risk 3).
+**Boundaries:** Out of scope: CSS (Task 6), i18n keys (Task 7 adds `sections.projects.stack.*`; until then the keys render as their fallback string — that is expected, Task 7 lands the copy). Do NOT reorder the page or touch Archive/WorkExperience/Stats/Skills/Contact. Lenis compatibility is CONFIRMED by review: `SmoothScroll.tsx:36-39` runs Lenis in default mode (no `wrapper`/`content` — it animates real document scroll), and `MockupFrame.tsx:22` already ships `useScroll({ target, offset })` green under it, so `position: sticky` pins normally — the Step 4 smoke is confirmation, not discovery. If the pin nevertheless fails, return `blocked: sticky pin vs Lenis` with what you observed.
 
 ---
 
@@ -971,7 +999,9 @@ Add to `src/index.css`:
 
 .stack-scroll {
   position: relative;
-  height: 400svh; /* N=4 → 3 transitions, one viewport per transition + settle edges */
+  height: 400svh; /* COUPLED to Projects.tsx: featured count n=4 → n×100svh (3 transitions,
+                     one viewport each + settle edges). If the top-4 curation ever changes
+                     size, update this and the JS `n` TOGETHER. */
   margin-top: 96px;
 }
 .stack-sticky {
@@ -1034,7 +1064,9 @@ Add to `src/index.css`:
   border: 1px solid var(--hairline);
   overflow: hidden;
   background: var(--bg-tonal);
-  will-change: transform, opacity;
+  /* No will-change here: Framer manages the compositor hint on its own animated
+     transforms, and the spec sanctions will-change ONLY on the two title spans
+     (CLAUDE.md: "will-change only when animating"). */
 }
 .stack-card--buried { pointer-events: none; }
 .stack-card img,
@@ -1055,10 +1087,13 @@ Add to `src/index.css`:
   color: var(--text);
   font-size: 14px;
   text-transform: lowercase;
+  /* Hero-scrim rule: alpha must be ≥ 0.88 across the WHOLE text-bearing region.
+     The flex-centered CTA text sits in the band up to ~72% of the bar height
+     (18px padding + line box); the fade to transparent begins only ABOVE it. */
   background: linear-gradient(
     to top,
     rgba(11, 14, 20, 0.92) 0%,
-    rgba(11, 14, 20, 0.88) 45%,
+    rgba(11, 14, 20, 0.88) 72%,
     rgba(11, 14, 20, 0) 100%
   );
 }
@@ -1091,7 +1126,6 @@ Add to `src/index.css`:
   .stack-cards { width: 88vw; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .stack-card,
   .gooey-title-span { will-change: auto; }
   .stack-card-arrow { transition: none; }
 }
@@ -1193,16 +1227,35 @@ import { test, expect } from '@playwright/test'
 
 test.use({ contextOptions: { reducedMotion: 'reduce' } })
 
+// Scroll the window to an absolute fraction of the stack wrapper's scrollable
+// range. ABSOLUTE document Y via getBoundingClientRect().top + window.scrollY —
+// `offsetTop` would be relative to the positioned `#projects` (.section is
+// position:relative), which lands the scroll in the Hero (review blocker #1).
+async function scrollToStackFraction(page: import('@playwright/test').Page, frac: number): Promise<void> {
+  await page.evaluate((f) => {
+    const wrap = document.querySelector('#projects .stack-scroll') as HTMLElement | null
+    if (!wrap) return
+    const start = wrap.getBoundingClientRect().top + window.scrollY
+    const range = wrap.offsetHeight - window.innerHeight
+    window.scrollTo({ top: start + range * f, behavior: 'instant' as ScrollBehavior })
+  }, frac)
+  await page.waitForTimeout(160)
+}
+
 test('reduced motion: stage pins, no SVG filter, content swaps without flight', async ({ page }) => {
   await page.goto('/')
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
-  await page.locator('#projects').scrollIntoViewIfNeeded()
+
+  // Enter the pin range FIRST — at scrollIntoViewIfNeeded(#projects) the sticky
+  // child is still below the fold and top would read a few hundred px (review
+  // blocker #2). Inside the range, sticky top must be ~0.
+  await scrollToStackFraction(page, 0.02)
 
   // No gooey SVG filter is emitted at all under reduced motion.
   const filterCount = await page.locator('#projects .gooey-title-defs').count()
   expect(filterCount).toBe(0)
 
-  // The sticky stage stays pinned to the top while the wrapper scrolls.
+  // The sticky stage is pinned to the viewport top inside the pin range.
   const stickyTopWhilePinned = await page.evaluate(() => {
     const el = document.querySelector('#projects .stack-sticky') as HTMLElement | null
     if (!el) return { ok: false, top: NaN }
@@ -1211,21 +1264,27 @@ test('reduced motion: stage pins, no SVG filter, content swaps without flight', 
   expect(stickyTopWhilePinned.ok).toBe(true)
   expect(Math.abs(stickyTopWhilePinned.top)).toBeLessThan(4)
 
-  // Read the front-card link target at the top of the section.
+  // Front-card state at the first plateau.
   const firstHref = await page.locator('#projects .stack-card-link').getAttribute('href')
+  const boxBefore = await page.locator('#projects .stack-card-link').boundingBox()
 
-  // Scroll roughly one segment (25% of the 400svh wrapper) and confirm the
-  // front project changed (instant swap, not a flight).
-  await page.evaluate(() => {
-    const wrap = document.querySelector('#projects .stack-scroll') as HTMLElement | null
-    if (wrap) {
-      const r = wrap.getBoundingClientRect()
-      window.scrollBy({ top: r.height * 0.34, behavior: 'instant' as ScrollBehavior })
-    }
-  })
-  await page.waitForTimeout(120)
+  // "No card flight": within the same segment (0.02 → 0.10, front swap happens
+  // at ~0.167 under RM), the front card's geometry must not move at all — the
+  // sticky stage is viewport-fixed and RM freezes every card transform.
+  await scrollToStackFraction(page, 0.10)
+  const boxWithin = await page.locator('#projects .stack-card-link').boundingBox()
+  expect(boxWithin).not.toBeNull()
+  expect(Math.abs(boxWithin!.x - boxBefore!.x)).toBeLessThan(1.5)
+  expect(Math.abs(boxWithin!.y - boxBefore!.y)).toBeLessThan(1.5)
+  expect(Math.abs(boxWithin!.width - boxBefore!.width)).toBeLessThan(1.5)
+
+  // Cross the RM swap point: the front project changes (instant swap), and the
+  // new front card sits at the SAME static geometry (swap, not flight).
+  await scrollToStackFraction(page, 0.34)
   const secondHref = await page.locator('#projects .stack-card-link').getAttribute('href')
   expect(secondHref).not.toBe(firstHref)
+  const boxAfterSwap = await page.locator('#projects .stack-card-link').boundingBox()
+  expect(Math.abs(boxAfterSwap!.y - boxBefore!.y)).toBeLessThan(1.5)
 })
 ```
 
@@ -1263,11 +1322,14 @@ import { test, expect } from '@playwright/test'
 // Helper: scroll the window to an absolute fraction of the stack wrapper's
 // scrollable range and settle a frame. Explicit-return evaluate body (no
 // Framer/GSAP object escapes the boundary → no serialization hang).
+// ABSOLUTE document Y via getBoundingClientRect().top + window.scrollY —
+// `offsetTop` would be relative to the positioned `#projects` (.section is
+// position:relative) and would land the scroll in the Hero (review blocker #1).
 async function scrollToStackFraction(page: import('@playwright/test').Page, frac: number): Promise<void> {
   await page.evaluate((f) => {
     const wrap = document.querySelector('#projects .stack-scroll') as HTMLElement | null
     if (!wrap) return
-    const start = wrap.offsetTop
+    const start = wrap.getBoundingClientRect().top + window.scrollY
     const range = wrap.offsetHeight - window.innerHeight
     window.scrollTo({ top: start + range * f, behavior: 'instant' as ScrollBehavior })
   }, frac)
@@ -1280,22 +1342,30 @@ test.describe('selected-work scrub', () => {
     await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
     await page.locator('#projects').scrollIntoViewIfNeeded()
 
-    // Settle-plateau start of segment 0 (front = project 1).
+    // Settle-plateau start of segment 0 (front = project 1). The settled title
+    // is read from the accessible-name span (.gooey-title-sr tracks frontIndex);
+    // it is the review-mandated title assertion — href/meta alone would stay
+    // green with a frozen or mis-wired gooey title.
     await scrollToStackFraction(page, 0.02)
     const hrefP0 = await page.locator('#projects .stack-card-link').getAttribute('href')
     const metaP0 = await page.locator('#projects .stack-meta').innerText()
+    const titleP0 = await page.locator('#projects .gooey-title-sr').textContent()
 
     // Settle-plateau of the next project (past the first segment's morph window).
     await scrollToStackFraction(page, 0.34)
     const hrefP1 = await page.locator('#projects .stack-card-link').getAttribute('href')
     const metaP1 = await page.locator('#projects .stack-meta').innerText()
+    const titleP1 = await page.locator('#projects .gooey-title-sr').textContent()
     expect(hrefP1).not.toBe(hrefP0)
     expect(metaP1).not.toBe(metaP0)
+    expect(titleP1).not.toBe(titleP0)
 
     // Reverse back to the first plateau — the previous project is restored.
     await scrollToStackFraction(page, 0.02)
     const hrefBack = await page.locator('#projects .stack-card-link').getAttribute('href')
+    const titleBack = await page.locator('#projects .gooey-title-sr').textContent()
     expect(hrefBack).toBe(hrefP0)
+    expect(titleBack).toBe(titleP0)
   })
 
   test('front-card link navigates to the project page', async ({ page }) => {
@@ -1409,11 +1479,13 @@ Expected: `PERF ≥ 89`. If below 89, the filter repaint / scrub cost regressed 
 - [ ] **Step 3: Serial e2e — re-record the baseline**
 
 Run: `lsof -ti:4173 | xargs kill 2>/dev/null; npx playwright test --workers=1`
-Expected: green. New count = 44 (post-Task-1 restore) − 2 (removed `#projects` WorkRow tests) + 4 (stack specs: 1 RM + 2 scrub, counted per project) … confirm the actual passed/skipped totals and RECORD them here as the new baseline for future plans. The `perf-budget` long-task test (Task 1's ceiling) must still be green.
+Expected: green. Do NOT pre-compute the total from spec-file arithmetic — specs run per Playwright project (desktop-chromium AND mobile-chromium Pixel 5), so counts double per file and any `test.use`/skip conditions shift them. Take the MEASURED passed/skipped totals from this run and RECORD them here as the new baseline for future plans.
+
+Additionally re-measure the long-task ceiling headroom over the NEW scrub section (review finding — Task 1's 300 ms ceiling was chosen before the feature existed): run `npx playwright test tests/e2e/perf-budget.spec.ts --workers=1 --project=desktop-chromium` and capture the actual max long-task duration from the spec's output/trace, not just pass/fail. RECORD the measured max here. If it sits within ~15% of the ceiling, flag it in the PR description as a watch item — a near-ceiling pass is a regression signal, not a clean bill.
 
 - [ ] **Step 4: Manual Safari visual check of the gooey morph (spec risk 1)**
 
-Open `http://localhost:4173/#projects` in Safari (WebKit). Scrub through the stack and watch the title morph. Decide the `thresholdFilter` degrade flag:
+Open `http://localhost:4173/#projects` in Safari (WebKit). Scrub through the stack and watch the title morph — including slow back-and-forth passes across all three SEGMENT BOUNDARIES (the frame-desync pop surface, review finding #3). Decide the `thresholdFilter` degrade flag:
 - If the `filter: url(#…)` threshold morph is smooth in Safari → keep `thresholdFilter` default `true`.
 - If it glitches (edge artifacts, flashing) → set `<GooeyTitle thresholdFilter={false}` in `Projects.tsx` (keeps the blur/opacity crossfade, drops the matrix) and re-commit.
 Record the decision (kept `true` / dropped to `false`) in the PR description and tick the spec's Safari TODO.
@@ -1445,8 +1517,26 @@ For each `- [ ]` in `docs/superpowers/specs/2026-07-22-selected-work-card-stack-
 ## Spec concerns
 
 1. **Terminal-plateau front card (design gap the spec does not spell out).** For a linear (non-looping) 4-item stack with 3 transitions, at the final rest (`scrollYProgress = 1`) the segment index maxes at `n-2` and the naive "front = depth 0" card is the *exited* one, leaving the last project unreachable via the front card. This plan resolves it with a second discrete state (`frontIndex`) + `interactiveDepth` so the last project's card (rendered at depth 1, promoted to slot 0 at `frac 1`) is the interactive one. Flagged because it is an invariant the reviewer must specifically check, not visible in the spec's motion table.
-2. **Sticky pin vs Lenis smooth-scroll (spec risk 3, but under-specified).** `useScroll` + `position: sticky` assumes the document is the scroll container. If Lenis is configured in wrapper/transform mode, `sticky` can break and `scrollYProgress` can desync. The plan gates this at Task 5 Step 4 (real-browser pin smoke) and Task 8 (pin assertion); if it fails, it is a `blocked:` escalation, not a CSS tweak. The spec should ideally have named the Lenis integration mode.
+2. **Sticky pin vs Lenis smooth-scroll — RESOLVED by the pre-execution review (2026-07-22).** The fresh-context Opus pass verified `SmoothScroll.tsx:36-39` runs Lenis in DEFAULT mode (no `wrapper`/`content`/`virtualScroll` — it animates the real document scroll position, not a transform wrapper), no persistent `overflow: hidden` exists on `html`/`body`/`main` after the loader, and `MockupFrame.tsx:22` already ships `useScroll({ target, offset })` green under the same Lenis. `position: sticky` therefore pins normally; Task 5 Step 4's smoke is confirmation, not discovery, and the `blocked:` path remains only as a safety valve.
 3. **`perf-budget` long-task baseline is already red (211–234 ms vs 200 ms).** The spec's Risk 2 assumes a green perf baseline; it is not. Task 1 repairs it before feature work, but the honest budget after adding a `400svh` scrub section may need the 300 ms ceiling documented in Task 1 — i.e., the spec's "must not regress" is measured against a baseline that itself needed a fix. Recorded so the perf criterion is not silently reinterpreted.
 4. **Meta-line separator.** Spec shows `01 / 04 · <year> · <tech>` using both `/` and `·`. The `/` is not a spaced em-dash and reads as a fraction, so it is compliant with the em-dash ban; kept as specified.
 
 No blocking spec defects — the spec is implementable as written with the terminal-plateau resolution above.
+
+---
+
+## Pre-execution review fix wave (2026-07-22)
+
+Applied before Task 1 per the standing workflow rule, from the fresh-context Opus plan review + the codex (gpt-5.6-sol) cross-vendor pass — all findings verified against the tree before applying:
+
+1. **[codex P1] RM/accessible title mis-wired** — `GooeyTitle` gained `staticTitle` (frontIndex-driven); the RM branch and the `.gooey-title-sr` accessible-name span render it. Previously the `baseIndex`-driven `from` lagged a segment and was permanently wrong on the terminal plateau.
+2. **[codex P1] Scrim contract** — the CTA gradient now holds ≥ 0.88 alpha up to 72% of the bar (fade starts above the text region), satisfying the hero-scrim rule across the whole glyph area.
+3. **[opus blocker] Task 9 scroll math** — `scrollToStackFraction` uses absolute document Y (`getBoundingClientRect().top + window.scrollY`); `offsetTop` was relative to the positioned `.section` and landed the scroll in the Hero.
+4. **[opus blocker] Task 8 pin assertion** — the spec scrolls into the pin range (same corrected helper) before asserting sticky top ≈ 0; previously asserted before sticky engaged (deterministic fail).
+5. **[codex P2] Hover scale** — Task 4 implements the spec's ≤ 1.02 fine-pointer hover via a spring MotionValue composed multiplicatively with the scrub scale; RM-inert.
+6. **[codex P2] Scrub e2e title blind spot** — Task 9 now asserts the settled `.gooey-title-sr` text changes and restores.
+7. **[codex P2] RM "no flight" blind spot** — Task 8 now asserts front-card bounding-box stability within a segment and across the swap.
+8. **[opus should-fix] Boundary frame-desync pop** — Task 5 Step 4 gains an explicit boundary-scrub check with a named remedy (re-key cards by project); Task 11's Safari pass watches the same surface.
+9. **[opus nits] `will-change` scoped to the two title spans only (CLAUDE.md standard); 400svh↔n coupling comment; Task 11 count arithmetic replaced with measured totals + long-task headroom re-measurement.**
+
+Not applied: the "política essencial vs hotmart-bunde" naming nit — `hotmart-bunde` is the id/slug and "política essencial" its display title; the spec's curation list is correct as written.
