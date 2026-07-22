@@ -1411,7 +1411,7 @@ git commit -m "test(stack): scrub e2e — midpoint change, reverse restore, link
 
 Amendment intent (from the spec's "CLAUDE.md amendment" section): record that Projects/"selected work" is now the pinned scroll-scrubbed `ProjectCardStack` + `GooeyTitle`; WorkRow stays the primitive for Archive/WorkExperience; add the card-frames exception; add Framer scroll-scrub as a sanctioned lane; leave the NO-list otherwise intact.
 
-- [ ] **Step 1: Amend the WorkRow design-direction bullet**
+- [x] **Step 1: Amend the WorkRow design-direction bullet**
 
 In the `## Design Direction` list, in the **WorkRow** bullet, change its opening scope note. Find:
 > **WorkRow (the one section-list primitive — `src/components/ui/WorkRow.tsx`)**: open typographic row, no card.
@@ -1419,12 +1419,12 @@ In the `## Design Direction` list, in the **WorkRow** bullet, change its opening
 Replace with:
 > **WorkRow (the section-list primitive for Archive + WorkExperience — `src/components/ui/WorkRow.tsx`)**: open typographic row, no card. (Selected Work no longer uses WorkRow — it is the pinned scroll-scrubbed `ProjectCardStack` + `GooeyTitle` stage; see the Selected Work bullet.)
 
-- [ ] **Step 2: Add a Selected Work bullet immediately after the Hero anatomy bullet**
+- [x] **Step 2: Add a Selected Work bullet immediately after the Hero anatomy bullet**
 
 Insert a new bullet:
 > - **Selected Work stage (`src/components/sections/Projects.tsx` + `src/components/ui/{GooeyTitle,ProjectCardStack}.tsx`, helpers `src/utils/stackMotion.ts`)**: the page centerpiece — a `400svh` scroll wrapper drives a `position: sticky; height: 100svh` stage where the top-4 featured projects (`highlightOrder ≤ 4`) cycle through an animated card stack under a gooey-morphing title. Scroll IS the playhead (fully reversible, holds mid-morph) via Framer `useScroll` → `scrollYProgress` → pure helpers (`segmentFor`/`settleFrac`/`depthTransform`/`morphValues`). Zero React state per frame (leaf `useTransform` MotionValues; two discrete segment states flip only at boundaries/midpoints). Depth grammar: slot y `12 / −16 / −44`, scale `1 / .95 / .9`, exit y `340`. `--row-tint` via `accentFor(frontIndex)`. The `view project` bar honours the hero-scrim rule (ink gradient ≥ 0.88 alpha at text level). Reduced motion keeps the pin but removes ALL animation (static slots, instant swaps, no SVG filter — the threshold matrix can artifact static glyph edges). Keyboard/SR path: a visually-hidden-until-focused skip-link project index; buried cards are `aria-hidden` + `tabIndex={-1}` + `pointer-events:none`.
 
-- [ ] **Step 3: Amend the no-card-frames Shapes rule**
+- [x] **Step 3: Amend the no-card-frames Shapes rule**
 
 In the **Shapes** bullet, find:
 > **Shapes**: Open typographic rows, no cards/containers.
@@ -1432,17 +1432,17 @@ In the **Shapes** bullet, find:
 Replace with:
 > **Shapes**: Open typographic rows, no cards/containers (exception: the selected-work card-stack cards, which are deliberate framed cards — the sanctioned centerpiece).
 
-- [ ] **Step 4: Add the scroll-scrub lane to the Animation rules**
+- [x] **Step 4: Add the scroll-scrub lane to the Animation rules**
 
 In the **Animations** bullet (Design Direction) — find the sentence beginning "GSAP = one-shot entrance orchestration ONLY". Append to that bullet:
 > Framer scroll-scrub (`useScroll`/`useTransform` bound to scroll progress) is a sanctioned lane alongside Framer state-driven animation, used solely by the Selected Work stage; GSAP remains entrance-only.
 
-- [ ] **Step 5: Verify the NO-list is untouched and the doc still parses as Markdown**
+- [x] **Step 5: Verify the NO-list is untouched and the doc still parses as Markdown**
 
 Run: `grep -n "selected-work\|ProjectCardStack\|GooeyTitle\|card-stack" CLAUDE.md`
 Expected: the new references present; no accidental edits to the `NO:` list.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add CLAUDE.md
