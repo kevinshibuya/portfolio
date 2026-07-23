@@ -28,3 +28,26 @@ test('nav flips to on-light over the cream Selected Work zone and back to dark',
   await scrollIntoSection(page, 'archive', 0.3)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(0)
 })
+
+test('nav re-arms on-light after SPA back-nav from a project page', async ({ page }) => {
+  await page.goto('/')
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+
+  // Scrub into the cream Selected Work stage: nav flips on-light.
+  await scrollIntoSection(page, 'projects', 0.4)
+  await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
+
+  // Follow the front card to its project page (SPA nav, Header stays mounted).
+  const href = await page.locator('#projects .stack-card-link').getAttribute('href')
+  await page.locator('#projects .stack-card-link').click()
+  await expect(page).toHaveURL(new RegExp(href!.replace(/[/]/g, '\\/')))
+
+  // Back to Home: the loader/route settle, then #projects remounts fresh.
+  await page.goBack()
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+
+  // Re-arm check: scrubbing back into the (freshly-mounted) #projects node
+  // must flip the nav on-light again, not stay stuck dark on a detached observer.
+  await scrollIntoSection(page, 'projects', 0.4)
+  await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
+})

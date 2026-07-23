@@ -38,6 +38,8 @@ const srOnly: React.CSSProperties = {
 function spanMorph(rel: number): MorphStyle {
   if (rel >= 0 && rel <= 1) return morphValues(rel).outgoing
   if (rel > -1 && rel < 0) return morphValues(1 + rel).incoming
+  // Parked branch: blur value is irrelevant — opacity 0 means this span is never
+  // composited, so the exact px figure need not track stackMotion's BLUR_CAP.
   return { blur: 100, opacity: 0 }
 }
 

@@ -73,9 +73,11 @@ export function Header() {
 
     return () => {
       io?.disconnect();
+      io = null;
       mo?.disconnect();
+      mo = null;
     };
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     let cancelled = false;
