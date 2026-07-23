@@ -1351,12 +1351,12 @@ Drive real Safari (26.x) against `npx vite preview --port 4173` (build first; ki
 - none (read-only run).
 
 ### Work
-- [ ] **Step 1: typecheck** — `npx tsc -b` → clean.
-- [ ] **Step 2: unit** — `npm run test:unit` → expect **99 passed** (95 prior + 4 new `palette.test.ts` cases: 1 `accentFor` + 3 `accentDeepFor`; `stackMotion.test.ts` case count unchanged — its blur cases went to bounds form, not more cases). If the count differs, report.
-- [ ] **Step 3: serial e2e** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx playwright test --workers=1` → **50 passed / 0 failed / 0 skipped** (baseline 48 − 2 `section-enters` [`#projects` dropped ×2 projects] + 2 `hero-veil` + 2 `nav-on-light`; `reduced-motion` rescoped, count unchanged), including the migrated `stack-scrub` subtitle assertion and the two GREEN-rescoped specs.
-- [ ] **Step 4: Lighthouse** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx vite preview --port 4173` (fresh build), then Lighthouse desktop perf on `/` → **≥ 89** (baseline 94; a score below 89 with Anton loaded is a defect, per the standing budget rule — flag it, don't wave it through).
-- [ ] **Step 5: long-task** — confirm `tests/e2e/perf-budget.spec.ts` green (< 300 ms; the canvas grew ~30% to 130svh coverage — if it reds under load, re-run idle before believing it).
-- [ ] **Step 6: TODO map** — map each Plan-A spec `## TODO` box to its green acceptance evidence (table below). Report any un-mapped box.
+- [x] **Step 1: typecheck** — `npx tsc -b` → clean.
+- [x] **Step 2: unit** — `npm run test:unit` → expect **99 passed** (95 prior + 4 new `palette.test.ts` cases: 1 `accentFor` + 3 `accentDeepFor`; `stackMotion.test.ts` case count unchanged — its blur cases went to bounds form, not more cases). If the count differs, report.
+- [x] **Step 3: serial e2e** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx playwright test --workers=1` → **50 passed / 0 failed / 0 skipped** (baseline 48 − 2 `section-enters` [`#projects` dropped ×2 projects] + 2 `hero-veil` + 2 `nav-on-light`; `reduced-motion` rescoped, count unchanged), including the migrated `stack-scrub` subtitle assertion and the two GREEN-rescoped specs.
+- [x] **Step 4: Lighthouse** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx vite preview --port 4173` (fresh build), then Lighthouse desktop perf on `/` → **≥ 89** (baseline 94; a score below 89 with Anton loaded is a defect, per the standing budget rule — flag it, don't wave it through).
+- [x] **Step 5: long-task** — confirm `tests/e2e/perf-budget.spec.ts` green (< 300 ms; the canvas grew ~30% to 130svh coverage — if it reds under load, re-run idle before believing it).
+- [x] **Step 6: TODO map** — map each Plan-A spec `## TODO` box to its green acceptance evidence (table below). Report any un-mapped box.
 
 ### Verify before returning
 - `~/.claude/bin/qa-run.sh final-unit npm run test:unit`
