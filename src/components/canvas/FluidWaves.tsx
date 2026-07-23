@@ -12,6 +12,18 @@ const DPR_CAP = 1.5
 const FLOW_SPEED = 0.35
 const CONTRAST = 2.0
 
+// Scroll-coupled sim rate (motion-design: the paint is the page's ambient
+// layer, material "gas/smoke" — it stirs when the page moves and keeps
+// settling after it stops; no overshoot, never a snap). Scroll velocity adds
+// a SMALL boost to the shader's time rate: ~1.5x at a steady wheel scroll,
+// capped at 2x on a fast flick. Asymmetric smoothing: quick attack so the
+// stir feels connected to the scroll, slow decay so the smoke calms with
+// follow-through instead of stopping dead.
+const SCROLL_BOOST_MAX = 1.0 // extra rate cap (1 + boost => max 2x)
+const SCROLL_BOOST_GAIN = 1 / 1500 // scroll px/s -> boost
+const BOOST_ATTACK_TAU = 0.15 // s, ramp-in
+const BOOST_DECAY_TAU = 0.9 // s, settle
+
 // Organic-dissolve tuning (hero variant). AA for the hero/nav text is NOT the
 // shader's job — the paint renders fully raw everywhere except the dissolve
 // band (documented AA exemption; see the .hero-zone note in index.css).
@@ -221,9 +233,15 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     )
 
     const seed = Math.random()
-    const startTime = performance.now()
     let rafId: number | null = null
     let inView = true
+    // Scroll-coupled sim clock (see the SCROLL_BOOST_* constants): simTime
+    // advances at (1 + boost) x real time, so the paint stirs while the page
+    // scrolls and eases back to its idle drift when it stops.
+    let simTime = 0
+    let boost = 0
+    let lastFrame = performance.now()
+    let lastScrollY = window.scrollY
 
     // One-time GL state. This canvas owns a private context and nothing below
     // touches program/attribute/uniform bindings again, so everything constant
@@ -277,12 +295,28 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     }
 
     const loop = (): void => {
-      drawFrame((performance.now() - startTime) / 1000)
+      const now = performance.now()
+      // Clamp dt so a jank spike / background tab can't jump the sim.
+      const dt = Math.min((now - lastFrame) / 1000, 0.1)
+      lastFrame = now
+      const y = window.scrollY
+      const vel = dt > 0 ? Math.abs(y - lastScrollY) / dt : 0
+      lastScrollY = y
+      const target = Math.min(SCROLL_BOOST_MAX, vel * SCROLL_BOOST_GAIN)
+      const tau = target > boost ? BOOST_ATTACK_TAU : BOOST_DECAY_TAU
+      boost += (target - boost) * (1 - Math.exp(-dt / tau))
+      simTime += dt * (1 + boost)
+      drawFrame(simTime)
       rafId = requestAnimationFrame(loop)
     }
 
     const start = (): void => {
       if (rafId === null && !prefersReducedMotion) {
+        // Re-baseline the clocks: while paused (off-screen) both wall time and
+        // scrollY moved — without this, resume reads as one giant scroll frame
+        // and the paint lurches at 2x for a beat.
+        lastFrame = performance.now()
+        lastScrollY = window.scrollY
         rafId = requestAnimationFrame(loop)
       }
     }
@@ -304,7 +338,7 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       // rAF loop starts at mount (spec §2) — no entrance gate. One frame is
       // drawn immediately so the first paint has content, then the IO starts
       // the continuous loop while in view.
-      drawFrame((performance.now() - startTime) / 1000)
+      drawFrame(simTime)
       if (inView) start()
     }
 
