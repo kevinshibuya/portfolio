@@ -94,10 +94,10 @@ Deep-accent-on-white-card (name/subtitle accents never land there in Plan A, but
 
 ### Work
 Run each and record pass/fail with counts:
-- [ ] **Step 1: typecheck** — `npx tsc -b` → clean.
-- [ ] **Step 2: unit** — `npm run test:unit` → expect `95 passed`.
-- [ ] **Step 3: serial e2e** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx playwright test --workers=1` → expect `48 passed / 0 failed / 0 skipped`.
-- [ ] **Step 4: record** — if any count differs from the Baselines block, STOP and report (stale baseline is a plan defect to fix before T2, per the standing rule).
+- [x] **Step 1: typecheck** — `npx tsc -b` → clean.
+- [x] **Step 2: unit** — `npm run test:unit` → expect `95 passed`.
+- [x] **Step 3: serial e2e** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx playwright test --workers=1` → expect `48 passed / 0 failed / 0 skipped`.
+- [x] **Step 4: record** — if any count differs from the Baselines block, STOP and report (stale baseline is a plan defect to fix before T2, per the standing rule).
 
 ### Verify before returning
 - `~/.claude/bin/qa-run.sh baseline-unit npm run test:unit`
@@ -527,9 +527,9 @@ test.describe('section enter on viewport', () => {
 })
 ```
 
-- [ ] **Step 1:** transcribe all seven files exactly.
-- [ ] **Step 2: confirm RED** — run the five RED files and confirm each FAILS for the expected reason (unit: EXIT_Y 520 vs current 440 / `accentDeepFor` missing; e2e: `.stack-card-subtitle` / `.hero-veil` / `.nav--on-light` absent). RED is success here. The blur-cap bounds `[100,240]` PASS against the current cap 100 — only the EXIT_Y assertions make `stackMotion.test.ts` RED.
-- [ ] **Step 3: confirm GREEN rescopes** — run `reduced-motion.spec.ts` + `section-enters.spec.ts` and confirm they PASS immediately (they no longer touch `#projects`; `#projects` still has its SectionHeading at this point, but these specs simply don't reference it anymore).
+- [x] **Step 1:** transcribe all seven files exactly.
+- [x] **Step 2: confirm RED** — run the five RED files and confirm each FAILS for the expected reason (unit: EXIT_Y 520 vs current 440 / `accentDeepFor` missing; e2e: `.stack-card-subtitle` / `.hero-veil` / `.nav--on-light` absent). RED is success here. The blur-cap bounds `[100,240]` PASS against the current cap 100 — only the EXIT_Y assertions make `stackMotion.test.ts` RED.
+- [x] **Step 3: confirm GREEN rescopes** — run `reduced-motion.spec.ts` + `section-enters.spec.ts` and confirm they PASS immediately (they no longer touch `#projects`; `#projects` still has its SectionHeading at this point, but these specs simply don't reference it anymore).
 
 ### Recomputed e2e totals (this task changes the suite size — carried to T15)
 - `section-enters.spec.ts`: 5 → 4 tests (dropped `#projects`) = **−1 per Playwright project**.
