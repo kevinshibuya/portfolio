@@ -38,6 +38,7 @@ export const projects: Project[] = [
       desktop: '/images/projects/radar-legislativo/mockups/desktop.webp',
       desktopBento: '/images/projects/radar-legislativo/mockups/desktop-bento.webp',
       mobile: '/images/projects/radar-legislativo/mockups/mobile.webp',
+      stackCover: '/images/projects/radar-legislativo/stack-cover.webp',
     },
   },
   {
@@ -95,6 +96,7 @@ export const projects: Project[] = [
       desktop: '/images/projects/painel-da-reconstrucao/mockups/desktop.webp',
       desktopBento: '/images/projects/painel-da-reconstrucao/mockups/desktop-bento.webp',
       mobile: '/images/projects/painel-da-reconstrucao/mockups/mobile.webp',
+      stackCover: '/images/projects/painel-da-reconstrucao/stack-cover.webp',
     },
   },
   {
@@ -148,6 +150,7 @@ export const projects: Project[] = [
       desktop: '/images/projects/enquetes-gzh/mockups/desktop.webp',
       desktopBento: '/images/projects/enquetes-gzh/mockups/desktop-bento.webp',
       mobile: '/images/projects/enquetes-gzh/mockups/mobile.webp',
+      stackCover: '/images/projects/enquetes-gzh/stack-cover.webp',
     },
   },
   {
@@ -355,6 +358,7 @@ export const projects: Project[] = [
       desktop: '/images/projects/hotmart-bunde/mockups/desktop.webp',
       desktopBento: '/images/projects/hotmart-bunde/mockups/desktop-bento.webp',
       mobile: '/images/projects/hotmart-bunde/mockups/mobile.webp',
+      stackCover: '/images/projects/hotmart-bunde/stack-cover.webp',
     },
   },
   {
