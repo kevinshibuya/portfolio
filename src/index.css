@@ -300,12 +300,13 @@ strong {
    ========================================================================= */
 .hero {
   position: relative;
-  min-height: 100svh;
+  min-height: 130svh; /* was 100svh — grows for the entry veil band */
   overflow: hidden;
   background: var(--bg);
 }
 
 /* Canvas layer — FluidWaves (position:absolute; inset:0) fills this box.
+   Now covers the FULL 130svh section so the shader melts through the veil.
    Settled from first paint (opacity 1): the loader explosion IS the entrance,
    blowing open onto an already-final hero — no timeline holds this hidden. */
 .hero-canvas {
@@ -313,6 +314,32 @@ strong {
   inset: 0;
   z-index: 0;
   opacity: 1;
+}
+
+/* Inner 100svh zone — re-anchors the scrim + name/role so the MANDATORY AA
+   scrim band and the name never fall into the entry veil. Byte-identical to the
+   old .hero box (100svh), so the hero AA table stays valid unchanged. */
+.hero-zone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100svh;
+  z-index: 2;
+}
+
+/* Entry veil — always-there transparent→cream band over the still-rendering
+   canvas, below the zone. No text ever renders here. Its bottom = cream = the
+   Selected Work bg, so hero→Projects has no hard edge. */
+.hero-veil {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100svh;
+  height: 30svh;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(245, 242, 236, 0) 0%, var(--color-surface-light) 100%);
 }
 
 /* MANDATORY contrast scrim (contrast table) — darkens the bottom band where
