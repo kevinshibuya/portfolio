@@ -107,8 +107,13 @@ export interface MorphStyle {
   opacity: number
 }
 
-// Gooey blur, capped at 100px, guarded against division by zero (→ full cap).
-const morphBlur = (x: number): number => (x <= 0 ? 100 : Math.min(8 / x - 8, 100))
+// Gooey blur cap, tuned for Anton's large condensed glyphs — bigger glyphs need
+// more blur to fully dissolve at the crossfade extremes (spec: threshold AND blur
+// re-tuned for Anton). Bounds [100, 240] (tests/unit/stackMotion.test.ts asserts
+// the cap in-range, not an exact value); the crossfade SHAPE (8/x−8) and the 8px
+// midpoint are unchanged. Guarded against division by zero (→ full cap).
+const BLUR_CAP = 180
+const morphBlur = (x: number): number => (x <= 0 ? BLUR_CAP : Math.min(8 / x - 8, BLUR_CAP))
 
 /**
  * Gooey title crossfade: incoming span sharpens (blur→0, opacity→1) as `frac`

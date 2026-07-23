@@ -2029,18 +2029,28 @@ body[data-loader-state="loading"] {
   margin: 0;
   text-align: center;
   text-transform: lowercase;
+  font-family: 'Anton', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 400;
+  font-size: clamp(56px, 9vw, 150px);
+  line-height: 0.95;
+  letter-spacing: 0;               /* Anton is already condensed; -0.03em over-tightens */
+  color: var(--color-ink-on-light);
 }
 .gooey-title-defs { position: absolute; width: 0; height: 0; }
-.gooey-title-stage { position: relative; display: inline-grid; }
+.gooey-title-stage {
+  position: relative;
+  display: inline-grid;
+  place-items: center;             /* center every span in the shared cell → mixed 1-/2-line align */
+  max-width: min(90vw, 18ch);      /* forces "painel da reconstrução" to 2 lines; integrator finalizes */
+  line-height: 0.95;
+}
 .gooey-title-span {
-  grid-area: 1 / 1; /* stack both spans in the same cell so they morph in place */
+  grid-area: 1 / 1;                 /* stack all spans in one cell so they morph in place */
+  place-self: center;              /* center a 1-line span within a 2-line-tall cell */
   display: block;
-  font-size: clamp(30px, 5vw, 64px);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: var(--text);
-  will-change: filter, opacity;
+  text-align: center;
+  line-height: 0.95;               /* explicit so a 2-line span matches the base metrics */
+  will-change: filter, opacity;    /* font-family/size/weight/color inherit from .gooey-title */
 }
 
 /* Meta line */

@@ -89,7 +89,7 @@ export function GooeyTitle({
               <feColorMatrix
                 in="SourceGraphic"
                 type="matrix"
-                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 255 -140"
+                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 255 -150"
               />
             </filter>
           </defs>

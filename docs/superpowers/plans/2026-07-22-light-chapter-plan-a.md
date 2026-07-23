@@ -837,7 +837,7 @@ with:
 const BLUR_CAP = 180
 const morphBlur = (x: number): number => (x <= 0 ? BLUR_CAP : Math.min(8 / x - 8, BLUR_CAP))
 ```
-- [ ] **Record the chosen `BLUR_CAP` value + one-line rationale here** (starting 180; final after T14): __________
+- [x] **Record the chosen `BLUR_CAP` value + one-line rationale here** (starting 180; final after T14): **BLUR_CAP = 180, threshold offset = -150** — kept the spec-recommended pair; DOM metrics confirm the layout requirements I own (Anton face, clamp 56→150px, painel 2-line wrap at 1280 & 390, 1-line titles vertically centered in the shared 2-line cell), and blob/blur quality is ink-on-dark until the cream stage lands (T9/T10), so definitive filter tuning is deferred to the real-Safari check in T14.
 
 ### Acceptance check
 - Unit (blur cap stays in bounds after the tune): `tests/unit/stackMotion.test.ts` (T2, bounds-form blur) stays GREEN. Run: `npx vitest run tests/unit/stackMotion.test.ts`.
