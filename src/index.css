@@ -1992,7 +1992,7 @@ body[data-loader-state="loading"] {
   position: sticky;
   top: 0;
   height: 100svh;
-  overflow: hidden; /* clip the exiting card as it flies to y 340 */
+  overflow: hidden; /* clip the exiting card as it flies to y 520 */
   display: grid;
   place-items: center;
 }

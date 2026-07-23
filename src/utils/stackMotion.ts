@@ -58,7 +58,7 @@ const SLOTS: ReadonlyArray<{ y: number; scale: number; shadow: number }> = [
   { y: -16, scale: 0.95, shadow: 0.6 },
   { y: -44, scale: 0.9, shadow: 0.3 },
 ]
-const EXIT_Y = 440
+const EXIT_Y = 520
 
 /**
  * Interpolated style for a card currently at logical `depth` (0 = front,
