@@ -351,7 +351,49 @@ strong {
    treatments top out ~1.8–2.3:1 over the brightest yellow paint; a worst-pixel
    4.5:1 needs a near-opaque halo, rejected aesthetically. The owner explicitly
    accepts the AA tradeoff here; do not reintroduce a contrast layer between
-   the text and the paint. */
+   the text and the paint. Sole sanctioned exception: the opt-in
+   prefers-contrast layer below — invisible unless the user's OS asks. */
+
+/* Opt-in contrast layer (owner-ratified 2026-07-23): only when the user's OS
+   requests more contrast, the hero + dark-context nav text casts a dense ink
+   halo so every pixel adjacent to the strokes reads over the brightest paint.
+   The default presentation (everyone else) stays plain cream on raw paint. */
+@media (prefers-contrast: more) {
+  .hero-role,
+  .nav-link,
+  .nav-lang {
+    text-shadow:
+      0 0 1px rgba(11, 14, 20, 1),
+      0 0 2px rgba(11, 14, 20, 1),
+      0 0 3px rgba(11, 14, 20, 1),
+      0 0 4px rgba(11, 14, 20, 1),
+      0 0 5px rgba(11, 14, 20, 1),
+      0 0 6px rgba(11, 14, 20, 1),
+      0 0 9px rgba(11, 14, 20, 0.92),
+      0 0 14px rgba(11, 14, 20, 0.6);
+  }
+  .hero-name {
+    text-shadow:
+      0 0 2px rgba(11, 14, 20, 1),
+      0 0 4px rgba(11, 14, 20, 1),
+      0 0 6px rgba(11, 14, 20, 1),
+      0 0 9px rgba(11, 14, 20, 1),
+      0 0 12px rgba(11, 14, 20, 1),
+      0 0 18px rgba(11, 14, 20, 0.85),
+      0 0 32px rgba(11, 14, 20, 0.55),
+      0 0 56px rgba(11, 14, 20, 0.35);
+  }
+  /* Small nav text over raw paint stays marginal even with the halo — give
+     the dark-context nav its scrolled-style ink bar full-time instead. */
+  .nav:not(.nav--on-light) {
+    background: rgba(11, 14, 20, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  /* The cream chapter already backs the ink nav text — no halo there. */
+  .nav--on-light .nav-link,
+  .nav--on-light .nav-lang { text-shadow: none; }
+}
 
 .hero-bottom {
   position: absolute;
