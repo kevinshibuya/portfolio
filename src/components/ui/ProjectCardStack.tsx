@@ -5,6 +5,7 @@ import { cardStyleAt, depthTransform } from '../../utils/stackMotion'
 export interface StackCardData {
   slug: string
   title: string
+  subtitle: string
   art?: string
   alt: string
 }
