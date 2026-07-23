@@ -255,7 +255,10 @@ strong {
 .nav-link {
   position: relative;
   font-size: 12px; font-weight: 500;
-  color: var(--text-faded);
+  /* Near-full cream: over raw hero paint the old --text-faded gray read muddy
+     (owner call 2026-07-23). Hover lifts to full cream + underline. The
+     on-light variant overrides with its own ink values. */
+  color: rgba(245, 242, 236, 0.85);
   text-transform: lowercase;
   letter-spacing: 0.02em;
   padding: 6px 0;
