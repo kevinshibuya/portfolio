@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useMotion } from '../../context/MotionContext'
 
-// Tricolor as GLSL vec3s — #E64D66, #4D80E6, #E6CC4D (contrast-audited in
-// the plan; the hero scrim guarantees AA for text above the paint).
+// Tricolor as GLSL vec3s — #E64D66, #4D80E6, #E6CC4D. Hero text sits plain on
+// this raw paint (documented AA exemption — see the .hero-zone note in index.css).
 // Pre-baked as Float32Arrays so uniform3fv uploads don't convert per call.
 const COLOR_1 = new Float32Array([0.902, 0.302, 0.4])
 const COLOR_2 = new Float32Array([0.302, 0.502, 0.902])
@@ -14,11 +14,13 @@ const CONTRAST = 2.0
 
 // Organic-dissolve tuning (hero variant). AA for the hero/nav text is NOT the
 // shader's job — the paint renders fully raw everywhere except the dissolve
-// band; contrast lives on the glyphs themselves via a layered ink aurora
-// text-shadow (see .hero-name / .hero-role / dark-nav rules in index.css).
-// Cream dissolve: the threshold is displaced per-column by fBm for liquid
-// fingers; the bottom CREAM_FLOOR of the canvas is forced 100% cream regardless.
-const DISSOLVE_FINGER_AMP = 0.06
+// band (documented AA exemption; see the .hero-zone note in index.css).
+// Cream dissolve: band progress + a 2D fBm field (dragged by the flow-field
+// coordinate) thresholded over a narrow window — cream eats into the paint as
+// liquid fingers that move with the sim, never a straight horizontal fade.
+// NOISE_AMP = finger reach in band-progress units; the bottom CREAM_FLOOR of
+// the canvas is forced 100% cream regardless.
+const DISSOLVE_NOISE_AMP = 0.9
 const CREAM_FLOOR = 0.035
 
 const vertexShader = `
@@ -110,20 +112,39 @@ const fragmentShader = `
     vec3 ret_col = (0.3 / contrast) * colour_1 +
                    (1.0 - 0.3 / contrast) * (colour_1 * c1p + colour_2 * c2p + colour_3 * c3p);
 
-    // ---- Organic cream dissolve (noise-displaced threshold = liquid fingers).
-    // The dissolve height is displaced per-column by the flow field so cream eats
-    // up into the paint with fingers that move with the sim — never a linear cut.
-    // Paint first thins (desaturated toward its own luma — colour drains before
-    // value, paint into paper not a white wash) then mixes to cream.
-    float finger = (fbm(vec2(vUv.x * 3.0, dissolveStart * 4.0) + vec2(time * 0.06, seed * 5.0)) - 0.5) * 2.0;
-    float edge = dissolveStart + finger * ${DISSOLVE_FINGER_AMP.toFixed(3)};
-    float diss = smoothstep(edge, 0.0, vUv.y);
+    // ---- Organic cream dissolve. A 2D fBm field — its sampling coordinate
+    // dragged by the flow-field 'uv' so the wisps belong to the paint's own
+    // motion — is thresholded against band progress over a NARROW window.
+    // Where the noise runs high, cream reaches far up as a finger; where low,
+    // paint hangs down as a tongue. No per-column 1D displacement, no
+    // full-band vertical ramp (both read as a straight horizontal fade).
+    // p: 0 at the band top (bottom of the 100svh zone) -> 1 at the canvas
+    // bottom; negative above the band, so paint stays raw up there.
+    float p = 1.0 - vUv.y / max(dissolveStart, 1e-4);
+    // Screen-anchored base frequency (wide, vertically stretched fingers) +
+    // flow drag + slow writhe. Frozen time still yields an organic static edge
+    // (reduced-motion frame).
+    float n = fbm(vec2(vUv.x * 5.0, vUv.y * 2.2) + uv * 0.06 + vec2(seed * 9.0, time * 0.05));
+    // Large-wavelength sweep: the edge's MEAN height itself undulates across
+    // the width (~1 wave per viewport), so no stretch of the boundary can
+    // settle at a constant height and read horizontal.
+    float sweep = (fbm(vec2(vUv.x * 1.3 + seed * 3.0, time * 0.03)) - 0.5) * 0.55;
+    // Fingers act in the upper band; amplitude tapers out near the floor so
+    // the field saturates and the seam onto the cream section stays solid.
+    float amp = ${DISSOLVE_NOISE_AMP.toFixed(2)} * (1.0 - smoothstep(0.55, 1.0, p));
+    float field = p + (n - 0.5 + sweep) * amp;
+    // Narrow threshold window = distinct liquid edge, not a gradient wash.
+    float diss = smoothstep(0.34, 0.60, field);
+    // Paint thins (colour drains toward its own luma) just ahead of the cream
+    // mix, tight to the edge — paint-into-paper, not a wide pale band.
+    float thin = smoothstep(0.24, 0.56, field);
     // HARD GUARANTEE: the bottom CREAM_FLOOR band is 100% cream regardless of the
     // noise, so the canvas seats seamlessly on the cream section below it.
     float floorCream = 1.0 - smoothstep(${CREAM_FLOOR.toFixed(3)}, ${(CREAM_FLOOR + 0.012).toFixed(3)}, vUv.y);
     diss = max(diss, floorCream) * dissolveStrength;
+    thin = max(thin, floorCream) * dissolveStrength;
     float luma = dot(ret_col, vec3(0.299, 0.587, 0.114));
-    ret_col = mix(ret_col, vec3(luma), diss * 0.7);
+    ret_col = mix(ret_col, vec3(luma), thin * 0.45);
     ret_col = mix(ret_col, vec3(0.9608, 0.9490, 0.9255), diss);
     return vec4(ret_col, 1.0);
   }

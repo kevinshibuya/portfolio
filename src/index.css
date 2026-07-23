@@ -281,25 +281,11 @@ strong {
 }
 .nav-lang:hover { color: var(--text); }
 
-/* Ink aurora on the nav text ONLY in dark context (over the hero paint) — the
-   small-text halo that carries nav AA now that the scrim's top band is gone.
-   Removed under .nav--on-light (the cream chapter already backs the ink text). */
-.nav-link,
-.nav-lang {
-  text-shadow:
-    0 0 1px rgba(11, 14, 20, 1),
-    0 0 2px rgba(11, 14, 20, 1),
-    0 0 3px rgba(11, 14, 20, 1),
-    0 0 4px rgba(11, 14, 20, 1),
-    0 0 5px rgba(11, 14, 20, 1),
-    0 0 7px rgba(11, 14, 20, 0.9),
-    0 0 11px rgba(11, 14, 20, 0.58),
-    0 0 18px rgba(11, 14, 20, 0.34);
-}
+/* Over the hero the nav text sits plain on raw shader paint — no halo, no
+   scrim (documented AA exemption, owner-ratified 2026-07-23; see the hero
+   comment at .hero-zone). */
 
 /* On-light nav variant — toggled by IntersectionObserver over the cream chapter. */
-.nav--on-light .nav-link,
-.nav--on-light .nav-lang { text-shadow: none; }
 .nav--on-light .nav-link { color: var(--color-ink-on-light-muted); }
 .nav--on-light .nav-link:hover { color: var(--color-ink-on-light); }
 .nav--on-light .nav-link::after { background: var(--color-accent-blue-deep); }
@@ -359,10 +345,13 @@ strong {
   z-index: 2;
 }
 
-/* No CSS scrim: AA behind the hero text + nav is enforced per-pixel by the
-   shader's ink pooling (FluidWaves hero — luminance ceiling inside organic,
-   noise-edged regions around the name/role text and the top nav strip). The
-   old .hero-scrim vignette band was removed here. */
+/* DOCUMENTED AA EXEMPTION (owner-ratified 2026-07-23): the hero text (name,
+   role, nav over the hero) renders plain cream directly on raw shader paint —
+   no scrim, no text-shadow halo, no shader-side darkening of any kind. Soft
+   treatments top out ~1.8–2.3:1 over the brightest yellow paint; a worst-pixel
+   4.5:1 needs a near-opaque halo, rejected aesthetically. The owner explicitly
+   accepts the AA tradeoff here; do not reintroduce a contrast layer between
+   the text and the paint. */
 
 .hero-bottom {
   position: absolute;
@@ -417,20 +406,7 @@ strong {
   outline: none;
   border-radius: 2px;
   transition: color var(--dur-hover-in) var(--ease-house);
-  /* Ink aurora (small text → tight, DENSE core for the 4.5:1 need). Stacked
-     near-opaque short-blur layers build a solid ink ring within a few px of the
-     strokes (kills bright paint adjacent), then a soft aura tapers out. This is
-     where AA lives now — no background scrim/pool. Verified per-pixel 1–4px from
-     the strokes across seeds/frames (fix2 report). */
-  text-shadow:
-    0 0 1px rgba(11, 14, 20, 1),
-    0 0 2px rgba(11, 14, 20, 1),
-    0 0 3px rgba(11, 14, 20, 1),
-    0 0 4px rgba(11, 14, 20, 1),
-    0 0 5px rgba(11, 14, 20, 1),
-    0 0 7px rgba(11, 14, 20, 0.92),
-    0 0 11px rgba(11, 14, 20, 0.62),
-    0 0 19px rgba(11, 14, 20, 0.38);
+  /* Plain cream on raw paint — documented AA exemption (see .hero-zone note). */
 }
 .hero-role:hover { color: var(--accent-blue); }
 .hero-role:focus-visible {
@@ -446,20 +422,7 @@ strong {
   letter-spacing: -0.03em;
   text-transform: lowercase;
   color: var(--text);
-  /* Ink aurora — a soft atmospheric shadow the monumental glyphs cast into the
-     raw paint (radii scaled up for the large type; ≥3:1 for large text). Stacked
-     near-opaque short-blur layers hold a dense ink ring adjacent to the strokes;
-     the wide layers form the soft aura that hugs the letterforms (never a box).
-     Carries hero-name AA now — no background scrim/pool. Verified per-pixel (fix2). */
-  text-shadow:
-    0 0 2px rgba(11, 14, 20, 1),
-    0 0 4px rgba(11, 14, 20, 1),
-    0 0 6px rgba(11, 14, 20, 1),
-    0 0 9px rgba(11, 14, 20, 1),
-    0 0 14px rgba(11, 14, 20, 0.86),
-    0 0 26px rgba(11, 14, 20, 0.58),
-    0 0 52px rgba(11, 14, 20, 0.38),
-    0 0 92px rgba(11, 14, 20, 0.26);
+  /* Plain cream on raw paint — documented AA exemption (see .hero-zone note). */
 }
 /* Name lines. Each sits inside its own .hero-line-mask row and rises from
    y:110% to 0% on entrance (Framer, in Hero.tsx). */
@@ -1860,12 +1823,10 @@ body[data-loader-state="loading"] {
   display: block;
 }
 /* No-WebGL fallback: layered tricolor radials so the hero never renders
-   black-on-black — no scrim band (same principle as the live shader: the paint
-   reads raw, and the glyph ink aurora carries the hero/nav AA over it, verified
-   by pixel sampling in the fix2 report). The dimmer radial alphas (vs the live
-   paint) keep the worst-case fallback paint dark enough that the aurora clears
-   AA adjacent to the strokes. The topmost cream layer mirrors the shader's cream
-   dissolve so the bottom ~23% (≈30svh of the 130svh section) melts into the page. */
+   black-on-black — same principle as the live shader: the paint reads raw and
+   the hero text sits plain on it (documented AA exemption, see .hero-zone
+   note). The topmost cream layer mirrors the shader's cream dissolve so the
+   bottom ~23% (≈30svh of the 130svh section) melts into the page. */
 .fluid-waves-fallback {
   background:
     linear-gradient(to top,
