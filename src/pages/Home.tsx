@@ -234,6 +234,7 @@ export function Home() {
       <Hero />
       <Suspense fallback={<div style={{ minHeight: '100vh' }} aria-hidden />}>
         <Projects />
+        <div className="chapter-exit-veil" aria-hidden="true" />
         <Archive />
         <WorkExperience />
         <Stats />

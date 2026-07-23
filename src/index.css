@@ -2021,6 +2021,14 @@ body[data-loader-state="loading"] {
   }
 }
 
+/* Provisional cream→ink exit veil (Plan A) — sits below the cream Selected Work
+   stage so the return to the dark sections has no hard edge. Plan B relocates
+   this below Skills. Pure tone, no shader, no text. */
+.chapter-exit-veil {
+  height: 30svh;
+  background: linear-gradient(to bottom, var(--color-surface-light) 0%, var(--bg) 100%);
+}
+
 /* =========================================================================
    SELECTED WORK — CARD STACK (pinned scroll-scrubbed stage)
    Replaces the retired .projects-list WorkRow list. Canonical tokens only.
