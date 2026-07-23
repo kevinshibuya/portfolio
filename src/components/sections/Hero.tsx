@@ -108,12 +108,10 @@ export function Hero(): ReactElement {
       <div className="hero-canvas">
         <FluidWaves variant="hero" />
       </div>
-      {/* Inner 100svh zone owns the scrim + name/role, re-anchoring them so the
-          MANDATORY AA scrim band and the name never fall into the entry veil.
-          Byte-identical to the old .hero box, so the hero AA table stays valid. */}
+      {/* Inner 100svh zone re-anchors the name/role so they never fall into the
+          bottom dissolve band. AA behind the text is enforced per-pixel by the
+          shader's ink pooling (FluidWaves hero) — no CSS scrim overlay. */}
       <div className="hero-zone">
-        <div className="hero-scrim" aria-hidden="true" />
-
         <div className={`hero-bottom${riseSettled ? ' is-entered' : ''}`}>
         {/* Role line rises first out of its clip mask; the inner Framer
             AnimatePresence owns the separate click/keyboard cycle swap. */}

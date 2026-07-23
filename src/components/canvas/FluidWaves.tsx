@@ -12,6 +12,15 @@ const DPR_CAP = 1.5
 const FLOW_SPEED = 0.35
 const CONTRAST = 2.0
 
+// Organic-dissolve tuning (hero variant). AA for the hero/nav text is NOT the
+// shader's job — the paint renders fully raw everywhere except the dissolve
+// band; contrast lives on the glyphs themselves via a layered ink aurora
+// text-shadow (see .hero-name / .hero-role / dark-nav rules in index.css).
+// Cream dissolve: the threshold is displaced per-column by fBm for liquid
+// fingers; the bottom CREAM_FLOOR of the canvas is forced 100% cream regardless.
+const DISSOLVE_FINGER_AMP = 0.06
+const CREAM_FLOOR = 0.035
+
 const vertexShader = `
   attribute vec2 position;
   varying vec2 vUv;
@@ -46,6 +55,22 @@ const fragmentShader = `
   uniform float dissolveStrength;
 
   varying vec2 vUv;
+
+  // Value-noise fBm for organic, NON-periodic edges. Pure sines ripple into a
+  // regular zigzag (a "wobbly line"); layered hash-noise reads as liquid fingers
+  // and wisps. Seed + a slow time drift make it breathe with the simulation.
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+               mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+  }
+  float fbm(vec2 p) {
+    float v = 0.0, a = 0.5;
+    for (int i = 0; i < 4; i++) { v += a * vnoise(p); p = p * 2.0 + 3.1; a *= 0.5; }
+    return v;
+  }
 
   vec4 effect(vec2 screenSize, vec2 screen_coords) {
     vec2 uv = (screen_coords.xy - 0.5 * screenSize.xy) / length(screenSize.xy);
@@ -85,11 +110,18 @@ const fragmentShader = `
     vec3 ret_col = (0.3 / contrast) * colour_1 +
                    (1.0 - 0.3 / contrast) * (colour_1 * c1p + colour_2 * c2p + colour_3 * c3p);
 
-    // Cream dissolve. diss ramps 0 -> 1 from dissolveStart down to the canvas
-    // bottom edge (vUv.y = 0). Paint first thins — desaturated toward its own
-    // luma so colour drains before value (paint into paper, not a white wash) —
-    // then mixes the whole thing to cream, fully cream at the bottom edge.
-    float diss = smoothstep(dissolveStart, 0.0, vUv.y) * dissolveStrength;
+    // ---- Organic cream dissolve (noise-displaced threshold = liquid fingers).
+    // The dissolve height is displaced per-column by the flow field so cream eats
+    // up into the paint with fingers that move with the sim — never a linear cut.
+    // Paint first thins (desaturated toward its own luma — colour drains before
+    // value, paint into paper not a white wash) then mixes to cream.
+    float finger = (fbm(vec2(vUv.x * 3.0, dissolveStart * 4.0) + vec2(time * 0.06, seed * 5.0)) - 0.5) * 2.0;
+    float edge = dissolveStart + finger * ${DISSOLVE_FINGER_AMP.toFixed(3)};
+    float diss = smoothstep(edge, 0.0, vUv.y);
+    // HARD GUARANTEE: the bottom CREAM_FLOOR band is 100% cream regardless of the
+    // noise, so the canvas seats seamlessly on the cream section below it.
+    float floorCream = 1.0 - smoothstep(${CREAM_FLOOR.toFixed(3)}, ${(CREAM_FLOOR + 0.012).toFixed(3)}, vUv.y);
+    diss = max(diss, floorCream) * dissolveStrength;
     float luma = dot(ret_col, vec3(0.299, 0.587, 0.114));
     ret_col = mix(ret_col, vec3(luma), diss * 0.7);
     ret_col = mix(ret_col, vec3(0.9608, 0.9490, 0.9255), diss);
@@ -182,10 +214,9 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     gl.uniform3fv(colour2Loc, COLOR_2)
     gl.uniform3fv(colour3Loc, COLOR_3)
     gl.uniform1f(contrastLoc, CONTRAST)
-    // Dissolve strength is constant per variant: hero melts into the page, the
-    // backdrop keeps its opaque paint (its CSS dim/saturate treatment is what
-    // the Contact/Footer AA table depends on — untouched). dissolveStart is set
-    // per-resize below from the live zone/section geometry.
+    // Dissolve is hero-only: the backdrop keeps its opaque paint (its CSS
+    // dim/saturate treatment is what the Contact/Footer AA table depends on —
+    // untouched). dissolveStart is set per-resize below from the zone/section geometry.
     gl.uniform1f(dissolveStrengthLoc, variant === 'hero' ? 1.0 : 0.0)
     gl.enableVertexAttribArray(positionLoc)
     gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0)
@@ -204,8 +235,8 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       // the svh ratio never gets hardcoded and mobile URL-bar collapse (which
       // resizes both together) stays consistent. Backdrop has no zone → 0.
       if (variant === 'hero') {
-        const zoneEl = document.querySelector('.hero-zone') as HTMLElement | null
         const section = canvas.clientHeight
+        const zoneEl = document.querySelector('.hero-zone') as HTMLElement | null
         const zone = zoneEl?.clientHeight ?? section
         gl.uniform1f(dissolveStartLoc, section > 0 ? (section - zone) / section : 0)
       } else {
