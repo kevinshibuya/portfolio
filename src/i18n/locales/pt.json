@@ -32,12 +32,10 @@
   },
   "sections": {
     "projects": {
-      "index": "01 · destaques",
-      "label": "",
-      "title": "obras <em>em foco.</em>",
-      "description": "highlights pessoais. do briefing à entrega.",
+      "index": "01",
+      "label": "trabalhos selecionados",
       "stack": {
-        "viewProject": "ver projeto",
+        "viewProject": "ver",
         "indexLabel": "projetos selecionados"
       }
     },

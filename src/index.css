@@ -28,6 +28,25 @@
   font-display: swap;
 }
 
+/* Anton — display face for the Selected Work morphing title ONLY (Anton fence).
+   Self-hosted, single weight 400, subset latin + latin-ext, swap. */
+@font-face {
+  font-family: 'Anton';
+  src: url('/fonts/Anton-latin.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'Anton';
+  src: url('/fonts/Anton-latin-ext.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
 /* =========================================================================
    TOKENS (Tailwind v4 @theme + CSS vars)
    ========================================================================= */
@@ -41,6 +60,15 @@
   --color-accent-pink:   #E64D66;
   --color-accent-blue:   #4D80E6;
   --color-accent-yellow: #E6CC4D;
+
+  /* On-light chapter (Plan A). New canonical tokens — NOT the legacy alias set.
+     Contrast-audited in docs/superpowers/plans/2026-07-22-light-chapter-plan-a.md. */
+  --color-surface-light:        #F5F2EC; /* cream page surface */
+  --color-surface-light-tonal:  #EDE9E0; /* deeper cream (Plan B tonal role; defined now) */
+  --color-ink-on-light:         #0B0E14; /* primary ink text on cream/white */
+  --color-accent-pink-deep:     #B22B47; /* deep pink, ≥4.5:1 on cream/white */
+  --color-accent-blue-deep:     #2A54B5; /* deep blue, ≥4.5:1 on cream/white */
+  --color-accent-yellow-deep:   #7A6800; /* large/decorative only — small text uses ink-muted */
 
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
@@ -81,6 +109,12 @@
   --periwinkle-200: #6B94EA;
   --periwinkle-300: #7AA0ED;
 
+  /* On-light alpha steps (Plan A). Muted = always-visible small text (≥4.5:1);
+     faded = decorative/aria-hidden ONLY (below AA, matches .contact-num). */
+  --color-ink-on-light-muted: rgba(11, 14, 20, 0.62);
+  --color-ink-on-light-faded: rgba(11, 14, 20, 0.40);
+  --color-hairline-on-light:  rgba(11, 14, 20, 0.12);
+
   /* Motion tokens (motion-consistency-pass, 2026-07-21). Signature = house ease.
      Pacing keeps the grandeur: unify values, don't speed up reveals. */
   --ease-house: cubic-bezier(0.22, 1, 0.36, 1);
@@ -120,19 +154,19 @@ html { scrollbar-gutter: stable; }
    two-value shorthand; WebKit/Blink use the pseudo-elements. */
 html {
   scrollbar-width: thin;
-  scrollbar-color: rgba(245, 242, 236, 0.18) transparent;
+  scrollbar-color: rgba(120, 120, 128, 0.55) transparent;
 }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(245, 242, 236, 0.16);
+  background: rgba(120, 120, 128, 0.5);
   border-radius: 999px;
   /* transparent border + padding-box clip = the bar floats inset from the edge
      and reads thinner, matching the hairline restraint of the page. */
   border: 2px solid transparent;
   background-clip: padding-box;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(245, 242, 236, 0.30); }
+::-webkit-scrollbar-thumb:hover { background: rgba(120, 120, 128, 0.72); }
 ::-webkit-scrollbar-corner { background: transparent; }
 
 body { font-weight: 400; }
@@ -247,6 +281,18 @@ strong {
 }
 .nav-lang:hover { color: var(--text); }
 
+/* On-light nav variant — toggled by IntersectionObserver over the cream chapter. */
+.nav--on-light .nav-link { color: var(--color-ink-on-light-muted); }
+.nav--on-light .nav-link:hover { color: var(--color-ink-on-light); }
+.nav--on-light .nav-link::after { background: var(--color-accent-blue-deep); }
+.nav--on-light .nav-mark { background: var(--color-ink-on-light); color: var(--color-surface-light); }
+.nav--on-light .nav-mark__dot { background: var(--color-accent-blue-deep); }
+.nav--on-light .nav-lang { color: var(--color-ink-on-light); }
+.nav--on-light.is-scrolled {
+  background: rgba(245, 242, 236, 0.85);
+  border-bottom: 1px solid var(--color-hairline-on-light);
+}
+
 @media (max-width: 720px) {
   .nav-brand { min-height: 44px; }
   .nav-lang {
@@ -266,12 +312,13 @@ strong {
    ========================================================================= */
 .hero {
   position: relative;
-  min-height: 100svh;
+  min-height: 130svh; /* was 100svh — grows for the entry veil band */
   overflow: hidden;
   background: var(--bg);
 }
 
 /* Canvas layer — FluidWaves (position:absolute; inset:0) fills this box.
+   Now covers the FULL 130svh section so the shader melts through the veil.
    Settled from first paint (opacity 1): the loader explosion IS the entrance,
    blowing open onto an already-final hero — no timeline holds this hidden. */
 .hero-canvas {
@@ -279,6 +326,32 @@ strong {
   inset: 0;
   z-index: 0;
   opacity: 1;
+}
+
+/* Inner 100svh zone — re-anchors the scrim + name/role so the MANDATORY AA
+   scrim band and the name never fall into the entry veil. Byte-identical to the
+   old .hero box (100svh), so the hero AA table stays valid unchanged. */
+.hero-zone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100svh;
+  z-index: 2;
+}
+
+/* Entry veil — always-there transparent→cream band over the still-rendering
+   canvas, below the zone. No text ever renders here. Its bottom = cream = the
+   Selected Work bg, so hero→Projects has no hard edge. */
+.hero-veil {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100svh;
+  height: 30svh;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(245, 242, 236, 0) 0%, var(--color-surface-light) 100%);
 }
 
 /* MANDATORY contrast scrim (contrast table) — darkens the bottom band where
@@ -1960,11 +2033,19 @@ body[data-loader-state="loading"] {
   }
 }
 
+/* Provisional cream→ink exit veil (Plan A) — sits below the cream Selected Work
+   stage so the return to the dark sections has no hard edge. Plan B relocates
+   this below Skills. Pure tone, no shader, no text. */
+.chapter-exit-veil {
+  height: 30svh;
+  background: linear-gradient(to bottom, var(--color-surface-light) 0%, var(--bg) 100%);
+}
+
 /* =========================================================================
    SELECTED WORK — CARD STACK (pinned scroll-scrubbed stage)
    Replaces the retired .projects-list WorkRow list. Canonical tokens only.
    ========================================================================= */
-.projects-stack-section { overflow: visible; } /* never clip the sticky descendant */
+.projects-stack-section { overflow: visible; background: var(--color-surface-light); } /* never clip the sticky descendant */
 
 .stack-scroll {
   position: relative;
@@ -1977,7 +2058,14 @@ body[data-loader-state="loading"] {
   position: sticky;
   top: 0;
   height: 100svh;
-  overflow: hidden; /* clip the exiting card as it flies to y 340 */
+  box-sizing: border-box;   /* padding must stay INSIDE the 100svh box or the pin breaks */
+  /* Reserve clearance for the fixed nav: it overlays the top of the sticky box and
+     its scrolled background is opaque enough to hide the whisper eyebrow. Biasing the
+     centred column down by this padding lifts the eyebrow + title clear of the nav band
+     (nav is ~55–72px tall). The column is ~720px and the viewport ~800px, so the near-
+     full column shifts almost the full padding; on tall viewports it stays ~centred. */
+  padding-top: clamp(64px, 9svh, 104px);
+  overflow: hidden; /* clip the exiting card as it flies to y 520 */
   display: grid;
   place-items: center;
 }
@@ -1985,7 +2073,9 @@ body[data-loader-state="loading"] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
+  /* Tighter on short viewports so the nav-clearance offset never clips the card
+     bottom at 100svh = 800px; relaxes back to 28px once there is vertical room. */
+  gap: clamp(16px, 2.4svh, 28px);
   width: 100%;
 }
 
@@ -1995,79 +2085,122 @@ body[data-loader-state="loading"] {
   margin: 0;
   text-align: center;
   text-transform: lowercase;
+  font-family: 'Anton', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 400;
+  font-size: clamp(56px, 9vw, 150px);
+  line-height: 0.95;
+  letter-spacing: 0;               /* Anton is already condensed; -0.03em over-tightens */
+  color: var(--color-ink-on-light);
 }
 .gooey-title-defs { position: absolute; width: 0; height: 0; }
-.gooey-title-stage { position: relative; display: inline-grid; }
+.gooey-title-stage {
+  position: relative;
+  display: inline-grid;
+  place-items: center;             /* center every span in the shared cell → mixed 1-/2-line align */
+  max-width: min(90vw, 18ch);      /* forces "painel da reconstrução" to 2 lines; integrator finalizes */
+  line-height: 0.95;
+}
 .gooey-title-span {
-  grid-area: 1 / 1; /* stack both spans in the same cell so they morph in place */
+  grid-area: 1 / 1;                 /* stack all spans in one cell so they morph in place */
+  place-self: center;              /* center a 1-line span within a 2-line-tall cell */
   display: block;
-  font-size: clamp(30px, 5vw, 64px);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: var(--text);
-  will-change: filter, opacity;
+  text-align: center;
+  line-height: 0.95;               /* explicit so a 2-line span matches the base metrics */
+  will-change: filter, opacity;    /* font-family/size/weight/color inherit from .gooey-title */
 }
 
-/* Meta line */
-.stack-meta {
+/* Whisper eyebrow — replaces the SectionHeading block on Projects only. */
+.stack-eyebrow {
   margin: 0;
-  color: var(--text-faded);
-  font-size: clamp(12px, 1.4vw, 13px);
-  letter-spacing: 0.02em;
-  text-transform: lowercase;
-  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-on-light-muted);
+  font-size: clamp(11px, 1.2vw, 13px);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
 }
-.stack-meta .num { color: var(--row-tint); }
+.stack-eyebrow-num { color: var(--color-accent-pink-deep); }
 
 /* Card stack */
 .stack-cards {
   position: relative;
   width: min(46vw, 620px);
-  aspect-ratio: 16 / 9.5;
+  aspect-ratio: 620 / 448;     /* Shadway card is taller than image-only; drives EXIT_Y=520 (T5) */
 }
 .stack-card {
   position: absolute;
   inset: 0;
-  border-radius: 14px;
-  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  border: 1px solid var(--color-hairline-on-light);
+  background: #FFFFFF;
+  padding: 12px;
   overflow: hidden;
-  background: var(--bg-tonal);
   /* No will-change here: Framer manages the compositor hint on its own animated
      transforms, and the spec sanctions will-change ONLY on the two title spans
      (CLAUDE.md: "will-change only when animating"). */
 }
 .stack-card--buried { pointer-events: none; }
-.stack-card img,
-.stack-card-fallback { width: 100%; height: 100%; object-fit: cover; display: block; }
-.stack-card-fallback { background: linear-gradient(145deg, var(--bg-tonal), var(--bg)); }
 .stack-card-link,
-.stack-card-inert { display: block; position: absolute; inset: 0; }
-.stack-card-link:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
-
-/* view project bar — hero-scrim rule: ink gradient ≥ 0.88 alpha behind text */
-.stack-card-bar {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
+.stack-card-inert {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 10px;
+}
+.stack-card-link { text-decoration: none; }
+.stack-card-link:focus-visible { outline: 2px solid var(--color-ink-on-light); outline-offset: 3px; }
+.stack-card-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9.5;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-surface-light-tonal);
+  flex: none;
+}
+.stack-card-frame img,
+.stack-card-fallback { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.stack-card-fallback { background: linear-gradient(145deg, var(--color-surface-light-tonal), var(--color-surface-light)); }
+.stack-card-body {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px;
-  color: var(--text);
-  font-size: 14px;
+  gap: 14px;
+  padding: 0 4px;
+  min-height: 0;
+}
+.stack-card-labels { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.stack-card-name {
+  font-size: clamp(14px, 1.4vw, 16px);
+  font-weight: 700;
+  color: var(--color-ink-on-light);
   text-transform: lowercase;
-  /* Hero-scrim rule: alpha must be ≥ 0.88 across the WHOLE text-bearing region.
-     The flex-centered CTA text sits in the band up to ~72% of the bar height
-     (18px padding + line box); the fade to transparent begins only ABOVE it. */
-  background: linear-gradient(
-    to top,
-    rgba(11, 14, 20, 0.92) 0%,
-    rgba(11, 14, 20, 0.88) 72%,
-    rgba(11, 14, 20, 0) 100%
-  );
+  letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.stack-card-subtitle {
+  font-size: 13px;
+  color: var(--color-ink-on-light-muted);
+  text-transform: lowercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.stack-card-pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--color-ink-on-light);
+  color: var(--color-surface-light);
+  font-size: 13px;
+  text-transform: lowercase;
+  white-space: nowrap;
 }
 .stack-card-arrow {
-  color: var(--row-tint);
+  color: var(--row-tint);   /* raw tricolor on the ink pill — passes AA all three (audit row 9) */
   transition: transform var(--dur-hover-in, 0.2s) var(--ease-house);
 }
 .stack-card-link:hover .stack-card-arrow,

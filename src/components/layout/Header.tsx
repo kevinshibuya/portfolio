@@ -28,6 +28,7 @@ export function Header() {
   const { scrollTo } = useLenis();
   const { entranceDone } = useMotion();
   const [visible, setVisible] = useState(false);
+  const [onLight, setOnLight] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -37,6 +38,46 @@ export function Header() {
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    let io: IntersectionObserver | null = null;
+    let mo: MutationObserver | null = null;
+
+    const arm = (el: Element): boolean => {
+      if (io) return true;
+      io = new IntersectionObserver(
+        (entries) => setOnLight(entries.some((e) => e.isIntersecting)),
+        // A 1% band (not a zero-height line) at the very top, where the fixed nav
+        // sits: on-light while #projects crosses the nav, dark above and below.
+        { rootMargin: "-8% 0px -91% 0px", threshold: 0 },
+      );
+      io.observe(el);
+      return true;
+    };
+
+    const existing = document.getElementById("projects");
+    if (existing) {
+      arm(existing);
+    } else {
+      // #projects mounts later (lazy chunk). Arm on first appearance, then stop watching.
+      mo = new MutationObserver(() => {
+        const el = document.getElementById("projects");
+        if (el && arm(el)) {
+          mo?.disconnect();
+          mo = null;
+        }
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+    }
+
+    return () => {
+      io?.disconnect();
+      io = null;
+      mo?.disconnect();
+      mo = null;
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,7 +109,7 @@ export function Header() {
 
   return (
     <header
-      className={`nav${scrolled ? " is-scrolled" : ""}${visible ? " is-visible" : ""}`}
+      className={`nav${scrolled ? " is-scrolled" : ""}${visible ? " is-visible" : ""}${onLight ? " nav--on-light" : ""}`}
     >
       <div className="nav-inner">
         <a

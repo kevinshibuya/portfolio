@@ -30,6 +30,7 @@ export interface Mockups {
   desktop: string        // detail-page hero (target ≥2000px width)
   desktopBento: string   // bento card (1024px native)
   mobile: string         // shared (2000px)
+  stackCover?: string    // Selected Work card (1024×608 top-crop webp)
 }
 
 export interface Project {

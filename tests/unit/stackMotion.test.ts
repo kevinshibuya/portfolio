@@ -72,15 +72,15 @@ describe('settleFrac (plateau remap, window 0.15–0.85)', () => {
   })
 })
 
-describe('depthTransform (slots 12/-16/-44, scales 1/.95/.9, exit y 440)', () => {
+describe('depthTransform (slots 12/-16/-44, scales 1/.95/.9, exit y 520)', () => {
   it('front card (depth 0) sits at slot 0 when settled', () => {
     expect(depthTransform(0, 0)).toMatchObject({ y: 12, scale: 1, opacity: 1 })
   })
-  it('front card exits to y 440 and fades to .85 across the window', () => {
-    expect(depthTransform(0, 1)).toMatchObject({ y: 440, opacity: 0.85 })
+  it('front card exits to y 520 and fades to .85 across the window', () => {
+    expect(depthTransform(0, 1)).toMatchObject({ y: 520, opacity: 0.85 })
   })
-  it('front-card exit accelerates (ease-in lags the linear midpoint 226)', () => {
-    expect(depthTransform(0, 0.5).y).toBeLessThan(226)
+  it('front-card exit accelerates (ease-in lags the linear midpoint 266)', () => {
+    expect(depthTransform(0, 0.5).y).toBeLessThan(266)
   })
   it('depth 1 promotes into the front slot', () => {
     expect(depthTransform(1, 0)).toMatchObject({ y: -16, scale: 0.95, opacity: 1 })
@@ -105,9 +105,9 @@ describe('depthTransform (slots 12/-16/-44, scales 1/.95/.9, exit y 440)', () =>
 
 describe('cardStyleAt (single-channel rel = cardIndex − segCont)', () => {
   it('parks any fully-exited card (rel ≤ −1) at EXIT_Y, opacity/shadow 0', () => {
-    expect(cardStyleAt(-1)).toEqual({ y: 440, scale: 1, opacity: 0, shadow: 0 })
-    expect(cardStyleAt(-1.5)).toEqual({ y: 440, scale: 1, opacity: 0, shadow: 0 })
-    expect(cardStyleAt(-3)).toEqual({ y: 440, scale: 1, opacity: 0, shadow: 0 })
+    expect(cardStyleAt(-1)).toEqual({ y: 520, scale: 1, opacity: 0, shadow: 0 })
+    expect(cardStyleAt(-1.5)).toEqual({ y: 520, scale: 1, opacity: 0, shadow: 0 })
+    expect(cardStyleAt(-3)).toEqual({ y: 520, scale: 1, opacity: 0, shadow: 0 })
   })
   it('integer rest states equal depthTransform(depth, 0)', () => {
     expect(cardStyleAt(0)).toEqual(depthTransform(0, 0)) // front at rest
@@ -122,31 +122,39 @@ describe('cardStyleAt (single-channel rel = cardIndex − segCont)', () => {
     expect(cardStyleAt(0.5)).toEqual(depthTransform(1, 0.5))
   })
   it('is continuous approaching the park boundary, then the park drops opacity', () => {
-    // rel = −1 + ε → depthTransform(0, 1 − ε): y → 440, opacity → 0.85, shadow → 1.
+    // rel = −1 + ε → depthTransform(0, 1 − ε): y → 520, opacity → 0.85, shadow → 1.
     const nearY = cardStyleAt(-1 + 1e-4)
-    expect(nearY.y).toBeGreaterThan(439.9)
-    expect(nearY.y).toBeLessThanOrEqual(440)
+    expect(nearY.y).toBeGreaterThan(519.8)
+    expect(nearY.y).toBeLessThanOrEqual(520)
     expect(nearY.opacity).toBeCloseTo(0.85, 3)
     // The only discontinuity at rel = −1 is the park branch: opacity 0.85 → 0.
     const parked = cardStyleAt(-1)
-    expect(parked.y).toBe(440)
+    expect(parked.y).toBe(520)
     expect(parked.opacity).toBe(0)
     expect(parked.shadow).toBe(0)
   })
 })
 
-describe('morphValues (gooey blur/opacity, capped, no Infinity)', () => {
-  it('at frac 0 the outgoing title is crisp, incoming blurred + transparent', () => {
+describe('morphValues (gooey blur/opacity, cap in bounds, no Infinity)', () => {
+  // The blur CAP is an Anton-tunable constant within [100, 240] (T8): bigger
+  // glyphs need proportionally more blur to fully dissolve at the crossfade
+  // extremes. These bound the cap instead of pinning it, so any value T8 picks
+  // in-range stays green; the midpoint gooey blur (8px) stays exact.
+  const BLUR_CAP_MIN = 100
+  const BLUR_CAP_MAX = 240
+  it('at frac 0 the outgoing title is crisp, incoming maxed-blur + transparent', () => {
     const m = morphValues(0)
     expect(m.outgoing).toEqual({ blur: 0, opacity: 1 })
     expect(m.incoming.opacity).toBe(0)
-    expect(m.incoming.blur).toBe(100)
+    expect(m.incoming.blur).toBeGreaterThanOrEqual(BLUR_CAP_MIN)
+    expect(m.incoming.blur).toBeLessThanOrEqual(BLUR_CAP_MAX)
   })
   it('at frac 1 the incoming title is crisp, outgoing gone', () => {
     const m = morphValues(1)
     expect(m.incoming).toEqual({ blur: 0, opacity: 1 })
     expect(m.outgoing.opacity).toBe(0)
-    expect(m.outgoing.blur).toBe(100)
+    expect(m.outgoing.blur).toBeGreaterThanOrEqual(BLUR_CAP_MIN)
+    expect(m.outgoing.blur).toBeLessThanOrEqual(BLUR_CAP_MAX)
   })
   it('at the midpoint both blur to 8px and are symmetric', () => {
     const m = morphValues(0.5)
@@ -154,12 +162,12 @@ describe('morphValues (gooey blur/opacity, capped, no Infinity)', () => {
     expect(m.outgoing.blur).toBeCloseTo(8, 6)
     expect(m.incoming.opacity).toBeCloseTo(Math.pow(0.5, 0.4), 6)
   })
-  it('blur is always within [0, 100]', () => {
+  it('blur is always within [0, cap]', () => {
     for (const f of [0, 0.01, 0.2, 0.5, 0.8, 0.99, 1]) {
       const m = morphValues(f)
       for (const b of [m.incoming.blur, m.outgoing.blur]) {
         expect(b).toBeGreaterThanOrEqual(0)
-        expect(b).toBeLessThanOrEqual(100)
+        expect(b).toBeLessThanOrEqual(BLUR_CAP_MAX)
       }
     }
   })

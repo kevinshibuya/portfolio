@@ -32,12 +32,10 @@
   },
   "sections": {
     "projects": {
-      "index": "01 · featured",
-      "label": "",
-      "title": "selected <em>work.</em>",
-      "description": "personal highlights. from brief to ship.",
+      "index": "01",
+      "label": "selected work",
       "stack": {
-        "viewProject": "view project",
+        "viewProject": "view",
         "indexLabel": "selected projects"
       }
     },

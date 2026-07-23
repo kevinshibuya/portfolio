@@ -223,34 +223,34 @@ loader (ink) → hero 100svh (shader, unchanged) → veil band ~30svh (paint →
 ## TODO (acceptance criteria)
 
 ### Plan A
-- [ ] Hero section stretches to ~130svh via the inner 100svh hero-zone element: scrim +
+- [x] Hero section stretches to ~130svh via the inner 100svh hero-zone element: scrim +
       name/role re-anchored to the zone and visually identical at rest (AA table re-verified
       against the zone box); canvas covers the full section; a transparent→cream veil band
       below the zone; no text in the band; hero e2e green.
-- [ ] Selected Work stage renders on `--color-surface-light` cream with the whisper eyebrow
+- [x] Selected Work stage renders on `--color-surface-light` cream with the whisper eyebrow
       (`01 · selected work`, deep-pink numeral) and NO SectionHeading block.
-- [ ] Gooey title renders in self-hosted Anton at `clamp(56px, 9vw, 150px)` ink; threshold/
+- [x] Gooey title renders in self-hosted Anton at `clamp(56px, 9vw, 150px)` ink; threshold/
       blur constants re-tuned for Anton at scale; mixed 1-/2-line morph alignment defined;
       2-line wrap verified with "painel da reconstrução" at 1280px and 390px; real-Safari
       visual check re-run on the 2-line worst case (codex-computer-use lane).
-- [ ] Cards are Shadway anatomy: white surface, inset plain `stackCover` screenshot (no
+- [x] Cards are Shadway anatomy: white surface, inset plain `stackCover` screenshot (no
       laptop chrome), body row = name + `year · tech` subtitle + ink `view ↗` pill inside
       the single front-card `<Link>`; stage meta line gone; subtitle uniquely scopable via
       `.stack-card-link .stack-card-subtitle` (innerText-pollution guard).
-- [ ] Stack geometry re-derived (slots/EXIT_Y/shadows) with the clearance rule holding:
+- [x] Stack geometry re-derived (slots/EXIT_Y/shadows) with the clearance rule holding:
       exiting card fully clears the promoted card; parked cards opacity 0.
-- [ ] Single-channel invariant intact: every per-frame visual still derives from `segCont`
+- [x] Single-channel invariant intact: every per-frame visual still derives from `segCont`
       alone (code inspection + existing tear-guard e2e green).
-- [ ] Nav flips to `.nav--on-light` (ink text, readable `is-scrolled` bg) while over the
+- [x] Nav flips to `.nav--on-light` (ink text, readable `is-scrolled` bg) while over the
       cream zone and back to dark outside it.
-- [ ] Provisional cream→ink exit veil below Projects — no hard cream/ink edge anywhere.
-- [ ] On-light tokens defined (incl. the two tint channels `--row-tint`/`--row-tint-deep`);
+- [x] Provisional cream→ink exit veil below Projects — no hard cream/ink edge anywhere.
+- [x] On-light tokens defined (incl. the two tint channels `--row-tint`/`--row-tint-deep`);
       contrast table for every Plan-A pair recomputed against the whitest surface each pair
       sits on and ≥ 4.5:1 (≥ 3.0:1 large); deep pink/blue ratified; yellow small-text
       exemption applied; neutral scrollbar thumb lands.
-- [ ] `stackCover` webp assets generated for the 4 featured projects; Lighthouse desktop
+- [x] `stackCover` webp assets generated for the 4 featured projects; Lighthouse desktop
       perf ≥ 89 with Anton loaded.
-- [ ] e2e updated: plateau assertion moved to card body/aria; veil + nav-flip specs added;
+- [x] e2e updated: plateau assertion moved to card body/aria; veil + nav-flip specs added;
       full serial suite green; unit suite green; `tsc -b` clean.
 
 ### Plan B

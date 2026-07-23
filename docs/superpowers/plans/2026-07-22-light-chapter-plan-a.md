@@ -94,10 +94,10 @@ Deep-accent-on-white-card (name/subtitle accents never land there in Plan A, but
 
 ### Work
 Run each and record pass/fail with counts:
-- [ ] **Step 1: typecheck** — `npx tsc -b` → clean.
-- [ ] **Step 2: unit** — `npm run test:unit` → expect `95 passed`.
-- [ ] **Step 3: serial e2e** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx playwright test --workers=1` → expect `48 passed / 0 failed / 0 skipped`.
-- [ ] **Step 4: record** — if any count differs from the Baselines block, STOP and report (stale baseline is a plan defect to fix before T2, per the standing rule).
+- [x] **Step 1: typecheck** — `npx tsc -b` → clean.
+- [x] **Step 2: unit** — `npm run test:unit` → expect `95 passed`.
+- [x] **Step 3: serial e2e** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx playwright test --workers=1` → expect `48 passed / 0 failed / 0 skipped`.
+- [x] **Step 4: record** — if any count differs from the Baselines block, STOP and report (stale baseline is a plan defect to fix before T2, per the standing rule).
 
 ### Verify before returning
 - `~/.claude/bin/qa-run.sh baseline-unit npm run test:unit`
@@ -527,9 +527,9 @@ test.describe('section enter on viewport', () => {
 })
 ```
 
-- [ ] **Step 1:** transcribe all seven files exactly.
-- [ ] **Step 2: confirm RED** — run the five RED files and confirm each FAILS for the expected reason (unit: EXIT_Y 520 vs current 440 / `accentDeepFor` missing; e2e: `.stack-card-subtitle` / `.hero-veil` / `.nav--on-light` absent). RED is success here. The blur-cap bounds `[100,240]` PASS against the current cap 100 — only the EXIT_Y assertions make `stackMotion.test.ts` RED.
-- [ ] **Step 3: confirm GREEN rescopes** — run `reduced-motion.spec.ts` + `section-enters.spec.ts` and confirm they PASS immediately (they no longer touch `#projects`; `#projects` still has its SectionHeading at this point, but these specs simply don't reference it anymore).
+- [x] **Step 1:** transcribe all seven files exactly.
+- [x] **Step 2: confirm RED** — run the five RED files and confirm each FAILS for the expected reason (unit: EXIT_Y 520 vs current 440 / `accentDeepFor` missing; e2e: `.stack-card-subtitle` / `.hero-veil` / `.nav--on-light` absent). RED is success here. The blur-cap bounds `[100,240]` PASS against the current cap 100 — only the EXIT_Y assertions make `stackMotion.test.ts` RED.
+- [x] **Step 3: confirm GREEN rescopes** — run `reduced-motion.spec.ts` + `section-enters.spec.ts` and confirm they PASS immediately (they no longer touch `#projects`; `#projects` still has its SectionHeading at this point, but these specs simply don't reference it anymore).
 
 ### Recomputed e2e totals (this task changes the suite size — carried to T15)
 - `section-enters.spec.ts`: 5 → 4 tests (dropped `#projects`) = **−1 per Playwright project**.
@@ -837,7 +837,7 @@ with:
 const BLUR_CAP = 180
 const morphBlur = (x: number): number => (x <= 0 ? BLUR_CAP : Math.min(8 / x - 8, BLUR_CAP))
 ```
-- [ ] **Record the chosen `BLUR_CAP` value + one-line rationale here** (starting 180; final after T14): __________
+- [x] **Record the chosen `BLUR_CAP` value + one-line rationale here** (final after T14 re-verify): **threshold offset = -170, BLUR_CAP = 180** — the T14 real-Safari re-verify (codex 20260723-011943) flagged the segment 2→3 mid-morph (1-line "enquetes gzh" crossing 2-line "painel da reconstrução") fusing into an illegible lump; ramped threshold -150→-160→-170 (each thins the gooey bridges / adds letterform definition, -170 the sanctioned max is the most legible while matched-line morphs at 0.17/0.50 stay a pleasant gooey crossfade — not over-tightened). BLUR_CAP stays 180: empirically pixel-identical at the mid-morph (blur clamps to the fixed 8px midpoint there regardless of cap, so the cap cannot touch the lump; lowering it only sharpens late-fade ghosts at the extremes and forfeits 180's full-dissolve-at-~28%-opacity clean exit). Residual mid-morph density at the mismatched segment is inherent to a two-title crossfade at equal opacity (frozen `pow(f,0.4)` keeps both ~76% opaque at mid; CSS centering of the 1-line title is required, cannot be moved out of the overlap band); -170 thins it to letterform-legible. Captures: `.superpowers/sdd/t8-tune/` (before/-160/-170/after at 0.17/0.50/0.83).
 
 ### Acceptance check
 - Unit (blur cap stays in bounds after the tune): `tests/unit/stackMotion.test.ts` (T2, bounds-form blur) stays GREEN. Run: `npx vitest run tests/unit/stackMotion.test.ts`.
@@ -1351,12 +1351,12 @@ Drive real Safari (26.x) against `npx vite preview --port 4173` (build first; ki
 - none (read-only run).
 
 ### Work
-- [ ] **Step 1: typecheck** — `npx tsc -b` → clean.
-- [ ] **Step 2: unit** — `npm run test:unit` → expect **99 passed** (95 prior + 4 new `palette.test.ts` cases: 1 `accentFor` + 3 `accentDeepFor`; `stackMotion.test.ts` case count unchanged — its blur cases went to bounds form, not more cases). If the count differs, report.
-- [ ] **Step 3: serial e2e** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx playwright test --workers=1` → **50 passed / 0 failed / 0 skipped** (baseline 48 − 2 `section-enters` [`#projects` dropped ×2 projects] + 2 `hero-veil` + 2 `nav-on-light`; `reduced-motion` rescoped, count unchanged), including the migrated `stack-scrub` subtitle assertion and the two GREEN-rescoped specs.
-- [ ] **Step 4: Lighthouse** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx vite preview --port 4173` (fresh build), then Lighthouse desktop perf on `/` → **≥ 89** (baseline 94; a score below 89 with Anton loaded is a defect, per the standing budget rule — flag it, don't wave it through).
-- [ ] **Step 5: long-task** — confirm `tests/e2e/perf-budget.spec.ts` green (< 300 ms; the canvas grew ~30% to 130svh coverage — if it reds under load, re-run idle before believing it).
-- [ ] **Step 6: TODO map** — map each Plan-A spec `## TODO` box to its green acceptance evidence (table below). Report any un-mapped box.
+- [x] **Step 1: typecheck** — `npx tsc -b` → clean.
+- [x] **Step 2: unit** — `npm run test:unit` → expect **99 passed** (95 prior + 4 new `palette.test.ts` cases: 1 `accentFor` + 3 `accentDeepFor`; `stackMotion.test.ts` case count unchanged — its blur cases went to bounds form, not more cases). If the count differs, report.
+- [x] **Step 3: serial e2e** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx playwright test --workers=1` → **50 passed / 0 failed / 0 skipped** (baseline 48 − 2 `section-enters` [`#projects` dropped ×2 projects] + 2 `hero-veil` + 2 `nav-on-light`; `reduced-motion` rescoped, count unchanged), including the migrated `stack-scrub` subtitle assertion and the two GREEN-rescoped specs.
+- [x] **Step 4: Lighthouse** — `lsof -ti:4173 | xargs kill 2>/dev/null; npx vite preview --port 4173` (fresh build), then Lighthouse desktop perf on `/` → **≥ 89** (baseline 94; a score below 89 with Anton loaded is a defect, per the standing budget rule — flag it, don't wave it through).
+- [x] **Step 5: long-task** — confirm `tests/e2e/perf-budget.spec.ts` green (< 300 ms; the canvas grew ~30% to 130svh coverage — if it reds under load, re-run idle before believing it).
+- [x] **Step 6: TODO map** — map each Plan-A spec `## TODO` box to its green acceptance evidence (table below). Report any un-mapped box.
 
 ### Verify before returning
 - `~/.claude/bin/qa-run.sh final-unit npm run test:unit`
