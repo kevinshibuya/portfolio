@@ -79,15 +79,18 @@ export function Hero(): ReactElement {
   useEffect(() => {
     setRoleIdx(0)
     // Reduced-motion users get the static canonical role (roles[0]) — no
-    // interval, no Framer slide transition ever fires.
-    if (!prefersReducedMotion) startCycling()
+    // interval, no Framer slide transition ever fires. The cycle waits for
+    // `entered`: it used to start at React mount, which burned the canonical
+    // role's 5 s display window behind the loader (on a slow machine roles[1]
+    // could already be up when the text rose — caught by hero-entrance e2e).
+    if (!prefersReducedMotion && entered) startCycling()
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
     // startCycling is stable enough for our purposes; re-running on roles is
     // what matters (language toggle rebuilds the array).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roles, prefersReducedMotion])
+  }, [roles, prefersReducedMotion, entered])
 
   const cycleRole = (): void => {
     if (roles.length <= 1) return
