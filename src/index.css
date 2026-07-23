@@ -42,6 +42,15 @@
   --color-accent-blue:   #4D80E6;
   --color-accent-yellow: #E6CC4D;
 
+  /* On-light chapter (Plan A). New canonical tokens — NOT the legacy alias set.
+     Contrast-audited in docs/superpowers/plans/2026-07-22-light-chapter-plan-a.md. */
+  --color-surface-light:        #F5F2EC; /* cream page surface */
+  --color-surface-light-tonal:  #EDE9E0; /* deeper cream (Plan B tonal role; defined now) */
+  --color-ink-on-light:         #0B0E14; /* primary ink text on cream/white */
+  --color-accent-pink-deep:     #B22B47; /* deep pink, ≥4.5:1 on cream/white */
+  --color-accent-blue-deep:     #2A54B5; /* deep blue, ≥4.5:1 on cream/white */
+  --color-accent-yellow-deep:   #7A6800; /* large/decorative only — small text uses ink-muted */
+
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
@@ -80,6 +89,12 @@
   --periwinkle-100: #2A3450;       /* was pale bg */
   --periwinkle-200: #6B94EA;
   --periwinkle-300: #7AA0ED;
+
+  /* On-light alpha steps (Plan A). Muted = always-visible small text (≥4.5:1);
+     faded = decorative/aria-hidden ONLY (below AA, matches .contact-num). */
+  --color-ink-on-light-muted: rgba(11, 14, 20, 0.62);
+  --color-ink-on-light-faded: rgba(11, 14, 20, 0.40);
+  --color-hairline-on-light:  rgba(11, 14, 20, 0.12);
 
   /* Motion tokens (motion-consistency-pass, 2026-07-21). Signature = house ease.
      Pacing keeps the grandeur: unify values, don't speed up reveals. */
@@ -120,19 +135,19 @@ html { scrollbar-gutter: stable; }
    two-value shorthand; WebKit/Blink use the pseudo-elements. */
 html {
   scrollbar-width: thin;
-  scrollbar-color: rgba(245, 242, 236, 0.18) transparent;
+  scrollbar-color: rgba(120, 120, 128, 0.55) transparent;
 }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(245, 242, 236, 0.16);
+  background: rgba(120, 120, 128, 0.5);
   border-radius: 999px;
   /* transparent border + padding-box clip = the bar floats inset from the edge
      and reads thinner, matching the hairline restraint of the page. */
   border: 2px solid transparent;
   background-clip: padding-box;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(245, 242, 236, 0.30); }
+::-webkit-scrollbar-thumb:hover { background: rgba(120, 120, 128, 0.72); }
 ::-webkit-scrollbar-corner { background: transparent; }
 
 body { font-weight: 400; }
