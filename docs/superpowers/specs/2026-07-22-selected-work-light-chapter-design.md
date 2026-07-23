@@ -40,12 +40,16 @@ loader (ink) → hero 100svh (shader, unchanged) → veil band ~30svh (paint →
 → exit veil (cream → ink) → Contact/Footer shader stage (dark, unchanged)
 ```
 
-- **Entry veil:** the hero section grows to ~130svh. The top 100svh is byte-for-byte today's
-  hero: canvas, `.hero-scrim` (scoped to this zone — it must NOT stretch into the veil band),
-  name/role at its bottom, AA table untouched. Below it, a ~30svh band where the canvas keeps
-  rendering under an always-there `linear-gradient(transparent → #F5F2EC)` overlay. `FluidWaves`
-  covers the full stretched section (absolute inset:0 already does this); the rAF/pause/RM
-  machinery is untouched. No text ever sits inside either veil band (enforced rule).
+- **Entry veil:** the hero section grows to ~130svh — via an explicit DOM restructure, not a
+  bare `min-height` change. `.hero-scrim` and `.hero-bottom` are both `absolute` anchored to
+  the `.hero` box today, so naively growing the box would re-anchor the 0.88 scrim band and
+  the name into the veil (breaking the MANDATORY AA rule and the "no text in veils" rule).
+  Instead: a new **inner 100svh hero-zone element** owns the scrim + name/role (their CSS
+  re-anchored to it, visually byte-identical; AA table re-verified against this inner box),
+  while the canvas stays at the 130svh section level. Below the zone, a ~30svh band where the
+  canvas keeps rendering under an always-there `linear-gradient(transparent → #F5F2EC)`
+  overlay. The rAF/pause/RM machinery is untouched. No text ever sits inside either veil band
+  (enforced rule).
 - **Exit veil:** a `#F5F2EC → #0B0E14` gradient band between Skills and the Contact/Footer
   stage. Pure tone, no shader. The contact-stage contrast table assumes the dark base and
   stays valid untouched.
@@ -67,12 +71,27 @@ loader (ink) → hero 100svh (shader, unchanged) → veil band ~30svh (paint →
   plans (Plan B recolors them, never removes them); only Projects drops the block.
 - **Title:** GooeyTitle mechanics identical (blur crossfade + threshold filter, `spanMorph`,
   sr-only static title). New: Anton, ink `#0B0E14`, scale `clamp(56px, 9vw, 150px)`,
-  line-height 0.95, centered; long titles ("painel da reconstrução") may wrap to 2 lines —
-  the morph spans are block-level and wrap identically since all spans share one grid cell.
+  line-height 0.95, centered; long titles ("painel da reconstrução") may wrap to 2 lines.
   Anton is used NOWHERE else; Jakarta stays the site voice.
-- **Meta line:** deleted from the stage. Its content (index/total · year · top-2 tech) moves
-  into the card body subtitle. The plateau-swap behavior (discrete change at settle-midpoint,
-  driven by `frontIndex`) now applies to card-body aria/link only.
+  **Face/size re-tune required:** the threshold matrix (`255 −140`) and 100px blur cap were
+  tuned for Jakarta 700 at ≤64px; Anton's denser condensed strokes at up to 150px merge more
+  aggressively (blob risk), and titles wrap at different points, so a 1-line title morphing
+  against a 2-line title is vertically offset within the shared grid cell. The plan must:
+  (a) re-tune threshold/blur constants for Anton at the new scale, (b) define vertical
+  alignment for mixed 1-/2-line morph pairs (e.g. center-align spans within the cell),
+  (c) re-run the real-Safari visual check with the 2-line worst case (multi-line
+  `filter:url()` on morphing text is the known WebKit risk).
+- **Meta line:** deleted from the stage. The year + top-2 tech move into the card body
+  subtitle; the per-project `01 / 04` index/total is **removed entirely** (the visible stack
+  communicates position; the eyebrow's `01` is the section index, a different thing). The
+  plateau-swap behavior (discrete change at settle-midpoint, driven by `frontIndex`) now
+  applies to card-body aria/link only.
+- **innerText-pollution guard (ratified lesson, do not regress):** the shipped design kept
+  the meta a single node precisely because stacked hidden spans pollute `innerText`
+  assertions. Every card stays mounted, so subtitle markup and the migrated plateau e2e
+  assertion MUST be uniquely scopable to the front card — assert via
+  `.stack-card-link .stack-card-subtitle` (the interactive card is the only `<Link>`),
+  never via a bare class that matches all four mounted body rows.
 - **Card (Shadway anatomy):** white `#FFFFFF` surface, radius ~16px, plain desktop
   screenshot inset with its own ~10px radius and ~10px frame gap (no laptop chrome), body
   row below: project name (Jakarta ~15-16px, weight 700, ink) + subtitle
@@ -86,9 +105,12 @@ loader (ink) → hero 100svh (shader, unchanged) → veil band ~30svh (paint →
   using the same clearance rule that produced 440 (exiting card fully clears the promoted
   one; parked cards opacity 0). Shadows recalibrated for cream bg (softer, larger radius —
   dark shadows on light ground read heavier than on ink).
-- **Tint:** `--row-tint` via `accentFor(frontIndex)` survives on the stage (eyebrow numeral,
-  pill hover state, subtitle accent — exact mapping fixed in the plan) but reads from the
-  **on-light accent triplet** (below) for any text-bearing use.
+- **Tint:** the per-project accent rotation survives, but ONE `--row-tint` channel cannot
+  serve both grounds — deep on-light values lose vibrancy on ink, raw values fail AA on
+  cream. Two channels, both set from `accentFor(frontIndex)`: `--row-tint` (raw triplet,
+  on-ink uses: pill internals/hover) and `--row-tint-deep` (deep triplet, on-light
+  text-bearing uses: eyebrow numeral, subtitle accent). Exact element mapping fixed in
+  the plan.
 
 ## Light chapter (Plan B): Archive, WorkExperience, Stats, Skills
 
@@ -103,6 +125,16 @@ loader (ink) → hero 100svh (shader, unchanged) → veil band ~30svh (paint →
   Projects only; Plan B extends the root margin to the whole chapter. EN/PT toggle and
   markup unchanged.
 - Focus-visible rings and skip-link styles inside the light chapter invert to ink.
+- **Global surfaces the flip touches** (owned by Plan A unless noted):
+  - Scrollbar: the global thumb is cream-alpha (`rgba(245,242,236,0.18)`) — invisible over
+    the cream chapter. Strategy: a neutral mid-gray thumb that reads on both grounds (one
+    global value; per-section scrollbar styling isn't reliably possible).
+  - `<meta name="theme-color">` is `#0B0E14` — mobile browser chrome stays dark over the
+    cream chapter. Accepted for Plan A; Plan B may add a scroll-driven theme-color swap if
+    it proves trivial, else the dark chrome is ratified as-is.
+  - Background ownership: each cream section paints `--color-surface-light` itself (the
+    `body`/html base stays ink so overscroll/rubber-band edges stay dark at both ends);
+    no dark slivers may show between adjacent cream sections.
 
 ## Tokens & contrast (standing rule: audited, not hoped)
 
@@ -111,12 +143,18 @@ loader (ink) → hero 100svh (shader, unchanged) → veil band ~30svh (paint →
   audit-final), `--color-ink-on-light` `#0B0E14`, muted/faded on-light steps (≈ 0.55 / 0.4
   ink alphas, audit-final), and an **on-light accent triplet** `--color-accent-pink-deep` /
   `-blue-deep` / `-yellow-deep`.
-- The raw tricolor FAILS small-text AA on cream — pink `#E64D66` ≈ 3.6:1, blue `#4D80E6`
-  ≈ 3.9:1, yellow `#E6CC4D` ≈ 1.6:1. The deep triplet darkens each hue to ≥ 4.5:1 on
-  `#F5F2EC` (and ≥ 4.5:1 on the tonal cream) while staying recognizably the same three
-  accents. Exact hexes are computed in the plan's contrast table and ratified there.
+- The raw tricolor FAILS small-text AA on cream — pink `#E64D66` ≈ 3.3:1, blue `#4D80E6`
+  ≈ 3.4:1, yellow `#E6CC4D` ≈ 1.4:1. Deep pink and deep blue darken to ≥ 4.5:1 while
+  staying recognizably themselves. **Deep yellow cannot:** 4.5:1 against cream forces a
+  luminance so low the hue reads dark-olive, not yellow — so yellow is EXEMPT from
+  small-text use on light grounds (large-text ≥ 3.0:1 or decorative/`aria-hidden` uses
+  only; where the rotation would put yellow on small text, the element uses the ink faded
+  step instead). Exact hexes are computed in the plan's contrast table and ratified there.
+- The muted/faded on-light steps must be computed against the **whitest surface they sit
+  on** — the `#FFFFFF` card, not just cream: ink at 0.55 alpha on white is ≈ 4.3:1 (fails);
+  the subtitle step lands around 0.62+ alpha. Audit sets finals.
 - Audit deliverable: a full table covering ink-on-cream text steps, deep triplet on both
-  creams, white-card internals (name, subtitle, pill cream-on-ink), nav-on-light, and
+  creams AND on white-card internals (name, subtitle, pill cream-on-ink), nav-on-light, and
   focus rings — every always-visible pair ≥ 4.5:1 (≥ 3.0:1 large). Veil bands carry no text.
 
 ## Assets
@@ -135,16 +173,21 @@ loader (ink) → hero 100svh (shader, unchanged) → veil band ~30svh (paint →
 - Veils are static CSS gradients — nothing animates, nothing to reduce.
 - Stack scrub/RM/keyboard behavior unchanged (frozen invariants above).
 - GSAP stays entrance-only; no new scroll-scrub surfaces beyond the existing sanctioned one.
-- The canvas grows ~30% in area (130svh coverage): DPR cap 1.5 and pause machinery stay;
-  perf verified against the Lighthouse gate and the 300ms long-task e2e ceiling.
+- The canvas grows ~30% in area (130svh coverage): DPR cap 1.5 and pause machinery stay.
+  Headroom is thin (long-task measured 211–234ms under the 300ms ceiling; Lighthouse 94
+  over the ≥ 89 floor) — per the standing budget rule, the plan records MEASURED baselines
+  (Lighthouse + long-task, idle machine, vite preview) at plan-authoring time and re-measures
+  after the veil + Anton land; a target the baseline already misses is a plan defect.
 
 ## Testing impact (sanctioned breakage)
 
-- `tests/e2e/stack-scrub.spec.ts` asserts the meta line's innerText plateau swaps — that
-  element is deleted. The equivalent assertion moves to the front card's body/aria swap at
-  plateaus. This is a spec-level test update, not a patch-to-green.
-- `.stack-card-bar`/CTA selectors change to the body-row markup; single `.stack-card-link`,
-  `.gooey-title-sr`, and RM static-geometry assertions carry over as-is.
+- The load-bearing break: `tests/e2e/stack-scrub.spec.ts` asserts `.stack-meta` innerText
+  plateau swaps — that element is deleted. The assertion migrates to
+  `.stack-card-link .stack-card-subtitle` (front-card-scoped per the pollution guard above).
+  This is a spec-level test update, not a patch-to-green.
+- The `view project` bar → body-row markup change has **no test impact** (no spec references
+  `.stack-card-bar`/CTA selectors); single `.stack-card-link`, `.gooey-title-sr`, and RM
+  static-geometry assertions carry over as-is.
 - New e2e coverage: veil presence (hero section height > 100svh, gradient band exists,
   name still inside the 100svh zone), nav flips to `--on-light` inside the chapter and back.
 - Unit tests for `stackMotion` re-derived constants (EXIT_Y etc.) update alongside.
@@ -180,17 +223,20 @@ loader (ink) → hero 100svh (shader, unchanged) → veil band ~30svh (paint →
 ## TODO (acceptance criteria)
 
 ### Plan A
-- [ ] Hero section stretches to ~130svh: name/role + scrim byte-identical inside the top
-      100svh zone; a transparent→cream veil band below it over the live canvas; no text in
-      the band; hero e2e + AA table untouched.
+- [ ] Hero section stretches to ~130svh via the inner 100svh hero-zone element: scrim +
+      name/role re-anchored to the zone and visually identical at rest (AA table re-verified
+      against the zone box); canvas covers the full section; a transparent→cream veil band
+      below the zone; no text in the band; hero e2e green.
 - [ ] Selected Work stage renders on `--color-surface-light` cream with the whisper eyebrow
       (`01 · selected work`, deep-pink numeral) and NO SectionHeading block.
-- [ ] Gooey title renders in self-hosted Anton at `clamp(56px, 9vw, 150px)` ink, morph +
-      threshold filter + sr-only title behavior unchanged; 2-line wrap verified with
-      "painel da reconstrução" at 1280px and 390px.
+- [ ] Gooey title renders in self-hosted Anton at `clamp(56px, 9vw, 150px)` ink; threshold/
+      blur constants re-tuned for Anton at scale; mixed 1-/2-line morph alignment defined;
+      2-line wrap verified with "painel da reconstrução" at 1280px and 390px; real-Safari
+      visual check re-run on the 2-line worst case (codex-computer-use lane).
 - [ ] Cards are Shadway anatomy: white surface, inset plain `stackCover` screenshot (no
       laptop chrome), body row = name + `year · tech` subtitle + ink `view ↗` pill inside
-      the single front-card `<Link>`; stage meta line gone.
+      the single front-card `<Link>`; stage meta line gone; subtitle uniquely scopable via
+      `.stack-card-link .stack-card-subtitle` (innerText-pollution guard).
 - [ ] Stack geometry re-derived (slots/EXIT_Y/shadows) with the clearance rule holding:
       exiting card fully clears the promoted card; parked cards opacity 0.
 - [ ] Single-channel invariant intact: every per-frame visual still derives from `segCont`
@@ -198,8 +244,10 @@ loader (ink) → hero 100svh (shader, unchanged) → veil band ~30svh (paint →
 - [ ] Nav flips to `.nav--on-light` (ink text, readable `is-scrolled` bg) while over the
       cream zone and back to dark outside it.
 - [ ] Provisional cream→ink exit veil below Projects — no hard cream/ink edge anywhere.
-- [ ] On-light tokens defined; contrast table for every Plan-A pair recomputed and ≥ 4.5:1
-      (≥ 3.0:1 large); deep accent triplet ratified.
+- [ ] On-light tokens defined (incl. the two tint channels `--row-tint`/`--row-tint-deep`);
+      contrast table for every Plan-A pair recomputed against the whitest surface each pair
+      sits on and ≥ 4.5:1 (≥ 3.0:1 large); deep pink/blue ratified; yellow small-text
+      exemption applied; neutral scrollbar thumb lands.
 - [ ] `stackCover` webp assets generated for the 4 featured projects; Lighthouse desktop
       perf ≥ 89 with Anton loaded.
 - [ ] e2e updated: plateau assertion moved to card body/aria; veil + nav-flip specs added;
