@@ -179,9 +179,8 @@ export function Hero(): ReactElement {
         </h1>
         </div>
       </div>
-      {/* Entry veil — static transparent→cream band over the still-rendering
-          canvas, below the 100svh zone. No text ever renders here. */}
-      <div className="hero-veil" aria-hidden="true" />
+      {/* The transparent→cream melt below the 100svh zone is drawn by the shader
+          itself now (FluidWaves hero cream-dissolve), not a CSS veil element. */}
     </section>
   )
 }

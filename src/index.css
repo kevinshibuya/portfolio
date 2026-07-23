@@ -318,7 +318,8 @@ strong {
 }
 
 /* Canvas layer — FluidWaves (position:absolute; inset:0) fills this box.
-   Now covers the FULL 130svh section so the shader melts through the veil.
+   Covers the FULL 130svh section so the shader's own cream dissolve (bottom
+   ~30svh) melts the paint into the page surface — no CSS veil element.
    Settled from first paint (opacity 1): the loader explosion IS the entrance,
    blowing open onto an already-final hero — no timeline holds this hidden. */
 .hero-canvas {
@@ -340,29 +341,45 @@ strong {
   z-index: 2;
 }
 
-/* Entry veil — always-there transparent→cream band over the still-rendering
-   canvas, below the zone. No text ever renders here. Its bottom = cream = the
-   Selected Work bg, so hero→Projects has no hard edge. */
-.hero-veil {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100svh;
-  height: 30svh;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(245, 242, 236, 0) 0%, var(--color-surface-light) 100%);
-}
-
-/* MANDATORY contrast scrim (contrast table) — darkens the bottom band where
-   the name sits and the top under nav + meta, leaving the mid-canvas open. */
+/* MANDATORY contrast scrim (contrast table) — ink peaks (≥0.88) behind the
+   name + role rows, then EXHALES back to 0 on both sides of that plateau so the
+   raw paint re-brightens below the name (the ~72/56px there is text-free) and
+   flows into the shader's cream dissolve with no hard dark stripe at the melt.
+   Both releases are eased (S-curve-approximating stop sequences, dense near the
+   plateau corner and tapering into a long faint tail) so the eye never catches
+   a stop-edge where the plateau ends. Stops measured from the zone bottom
+   (`to top`):
+     0% ink0 → 6% ink0.88   lower release: S-curve up to the plateau, reached
+                            BELOW the lowest name pixel (mobile name bottom ~6.6%
+                            of 100svh, desktop ~9%) so the full name/role boxes
+                            plateau at ≥0.88 (AA inviolable, ~26px margin above
+                            the desktop role top ~50.7%)
+     6% → 54% ink0.88       plateau across name + role
+     54% ink0.88 → 86% ink0 upper release: eased exhale into the open mid-canvas
+   The top band (≥0.75 behind nav) is unchanged. */
 .hero-scrim {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(to top, rgba(11,14,20,0.88) 0%, rgba(11,14,20,0.55) 32%, rgba(11,14,20,0) 60%),
+    linear-gradient(to top,
+      rgba(11,14,20,0) 0%,
+      rgba(11,14,20,0.12) 2%,
+      rgba(11,14,20,0.34) 3.5%,
+      rgba(11,14,20,0.66) 5%,
+      rgba(11,14,20,0.82) 5.6%,
+      rgba(11,14,20,0.88) 6%,
+      rgba(11,14,20,0.88) 54%,
+      rgba(11,14,20,0.85) 57%,
+      rgba(11,14,20,0.78) 60.5%,
+      rgba(11,14,20,0.66) 64%,
+      rgba(11,14,20,0.50) 68%,
+      rgba(11,14,20,0.34) 72%,
+      rgba(11,14,20,0.20) 76%,
+      rgba(11,14,20,0.10) 80%,
+      rgba(11,14,20,0.04) 83%,
+      rgba(11,14,20,0) 86%),
     linear-gradient(to bottom, rgba(11,14,20,0.75) 0%, rgba(11,14,20,0) 28%);
 }
 
@@ -1834,9 +1851,15 @@ body[data-loader-state="loading"] {
   display: block;
 }
 /* No-WebGL fallback: same tricolor as layered radial gradients so the hero
-   never renders black-on-black. */
+   never renders black-on-black. The topmost linear layer mirrors the shader's
+   cream dissolve — the bottom ~23% (≈30svh of the 130svh section) melts to
+   cream so the fallback still flows into the page surface with no hard edge. */
 .fluid-waves-fallback {
   background:
+    linear-gradient(to top,
+      var(--color-surface-light) 0%,
+      rgba(245, 242, 236, 0) 23%,
+      rgba(245, 242, 236, 0) 100%),
     radial-gradient(60% 80% at 20% 30%, rgba(230, 77, 102, 0.50), transparent 70%),
     radial-gradient(50% 70% at 80% 25%, rgba(77, 128, 230, 0.50), transparent 70%),
     radial-gradient(70% 60% at 55% 80%, rgba(230, 204, 77, 0.35), transparent 70%),

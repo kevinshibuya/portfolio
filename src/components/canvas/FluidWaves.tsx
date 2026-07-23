@@ -36,6 +36,14 @@ const fragmentShader = `
   uniform vec3 colour_2;
   uniform vec3 colour_3;
   uniform float contrast;
+  // Cream dissolve (hero variant only): over a canvas-space band at the very
+  // bottom of the section the paint mixes toward cream #F5F2EC and desaturates,
+  // so the shader itself melts into the page surface (replacing the old CSS
+  // .hero-veil). dissolveStart = the band's top as a fraction of canvas height
+  // measured from the BOTTOM (vUv.y), derived from real layout at resize time;
+  // dissolveStrength = 1 for hero, 0 for backdrop (backdrop keeps opaque paint).
+  uniform float dissolveStart;
+  uniform float dissolveStrength;
 
   varying vec2 vUv;
 
@@ -76,6 +84,15 @@ const fragmentShader = `
 
     vec3 ret_col = (0.3 / contrast) * colour_1 +
                    (1.0 - 0.3 / contrast) * (colour_1 * c1p + colour_2 * c2p + colour_3 * c3p);
+
+    // Cream dissolve. diss ramps 0 -> 1 from dissolveStart down to the canvas
+    // bottom edge (vUv.y = 0). Paint first thins — desaturated toward its own
+    // luma so colour drains before value (paint into paper, not a white wash) —
+    // then mixes the whole thing to cream, fully cream at the bottom edge.
+    float diss = smoothstep(dissolveStart, 0.0, vUv.y) * dissolveStrength;
+    float luma = dot(ret_col, vec3(0.299, 0.587, 0.114));
+    ret_col = mix(ret_col, vec3(luma), diss * 0.7);
+    ret_col = mix(ret_col, vec3(0.9608, 0.9490, 0.9255), diss);
     return vec4(ret_col, 1.0);
   }
 
@@ -139,6 +156,8 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     const colour2Loc = gl.getUniformLocation(program, 'colour_2')
     const colour3Loc = gl.getUniformLocation(program, 'colour_3')
     const contrastLoc = gl.getUniformLocation(program, 'contrast')
+    const dissolveStartLoc = gl.getUniformLocation(program, 'dissolveStart')
+    const dissolveStrengthLoc = gl.getUniformLocation(program, 'dissolveStrength')
 
     const buffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
@@ -163,6 +182,11 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     gl.uniform3fv(colour2Loc, COLOR_2)
     gl.uniform3fv(colour3Loc, COLOR_3)
     gl.uniform1f(contrastLoc, CONTRAST)
+    // Dissolve strength is constant per variant: hero melts into the page, the
+    // backdrop keeps its opaque paint (its CSS dim/saturate treatment is what
+    // the Contact/Footer AA table depends on — untouched). dissolveStart is set
+    // per-resize below from the live zone/section geometry.
+    gl.uniform1f(dissolveStrengthLoc, variant === 'hero' ? 1.0 : 0.0)
     gl.enableVertexAttribArray(positionLoc)
     gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0)
 
@@ -174,6 +198,19 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       canvas.height = Math.max(1, Math.round(h * dpr))
       gl.viewport(0, 0, canvas.width, canvas.height)
       gl.uniform2f(resolutionLoc, canvas.width, canvas.height)
+      // Dissolve band = the part of the hero section BELOW the 100svh zone
+      // (the ~30svh veil region), expressed as a fraction of the full section
+      // height measured from the bottom (vUv.y). Derived from actual layout so
+      // the svh ratio never gets hardcoded and mobile URL-bar collapse (which
+      // resizes both together) stays consistent. Backdrop has no zone → 0.
+      if (variant === 'hero') {
+        const zoneEl = document.querySelector('.hero-zone') as HTMLElement | null
+        const section = canvas.clientHeight
+        const zone = zoneEl?.clientHeight ?? section
+        gl.uniform1f(dissolveStartLoc, section > 0 ? (section - zone) / section : 0)
+      } else {
+        gl.uniform1f(dissolveStartLoc, 0)
+      }
       // Setting canvas.width/height reallocates AND clears the drawing buffer
       // (opaque black with {alpha:false}). Under reduced motion no loop will
       // repaint it and the IO only repaints on viewport re-entry — so an
@@ -272,6 +309,9 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       ref={canvasRef}
       className={variant === 'hero' ? 'fluid-waves-canvas' : 'fluid-waves-canvas fluid-waves-canvas--backdrop'}
       data-canvas={variant === 'hero' ? 'fluid-waves' : 'fluid-waves-backdrop'}
+      // Marks the hero canvas as carrying the active cream-dissolve uniforms
+      // (the shader-side replacement for the removed .hero-veil).
+      data-dissolve={variant === 'hero' ? 'hero' : undefined}
       aria-hidden="true"
     />
   )
