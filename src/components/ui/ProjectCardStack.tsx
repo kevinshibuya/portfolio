@@ -49,24 +49,32 @@ function CardFace({
   eager: boolean
   viewProjectLabel: string
 }): React.ReactElement {
-  const inner = (
+  const body = (
     <>
-      <CardArt card={card} eager={eager} />
-      {interactive && (
-        <span className="stack-card-bar">
-          <span className="stack-card-cta">{viewProjectLabel}</span>
-          <span className="stack-card-arrow" aria-hidden="true">↗</span>
+      <span className="stack-card-frame">
+        <CardArt card={card} eager={eager} />
+      </span>
+      <span className="stack-card-body">
+        <span className="stack-card-labels">
+          <span className="stack-card-name">{card.title}</span>
+          <span className="stack-card-subtitle">{card.subtitle}</span>
         </span>
-      )}
+        {interactive && (
+          <span className="stack-card-pill">
+            {viewProjectLabel}
+            <span className="stack-card-arrow" aria-hidden="true">↗</span>
+          </span>
+        )}
+      </span>
     </>
   )
   return interactive ? (
     <Link className="stack-card-link" to={`/projects/${card.slug}`} aria-label={card.title}>
-      {inner}
+      {body}
     </Link>
   ) : (
     <div className="stack-card-inert" aria-hidden="true" tabIndex={-1}>
-      {inner}
+      {body}
     </div>
   )
 }
@@ -103,7 +111,7 @@ function ScrubCardSlot({
   const opacity = useTransform(seg, (s) => cardStyleAt(index - s).opacity)
   const boxShadow = useTransform(seg, (s) => {
     const sh = cardStyleAt(index - s).shadow
-    return `0 ${(18 * sh).toFixed(1)}px ${(40 * sh).toFixed(1)}px rgba(0,0,0,${(0.45 * sh).toFixed(3)})`
+    return `0 ${(24 * sh).toFixed(1)}px ${(64 * sh).toFixed(1)}px rgba(11,14,20,${(0.14 * sh).toFixed(3)})`
   })
   // Exiting card stays on top during flight (rel < 0 → max(rel,0) = 0 → z 10); once
   // parked it is opacity-0, so the terminal band is clean.

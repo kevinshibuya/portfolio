@@ -2068,50 +2068,83 @@ body[data-loader-state="loading"] {
 .stack-cards {
   position: relative;
   width: min(46vw, 620px);
-  aspect-ratio: 16 / 9.5;
+  aspect-ratio: 620 / 448;     /* Shadway card is taller than image-only; drives EXIT_Y=520 (T5) */
 }
 .stack-card {
   position: absolute;
   inset: 0;
-  border-radius: 14px;
-  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  border: 1px solid var(--color-hairline-on-light);
+  background: #FFFFFF;
+  padding: 12px;
   overflow: hidden;
-  background: var(--bg-tonal);
   /* No will-change here: Framer manages the compositor hint on its own animated
      transforms, and the spec sanctions will-change ONLY on the two title spans
      (CLAUDE.md: "will-change only when animating"). */
 }
 .stack-card--buried { pointer-events: none; }
-.stack-card img,
-.stack-card-fallback { width: 100%; height: 100%; object-fit: cover; display: block; }
-.stack-card-fallback { background: linear-gradient(145deg, var(--bg-tonal), var(--bg)); }
 .stack-card-link,
-.stack-card-inert { display: block; position: absolute; inset: 0; }
-.stack-card-link:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
-
-/* view project bar — hero-scrim rule: ink gradient ≥ 0.88 alpha behind text */
-.stack-card-bar {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
+.stack-card-inert {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 10px;
+}
+.stack-card-link { text-decoration: none; }
+.stack-card-link:focus-visible { outline: 2px solid var(--color-ink-on-light); outline-offset: 3px; }
+.stack-card-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9.5;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-surface-light-tonal);
+  flex: none;
+}
+.stack-card-frame img,
+.stack-card-fallback { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.stack-card-fallback { background: linear-gradient(145deg, var(--color-surface-light-tonal), var(--color-surface-light)); }
+.stack-card-body {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px;
-  color: var(--text);
-  font-size: 14px;
+  gap: 14px;
+  padding: 0 4px;
+  min-height: 0;
+}
+.stack-card-labels { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.stack-card-name {
+  font-size: clamp(14px, 1.4vw, 16px);
+  font-weight: 700;
+  color: var(--color-ink-on-light);
   text-transform: lowercase;
-  /* Hero-scrim rule: alpha must be ≥ 0.88 across the WHOLE text-bearing region.
-     The flex-centered CTA text sits in the band up to ~72% of the bar height
-     (18px padding + line box); the fade to transparent begins only ABOVE it. */
-  background: linear-gradient(
-    to top,
-    rgba(11, 14, 20, 0.92) 0%,
-    rgba(11, 14, 20, 0.88) 72%,
-    rgba(11, 14, 20, 0) 100%
-  );
+  letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.stack-card-subtitle {
+  font-size: 13px;
+  color: var(--color-ink-on-light-muted);
+  text-transform: lowercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.stack-card-pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--color-ink-on-light);
+  color: var(--color-surface-light);
+  font-size: 13px;
+  text-transform: lowercase;
+  white-space: nowrap;
 }
 .stack-card-arrow {
-  color: var(--row-tint);
+  color: var(--row-tint);   /* raw tricolor on the ink pill — passes AA all three (audit row 9) */
   transition: transform var(--dur-hover-in, 0.2s) var(--ease-house);
 }
 .stack-card-link:hover .stack-card-arrow,
