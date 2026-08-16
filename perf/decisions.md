@@ -24,13 +24,24 @@ To calibrate rather than guess, the suite was run at **absolute strictness**
 | non-zero diff | **1 / 30** — 6 px = ratio **0.000021** |
 
 Every `hero-top` and `mid-dissolve` shot, on both projects, is byte-identical
-across every run. The frozen WebGL frame is exactly reproducible — proved
-independently by `perf-hooks.spec.ts`, which asserts byte-equality of the raw
-canvas across reloads.
+in every strict run measured here. The frozen WebGL frame is exactly
+reproducible — proved independently by `perf-hooks.spec.ts`, which asserts
+byte-equality of the raw canvas across reloads.
 
-**The one residual: `stage-arrival` on `mobile-chromium` is BISTABLE.** It
-rasterizes to one of two images 6 px apart, chosen effectively at random per
-run. Proof — three consecutive strict trio runs over the same three shots:
+(Scope note: "byte-identical" describes the *steady-state* behaviour these
+measurements characterise. It is not a claim that no shot has ever failed —
+see "Open flake" below, a separate whole-project event with a different
+mechanism, now guarded.)
+
+**The one residual: `stage-arrival` on `mobile-chromium` rasterizes
+non-deterministically**, varying by 6 px from identical inputs. Every observed
+raster fell into one of **two** distinct images — but that is an n=2
+observation, not a proof that only two states exist; treat "two" as the
+observed range, not a guarantee. The flip is **per shot and independent**, not
+per run: runs 1 and 2 below failed different subsets, so it is not one
+run-level condition switching all three together.
+
+Proof — three consecutive strict trio runs over the same three shots:
 
 | strict trio run | 0p137 | 0p512 | 0p873 |
 |---|---|---|---|
@@ -160,9 +171,10 @@ consecutive runs. Across both calibration rounds the gate has now gone green on
 
 One full run early in Step 2 reported **15 failed (all mobile-chromium) /
 15 passed (all desktop)** — a whole-project failure, not a per-shot drift. Its
-diagnostics were not retained. It has **not** recurred in the 7 full runs and
-4 mobile-only runs since, and it is not explained by the measured noise floor
-(28 px is far below the configured tolerance and could not fail a shot).
+diagnostics were not retained. It has **not** recurred in the full runs and
+mobile-only runs since, and it is **not** explained by the measured noise floor:
+that floor is 6 px (ratio 0.000021), ~48× inside the configured tolerance, so
+it cannot fail a shot at all — let alone fail fifteen at once.
 
 Mitigation shipped rather than left to chance, in two parts:
 

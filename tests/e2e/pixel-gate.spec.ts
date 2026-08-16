@@ -50,9 +50,10 @@ const EXPECTED_VIEWPORT: Record<string, { width: number; height: number }> = {
 // MEASURED noise floor: runs at absolute strictness (threshold 0,
 // maxDiffPixelRatio 0) are byte-identical on every hero and dissolve shot, on
 // both projects, every time. The ONLY residual is `stage-arrival` on
-// mobile-chromium, which is BISTABLE: it rasterizes to one of two images 6px
-// apart, coin-flip per run (proved by three strict trio runs each failing a
-// different subset). 6px on 393×727 = ratio 0.000021.
+// mobile-chromium, which rasterizes non-deterministically: every observed
+// result was one of two images 6px apart, and the flip is per-shot and
+// independent (three strict trio runs each failed a different subset), not a
+// run-level condition. 6px on 393×727 = ratio 0.000021.
 //
 // The values below sit ~48× above that floor — enough to absorb the flip,
 // nowhere near enough for a real shader or layout change to hide.
@@ -95,13 +96,30 @@ const seedTag = (seed: number): string => `seed-${String(seed).replace('.', 'p')
  * is a no-op on solid glyphs. Still strictly inside the first card segment.
  *
  * Do not raise this above 0.05.
+ *
+ * NOTE the silent coupling to n: `frac = (n − 1) × p`, so the plateau ceiling
+ * is `p ≤ 0.15 / (n − 1)`. At n = 4 that is 0.05 and 0.04 fits. At n = 5 it
+ * drops to 0.0375 and this same 0.04 would slide back onto the cliff with no
+ * signal whatsoever. `EXPECTED_FEATURED_CARDS` below is asserted per shot so
+ * a fifth featured project fails loudly instead of silently re-aiming the shot.
  */
 const STAGE_ARRIVAL_PROGRESS = 0.04
 
-// The tolerance above is calibrated for, and only proven at, --workers=1. The
-// repo config is `fullyParallel: true, workers: 2`, which would run two
-// concurrent WebGL pages and add GPU contention this gate is not characterised
-// under. With no human eyeball in the loop, a contention-induced red gets an
+/**
+ * The stack's card count, which `STAGE_ARRIVAL_PROGRESS` is derived from and
+ * silently depends on. Sourced from `Projects.tsx` (`highlightOrder ≤ 4`).
+ * If this assertion fires, do not just bump the number — recompute
+ * STAGE_ARRIVAL_PROGRESS against `0.15 / (n − 1)` and re-bake the 6
+ * stage-arrival goldens on a commit that declares the visual intent.
+ */
+const EXPECTED_FEATURED_CARDS = 4
+
+// The tolerance above is calibrated for, and only proven at, --workers=1.
+// `playwright.config.ts` now sets `workers: 1` so a bare `npx playwright test`
+// is correct by default; this guard stays as the backstop against a `--workers`
+// flag or a future config edit. Concurrent WebGL pages add GPU contention this
+// gate is not characterised under. With no human eyeball in the loop, a
+// contention-induced red gets an
 // innocent optimization batch reverted — so fail fast and loudly instead.
 // NOTE: `test.describe.configure({ mode: 'serial' })` is NOT a substitute — it
 // serializes within the describe while the two projects still run concurrently.
@@ -255,6 +273,18 @@ async function scrollToStageArrival(page: Page): Promise<void> {
     throw new Error('#projects .stack-scroll not found — cannot derive the stage-arrival scroll position')
   }
   expect(scrolled).toBeGreaterThan(0)
+
+  // Close the silent n-coupling: STAGE_ARRIVAL_PROGRESS only lands on the
+  // settle plateau while frac = (n-1) x p <= 0.15. A fifth featured project
+  // would push this shot back onto the alpha-threshold cliff with no other
+  // symptom than goldens that quietly start capturing a mid-morph title.
+  const cards = await page.locator('#projects .stack-card').count()
+  expect(
+    cards,
+    `stage-arrival is calibrated for ${EXPECTED_FEATURED_CARDS} featured cards; found ${cards}. ` +
+      `Recompute STAGE_ARRIVAL_PROGRESS against 0.15 / (n - 1) before re-baking.`,
+  ).toBe(EXPECTED_FEATURED_CARDS)
+
   await settleFrame(page)
 }
 
