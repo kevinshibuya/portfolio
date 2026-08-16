@@ -18,13 +18,22 @@ const RELEASE_MS = (Math.max(...LINE_DELAYS) + RISE_DURATION) * 1000 + 90
 // Perf harness (test/measurement only): ?perf-role=<index> pins the role line
 // to one index and never starts the 5 s auto-cycle, so any hero capture stops
 // being time-dependent. Dormant (null) without the param.
+// A present-but-unparseable value warns instead of falling silently back to the
+// live auto-cycle — a silently unpinned role line produces a time-dependent
+// capture that still looks plausible. The no-param path never warns.
 const PERF_ROLE = ((): number | null => {
   if (typeof window === 'undefined') return null
   const raw = new URLSearchParams(window.location.search).get('perf-role')
   if (raw === null) return null
   const value = Number.parseInt(raw, 10)
-  return Number.isInteger(value) && value >= 0 ? value : null
+  if (!Number.isInteger(value) || value < 0) {
+    console.warn(`[perf] ignoring malformed ?perf-role=${raw} — expected a non-negative integer; role stays live`)
+    return null
+  }
+  return value
 })()
+
+let warnedRoleRange = false
 
 export function Hero(): ReactElement {
   const { t, i18n } = useTranslation()
@@ -90,6 +99,12 @@ export function Hero(): ReactElement {
 
   useEffect(() => {
     setRoleIdx(PERF_ROLE ?? 0)
+    // Once per page load: the effect re-runs whenever `roles` is rebuilt (i18n
+    // settle, language toggle), and a duplicated diagnostic reads as two bugs.
+    if (!warnedRoleRange && PERF_ROLE !== null && roles.length > 0 && PERF_ROLE >= roles.length) {
+      warnedRoleRange = true
+      console.warn(`[perf] ?perf-role=${PERF_ROLE} is out of range (${roles.length} roles) — clamped to ${roles.length - 1}`)
+    }
     // Reduced-motion users get the static canonical role (roles[0]) — no
     // interval, no Framer slide transition ever fires. The cycle waits for
     // `entered`: it used to start at React mount, which burned the canonical
@@ -110,7 +125,10 @@ export function Hero(): ReactElement {
     startCycling()
   }
 
-  const activeRole = roles[roleIdx] ?? ''
+  // Clamped at read time (roles.length is only known here): an out-of-range
+  // ?perf-role would otherwise render an EMPTY role line — deterministic, so a
+  // pixel gate would happily bake and then defend a role-less hero forever.
+  const activeRole = roles[Math.min(roleIdx, roles.length - 1)] ?? ''
 
   // The loader explosion reveals the shader; then the hero text rises in (above).
   // main.tsx is the sole resolver of the entrance gate (finishLoader →

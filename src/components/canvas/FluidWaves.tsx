@@ -60,11 +60,20 @@ declare global {
   }
 }
 
+// A PRESENT but unparseable param is operator error, not a request for default
+// behaviour: warn loudly rather than going silently dormant (a silent fallback
+// surfaces downstream as a selector timeout pointing at nothing, or worse, a
+// non-deterministic capture that still looks plausible). The no-param path
+// never reaches this and stays completely silent.
 const readPerfFloat = (params: URLSearchParams, key: string): number | null => {
   const raw = params.get(key)
   if (raw === null) return null
   const value = Number.parseFloat(raw)
-  return Number.isFinite(value) ? value : null
+  if (!Number.isFinite(value)) {
+    console.warn(`[perf] ignoring malformed ?${key}=${raw} — expected a number; hook stays off`)
+    return null
+  }
+  return value
 }
 
 const PERF = ((): { seed: number | null; freeze: number | null; counters: boolean } => {
@@ -224,6 +233,10 @@ const fragmentShader = `
 `
 
 export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): ReactElement {
+  // Single source of truth for this canvas's identity: it is BOTH the
+  // data-canvas attribute and the __PERF_GL__ counters key (the harness
+  // contract defines the key AS the attribute value), so they can never drift.
+  const canvasId = variant === 'hero' ? 'fluid-waves' : 'fluid-waves-backdrop'
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [webglFailed, setWebglFailed] = useState(false)
   const { prefersReducedMotion } = useMotion()
@@ -249,7 +262,7 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     if (perf) {
       const counted = perf
       const store = window.__PERF_GL__ ?? {}
-      store[variant === 'hero' ? 'fluid-waves' : 'fluid-waves-backdrop'] = counted
+      store[canvasId] = counted
       window.__PERF_GL__ = store
 
       const rawDrawArrays = gl.drawArrays.bind(gl)
@@ -331,6 +344,16 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     // site below is suppressed, the loop never starts, and it takes precedence
     // over reduced motion.
     const frozenAt = PERF.freeze
+    // Once the single frozen frame exists, the RESIZE itself is suppressed too,
+    // not just the redraw: setting canvas.width/height reallocates and clears
+    // the drawing buffer to opaque black, and a frozen canvas may never repaint
+    // it — so a mid-capture viewport change (a scenario runner's
+    // setViewportSize, mobile URL-bar collapse) would bake an all-black frame
+    // that is perfectly deterministic and therefore invisible to the pixel
+    // gate. The contract constrains draws; keeping the one frame intact is what
+    // it is actually for. The mount-time resize() still runs, since it precedes
+    // the frozen draw — viewport and dissolveStart are correct for that frame.
+    let frozenDrawn = false
     let rafId: number | null = null
     let inView = true
     // Scroll-coupled sim clock (see the SCROLL_BOOST_* constants): simTime
@@ -359,6 +382,7 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0)
 
     const resize = (): void => {
+      if (frozenAt !== null && frozenDrawn) return // keep the one frozen frame intact
       if (perf) perf.resizes++
       const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP)
       const w = canvas.clientWidth
@@ -448,6 +472,7 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       // Exactly one frame, through the LIVE frame path (not the reduced-motion
       // static path) so whatever per-frame state the loop sets applies to it.
       drawFrame(frozenAt)
+      frozenDrawn = true
       canvas.dataset.perfFrozen = 'true'
     } else if (prefersReducedMotion) {
       // One static frame, time frozen at a seed-derived phase; no loop.
@@ -502,7 +527,9 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       gl.deleteShader(fShader)
       gl.deleteBuffer(buffer)
     }
-  }, [prefersReducedMotion, variant])
+    // canvasId is derived from variant (already a dep) — listed only to satisfy
+    // exhaustive-deps; it can never change independently.
+  }, [prefersReducedMotion, variant, canvasId])
 
   if (webglFailed) {
     // Hero: layered-gradient fallback so the stage never renders black-on-black.
@@ -516,7 +543,7 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     <canvas
       ref={canvasRef}
       className={variant === 'hero' ? 'fluid-waves-canvas' : 'fluid-waves-canvas fluid-waves-canvas--backdrop'}
-      data-canvas={variant === 'hero' ? 'fluid-waves' : 'fluid-waves-backdrop'}
+      data-canvas={canvasId}
       // Marks the hero canvas as carrying the active cream-dissolve uniforms
       // (the shader-side replacement for the removed .hero-veil).
       data-dissolve={variant === 'hero' ? 'hero' : undefined}
