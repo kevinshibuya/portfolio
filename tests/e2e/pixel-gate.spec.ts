@@ -2,8 +2,9 @@ import { test, expect, type Page, type TestInfo } from '@playwright/test'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PIXEL GATE — the sole arbiter of "zero visual change" for the hero perf
-// campaign. `npx playwright test pixel-gate --workers=1` green = the optimized
-// build paints what the pre-campaign build painted, to AA-level tolerance.
+// campaign. `npx playwright test pixel-gate` green = the optimized build paints
+// what the pre-campaign build painted, to AA-level tolerance. No flag needed —
+// `playwright.config.ts` sets `workers: 1`, which this spec asserts.
 //
 // There is no human eyeball in this loop. A golden baked wrong is not a test
 // bug, it is a permanently-wrong definition of "correct". Two rules keep that
@@ -126,7 +127,7 @@ const EXPECTED_FEATURED_CARDS = 4
 test.beforeAll(() => {
   expect(
     test.info().config.workers,
-    'pixel-gate is only calibrated at --workers=1; run `npx playwright test pixel-gate --workers=1`',
+    'pixel-gate is only calibrated at --workers=1; drop any --workers flag, and check that playwright.config.ts still sets workers: 1',
   ).toBe(1)
 })
 

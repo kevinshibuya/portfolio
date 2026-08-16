@@ -7,8 +7,10 @@ calls. Every numeric claim made about this campaign traces to an entry here.
 
 ## 2026-08-16 · Task 2 · Pixel-gate tolerance calibration
 
-**Gate:** `npx playwright test pixel-gate --workers=1` — 30 goldens
+**Gate:** `npx playwright test pixel-gate` — 30 goldens
 (5 moments × 3 seeds × 2 Playwright projects), `tests/e2e/pixel-gate.spec.ts`.
+No `--workers` flag needed; the config default is `workers: 1` and the spec
+asserts it.
 
 ### Measured noise floor
 
@@ -187,17 +189,23 @@ Mitigation shipped rather than left to chance, in two parts:
    diffing a fallback gradient against 15 goldens and reading as "the
    optimization broke everything". It is an assertion, never a skip — it can
    only turn green into red.
-2. **Workers guard.** `test.beforeAll` asserts `config.workers === 1`. The repo
-   config is `fullyParallel: true, workers: 2`, so a bare
-   `npx playwright test pixel-gate` would run two concurrent WebGL pages —
-   precisely the contention suspected above, and a state this gate's tolerance
-   was never characterised under. It now fails fast with the correct command in
-   the message rather than producing an uncalibrated verdict.
+2. **Workers guard.** `test.beforeAll` asserts `config.workers === 1`.
+   Concurrent WebGL pages add GPU contention this gate's tolerance was never
+   characterised under — precisely the condition suspected above — so it fails
+   fast rather than producing an uncalibrated verdict.
 
-   **Task 6 must invoke this spec with `--workers=1`.** Note
-   `test.describe.configure({ mode: 'serial' })` is NOT a substitute: it
-   serializes within the describe while the two projects still run
-   concurrently.
+   **The config default is now `workers: 1`** (`playwright.config.ts`, whose
+   comment block is the authority and records both reasons: this gate's
+   calibration, and the loader in-flight sampling problem that already drove
+   4 → 2). The `beforeAll` assertion is therefore a **backstop**, not the
+   mechanism — it catches an explicit `--workers` flag or a future config edit.
+
+   **Task 6 needs no flag: a bare `npx playwright test` is correct.** Verified
+   — bare full suite 92/92, bare `pixel-gate` 30/30.
+
+   Note `test.describe.configure({ mode: 'serial' })` would NOT have been a
+   substitute for either: it serializes within the describe while the two
+   projects still run concurrently.
 
 **Standing instruction for Tasks 7–12:** if this gate ever goes red across a
 whole project at once while individual re-runs pass, suspect the environment,
