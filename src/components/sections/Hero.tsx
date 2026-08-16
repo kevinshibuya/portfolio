@@ -79,15 +79,18 @@ export function Hero(): ReactElement {
   useEffect(() => {
     setRoleIdx(0)
     // Reduced-motion users get the static canonical role (roles[0]) — no
-    // interval, no Framer slide transition ever fires.
-    if (!prefersReducedMotion) startCycling()
+    // interval, no Framer slide transition ever fires. The cycle waits for
+    // `entered`: it used to start at React mount, which burned the canonical
+    // role's 5 s display window behind the loader (on a slow machine roles[1]
+    // could already be up when the text rose — caught by hero-entrance e2e).
+    if (!prefersReducedMotion && entered) startCycling()
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
     // startCycling is stable enough for our purposes; re-running on roles is
     // what matters (language toggle rebuilds the array).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roles, prefersReducedMotion])
+  }, [roles, prefersReducedMotion, entered])
 
   const cycleRole = (): void => {
     if (roles.length <= 1) return
@@ -108,12 +111,10 @@ export function Hero(): ReactElement {
       <div className="hero-canvas">
         <FluidWaves variant="hero" />
       </div>
-      {/* Inner 100svh zone owns the scrim + name/role, re-anchoring them so the
-          MANDATORY AA scrim band and the name never fall into the entry veil.
-          Byte-identical to the old .hero box, so the hero AA table stays valid. */}
+      {/* Inner 100svh zone re-anchors the name/role so they never fall into the
+          bottom dissolve band. The text sits plain on raw shader paint — no
+          scrim, no halo (documented AA exemption; see .hero-zone in index.css). */}
       <div className="hero-zone">
-        <div className="hero-scrim" aria-hidden="true" />
-
         <div className={`hero-bottom${riseSettled ? ' is-entered' : ''}`}>
         {/* Role line rises first out of its clip mask; the inner Framer
             AnimatePresence owns the separate click/keyboard cycle swap. */}
@@ -179,9 +180,8 @@ export function Hero(): ReactElement {
         </h1>
         </div>
       </div>
-      {/* Entry veil — static transparent→cream band over the still-rendering
-          canvas, below the 100svh zone. No text ever renders here. */}
-      <div className="hero-veil" aria-hidden="true" />
+      {/* The transparent→cream melt below the 100svh zone is drawn by the shader
+          itself now (FluidWaves hero cream-dissolve), not a CSS veil element. */}
     </section>
   )
 }
