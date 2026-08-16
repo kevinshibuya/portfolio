@@ -60,7 +60,7 @@ Runtime/energy numbers are **defined by the harness being built** — they are d
 
 **Work:** Parse `location.search` once at module scope or mount (your choice). Zero behavior change when params absent — guard every hook behind the parsed value; the counters wrapper may exist only when the flag is present (wrap at setup, not branch-per-call in the hot loop). No React API surface change; `variant` prop untouched. Known coverage limit (recorded, not solved here): the no-param production render is guarded by the dormancy test below + code review, not by the pixel gate (goldens all use the params).
 
-- [ ] **Step 1:** Write `tests/e2e/perf-hooks.spec.ts` verbatim (below), run `npx playwright test perf-hooks --workers=1` — expected baseline: the three hook tests RED (params don't exist yet), the dormancy test GREEN (it asserts current behavior).
+- [x] **Step 1:** Write `tests/e2e/perf-hooks.spec.ts` verbatim (below), run `npx playwright test perf-hooks --workers=1` — expected baseline: the three hook tests RED (params don't exist yet), the dormancy test GREEN (it asserts current behavior).
 
 ```ts
 import { test, expect } from '@playwright/test'
@@ -139,9 +139,9 @@ test('no params: hooks dormant, normal loop untouched', async ({ page }) => {
 })
 ```
 
-- [ ] **Step 2:** Implement the hooks per the Work section. `npx playwright test perf-hooks --workers=1` — green.
-- [ ] **Step 3:** Regression gates: `npx tsc -b` clean, `npx vitest run` 99/99, `npx playwright test hero-shader hero-entrance hero-dissolve reduced-motion --workers=1` green (the touched surface).
-- [ ] **Step 4:** Commit `feat(perf): FluidWaves determinism hooks (seed/freeze/counters)`.
+- [x] **Step 2:** Implement the hooks per the Work section. `npx playwright test perf-hooks --workers=1` — green.
+- [x] **Step 3:** Regression gates: `npx tsc -b` clean, `npx vitest run` 99/99, `npx playwright test hero-shader hero-entrance hero-dissolve reduced-motion --workers=1` green (the touched surface).
+- [x] **Step 4:** Commit `feat(perf): FluidWaves determinism hooks (seed/freeze/counters)`.
 
 **Boundaries:** No shader math changes, no context-attribute changes (that's B3), no touching the IO/pause logic beyond reading it.
 
