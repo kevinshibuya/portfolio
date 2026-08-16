@@ -130,34 +130,49 @@ const fragmentShader = `
     // Where the noise runs high, cream reaches far up as a finger; where low,
     // paint hangs down as a tongue. No per-column 1D displacement, no
     // full-band vertical ramp (both read as a straight horizontal fade).
-    // p: 0 at the band top (bottom of the 100svh zone) -> 1 at the canvas
-    // bottom; negative above the band, so paint stays raw up there.
-    float p = 1.0 - vUv.y / max(dissolveStart, 1e-4);
-    // Screen-anchored base frequency (wide, vertically stretched fingers) +
-    // flow drag + slow writhe. Frozen time still yields an organic static edge
-    // (reduced-motion frame).
-    float n = fbm(vec2(vUv.x * 5.0, vUv.y * 2.2) + uv * 0.06 + vec2(seed * 9.0, time * 0.05));
-    // Large-wavelength sweep: the edge's MEAN height itself undulates across
-    // the width (~1 wave per viewport), so no stretch of the boundary can
-    // settle at a constant height and read horizontal.
-    float sweep = (fbm(vec2(vUv.x * 1.3 + seed * 3.0, time * 0.03)) - 0.5) * 0.55;
-    // Fingers act in the upper band; amplitude tapers out near the floor so
-    // the field saturates and the seam onto the cream section stays solid.
-    float amp = ${DISSOLVE_NOISE_AMP.toFixed(2)} * (1.0 - smoothstep(0.55, 1.0, p));
-    float field = p + (n - 0.5 + sweep) * amp;
-    // Narrow threshold window = distinct liquid edge, not a gradient wash.
-    float diss = smoothstep(0.34, 0.60, field);
-    // Paint thins (colour drains toward its own luma) just ahead of the cream
-    // mix, tight to the edge — paint-into-paper, not a wide pale band.
-    float thin = smoothstep(0.24, 0.56, field);
-    // HARD GUARANTEE: the bottom CREAM_FLOOR band is 100% cream regardless of the
-    // noise, so the canvas seats seamlessly on the cream section below it.
-    float floorCream = 1.0 - smoothstep(${CREAM_FLOOR.toFixed(3)}, ${(CREAM_FLOOR + 0.012).toFixed(3)}, vUv.y);
-    diss = max(diss, floorCream) * dissolveStrength;
-    thin = max(thin, floorCream) * dissolveStrength;
-    float luma = dot(ret_col, vec3(0.299, 0.587, 0.114));
-    ret_col = mix(ret_col, vec3(luma), thin * 0.45);
-    ret_col = mix(ret_col, vec3(0.9608, 0.9490, 0.9255), diss);
+    // The whole block is guarded on the dissolveStrength uniform: drivers
+    // can't constant-fold uniforms, so without the branch the backdrop
+    // variant would pay both 4-octave fBm calls per fragment and multiply
+    // the result away (branch-review C0 / codex P2). Uniform condition =
+    // coherent control flow, no divergence cost.
+    if (dissolveStrength > 0.0) {
+      // p: 0 at the band top (bottom of the 100svh zone) -> 1 at the canvas
+      // bottom; negative above the band, so paint stays raw up there.
+      float p = 1.0 - vUv.y / max(dissolveStart, 1e-4);
+      float diss = 0.0;
+      float thin = 0.0;
+      // Skip the noise entirely where the field can never fire: thin's lower
+      // threshold (0.24) needs p > -0.39 with the bounded noise terms, so
+      // p <= -0.6 fragments (~77% of the hero canvas) exit with zeros. The
+      // branch is vertically coherent — near-free on the wavefront.
+      if (p > -0.6) {
+        // Screen-anchored base frequency (wide, vertically stretched fingers) +
+        // flow drag + slow writhe. Frozen time still yields an organic static
+        // edge (reduced-motion frame).
+        float n = fbm(vec2(vUv.x * 5.0, vUv.y * 2.2) + uv * 0.06 + vec2(seed * 9.0, time * 0.05));
+        // Large-wavelength sweep: the edge's MEAN height itself undulates across
+        // the width (~1 wave per viewport), so no stretch of the boundary can
+        // settle at a constant height and read horizontal.
+        float sweep = (fbm(vec2(vUv.x * 1.3 + seed * 3.0, time * 0.03)) - 0.5) * 0.55;
+        // Fingers act in the upper band; amplitude tapers out near the floor so
+        // the field saturates and the seam onto the cream section stays solid.
+        float amp = ${DISSOLVE_NOISE_AMP.toFixed(2)} * (1.0 - smoothstep(0.55, 1.0, p));
+        float field = p + (n - 0.5 + sweep) * amp;
+        // Narrow threshold window = distinct liquid edge, not a gradient wash.
+        diss = smoothstep(0.34, 0.60, field);
+        // Paint thins (colour drains toward its own luma) just ahead of the
+        // cream mix, tight to the edge — paint-into-paper, not a wide pale band.
+        thin = smoothstep(0.24, 0.56, field);
+      }
+      // HARD GUARANTEE: the bottom CREAM_FLOOR band is 100% cream regardless of
+      // the noise, so the canvas seats seamlessly on the cream section below it.
+      float floorCream = 1.0 - smoothstep(${CREAM_FLOOR.toFixed(3)}, ${(CREAM_FLOOR + 0.012).toFixed(3)}, vUv.y);
+      diss = max(diss, floorCream) * dissolveStrength;
+      thin = max(thin, floorCream) * dissolveStrength;
+      float luma = dot(ret_col, vec3(0.299, 0.587, 0.114));
+      ret_col = mix(ret_col, vec3(luma), thin * 0.45);
+      ret_col = mix(ret_col, vec3(0.9608, 0.9490, 0.9255), diss);
+    }
     return vec4(ret_col, 1.0);
   }
 
@@ -314,9 +329,11 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       if (rafId === null && !prefersReducedMotion) {
         // Re-baseline the clocks: while paused (off-screen) both wall time and
         // scrollY moved — without this, resume reads as one giant scroll frame
-        // and the paint lurches at 2x for a beat.
+        // and the paint lurches at 2x for a beat. boost resets too: a pause
+        // lasts seconds (≫ the 0.9s decay), so any pre-pause stir is spent.
         lastFrame = performance.now()
         lastScrollY = window.scrollY
+        boost = 0
         rafId = requestAnimationFrame(loop)
       }
     }

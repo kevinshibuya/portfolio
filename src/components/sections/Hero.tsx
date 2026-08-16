@@ -112,8 +112,8 @@ export function Hero(): ReactElement {
         <FluidWaves variant="hero" />
       </div>
       {/* Inner 100svh zone re-anchors the name/role so they never fall into the
-          bottom dissolve band. AA behind the text is enforced per-pixel by the
-          shader's ink pooling (FluidWaves hero) — no CSS scrim overlay. */}
+          bottom dissolve band. The text sits plain on raw shader paint — no
+          scrim, no halo (documented AA exemption; see .hero-zone in index.css). */}
       <div className="hero-zone">
         <div className={`hero-bottom${riseSettled ? ' is-entered' : ''}`}>
         {/* Role line rises first out of its clip mask; the inner Framer

@@ -310,16 +310,16 @@ strong {
 }
 
 /* =========================================================================
-   HERO — full-viewport dark stage. FluidWaves canvas behind, a contrast
-   scrim over it, then the text plane: right-aligned meta below the nav and a
-   monumental bottom-anchored signature name with the role cycle directly
-   above it. Entrance transforms (canvas fade/scale, clipped role + name
-   rises) are PRE-SET here so the deferred GSAP timeline reveals
-   already-laid-out text rather than a first mount (LCP is the name).
+   HERO — full-viewport dark stage. FluidWaves canvas behind, then the text
+   plane directly on the raw paint (no scrim — see the AA exemption at
+   .hero-zone): a monumental bottom-anchored signature name with the role
+   cycle directly above it. Entrance transforms (clipped role + name rises)
+   are PRE-SET here so the entrance reveals already-laid-out text rather
+   than a first mount (LCP is the name).
    ========================================================================= */
 .hero {
   position: relative;
-  min-height: 130svh; /* was 100svh — grows for the entry veil band */
+  min-height: 130svh; /* was 100svh — grows for the shader cream-dissolve band */
   overflow: hidden;
   background: var(--bg);
 }
@@ -336,9 +336,18 @@ strong {
   opacity: 1;
 }
 
-/* Inner 100svh zone — re-anchors the scrim + name/role so the MANDATORY AA
-   scrim band and the name never fall into the entry veil. Byte-identical to the
-   old .hero box (100svh), so the hero AA table stays valid unchanged. */
+/* Inner 100svh zone — re-anchors the name/role text plane so it never falls
+   into the shader's cream-dissolve band (the bottom ~30svh of the section).
+
+   DOCUMENTED AA EXEMPTION (owner-ratified 2026-07-23) — canonical record,
+   referenced by CLAUDE.md: the hero text (name, role, dark-context nav)
+   renders plain cream DIRECTLY on raw shader paint — no scrim, no text-shadow
+   halo, no shader-side darkening of any kind between the text and the paint.
+   This deliberately fails AA over the brightest paint (soft treatments proved
+   unsatisfiable: ~1.8–2.3:1 over worst-case yellow; a worst-pixel 4.5:1 needs
+   a near-opaque halo, rejected aesthetically). The owner explicitly accepts
+   the tradeoff — do NOT reintroduce a contrast layer. Sole sanctioned
+   exception: the opt-in prefers-contrast layer further down. */
 .hero-zone {
   position: absolute;
   top: 0;
@@ -348,16 +357,8 @@ strong {
   z-index: 2;
 }
 
-/* DOCUMENTED AA EXEMPTION (owner-ratified 2026-07-23): the hero text (name,
-   role, nav over the hero) renders plain cream directly on raw shader paint —
-   no scrim, no text-shadow halo, no shader-side darkening of any kind. Soft
-   treatments top out ~1.8–2.3:1 over the brightest yellow paint; a worst-pixel
-   4.5:1 needs a near-opaque halo, rejected aesthetically. The owner explicitly
-   accepts the AA tradeoff here; do not reintroduce a contrast layer between
-   the text and the paint. Sole sanctioned exception: the opt-in
-   prefers-contrast layer below — invisible unless the user's OS asks. */
-
-/* Opt-in contrast layer (owner-ratified 2026-07-23): only when the user's OS
+/* Opt-in contrast layer (owner-ratified 2026-07-23) — the sole sanctioned
+   exception to the AA exemption recorded at .hero-zone: only when the user's OS
    requests more contrast, the hero + dark-context nav text casts a dense ink
    halo so every pixel adjacent to the strokes reads over the brightest paint.
    The default presentation (everyone else) stays plain cream on raw paint. */
