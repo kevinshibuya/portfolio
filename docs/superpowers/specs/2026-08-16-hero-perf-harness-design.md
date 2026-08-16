@@ -65,7 +65,7 @@ perf/
   lighthouse.mjs          # Layer 3 — against `npx vite preview` (4173), median of 5
   baseline.json           # committed medians + tolerance bands + rig metadata
   reports/                # gitignored per-run JSON + trace dumps
-tests/e2e/perf-budgets.spec.ts   # Layer 1 exact budgets — joins the QA gate
+tests/e2e/perf-budget.spec.ts    # Layer 1 exact budgets — joins the QA gate (extends the existing file)
 tests/e2e/pixel-gate.spec.ts     # golden matrix; goldens committed
 ```
 
@@ -105,7 +105,7 @@ scenario exists to reproduce one observed symptom.
 | `scroll-transition` | scroll-down jank | settled hero → CDP scroll at fixed velocity through the dissolve into the stage's first card segment → settle | frame-time p50/p95/max, dropped frames, long tasks, GPU ms/frame |
 | `battery-proxy` | battery drain | 60 s idle park | `powermetrics` package + GPU watts (needs one-time sudo grant); fallback: cumulative Chrome renderer+GPU process CPU time |
 
-## Layer 1 — exact budgets (`perf-budgets.spec.ts`, QA-gated forever)
+## Layer 1 — exact budgets (`perf-budget.spec.ts`, QA-gated forever)
 
 - Hero-path JS bytes per chunk (initial bundle + shader-bearing chunk), asserted
   with a small headroom margin over the post-campaign values.
@@ -115,7 +115,7 @@ scenario exists to reproduce one observed symptom.
   a kept optimization that lowers it updates the assertion in the same commit).
 - Exactly one rAF loop per canvas instance.
 - `data-paused` halts the loop off-screen (both variants).
-- Reduced motion renders exactly one frame.
+- Reduced motion: static frame present (`data-static`), frame count stable after settle (no loop; the current lifecycle draws up to 3 startup frames — the invariant is stability, not "exactly one").
 
 ## Layer 3 — Lighthouse bench
 
@@ -157,10 +157,12 @@ The sole visual arbiter (Kevin's explicit choice — no per-batch human review):
 
 ### Seeded hypothesis backlog (ranked by expected win; hypotheses until measured)
 
-1. **Dissolve cost paid by every hero pixel** — the dissolve block is guarded by a
-   uniform that is `1.0` across the whole hero canvas, so pixels far above the band
-   still compute 2× fbm (8 noise taps) they visibly can't use. A `vUv.y` band guard
-   should be pixel-identical and cut idle GPU sharply. Likely the biggest win.
+1. **Dissolve band guard: verify/tighten only** (CORRECTED post plan-review: the
+   spatial guard `if (p > -0.6)` ALREADY ships — landed in `1b25b0b`, PR #3 fix
+   wave — so the original "biggest win" is banked). Remaining question: is `-0.6`
+   the tightest provably-safe bound (in-tree comment claims activation needs
+   `p > -0.39`)? Derive it; tighten only if the math proves it; expected win small
+   or none. Item 2 (scissor) is now the top expected win.
 2. **Shading pixels the viewport can't see** — the canvas spans the 130svh band;
    `gl.scissor` to the visible intersection per frame shades ~23% fewer pixels
    parked at top, more mid-scroll. Pixel-identical by construction.
@@ -193,7 +195,8 @@ The sole visual arbiter (Kevin's explicit choice — no per-batch human review):
   byte-comparable within AA tolerance; two consecutive scenario runs agree within
   their declared bands.
 - Sensitivity check: the harness must DETECT a deliberately planted regression
-  (e.g., double the fbm octaves in a scratch commit) — a net that catches nothing
+  (e.g., double the domain-warp loop iterations in a scratch commit — a plant
+  that hits every pixel) — a net that catches nothing
   proves nothing.
 - Standard gates: tsc, lint, unit, full e2e (including the new specs) stay green.
 
