@@ -167,9 +167,9 @@ test('no params: hooks dormant, normal loop untouched', async ({ page }) => {
 
 Mechanics: every shot loads with `perf-seed=<seed>&perf-freeze=<t>&perf-role=0` and awaits `body[data-loader-state="done"]`, `[data-entrance="settled"]`, `[data-perf-frozen="true"]`, and `document.getAnimations()` all finished; use `toHaveScreenshot` with `{ animations: 'disabled', caret: 'hide', maxDiffPixelRatio: 0.001, threshold: 0.05 }` — the explicit `threshold` matters: the default 0.2 per-pixel color tolerance would let ~1300 pixels drift 20% and still pass, which is not "AA-level". Calibrate both numbers empirically in Step 2: record the actual observed diff of two consecutive clean runs in `perf/decisions.md` and set the tolerance just above it. Scroll positions computed in-page from `getBoundingClientRect`/`scrollHeight` — never hardcoded px. 30 goldens total. Goldens regenerate ONLY on a commit declaring visual intent (spec rule) — during this campaign, never.
 
-- [ ] **Step 1:** Write the spec; run once — RED (missing snapshots is the expected failure mode).
-- [ ] **Step 2:** `npx playwright test pixel-gate --workers=1 --update-snapshots` to record goldens; re-run WITHOUT the flag twice consecutively — green both times (determinism proof of the gate itself).
-- [ ] **Step 3:** Commit spec + goldens `feat(perf): pixel gate — 30-golden matrix, AA-level tolerance`.
+- [x] **Step 1:** Write the spec; run once — RED (missing snapshots is the expected failure mode).
+- [x] **Step 2:** `npx playwright test pixel-gate --workers=1 --update-snapshots` to record goldens; re-run WITHOUT the flag twice consecutively — green both times (determinism proof of the gate itself).
+- [x] **Step 3:** Commit spec + goldens `feat(perf): pixel gate — 30-golden matrix, AA-level tolerance`.
 
 **Boundaries:** No app-code changes. If a moment cannot be made deterministic (two consecutive clean runs disagree), return `blocked:` with the offending moment — do not loosen tolerance beyond 0.001 on your own.
 
