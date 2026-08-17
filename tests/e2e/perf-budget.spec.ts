@@ -84,7 +84,17 @@ type PerfStore = Record<string, PerfCounters>
 const DPR_CAP = 1.5
 
 const distAssets = fileURLToPath(new URL('../../dist/assets', import.meta.url))
+const distIndexHtml = fileURLToPath(new URL('../../dist/index.html', import.meta.url))
 const baselinePath = fileURLToPath(new URL('../../perf/baseline.json', import.meta.url))
+const srcDir = fileURLToPath(new URL('../../src', import.meta.url))
+const htmlEntry = fileURLToPath(new URL('../../index.html', import.meta.url))
+const viteConfig = fileURLToPath(new URL('../../vite.config.ts', import.meta.url))
+
+// Every file under src/, for the build-freshness mtime guard below.
+const walk = (dir: string): string[] =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+    e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`]
+  )
 
 const readCounters = (page: Page): Promise<PerfStore> =>
   page.evaluate(() => (window as unknown as { __PERF_GL__: PerfStore }).__PERF_GL__)
@@ -144,10 +154,11 @@ test('hero GL work is exactly one draw + one uniform upload per frame, from one 
 
   // Uploads/draws at setup and at resize are counted BY DESIGN, so the
   // per-frame exactness claim only holds over a resize-free window. Assert the
-  // window was resize-free rather than assuming it — on a frozen load `resizes`
-  // counts EFFECTIVE resizes (suppressed ones do not increment), so this is a
-  // real precondition check, not a tautology.
-  expect(h2.resizes - h1.resizes, 'sample window must be resize-free').toBe(0)
+  // window was resize-free rather than assuming it. This is NOT a frozen load
+  // (no ?perf-freeze), so the frozen-resize suppression never applies here and
+  // every resize() call would increment — the precondition holds simply
+  // because the viewport is fixed. Same wording as perf-hooks.spec.ts.
+  expect(h2.resizes - h1.resizes, 'fixed viewport: window is resize-free').toBe(0)
 
   const frames = h2.frames - h1.frames
   expect(frames, 'rAF loop is running').toBeGreaterThan(10)
@@ -206,7 +217,7 @@ test('reduced motion: static frame, no loop, at most three startup draws', async
   expect(after.frames, 'at least one static frame is drawn').toBeGreaterThanOrEqual(1)
 })
 
-test('every emitted chunk is within its recorded byte ceiling', async () => {
+test('every emitted chunk is within its recorded byte ceiling', async ({ request }) => {
   const baseline = JSON.parse(readFileSync(baselinePath, 'utf8')) as {
     exact: { chunkBytesCeiling: Record<string, number> }
   }
@@ -231,6 +242,44 @@ test('every emitted chunk is within its recorded byte ceiling', async () => {
     .map((x) => ({ file: x.file, key: `${x.m[1]}.${x.m[2]}`, bytes: statSync(`${distAssets}/${x.file}`).size }))
 
   expect(chunks.length, 'dist/assets must contain hashed js/css chunks').toBeGreaterThan(0)
+
+  // STALENESS GUARDS. This test grades files on disk, but `playwright.config.ts`
+  // sets `reuseExistingServer: !process.env.CI` — locally, any pre-existing
+  // listener on 4173 skips `npm run build` entirely, so `dist/assets` is
+  // whatever the LAST build left behind. Without a guard the budget would
+  // happily grade a previous build's bytes and go green on a chunk that grew.
+  // The campaign's batch procedure has a kill-4173 step, but this budget is
+  // QA-gated forever and gets run by a bare `npx playwright test`, where that
+  // step is not guaranteed.
+  //
+  // Guard 1 (the one that answers the scenario): dist must be NEWER than every
+  // source that feeds it. When the build is skipped, dist and the server agree
+  // with each other and are BOTH old — nothing observable at the HTTP layer
+  // distinguishes that from a fresh run, so the only honest signal is mtime.
+  // Measured: with a preview server up and src touched but not rebuilt, the
+  // HTTP-level check below stays green and this one goes red.
+  const newestSource = [...walk(srcDir), htmlEntry, viteConfig]
+    .reduce((newest, f) => Math.max(newest, statSync(f).mtimeMs), 0)
+  const builtAt = statSync(distIndexHtml).mtimeMs
+  expect(
+    builtAt,
+    'dist/ is older than src/ — the build was skipped (stale preview server on 4173?); kill it and re-run',
+  ).toBeGreaterThan(newestSource)
+
+  // Guard 2 (cheap, different mechanism): the server actually under test must
+  // serve the dist we just measured. This catches a preview server holding a
+  // stale file snapshot in memory — the failure mode recorded in this project's
+  // notes — which guard 1 cannot see because dist on disk is fine in that case.
+  // Fetched via the `request` fixture rather than page.goto: this is a pure
+  // filesystem/bytes test with no browser behaviour in it, and the raw HTML is
+  // exactly what we want — a rendered DOM would also surface runtime-injected
+  // preloads that index.html never declared.
+  const html = await (await request.get('/')).text()
+  const served = [...html.matchAll(/assets\/([A-Za-z0-9_.-]+-[A-Za-z0-9_-]{8}\.(?:js|css))/g)].map((m) => m[1])
+  expect(new Set(served).size, 'served index.html must reference hashed assets').toBeGreaterThan(0)
+  const onDisk = new Set(chunks.map((c) => c.file))
+  const missing = [...new Set(served)].filter((f) => !onDisk.has(f))
+  expect(missing, 'served build does not match dist/ — stale preview server on 4173?').toEqual([])
 
   // "No UNACCOUNTED chunk", not "no new chunk": a kept campaign batch (Task 12's
   // rechunking especially) may add or rename ceiling entries in the same commit
