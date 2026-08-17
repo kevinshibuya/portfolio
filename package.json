@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "optimize:mockups": "tsx scripts/optimize-mockups.ts",
+    "perf": "node perf/run.mjs all",
     "preview": "npm run build && wrangler dev",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",

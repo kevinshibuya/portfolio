@@ -221,3 +221,251 @@ The plan quotes Pixel 5 as `393×851`. That is the device's **screen** size; its
 `390×844` remains approximated by the existing Pixel 5 device; no new device
 definition was added. `loadFrozen()` asserts the per-project viewport on every
 shot, which is what surfaced the discrepancy.
+
+---
+
+## 2026-08-16 · Task 3 · Scenario runner (`perf/run.mjs`)
+
+The Layer-2 runner: four scenarios, each reproducing one symptom Kevin
+observed, reduced to a median + IQR + tolerance band over N runs on this rig.
+
+### Sources chosen, and why (every number's provenance)
+
+| quantity | source | recorded in report as |
+|---|---|---|
+| frame times | injected rAF ring buffer (init script, no app code) | `sources.frames` |
+| long tasks | injected `PerformanceObserver({entryTypes:['longtask']})` | — |
+| main-thread ms | CDP `Performance.getMetrics` deltas across the window | — |
+| GPU cost | CDP tracing, GPU-process events | `sources.gpu` |
+| presented frames | trace `viz SkiaOutputSurfaceImplOnGpu::SwapBuffers` | — |
+| per-process CPU | CDP `SystemInfo.getProcessInfo` (`cpuTime`) | `sources.cpu` |
+| energy | `sudo -n powermetrics`, else process CPU time | `sources.power` |
+| entrance landmarks | MutationObserver on attributes the app already stamps | `sources.marks` |
+
+**GPU ms/frame is the TRACE, not the `ps` fallback.** The brief allowed
+degrading to GPU-process CPU time if trace GPU events proved unstable on this
+rig. They did not. Measured, two back-to-back 10 s idle-hero windows:
+
+| | run A | run B | spread |
+|---|---|---|---|
+| `gpu.busyMsPerFrame` | 1.707 | 1.685 | 1.3% |
+| `gpu.webglMsPerFrame` | 0.593 | 0.578 | 2.5% |
+
+Categories `['gpu','viz','toplevel']`. In the GPU process,
+`ThreadControllerImpl::RunTask` is top-level and non-nesting, so summing those
+durations is real busy time; `WebGL` is command-buffer decode — the shader's
+own cost, which is the single most useful number for Tasks 7–12.
+
+The fallback (`cdp:SystemInfo-gpu-process-cpu`) is implemented and fires
+automatically if a run yields no GPU-process trace events, under a **different
+`source` string** so no downstream reader can mistake one for the other.
+
+**Tracing does not perturb what it shares a window with.** Frame times measured
+with and without tracing live, same window:
+
+| | frames | p50 | p95 |
+|---|---|---|---|
+| no trace | 601 | 16.70 | 17.50 |
+| tracing | 600 | 16.70 | 17.50 |
+
+Below the measurement's own resolution — so frame times and GPU cost share one
+window instead of needing two passes.
+
+**`battery-proxy` power source on this rig TODAY: the fallback.**
+`sudo -n powermetrics` returns *"sudo: a password is required"* — the
+passwordless grant Kevin decided on is **not yet in place**. Runs therefore
+report `sources.power = "cdp:SystemInfo-process-cpu-time"`.
+
+The process-CPU metrics (`cpu.rendererMsPerSec`, `cpu.gpuProcessMsPerSec`,
+`cpu.browserMsPerSec`, `cpu.totalMsPerSec`) are collected on **every** run,
+grant or no grant. That is deliberate: if the `power.*` watt metrics only
+appeared the day the grant lands, the campaign's energy baseline would split
+into two incomparable halves. When the grant lands, `power.cpuMw` /
+`power.gpuMw` / `power.packageMw` appear *alongside* the CPU series, and the
+`MISSING` warning path (below) covers the reverse direction.
+
+### The sanity threshold — the actual rule
+
+The spec: *"a run whose spread exceeds a sanity threshold is discarded and
+rerun, never averaged in."* Implemented in `perf/lib/stats.mjs` as:
+
+> With at least **4** completed runs, a run is discarded if ANY gating metric
+> deviates from that metric's across-run median by more than
+> `max(3 × IQR, 0.5 × |median|, 3 × minBand)`.
+
+- **3 × IQR** is double Tukey's 1.5 fence — deliberately conservative. Trimming
+  runs that merely sit at the edge of normal variance biases the median toward
+  whatever the rig happened to be doing.
+- **0.5 × |median|** and **3 × minBand** stop the rule firing on metrics whose
+  IQR is near-zero by nature (`frame.p50Ms` is 16.7 on every run; a literal
+  3 × IQR of 0 would discard every run that differs by a single tick).
+- Informational metrics never gate. At most 3 replacement runs per scenario per
+  invocation; if an outlier survives that, it is KEPT and flagged in the report
+  rather than silently retried forever.
+- **Below 4 runs the gate is inert and says so in the output.** An IQR over 2 or
+  3 samples is not a spread estimate, and a gate computed from one is worse than
+  no gate.
+
+### `minBand` — the third band term, and why it was necessary
+
+Band = `max(10% of median, 1 × IQR, minBand)`. The plan specifies the first two.
+The third is not optional: count metrics (`frame.dropped`, `longTasks.count`)
+sit at **0** on a healthy rig, where both the relative and IQR terms collapse to
+zero and any single stray frame reads as an infinite regression. Each metric
+declares its own absolute floor in its own units. Bands are written per metric
+into `baseline.json` and may be overridden there by hand.
+
+### THE WARM-UP RUN — measured, not assumed
+
+**One run per scenario per invocation is executed, recorded, and never
+aggregated.** This was not in the brief; it was forced by measurement.
+
+`scroll-transition`, 2 counted runs, no warm-up:
+
+| | run 1 | run 2 |
+|---|---|---|
+| `frame.maxMs` | **649.9** | 24.4 |
+| `frame.dropped` | **38** | 0 |
+| `frame.fps` | 48.4 | 60.1 |
+| `gpu.busyMsPerFrame` | **8.04** | 2.62 |
+
+All the cold cost — the server reading a just-written `dist/` off disk, the
+first Chromium launch, a cold GPU shader cache — lands in run 1. Isolation
+probes confirmed the stall is **not** the page: without a warm-up, replicating
+the scenario by hand against an already-warm server showed a max frame of
+18.6 ms and **zero** network requests during the window. It is also not the
+tracing and not the settle poller (both A/B'd: max 18.7 ms either way).
+
+Why this matters more than it looks: at n=5 a single cold run barely moves the
+median, but it **massively inflates the IQR — and the IQR sets the band**. One
+cold run would widen every tolerance band until real regressions fit inside
+them, which is precisely the failure this harness exists to prevent.
+
+With the warm-up in place, `scroll-transition` × 3:
+
+| metric | values | IQR |
+|---|---|---|
+| `frame.maxMs` | 17.6 / 17.7 / 17.6 | **0.05** (was 312.75) |
+| `frame.dropped` | 0 / 0 / 0 | 0 (was 19) |
+| `gpu.busyMsPerFrame` | 2.44 / 2.20 / 2.68 | 0.24 (was 2.71) |
+
+The warm-up's own metrics are kept in the report under `runner.warmup` — how
+cold the first run was is evidence about the rig, not noise to hide.
+`--no-warmup` exists for iteration only and says in the help that it inflates
+the IQR.
+
+### Known exclusion: the role cycle is pinned OFF
+
+Every scenario loads with `?perf-seed=0.5&perf-role=0` and **no**
+`?perf-freeze` (scenarios measure live animation; a frozen canvas draws exactly
+one frame ever, which is the pixel gate's tool, not this one's).
+
+`perf-role=0` pins the hero role line to the canonical title and stops the
+every-5 s cycle. **The React/Framer cost of that swap is therefore deliberately
+excluded from the `idle-hero` median.** It trades a sliver of realism for
+determinism: an unpinned cycle would fire an unpredictable number of times
+inside a 20 s window and land as pure variance in `main.scriptMsPerSec`. If a
+future batch targets the role-swap cost specifically, it needs its own
+scenario — this one is blind to it by construction.
+
+### Known instrumentation effect: the rAF ring buffer
+
+The injected frame-time loop keeps a rAF callback registered for the page's
+whole life, so the browser produces animation frames even in moments the page
+would otherwise go idle (notably after the Selected Work stage settles and the
+hero canvas has paused off-screen). Frame **count** is therefore an
+instrumentation floor, not the app's own.
+
+Handled rather than hidden: frame-time percentiles still describe the cadence
+the compositor achieved, and **GPU per-frame metrics divide by PRESENTED frames
+from the trace, not by rAF ticks** — an empty rAF tick produces no damage and no
+swap, so it cannot deflate them. Observed live: 160–177 rAF frames vs 118–128
+presented frames across a scroll window.
+
+### `entrance.loaderDoneMs` measures the GATE, not loader removal
+
+`body[data-loader-state="done"]` has **two** writers that converge:
+`useScrollLockDuringEntrance` flips it when `entranceDone` resolves (the ~92%
+explosion handoff), and `main.tsx`'s `finishLoader()` flips it at 100%. The mark
+catches the **first**, so this metric is "the entrance gate resolved". Measured
+2516 ms against a computed handoff of ~2524 ms — an 8 ms agreement that confirms
+the reading. It is a wall-clock landmark, not a jank measure.
+
+### Server: `npx vite preview`, and the stale-listener trap is real
+
+`npm run preview` is `npm run build && wrangler dev` **in this repo** — a
+workerd server. Both perf layers pin `npx vite preview --port 4173 --strictPort`
+so no baseline is ever a mix of two server stacks. `--strictPort` is not
+cosmetic: without it vite silently walks to 4174 when 4173 is busy and every
+scenario would load whatever stale thing still owns 4173.
+
+**The stale listener needed escalating kills.** Encountered live: a leftover
+`wrangler dev` from an earlier e2e run held 4173 and answered nothing
+(`curl` timed out). Killing the `workerd` listener was **not enough** — the
+wrangler supervisor respawned a fresh listener within a second. `freePort()`
+therefore escalates one generation per round: round 1 kills the listeners,
+round 2 their parents, round 3 the grandparents, with the runner's own process
+ancestry excluded so it can never kill the shell that launched it. Three failed
+rounds is a hard error, never a silent continue.
+
+Also note `lsof -sTCP:LISTEN` is load-bearing — without it `lsof` returns
+processes merely *connected* to the port, and a headless Chrome utility process
+showed up as a "stale listener".
+
+Every report records `build.serveCommand` and a **sha256 of `dist/index.html`**,
+so no run is silently comparable to a stale or wrangler-served build. This is
+what makes `--no-build` safe to offer.
+
+### ⚠ `npm run perf` AND THE PLAYWRIGHT SUITE MUST NEVER RUN CONCURRENTLY
+
+Confirmed the hard way during this task: a full e2e run launched while the perf
+harness was live failed **21/92**; a quiet re-run with nothing else running came
+back **92/92**.
+
+Mechanism: the runner rebuilds `dist/` on every invocation and owns port 4173,
+while `playwright.config.ts` sets `reuseExistingServer: true` locally. The suite
+therefore screenshots a `dist/` being rewritten underneath it — and, since the
+runner kills whatever holds 4173, can also lose its server mid-run.
+
+**Standing instruction for Tasks 7–12,** whose batch procedure runs both: run
+them **sequentially**, never in parallel, and never trust a red e2e or pixel-gate
+result produced while a perf run was in flight. This is also the leading
+explanation for the previously-unreproduced Task 2 flake in which all 15
+mobile pixel-gate shots failed while all 15 desktop passed.
+
+### Baseline writing — the three-writer contract
+
+`--update-baseline` read-modify-writes **only** the `scenarios` key. Task 4's
+flag owns `lighthouse`; Task 5 hand-fills `exact`. Unknown keys are preserved
+verbatim.
+
+`rig` is shared, so it is written under a stricter rule: **bootstrapped when
+absent, left byte-for-byte alone when present and matching, and a mismatch
+refuses the whole update** rather than rewriting another writer's rig block.
+(Somebody has to stamp it, or Task 5's "all four top-level keys present and
+non-empty" acceptance check can never pass.)
+
+Only `median` / `iqr` / `band` are stored — per-run values stay in the reports.
+The baseline is a contract, not an archive, and a hand-edited band must survive
+being read back.
+
+### A metric that vanishes is LOUD, not silent
+
+If the baseline has a metric this run did not produce, the comparison prints
+`MISSING`, lists it under `warnings`, and keeps it in the table. It is **not**
+scored as a regression — the cause is a measurement gap, not a code change — but
+it can never be silently dropped (spec: *"the harness never silently skips a
+metric"*).
+
+Regression is judged against the **baseline's** band, not the current run's: a
+change that also widens the spread must not be able to widen its own acceptance
+window.
+
+### `--compare A B` (added beyond the brief)
+
+The brief's acceptance check is *"two consecutive invocations produce reports
+whose shared metrics agree within their own declared bands"*. Nothing in the
+brief made that mechanical, so `node perf/run.mjs --compare a.json b.json`
+does it: agree/DISAGREE per metric against the wider of the two bands, exit 1 on
+any disagreement. Small addition, and it turns the acceptance check from a
+hand-comparison into a command.

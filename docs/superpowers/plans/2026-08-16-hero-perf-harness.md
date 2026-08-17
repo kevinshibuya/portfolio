@@ -209,10 +209,10 @@ Mechanics: every shot loads with `perf-seed=<seed>&perf-freeze=<t>&perf-role=0` 
 - `node perf/run.mjs idle-hero --runs 2` twice consecutively: both produce report JSONs whose shared metrics agree within their own declared bands, and the process exits 0 when no baseline exists yet (nothing to regress against — prints "no baseline" per metric).
 - `node perf/run.mjs bogus` exits non-zero with a usage message.
 
-- [ ] **Step 1:** Build runner + `idle-hero`; pass the acceptance check above.
-- [ ] **Step 2:** Add the other three scenarios; each runs green standalone (`--runs 2`).
-- [ ] **Step 3:** `npm run perf` runs all four and prints the comparison table ("no baseline" state).
-- [ ] **Step 4:** Commit `feat(perf): deterministic scenario runner (4 symptom scenarios, CDP capture)`.
+- [x] **Step 1:** Build runner + `idle-hero`; pass the acceptance check above.
+- [x] **Step 2:** Add the other three scenarios; each runs green standalone (`--runs 2`).
+- [x] **Step 3:** `npm run perf` runs all four and prints the comparison table ("no baseline" state).
+- [x] **Step 4:** Commit `feat(perf): deterministic scenario runner (4 symptom scenarios, CDP capture)`.
 
 **Boundaries:** No app-code edits. Node stdlib + Playwright + CDP only — no new runtime deps without surfacing it.
 
