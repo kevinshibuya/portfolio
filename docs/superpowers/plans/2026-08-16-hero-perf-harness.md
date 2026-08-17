@@ -292,8 +292,8 @@ Mechanics: every shot loads with `perf-seed=<seed>&perf-freeze=<t>&perf-role=0` 
 
 **Acceptance = the spec file itself running green:** `npx playwright test perf-budget --workers=1`. RED-first is satisfied per-assertion by writing each against the live values and confirming it fails when the tested invariant is deliberately broken locally (e.g., temporarily assert `frames === 2`); this is a budget net, not a feature — document the RED evidence in the commit message.
 
-- [ ] **Step 1:** Add assertions; suite green serially; evidence of one deliberate-break RED per assertion group in the commit message.
-- [ ] **Step 2:** Full serial e2e green (all specs, new count recorded). Commit `feat(perf): layer-1 exact budgets join the QA gate`.
+- [x] **Step 1:** Add assertions; suite green serially; evidence of one deliberate-break RED per assertion group in the commit message.
+- [x] **Step 2:** Full serial e2e green (all specs, new count recorded: **102/102**, was 92). Commit `feat(perf): layer-1 exact budgets join the QA gate`.
 
 **Boundaries:** Do not modify `hero-shader.spec.ts` (the flake is separate); do not touch app code.
 
