@@ -955,11 +955,24 @@ populations overlap on this axis**:
 | contaminated | 0.50, 0.56, 0.75 |
 | clean | 0.31, 0.53 |
 
+> **Provenance for every row is in the threshold block at the top of
+> `perf/lib/load.mjs`**, which is the canonical evidence table. It was added in
+> round 5 after review correctly pointed out that the 0.50 and 0.53 readings —
+> the two the overlap argument actually rests on — appeared in no table, which
+> is the same "reconstructed numbers" objection applied inconsistently to my own
+> reasoning. Both are real recorded readings (0.50 = the `coreduetd` 81.7%
+> spike; 0.53 = the two `--runs 5` invocations that agreed 17/17), and they are
+> now written down.
+
 A contaminated rig measured **lower** (0.50) than a clean one (0.53). No
 threshold on 1-min load average separates them. Lowering to 0.6 would not have
 caught the 0.50 or 0.56 cases — both of which `HOT_PROCESS_PCT` caught on its
 own, at 82% and 68% — while bringing the limit within 0.07 of a normal working
 machine, which the ruling explicitly forbids.
+
+The decision stands on an independent ground too, which does not depend on the
+overlap at all: the load-average rule is **unnecessary**, because all three
+contaminated states were caught by `HOT_PROCESS_PCT` alone (82%, 68%, 65%).
 
 So the honest position is not a better number but a corrected framing: **this
 rule cannot do this job.** It stays as a catastrophic-load backstop; the
@@ -973,14 +986,16 @@ rather than incidental:
   as "nothing notable". It now prints `top: UNAVAILABLE (ps returned nothing)`,
   sets `detectorBlind`, and counts as a reason — so a blind guard refuses a
   baseline write rather than waving one through.
-- **`foreignCpuPctOfMachine` is now recorded on every run.** Total foreign CPU
-  as a share of all cores DOES appear to separate the populations — measured
-  ~26-67% while contaminated versus ~6-7% quiet. It is printed and stored but
-  deliberately **not** thresholded: the contaminated figures above are partly
-  reconstructed from top-process lists rather than measured whole-table sums,
-  and calibrating a gate on reconstructed numbers is the exact mistake this file
-  exists to prevent. Task 5/6 now collect the real figure on every run;
-  threshold it once there is measured data.
+- **`foreignCpuPctOfMachine` is now recorded on every run.** It is printed and
+  stored but deliberately **not** thresholded.
+
+  > **Canonical figure and reasoning live in ONE place: the threshold block at
+  > the top of `perf/lib/load.mjs`.** Do not restate the range here or anywhere
+  > else — Tasks 7-12 will calibrate off whichever copy they read first, so
+  > there is deliberately only one. Summary: a contaminated range is measured,
+  > no quiet-rig measurement of this field exists yet, and `ps pcpu` is a
+  > lifetime-decaying average — so it stays an observable until Task 5/6 have
+  > collected real data on both populations.
 
 ### Health classification is now per-entry, and collects both facts
 
@@ -1021,3 +1036,94 @@ Double-counting of uncaught exceptions between `page.on('pageerror')` and
 `window.__PERF__.errors`; a warm-up health failure being swallowed into
 `warmupResult`; `--force` writing `baseline.json` with no busy-rig marker in the
 file; and the two `ps -A` calls per invocation.
+
+---
+
+## 2026-08-17 · Task 3 round-5 (final) · guard the guard
+
+Task 3's last round. Three items, all small.
+
+### (a) R10's WIRING is now guarded, not just its combiner
+
+`baselineRefusal` gated on `machineLoad.busy` alone, and
+`combineMachineLoad(before, undefined)` returns `after: null` with a
+before-only verdict and no complaint. So deleting `sampleMachineLoad('after')`
+from `run.mjs` would have silently restored the exact t=0-only hole round 4
+closed — and, tellingly, **none of round 4's four new selftest assertions would
+have failed**, because they drove `combineMachineLoad` directly with hand-built
+samples. They proved the combiner, not the wiring.
+
+**Fix.** A missing after-sample is now itself a refusal reason, so that refactor
+fails loudly (every baseline update refused) instead of quietly. The selftest
+asserts it directly.
+
+Fixing this also exposed that several older selftest fixtures passed bare
+`{ busy: false }` stubs with no `after` key — unrealistic inputs that a real
+`combineMachineLoad` never produces. One of them started failing against the new
+guard, correctly. All fixtures now go through `combineMachineLoad`.
+
+### (b) The GL pattern had re-opened a decided question
+
+`GL_CONTEXT_LOSS_PATTERN` was ORed over **all** fatal entries regardless of
+kind, so an uncaught `pageerror` whose message merely CONTAINED "context lost"
+took the retryable branch that round 2's Important 2 deliberately closed to
+`pageerror`. Blast radius was bounded — `healthBlocker` still forces
+`exitCode = 1` and refuses the baseline, so nothing could be retried away and
+baselined — but it burnt replacement budget and mislabelled a code fault as a
+rig fault.
+
+**The classification order is now explicit, and asserted:**
+
+| condition | kind | retried? |
+|---|---|---|
+| fallback present in the DOM | `context-loss` | yes — the DOM is authoritative |
+| no fallback, page THREW | `page-error` | **no**, even if the text says "context lost" |
+| no fallback, didn't throw, CONSOLE said context lost | `context-loss` | yes — the real 400 ms race |
+| other fatal console error | `console-error` | no |
+
+### (c) One number, stated once
+
+The same evidence had drifted into three inconsistent statements
+(`~26-57%`, `roughly 20%`, `~26-67%`) across two files — in the file whose whole
+purpose is preserving calibration evidence, which Tasks 7-12 will read.
+
+**The canonical figure and its reasoning now live in exactly one place: the
+threshold block at the top of `perf/lib/load.mjs`.** Everywhere else cites it
+and deliberately does not restate it.
+
+### The `LOAD_PER_CORE` argument now rests on written-down numbers
+
+Review landed a fair hit: the overlap argument rested on two readings
+(contaminated 0.50, clean 0.53) that appeared in **no** evidence table — the
+same "reconstructed numbers" objection I had correctly applied to
+`foreignCpuPctOfMachine`, applied inconsistently to my own reasoning.
+
+Both are real recorded readings and are now in the canonical table with
+provenance: **0.50** is the `coreduetd` 81.7% spike from the round-3 calibration
+probe; **0.53** is the two `--runs 5` invocations that agreed 17/17. The table
+also now carries the round-4 gaming-session rows and marks which rows predate
+`foreignCpuPctOfMachine` existing.
+
+**The threshold still does not move**, and it now rests on two independent
+grounds rather than one: the rule is *unnecessary* (all three contaminated
+states were caught by `HOT_PROCESS_PCT` alone at 82/68/65%), and it *cannot be
+made sufficient* (0.50 contaminated vs 0.53 clean cannot be separated, and 0.6
+would sit 0.07 from a normal working Mac).
+
+### Verification note
+
+The optional `idle-hero --runs 2` was **skipped**: the rig was still contended
+by the owner's own use (1.36/core, `fseventsd` 78%, League client 67%) and the
+instruction was not to fight the machine for it.
+
+Correctness of the round's riskiest edit is covered without a browser instead:
+the classification table is asserted through a stubbed page object, including
+that a **healthy** page throws nothing, which is the property a broken guard
+would have violated on every run. Selftest: **26/26**.
+
+### Left alone, per ruling
+
+`shortName`'s flagless-path-argument regression
+(`/usr/bin/foo /path/config.json` → `config.json`), the abort-path report shape,
+the `detectorBlind`-only banner wording, and `combineMachineLoad` not surfacing
+`detectorBlind` at the combined level.

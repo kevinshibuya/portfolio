@@ -284,6 +284,21 @@ export function baselineRefusal({ force, exitCode, blockingWarnings = [], machin
     // mid-run onset is attributable rather than hidden behind a t=0 stamp.
     reasons.push(`the rig was BUSY during this run (${machineLoad.reasons.join('; ')})`)
   }
+
+  // STRUCTURAL GUARD on R10's own wiring, not on the machine.
+  //
+  // Gating on `machineLoad.busy` alone is not enough: `combineMachineLoad`
+  // happily returns `after: null` with a before-only verdict and no complaint,
+  // so a future refactor that drops the after-sample would silently restore the
+  // exact hole round 4 closed — a t=0 stamp vouching for a 20-minute
+  // invocation. Refusing when the after-sample is absent makes that refactor
+  // fail loudly (every baseline update refused) instead of quietly.
+  if (machineLoad && machineLoad.after == null) {
+    reasons.push(
+      'the post-run machine-load sample is MISSING — a baseline cannot be vouched for by a ' +
+        'load reading taken before any of its measurements existed (see combineMachineLoad)',
+    )
+  }
   const refuse = !force && (exitCode === 1 || reasons.length > 0)
   return { refuse, reasons }
 }

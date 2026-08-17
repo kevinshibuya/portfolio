@@ -231,14 +231,35 @@ export async function assertPageHealthy(session, when, log = () => {}) {
   // A context loss announces itself on the console BEFORE React re-renders the
   // canvas into the fallback div. Sampling the DOM once, in that gap, would
   // classify a genuinely transient GPU loss as a non-retryable page error and
-  // hard-abort the whole invocation. If the console says "context lost", give
+  // hard-abort the whole invocation. If anything mentions a lost context, give
   // React a beat and look again rather than trusting a single sample.
-  if (fallbacks === 0 && fatal.some((entry) => GL_CONTEXT_LOSS_PATTERN.test(entry.text))) {
+  const mentionsContextLoss = fatal.some((entry) => GL_CONTEXT_LOSS_PATTERN.test(entry.text))
+  if (fallbacks === 0 && mentionsContextLoss) {
     await sleep(400)
     fallbacks = await session.page.locator('[data-testid="fluid-waves-fallback"]').count()
   }
 
-  const contextLost = fallbacks > 0 || fatal.some((entry) => GL_CONTEXT_LOSS_PATTERN.test(entry.text))
+  const threw = fatal.some((entry) => entry.kind === 'pageerror')
+
+  // CLASSIFICATION ORDER, and the middle rule is the load-bearing one:
+  //
+  //   1. fallback in the DOM  -> context-loss. The DOM is authoritative; the
+  //      canvas really was replaced, whatever else also happened.
+  //   2. no fallback, but the page THREW -> page-error, even if the exception
+  //      text happens to contain "context lost". Matching the pattern across
+  //      all fatal entries regardless of kind would let any uncaught exception
+  //      whose message mentions a lost context take the retryable branch that
+  //      Important 2 deliberately closed to `pageerror` — burning replacement
+  //      budget and mislabelling a code fault as a rig fault.
+  //   3. no fallback, didn't throw, but the CONSOLE said context lost ->
+  //      context-loss. This is the real race the 400ms re-check exists for.
+  //
+  // Nothing here can be silently retried away and baselined either way:
+  // `healthBlocker` forces exitCode 1 and refuses the baseline on any health
+  // discard. This is about spending the budget correctly and labelling the
+  // cause honestly.
+  const consoleOnlyContextLoss = !threw && fatal.some((entry) => entry.kind === 'console' && GL_CONTEXT_LOSS_PATTERN.test(entry.text))
+  const contextLost = fallbacks > 0 || consoleOnlyContextLoss
 
   if (fatal.length > 0) for (const entry of fatal) log(`  !! ${entry.kind}: ${entry.text.slice(0, 200)}`)
 
@@ -261,7 +282,6 @@ export async function assertPageHealthy(session, when, log = () => {}) {
     // claim "the app took a code path it does not take in a healthy run",
     // which is only true of an uncaught exception — asserting it over a bare
     // console.error would misattribute the failure.
-    const threw = fatal.some((entry) => entry.kind === 'pageerror')
     const kind = threw ? 'page-error' : 'console-error'
     const preamble = threw
       ? 'An uncaught page error is a statement about the CODE, not the rig, so this is NOT retried'

@@ -11,10 +11,17 @@
 // `WEBGL_lose_context`), it is "when a run fails, does the runner do the right
 // thing with it".
 //
-// It also covers the two GATES that decide what a failed run does to the exit
-// code and to `--update-baseline` (`healthBlocker`, `baselineRefusal`), which
-// are exported from run.mjs precisely so they can be asserted here rather than
-// only existing inline in main().
+// It also covers:
+//   - the two GATES that decide what a failed run does to the exit code and to
+//     `--update-baseline` (`healthBlocker`, `baselineRefusal`), exported from
+//     run.mjs precisely so they can be asserted here rather than only existing
+//     inline in main();
+//   - the R10 load-guard wiring, including that a MISSING after-sample refuses
+//     a baseline write — without that case, deleting `sampleMachineLoad('after')`
+//     from run.mjs would leave every other assertion green while silently
+//     restoring the t=0-only hole;
+//   - the health CLASSIFICATION table, driven through a stubbed page object so
+//     it needs no browser at all.
 //
 // The properties under test, and why each one matters:
 //
@@ -33,11 +40,21 @@
 //      outcome that cannot change.
 
 import { baselineRefusal, healthBlocker, runScenario } from './run.mjs'
+import { assertPageHealthy } from './lib/browser.mjs'
 import { combineMachineLoad } from './lib/load.mjs'
 import { MeasurementHealthError } from './lib/browser.mjs'
 
 const quiet = () => {}
 const metrics = { 'gpu.busyMsPerFrame': { unit: 'ms', lowerIsBetter: true, minBand: 0.05, sourceKey: 'gpu' } }
+
+// Realistic machineLoad fixtures. A real one always carries BOTH samples, so
+// the stubs below go through `combineMachineLoad` rather than hand-rolling
+// `{ busy }` — a bare stub with no `after` key is now (correctly) refused, and
+// testing against one would prove nothing about real inputs.
+const QUIET_SAMPLE = { busy: false, reasons: [] }
+const BUSY_SAMPLE = { busy: true, reasons: ['"legacyScreenSaver" is using 82.0% CPU (limit 50%)'] }
+const QUIET_LOAD = combineMachineLoad(QUIET_SAMPLE, QUIET_SAMPLE)
+const BUSY_LOAD = combineMachineLoad(BUSY_SAMPLE, BUSY_SAMPLE)
 
 const results = []
 const check = (name, passed, detail) => {
@@ -149,30 +166,28 @@ const plainBug = () => new Error('#projects .stack-scroll not found')
   const blocker = healthBlocker('idle-hero', withHealthDiscard)
   check(
     'a health-discarded run refuses --update-baseline',
-    baselineRefusal({ force: false, exitCode: 1, blockingWarnings: [blocker], machineLoad: { busy: false } }).refuse,
+    baselineRefusal({ force: false, exitCode: 1, blockingWarnings: [blocker], machineLoad: QUIET_LOAD }).refuse,
   )
   check(
     '--force overrides the health refusal (deliberate escape hatch)',
-    !baselineRefusal({ force: true, exitCode: 1, blockingWarnings: [blocker], machineLoad: { busy: false } }).refuse,
+    !baselineRefusal({ force: true, exitCode: 1, blockingWarnings: [blocker], machineLoad: QUIET_LOAD }).refuse,
   )
 }
 
 // 6 — ruling R10: a busy rig blocks a baseline update even when the run itself
 // was clean, because the numbers describe the machine rather than the page.
 {
-  const busy = { busy: true, reasons: ['"legacyScreenSaver" is using 82.0% CPU (limit 50%)'] }
-  const idle = { busy: false, reasons: [] }
   check(
     'a busy rig refuses --update-baseline on an otherwise-clean run',
-    baselineRefusal({ force: false, exitCode: 0, blockingWarnings: [], machineLoad: busy }).refuse,
+    baselineRefusal({ force: false, exitCode: 0, blockingWarnings: [], machineLoad: BUSY_LOAD }).refuse,
   )
   check(
     'a quiet rig with a clean run allows --update-baseline',
-    !baselineRefusal({ force: false, exitCode: 0, blockingWarnings: [], machineLoad: idle }).refuse,
+    !baselineRefusal({ force: false, exitCode: 0, blockingWarnings: [], machineLoad: QUIET_LOAD }).refuse,
   )
   check(
     '--force overrides the busy-rig refusal',
-    !baselineRefusal({ force: true, exitCode: 0, blockingWarnings: [], machineLoad: busy }).refuse,
+    !baselineRefusal({ force: true, exitCode: 0, blockingWarnings: [], machineLoad: BUSY_LOAD }).refuse,
   )
 }
 
@@ -181,8 +196,8 @@ const plainBug = () => new Error('#projects .stack-scroll not found')
 // starting MID-run. A load onset that begins after the first sample must still
 // block the baseline write at the end.
 {
-  const quiet = { busy: false, reasons: [] }
-  const loaded = { busy: true, reasons: ['"legacyScreenSaver" is using 82.0% CPU (limit 50%)'] }
+  const quiet = QUIET_SAMPLE
+  const loaded = BUSY_SAMPLE
 
   const onsetMidRun = combineMachineLoad(quiet, loaded)
   check(
@@ -200,6 +215,78 @@ const plainBug = () => new Error('#projects .stack-scroll not found')
       combineMachineLoad(loaded, quiet).reasons.some((reason) => reason.startsWith('at start:')),
   )
   check('quiet at both ends stays clean', !combineMachineLoad(quiet, quiet).busy)
+
+  // 7b — guard R10's WIRING, not just its combiner. The four cases above pass
+  // hand-built samples straight to combineMachineLoad, so deleting
+  // `sampleMachineLoad('after')` from run.mjs would leave every one of them
+  // green while silently restoring the t=0-only hole. The refusal below is what
+  // makes that refactor fail loudly, so it is asserted explicitly.
+  check(
+    'a MISSING after-sample refuses --update-baseline (guards the R10 wiring)',
+    baselineRefusal({
+      force: false,
+      exitCode: 0,
+      blockingWarnings: [],
+      machineLoad: combineMachineLoad(quiet, undefined),
+    }).refuse,
+  )
+  check(
+    'a present after-sample on a quiet rig still allows it',
+    !baselineRefusal({
+      force: false,
+      exitCode: 0,
+      blockingWarnings: [],
+      machineLoad: combineMachineLoad(quiet, quiet),
+    }).refuse,
+  )
+}
+
+// 8 — the health CLASSIFICATION table, driven through a stubbed page so it
+// needs no browser. The case that matters most is the fourth: an uncaught
+// exception whose message merely CONTAINS "context lost" must not take the
+// retryable branch, or any code fault can disguise itself as a rig fault and
+// burn the replacement budget.
+{
+  const stubSession = (consoleErrors, fallbackCount) => ({
+    consoleErrors,
+    healthCheckpoint: 0,
+    pageErrorCheckpoint: 0,
+    page: {
+      locator: () => ({ count: async () => fallbackCount }),
+      evaluate: async () => [],
+    },
+  })
+
+  const classify = async (consoleErrors, fallbackCount) => {
+    try {
+      await assertPageHealthy(stubSession(consoleErrors, fallbackCount), 'during a stubbed window')
+      return 'healthy'
+    } catch (error) {
+      return error.kind ?? `unexpected:${error.message}`
+    }
+  }
+
+  const gl = (text) => ({ kind: 'console', text })
+  const threw = (text) => ({ kind: 'pageerror', text })
+
+  check('healthy page throws nothing', (await classify([], 0)) === 'healthy')
+  check('benign 404 is allowlisted', (await classify([gl('Failed to load resource: 404')], 0)) === 'healthy')
+  check('fallback in the DOM is context-loss', (await classify([], 1)) === 'context-loss')
+  check(
+    'console-only "context lost" is context-loss (the 400ms race)',
+    (await classify([gl('WebGL: CONTEXT_LOST_WEBGL: loseContext')], 0)) === 'context-loss',
+  )
+  check(
+    'pageerror MENTIONING "context lost" is page-error, NOT retryable',
+    (await classify([threw('TypeError: cannot read x of undefined (context lost handler)')], 0)) === 'page-error',
+    'this is the branch Important 2 closed; a code fault must not disguise itself as a rig fault',
+  )
+  check('plain pageerror is page-error', (await classify([threw('TypeError: boom')], 0)) === 'page-error')
+  check('non-GL fatal console error is console-error', (await classify([gl('Something went wrong')], 0)) === 'console-error')
+  check(
+    'fallback present WINS over a pageerror (DOM is authoritative)',
+    (await classify([threw('TypeError: boom')], 1)) === 'context-loss',
+  )
 }
 
 const failed = results.filter((result) => !result.passed)

@@ -20,43 +20,64 @@ import os from 'node:os'
 import { psTable, selfAncestry } from './proc.mjs'
 
 /**
- * THRESHOLDS, chosen from what was actually measured on this rig.
+ * THRESHOLDS, chosen from what was measured on this rig.
  *
- * | state observed                          | 1-min load | /8 cores | hottest proc |
- * |-----------------------------------------|-----------|----------|--------------|
- * | screensaver contamination (disagreed)   | 6.02      | 0.75     | 65-82%       |
- * | independent check, same session         | 4.51      | 0.56     | 68%          |
- * | quiesced — n=5 pair AGREED on 17/17     | 2.49      | 0.31     | 13.7%        |
+ * THE EVIDENCE TABLE. Every row is a reading printed by this harness during
+ * Task 3; the provenance column says where. `foreign CPU` is
+ * `foreignCpuPctOfMachine` — whole-table, computed by this file.
  *
- * `HOT_PROCESS_PCT = 50` is the rule that actually did the work: every
- * contamination observed showed up as ONE process above 60% of a core, while
- * the clean state's hottest was 13.7%. 50 sits in the gap with room on both
- * sides.
+ * | state                                   | 1-min | /8 cores | hottest proc | foreign CPU | provenance |
+ * |-----------------------------------------|-------|----------|--------------|-------------|------------|
+ * | screensaver contamination (pair DISAGREED) | 6.02 | 0.75   | 65-82%       | not measured | round-2 evidence, `ps` triage |
+ * | coreduetd spike                          | 4.02 | 0.50     | 81.7%        | not measured | round-3 calibration probe |
+ * | independent check, same session          | 4.51 | 0.56     | fseventsd 68% | not measured | reviewer's own check |
+ * | quiesced — n=5 pair AGREED 17/17         | 2.49 | 0.31     | 13.7%        | not measured | round-3, post-screensaver |
+ * | quiet-enough — the n=5 pair that AGREED  | 4.24 | 0.53     | Discord 21%  | not measured | round-3 acceptance A/B |
+ * | owner actively gaming                    | 8.32 | 1.04     | 66%          | 26.2%       | round-4 before-sample |
+ * | owner actively gaming                    | 7.16 | 0.90     | 75%          | 55.1%       | round-4 after-sample |
+ * | owner actively gaming (20 polls)         | 5.4-13.6 | 0.68-1.70 | 76-161%  | 26-67%      | round-4 quiesce poll |
  *
- * `LOAD_PER_CORE = 0.7` is a coarse backstop ONLY, and it is deliberately NOT
- * moved despite sitting above two of the three contaminated states above.
+ * The 0.50 and 0.53 rows are the two that the overlap argument below rests on;
+ * they are recorded here BECAUSE that argument previously cited numbers that
+ * appeared in no table. `foreignCpuPctOfMachine` did not exist until round 4,
+ * which is why the earlier rows cannot carry it.
  *
- * REASONING, since the number looks wrong until you plot it: the two
- * populations OVERLAP on this axis. Contaminated readings were 0.50, 0.56 and
- * 0.75; clean readings were 0.31 and 0.53. A contaminated rig measured LOWER
- * (0.50) than a clean one (0.53). No threshold on 1-min load average can
- * separate them — lowering to 0.6 would not have caught the 0.50 and 0.56 cases
- * (both of which `HOT_PROCESS_PCT` caught on its own at 82% and 68%) while
- * bringing the limit within 0.07 of a normal working machine, which the ruling
- * explicitly forbids. So the honest position is not a better number, it is that
- * THIS RULE CANNOT DO THIS JOB: it stays as a catastrophic-load backstop and
- * `HOT_PROCESS_PCT` carries the guard.
+ * `HOT_PROCESS_PCT = 50` is the rule that does the work: every contaminated
+ * state showed ONE process above 65% of a core, while the clean states' hottest
+ * were 13.7% and 21%. 50 sits in the gap with room on both sides.
  *
- * That makes two other things load-bearing rather than incidental: the
- * `detectorBlind` reporting below (if `ps` fails, the guard is effectively
- * gone, not merely degraded), and `foreignCpuPctOfMachine`, which DOES appear
- * to separate the populations (~26-57% contaminated vs ~6-7% quiet) and is
- * recorded on every run so a future task can threshold it on measured data.
+ * `LOAD_PER_CORE = 0.7` is a coarse backstop ONLY and is deliberately NOT
+ * moved, on two independent grounds:
  *
- * Note the known limit: the screensaver's real damage was GPU contention, and
- * neither number measures the GPU. It was caught here because it was also CPU-
- * hot. A purely-GPU-hot neighbour would still slip through — which is why the
- * top processes are always PRINTED, not just thresholded.
+ *   1. It is unnecessary. All three contaminated states were caught by
+ *      `HOT_PROCESS_PCT` on its own, at 82%, 68% and 65%.
+ *   2. It cannot be made sufficient. The populations OVERLAP on this axis: a
+ *      contaminated rig measured 0.50 while a clean one — the very pair whose
+ *      17/17 agreement defines "clean" here — measured 0.53. No threshold
+ *      separates 0.50 from 0.53, and 0.6 would sit 0.07 from a normal working
+ *      Mac, which the ruling explicitly forbids.
+ *
+ * So the honest position is not a better number: THIS RULE CANNOT DO THIS JOB.
+ * It stays a catastrophic-load backstop; `HOT_PROCESS_PCT` carries the guard.
+ *
+ * That makes two other things load-bearing rather than incidental:
+ *
+ *   - `detectorBlind` (below). If `ps` fails, the guard is effectively GONE,
+ *     not merely degraded, so it refuses a baseline write rather than passing.
+ *   - `foreignCpuPctOfMachine`. THE CANONICAL FIGURE, stated once here and
+ *     cited (not restated) everywhere else: **contaminated measured 26-67%
+ *     across 22 samples; no quiet-rig measurement of this field exists yet.**
+ *     A ~7% quiet figure can be reconstructed from top-3 process lists, but it
+ *     is an estimate, not a measurement, and is deliberately not treated as
+ *     data. That is why the field is recorded and printed but NOT thresholded —
+ *     and there is a second reason to wait: macOS `ps pcpu` is a
+ *     lifetime-decaying average, so it would be an imperfect gate even with a
+ *     complete table. Task 5/6 collect the real figure on every run.
+ *
+ * Known limit: the screensaver's real damage was GPU contention, and neither
+ * threshold measures the GPU. It was caught because it was also CPU-hot. A
+ * purely GPU-hot neighbour would still slip through — which is why the top
+ * processes are always PRINTED, not merely thresholded.
  */
 export const LOAD_PER_CORE = 0.7
 export const HOT_PROCESS_PCT = 50
@@ -89,15 +110,11 @@ export async function sampleMachineLoad(label = 'sample') {
     .sort((a, b) => b.cpu - a.cpu)
     .slice(0, 5)
 
-  // OBSERVABLE, NOT A THRESHOLD. Total foreign CPU as a share of all cores
-  // separates the observed states far better than the load average does
-  // (see the threshold note above): the contaminated moments summed to roughly
-  // 20% of total capacity where a quiesced rig sits near 6-7%. It is recorded
-  // and printed but deliberately NOT gated on, because the contaminated
-  // readings above are reconstructed from top-process lists rather than
-  // measured whole-table sums — calibrating a gate on reconstructed numbers is
-  // exactly the mistake this file exists to prevent. Task 5 and 6 now collect
-  // the real figure on every run; threshold it once there is measured data.
+  // OBSERVABLE, NOT A THRESHOLD. See the canonical figure and the reasoning in
+  // the threshold block at the top of this file — do not restate the range
+  // here, cite it there. Summary: recorded and printed on every run, never
+  // gated on, because there is no quiet-rig measurement of this field yet and
+  // `ps pcpu` is a lifetime-decaying average.
   const foreignCpuTotal = foreign.reduce((sum, row) => sum + (row.cpu ?? 0), 0)
   const foreignCpuPctOfMachine = Math.round((foreignCpuTotal / (cpuCount * 100)) * 1000) / 10
 
