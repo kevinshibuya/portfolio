@@ -42,12 +42,20 @@ export function runSync(cmd, args) {
  * who spawned them" and "how much CPU has the GPU process burned".
  */
 export async function psTable() {
-  const { stdout } = await run('ps', ['-Ao', 'pid=,ppid=,time=,command='])
+  const { stdout } = await run('ps', ['-Ao', 'pid=,ppid=,pcpu=,time=,command='])
   const rows = []
   for (const line of stdout.split('\n')) {
-    const m = line.match(/^\s*(\d+)\s+(\d+)\s+(\S+)\s+(.*)$/)
+    const m = line.match(/^\s*(\d+)\s+(\d+)\s+([\d.]+)\s+(\S+)\s+(.*)$/)
     if (!m) continue
-    rows.push({ pid: Number(m[1]), ppid: Number(m[2]), cpuSeconds: parseCpuTime(m[3]), command: m[4] })
+    rows.push({
+      pid: Number(m[1]),
+      ppid: Number(m[2]),
+      // Percent of ONE core, as macOS reports it — can exceed 100 on a
+      // multi-threaded process. Used by the load guard (perf/lib/load.mjs).
+      cpu: Number(m[3]),
+      cpuSeconds: parseCpuTime(m[4]),
+      command: m[5],
+    })
   }
   return rows
 }

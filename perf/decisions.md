@@ -804,3 +804,117 @@ median exists to remove.
 `--force` writing a blended metric with no `sourceConflict` marker in
 `baseline.json`, and per-run `sources` not being stored in `perRunMeta`. Both
 are diagnostics reachable only via `--force`.
+
+---
+
+## 2026-08-17 · Task 3 round-3 · two retry-path Importants + ruling R10
+
+The R9 retry path fixed an abort problem and opened a reporting one. Both
+Importants below are consequences of that, and both are now closed.
+
+### Important 1 — a health-discarded run set is no longer "clean"
+
+Making health failures retryable removed the *downstream* consequence, not the
+core invariant. `kept.push` was still unreachable from the catch, so no
+aggregated number ever came from an unhealthy run — but with `--runs 5` against
+a batch that destabilises the context ~25-30% of the time: run 2 fails →
+replaced, run 5 fails → replaced, five healthy samples collected, `compare()`
+sees only healthy medians, `exitCode` stays 0, the run prints
+**`result: no regressions`**, and the discards sat in `comparison.warnings`
+rather than `blockingWarnings` — so `--update-baseline` wrote a baseline from a
+run set that had page failures. Before R9 that was structurally impossible,
+because the invocation died.
+
+**Fix.** `healthBlocker()` (exported, hence testable) produces the blocker; it
+now reaches BOTH `exitCode = 1` and `blockingWarnings`, so such a run can
+neither print "no regressions" nor be baselined without `--force`.
+
+The wording changed too. It used to say the page "is not stable on this rig
+right now", which blames the machine — the wrong default for a harness whose
+entire job is attributing movement to the diff. It now says the build under
+test may be destabilising the GPU, and to investigate.
+
+### Important 2 — `context-loss` and `page-error` are no longer the same thing
+
+`assertPageHealthy` threw one retryable type for both, while the comment right
+above it argued that a `pageerror` "means the app took a code path it does not
+take in a healthy run" — a statement about the CODE. Under the R9 retry path
+that meant a Task 8 batch whose rAF callback throws on ~1 frame in 5000 would
+be retried away and kept.
+
+**Fix.** `MeasurementHealthError` carries `kind`:
+
+| kind | what it is | retried? |
+|---|---|---|
+| `context-loss` | the GPU dropped the WebGL context — a rig/driver property | **yes**, bounded by `MAX_REPLACEMENTS` |
+| `page-error` | an uncaught JS exception — a code property | **no**, fails on the first occurrence |
+
+### RULING R10 — the load guard (`perf/lib/load.mjs`)
+
+Ruled IN after being declined as out-of-scope last round. Task 5 records the one
+committed baseline all six batches are judged against; taken on a loaded rig it
+is inflated, and every later batch then reads as an improvement — corruption of
+the whole campaign in the direction that looks like success.
+
+**Thresholds, chosen from measurements taken during this task, not from feel:**
+
+| state observed | 1-min load | /8 cores | hottest process |
+|---|---|---|---|
+| screensaver contamination (invocations DISAGREED) | 6.02 | 0.75 | 65-82% |
+| independent check, same session | 4.51 | 0.56 | `fseventsd` 68% |
+| another spike, same session | 4.02 | 0.50 | `coreduetd` 82% |
+| quiesced — n=5 pair AGREED 17/17 | 2.49 | 0.31 | 13.7% |
+
+- **`HOT_PROCESS_PCT = 50`** is the rule that does the real work: every observed
+  contamination showed ONE process above 60% of a core, while the clean state's
+  hottest was 13.7%. 50 sits in the gap with room either side.
+- **`LOAD_PER_CORE = 0.7`** is the coarse backstop for diffuse load no single
+  process accounts for. Deliberately not tighter — a normally-busy Mac (editor,
+  Spotify, Docker, chat) sits around 0.3-0.55 and must still be able to record a
+  baseline, per the ruling.
+
+Confirmed empirically that the two rules have different jobs: with four CPU
+burners started 6 s earlier the 1-min load average had barely moved
+(0.361 → 0.372, it is a decaying average) while the hot-process rule fired
+immediately at 100%.
+
+Behaviour: **warn always** (the load line prints on every invocation, busy or
+not, with the top three processes named), and **refuse `--update-baseline`** on
+a busy rig, `--force` as the escape hatch — the same shape already used for
+regressions, flagged outliers and blended sources. The observed load is recorded
+in every report JSON under `machineLoad`.
+
+**Known limit, stated rather than hidden:** the screensaver's real damage was GPU
+contention, and neither threshold measures the GPU. It was caught because it was
+also CPU-hot. A purely GPU-hot neighbour would still slip through — which is why
+the top processes are always PRINTED, not merely thresholded.
+
+### Minors closed
+
+- **Pre-settle context loss no longer aborts the invocation.** `FluidWaves`
+  *replaces* the canvas with the fallback div on context loss, so
+  `waitForSelector('[data-canvas="fluid-waves"]')` never resolved — it threw a
+  Playwright `TimeoutError` carrying no `isHealthFailure` after 30 s, turning a
+  plausible cold-GPU-shader-compile hiccup at load into a hard abort. The two
+  selectors are now raced and a fallback win throws a retryable
+  `context-loss`.
+- **The exhaustion message counted the wrong thing.** `replacements + 1` is the
+  total replacement count, so after two outlier discards plus two health
+  failures it claimed "failed its health check on 4 runs". A separate
+  `healthFailures` counter now feeds the message; the budget stays shared.
+- **`REPORT_VERSION` → 2.** `perRunMeta[].consoleErrors` changed from `string[]`
+  to `{kind, text}[]` and reports gained `machineLoad`; a v1 consumer would
+  render `[object Object]`.
+- **`perf/selftest-retry.mjs` is committed.** The retry path is the riskiest
+  logic in the harness — the one place a failed run can be made to disappear —
+  and it had no reproducible test, only deleted scratch scripts. 12 assertions,
+  no browser, no port, no build. `healthBlocker` and `baselineRefusal` were
+  extracted from `main()` and exported precisely so the gates are assertable
+  rather than only reachable through a full invocation.
+
+### Left alone by ruling
+
+The `emptyDelta`/`MISSING` rows showing the raw stored band, the broad
+`/net::ERR_/i` allowlist pattern, the back-compat page-vs-session branch, the
+symlink-fragile main guard, `--force` writing a blended metric without a
+`sourceConflict` marker, and per-run `sources` not being stored in `perRunMeta`.

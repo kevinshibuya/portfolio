@@ -4,7 +4,10 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { applyBandOverrides } from './stats.mjs'
 
-export const REPORT_VERSION = 1
+// 2: `perRunMeta[].consoleErrors` changed from `string[]` to `{kind, text}[]`
+// (health-error taxonomy), and reports gained a top-level `machineLoad` block.
+// A Task 5/6 consumer written against v1 would render `[object Object]`.
+export const REPORT_VERSION = 2
 
 export const VERDICT = {
   NO_BASELINE: 'no baseline',

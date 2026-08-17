@@ -106,10 +106,23 @@ export async function launchRun() {
  * retrying them three times only wastes twenty minutes and hides the cause.
  */
 export class MeasurementHealthError extends Error {
-  constructor(message) {
+  /**
+   * `kind` decides whether the runner may retry, and the split is the whole
+   * point:
+   *
+   *   'context-loss'  the GPU dropped the WebGL context. A property of the RIG
+   *                   and the driver — genuinely transient, retry it.
+   *   'page-error'    an uncaught JS exception. A property of the CODE: the app
+   *                   took a path it does not take in a healthy run. Retrying
+   *                   that is how a Task 8 batch whose rAF callback throws on
+   *                   1 frame in 5000 gets retried away and KEPT. Fail fast.
+   */
+  constructor(message, kind) {
     super(message)
     this.name = 'MeasurementHealthError'
     this.isHealthFailure = true
+    this.kind = kind
+    this.retryable = kind === 'context-loss'
   }
 }
 
@@ -141,7 +154,25 @@ export async function waitForSettledHero(session, log = () => {}) {
   const { page } = ctx
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done', undefined, { timeout: 30_000 })
   await page.waitForSelector('[data-entrance="settled"]', { timeout: 30_000 })
-  await page.waitForSelector('[data-canvas="fluid-waves"]', { timeout: 30_000 })
+
+  // RACE the canvas against the fallback. On context loss `FluidWaves` REPLACES
+  // the canvas with the gradient div, so waiting on the canvas alone would sit
+  // for the full 30s and then throw a Playwright TimeoutError carrying no
+  // `isHealthFailure` — turning a retryable cold-GPU hiccup at load (a very
+  // plausible trigger: first shader compile on a cold GPU) into a hard abort of
+  // the entire invocation.
+  const canvasOrFallback = await Promise.race([
+    page.waitForSelector('[data-canvas="fluid-waves"]', { timeout: 30_000 }).then(() => 'canvas'),
+    page.waitForSelector('[data-testid="fluid-waves-fallback"]', { timeout: 30_000 }).then(() => 'fallback'),
+  ])
+  if (canvasOrFallback === 'fallback') {
+    throw new MeasurementHealthError(
+      'hero WebGL context was lost before the measurement window (the gradient fallback rendered ' +
+        'instead of the canvas). Retryable environment failure, not a performance result.',
+      'context-loss',
+    )
+  }
+
   await assertPageHealthy(ctx, 'before the measurement window', log)
 
   // Everything up to here is load noise. The post-window check judges only what
@@ -175,6 +206,7 @@ export async function assertPageHealthy(session, when, log = () => {}) {
       `hero WebGL context was lost ${when} (the gradient fallback is showing). ` +
         'GPU metrics from this run would read as a large improvement and are discarded. ' +
         'This is an environment/stability failure, not a performance result.',
+      'context-loss',
     )
   }
 
@@ -197,8 +229,10 @@ export async function assertPageHealthy(session, when, log = () => {}) {
   if (fatal.length > 0) {
     for (const entry of fatal) log(`  !! ${entry.kind}: ${entry.text.slice(0, 200)}`)
     throw new MeasurementHealthError(
-      `page reported ${fatal.length} error(s) ${when} — the run is not a clean measurement:\n  ` +
+      `page reported ${fatal.length} error(s) ${when} — the run is not a clean measurement. ` +
+        'An uncaught page error is a statement about the CODE, not the rig, so this is NOT retried:\n  ' +
         fatal.slice(0, 5).map((entry) => `[${entry.kind}] ${entry.text}`).join('\n  '),
+      'page-error',
     )
   }
 }

@@ -25,6 +25,7 @@ import { readFile } from 'node:fs/promises'
 
 import { BASE_URL, SERVE_COMMAND, buildOnce, distFingerprint, startPreview } from './lib/server.mjs'
 import { collectRig, rigMismatches, RIG_KEYS } from './lib/rig.mjs'
+import { reportMachineLoad, sampleMachineLoad } from './lib/load.mjs'
 import { readBaseline, updateScenarios } from './lib/baseline.mjs'
 import { aggregate, findOutlierRun, provenanceWarnings, MIN_RUNS_FOR_OUTLIER } from './lib/stats.mjs'
 import { REPORT_VERSION, VERDICT, compare, printComparison, writeReport } from './lib/report.mjs'
@@ -127,6 +128,11 @@ export async function runScenario(scenario, runs, context, { warmup = true } = {
   // apart from `discarded` so the printed count means what it says.
   const flagged = []
   let replacements = 0
+  // Counted separately from `replacements` purely for the failure MESSAGE: the
+  // budget is deliberately shared with statistical outliers, so
+  // `replacements + 1` would claim "failed its health check on 4 runs" after
+  // two outlier discards plus two health failures and misdirect triage.
+  let healthFailures = 0
   let warmupResult = null
 
   // WARM-UP RUN — executed, recorded, never aggregated.
@@ -186,16 +192,22 @@ export async function runScenario(scenario, runs, context, { warmup = true } = {
     try {
       result = await scenario.run(context)
     } catch (error) {
-      if (!error?.isHealthFailure) throw error
+      // Only a CONTEXT LOSS is retried. An uncaught page error is a statement
+      // about the code, not the rig (see MeasurementHealthError.kind), and
+      // retrying it is exactly how a batch whose rAF callback throws on one
+      // frame in five thousand would get retried away and kept.
+      if (!error?.isHealthFailure || !error.retryable) throw error
       if (replacements >= MAX_REPLACEMENTS) {
         throw new Error(
-          `${scenario.name}: the page failed its health check on ${replacements + 1} runs ` +
-            `(budget ${MAX_REPLACEMENTS} exhausted) — this is not transient. Last failure:\n${error.message}`,
+          `${scenario.name}: the page lost its WebGL context on ${healthFailures + 1} run(s) ` +
+            `(shared replacement budget of ${MAX_REPLACEMENTS} exhausted) — this is not transient. ` +
+            `Last failure:\n${error.message}`,
         )
       }
       replacements += 1
-      discarded.push({ index, reason: `health failure: ${error.message}`, healthFailure: true, metrics: null })
-      log(`  ~~ ${scenario.name}: discarding run ${index + 1} — health failure, rerunning (${replacements}/${MAX_REPLACEMENTS})`)
+      healthFailures += 1
+      discarded.push({ index, reason: `health failure (${error.kind}): ${error.message}`, healthFailure: true, kind: error.kind, metrics: null })
+      log(`  ~~ ${scenario.name}: discarding run ${index + 1} — ${error.kind}, rerunning (replacement ${replacements}/${MAX_REPLACEMENTS})`)
       log(`     ${error.message.split('\n')[0]}`)
       continue
     }
@@ -233,6 +245,44 @@ export async function runScenario(scenario, runs, context, { warmup = true } = {
     sources: kept.at(-1)?.sources ?? {},
     meta: kept.map((run) => run.meta),
   }
+}
+
+/**
+ * Does this scenario's run set carry a page-health failure that must reach the
+ * exit code and the baseline gate?
+ *
+ * Extracted and exported so the decision is TESTABLE (perf/selftest-retry.mjs)
+ * rather than buried inline in main(). This is the fix for the hole the retry
+ * path opened: every KEPT run is clean, so `compare()` sees only healthy
+ * medians and would happily print "no regressions" and baseline a build that
+ * was dropping the WebGL context a quarter of the time.
+ *
+ * The wording deliberately does not blame the rig. A harness whose whole job is
+ * attributing movement to the diff must not default to "the machine did it".
+ */
+export function healthBlocker(scenarioName, outcome) {
+  const healthDiscards = outcome.discarded.filter((entry) => entry.healthFailure)
+  if (healthDiscards.length === 0) return null
+  return (
+    `${scenarioName}: ${healthDiscards.length} run(s) LOST THE WEBGL CONTEXT and were discarded and rerun. ` +
+    'The kept runs are clean, but losing the context is itself a result — the build under test may be ' +
+    'destabilising the GPU. Investigate before trusting or baselining these numbers.'
+  )
+}
+
+/**
+ * The `--update-baseline` gate. A baseline is the reference every later
+ * keep-or-revert decision is judged against, so anything that makes this run an
+ * unrepresentative reference blocks it, and `--force` is the single deliberate
+ * escape hatch.
+ */
+export function baselineRefusal({ force, exitCode, blockingWarnings = [], machineLoad }) {
+  const reasons = [...blockingWarnings]
+  if (machineLoad?.busy) {
+    reasons.push(`the rig was BUSY when this run started (${machineLoad.reasons.join('; ')})`)
+  }
+  const refuse = !force && (exitCode === 1 || reasons.length > 0)
+  return { refuse, reasons }
 }
 
 // ── --compare: do two reports agree within their own declared bands? ────────
@@ -321,6 +371,11 @@ async function main() {
 
   log(`perf harness — ${options.scenarios.map((s) => s.name).join(', ')} · ${options.runs} run(s) each`)
 
+  // Sampled BEFORE any browser launches, so it describes the environment the
+  // measurement is about to run in rather than the measurement's own load.
+  const machineLoad = await sampleMachineLoad()
+  reportMachineLoad(machineLoad, log)
+
   const rig = await collectRig()
   log(`rig: chrome ${rig.chrome} · macOS ${rig.macos} · ${rig.arch} · display ${rig.displayScale}x · ${rig.acPower ? 'AC power' : 'BATTERY'}`)
   if (!rig.acPower) {
@@ -386,12 +441,21 @@ async function main() {
       if (outcome.aggregated && Object.values(outcome.aggregated).some((metric) => metric.sourceConflict)) {
         blockingWarnings.push(`${scenario.name}: a metric blended two measurement sources`)
       }
-      const healthDiscards = outcome.discarded.filter((entry) => entry.healthFailure)
-      if (healthDiscards.length > 0) {
-        comparison.warnings.push(
-          `${scenario.name}: ${healthDiscards.length} run(s) were discarded for PAGE HEALTH failures and rerun — ` +
-            'the kept runs are clean, but the page is not stable on this rig right now',
-        )
+      // A health-discarded run set is NOT a clean result, even though every
+      // KEPT run is clean. Before health failures were retryable, a batch that
+      // destabilised the WebGL context killed the invocation; if the retry path
+      // only warned, that same batch would now print "no regressions" and be
+      // baselined. The discards must therefore reach BOTH the exit code and the
+      // baseline gate.
+      //
+      // Note the wording: the page failed, and attributing that to "the rig"
+      // would be exactly the wrong prior for a harness whose job is to
+      // attribute movement to the diff.
+      const healthDetail = healthBlocker(scenario.name, outcome)
+      if (healthDetail) {
+        comparison.warnings.push(healthDetail)
+        blockingWarnings.push(healthDetail)
+        exitCode = 1
       }
       for (const meta of outcome.meta) {
         if (meta?.frameBufferOverflowed) {
@@ -416,6 +480,7 @@ async function main() {
           warmup: outcome.warmup,
         },
         rig,
+        machineLoad,
         rigMismatchVsBaseline: mismatches,
         build: { serveCommand: SERVE_COMMAND, baseUrl: BASE_URL, built: options.build, ...fingerprint },
         sources: outcome.sources,
@@ -457,13 +522,23 @@ async function main() {
     // damaging thing this tool could do quietly. Same for a run whose outlier
     // survived the gate. Both are recoverable intentions, so they need --force
     // rather than a refusal, but neither may happen by default.
-    if (!options.force && (exitCode === 1 || blockingWarnings.length > 0)) {
+    // Ruling R10: a busy rig is a baseline-corrupting condition, on the same
+    // footing as a regression. Task 5's baseline is the reference all six
+    // batches are judged against; taken on a loaded machine it is inflated, and
+    // every later batch then reads as an improvement.
+    const { refuse, reasons } = baselineRefusal({
+      force: options.force,
+      exitCode,
+      blockingWarnings,
+      machineLoad,
+    })
+    if (refuse) {
       process.stderr.write(
         'REFUSING --update-baseline: this run is not a clean reference.\n' +
-          (exitCode === 1 ? '  - it contains REGRESSIONS; baselining them makes them permanent and undetectable\n' : '') +
-          blockingWarnings.map((warning) => `  - ${warning}\n`).join('') +
-          'Fix the regression, or re-run to confirm, or pass --force if you deliberately intend this\n' +
-          'to become the new reference.\n',
+          (exitCode === 1 ? '  - it did not finish clean (regressions, or runs discarded for page-health failures)\n' : '') +
+          reasons.map((warning) => `  - ${warning}\n`).join('') +
+          'Quiesce the machine and/or fix the regression and re-run, or pass --force if you\n' +
+          'deliberately intend this to become the new reference.\n',
       )
       return 2
     }
