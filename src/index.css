@@ -105,6 +105,28 @@
   --accent-blue:   #4D80E6;
   --accent-yellow: #E6CC4D;
 
+  /* Canonical `--color-*` names, mirrored here on purpose.
+     They are ALSO declared in `@theme` above, but Tailwind tree-shakes
+     `@theme` down to the tokens it can see referenced — and it scans for
+     CLASS candidates, never for `var()` in a .tsx. So a future
+     `style={{ color: 'var(--color-text)' }}` or
+     `getPropertyValue('--color-accent-pink')` would resolve to EMPTY, with
+     no error and no failing test. CLAUDE.md tells new work to read these
+     names, so the contract has to hold at runtime: this plain `:root` block
+     is not tree-shaken and guarantees it. (A `var(--color-text)` written
+     inside this stylesheet self-heals — that is why the light-chapter
+     `--color-*-deep` tokens survived the Task 5c scoping and these did not.)
+     Values are the same hexes as the `@theme` block; change both together. */
+  --color-bg:            #0B0E14;
+  --color-bg-tonal:      #131722;
+  --color-text:          #F5F2EC;
+  --color-text-muted:    #C9C4BA;
+  --color-text-faded:    #A8A49C;
+  --color-accent-pink:   #E64D66;
+  --color-accent-blue:   #4D80E6;
+  --color-accent-yellow: #E6CC4D;
+  --color-accent-yellow-deep: #7A6800;
+
   /* LEGACY ALIASES — remapped onto the dark system so the whole light-era
      stylesheet flips in one commit. Semantics: in the light theme --cream
      was "page background" and --ink was "text"; those ROLES keep their

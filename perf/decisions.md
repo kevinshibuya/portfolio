@@ -1610,8 +1610,20 @@ The allow-list's own failure mode is the opposite and is the one that actually
 had to be disproved: an include that is too narrow silently drops a utility the
 app really uses, and a byte count cannot see it. Three independent proofs were
 run (below). The app's entire markup surface is `src/` + `index.html` — no
-other HTML, JSX or TSX exists in the tree (`find public scripts -name '*.html'
--o -name '*.tsx' -o -name '*.jsx'` → empty).
+other HTML/JSX/TSX in the tree is *built or served*.
+
+(Evidence correction, review item 3 — the original wording here cited a
+`find public scripts …` that returned empty, but that searched only two
+directories and does not support the claim. The claim is nonetheless correct,
+on the right evidence: a full `find` excluding `node_modules`/`dist` turns up
+`.claude/portfolio-handoff/**`, `.claude/design-system-handoff/**`,
+`.superpowers/brainstorm/**/*.html` and `tests/unit/*.tsx`. None is built or
+served — Vite's build entry is the default root `index.html` with no `input`
+or `root` override in `vite.config.ts`, `wrangler.jsonc` declares no worker
+entry and serves `dist/` only, and the `tests/unit` TSX renders through jsdom
+in vitest, never into the bundle. `.claude/` handoff material and
+`.superpowers/` are gitignored reference artifacts. So they are exactly the
+files the allow-list is meant to exclude, not app markup it might miss.)
 
 ### Result
 
@@ -1680,7 +1692,7 @@ all survive; only `accent-yellow-deep`, which nothing references, went.
 2. **Dangling custom-property audit.** For both builds, every `var(--x)`
    reference in the emitted CSS was checked against every `--x:` definition in
    the same file. Before: 86 referenced / 106 defined / 6 dangling. After: 67 /
-   78 / **6 dangling — the same six**
+   80 / **6 dangling — the same six**
    (`--default-font-feature-settings`, `--default-font-variation-settings`,
    `--default-mono-font-feature-settings`,
    `--default-mono-font-variation-settings`, `--tw-duration`, and `--row-tint`,
