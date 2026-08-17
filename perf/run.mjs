@@ -21,14 +21,14 @@
 
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { readFile, writeFile } from 'node:fs/promises'
+import { writeFile } from 'node:fs/promises'
 
 import { BASE_URL, SERVE_COMMAND, buildOnce, distFingerprint, startPreview } from './lib/server.mjs'
-import { collectRig, rigMismatches, RIG_KEYS } from './lib/rig.mjs'
+import { collectRig, rigMismatches } from './lib/rig.mjs'
 import { combineMachineLoad, reportMachineLoad, sampleMachineLoad } from './lib/load.mjs'
 import { readBaseline, updateScenarios } from './lib/baseline.mjs'
 import { aggregate, findOutlierRun, provenanceWarnings, MIN_RUNS_FOR_OUTLIER } from './lib/stats.mjs'
-import { REPORT_VERSION, VERDICT, compare, printComparison, writeReport } from './lib/report.mjs'
+import { REPORT_VERSION, VERDICT, compare, compareReportFiles, printComparison, writeReport } from './lib/report.mjs'
 
 import * as idleHero from './scenarios/idle-hero.mjs'
 import * as loadEntrance from './scenarios/load-entrance.mjs'
@@ -303,73 +303,10 @@ export function baselineRefusal({ force, exitCode, blockingWarnings = [], machin
   return { refuse, reasons }
 }
 
-// ── --compare: do two reports agree within their own declared bands? ────────
-
-async function compareReports(pathA, pathB) {
-  const a = JSON.parse(await readFile(pathA, 'utf8'))
-  const b = JSON.parse(await readFile(pathB, 'utf8'))
-
-  log(`compare: ${path.basename(pathA)} vs ${path.basename(pathB)}`)
-  if (a.scenario !== b.scenario) {
-    process.stderr.write(`error: different scenarios (${a.scenario} vs ${b.scenario})\n`)
-    return 2
-  }
-  if (a.build.distIndexHash !== b.build.distIndexHash) {
-    log(`  !! different builds — ${a.build.distIndexHash} vs ${b.build.distIndexHash}`)
-  }
-
-  let disagreements = 0
-  for (const key of RIG_KEYS) {
-    if (String(a.rig?.[key]) !== String(b.rig?.[key])) {
-      log(`  !! rig differs on ${key}: "${a.rig?.[key]}" vs "${b.rig?.[key]}" — these reports are not comparable`)
-      disagreements += 1
-    }
-  }
-
-  // Iterate the UNION. Walking only A's metrics would let B silently lose one
-  // and still report "reports agree" — the same class of hole as blending
-  // sources without saying so.
-  const allMetrics = [...new Set([...Object.keys(a.metrics), ...Object.keys(b.metrics)])].sort()
-  log(`  ${'metric'.padEnd(30)}${'A'.padStart(12)}${'B'.padStart(12)}${'|delta|'.padStart(12)}${'band'.padStart(12)}  verdict`)
-  for (const metric of allMetrics) {
-    const left = a.metrics[metric]
-    const right = b.metrics[metric]
-    if (!left) {
-      log(`  ${metric.padEnd(30)}${'—'.padStart(12)}${String(right.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  MISSING IN A`)
-      disagreements += 1
-      continue
-    }
-    if (!right) {
-      log(`  ${metric.padEnd(30)}${String(left.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  MISSING IN B`)
-      disagreements += 1
-      continue
-    }
-    if (left.sourceConflict || right.sourceConflict) {
-      log(`  ${metric.padEnd(30)}${String(left.median).padStart(12)}${String(right.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  BLENDED SOURCES`)
-      disagreements += 1
-      continue
-    }
-    if (left.sources?.length === 1 && right.sources?.length === 1 && left.sources[0] !== right.sources[0]) {
-      log(`  ${metric.padEnd(30)}${String(left.median).padStart(12)}${String(right.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  SOURCE A≠B`)
-      disagreements += 1
-      continue
-    }
-    // "Within their own declared bands": the wider of the two bands, because
-    // each report's band is that report's own honest statement of how much the
-    // metric may move. Requiring the narrower would make the stricter run the
-    // arbiter of the looser one.
-    const band = Math.max(left.band, right.band)
-    const delta = Math.abs(left.median - right.median)
-    const agree = delta <= band || left.informational
-    if (!agree) disagreements += 1
-    log(
-      `  ${metric.padEnd(30)}${String(left.median).padStart(12)}${String(right.median).padStart(12)}${String(Math.round(delta * 1e4) / 1e4).padStart(12)}${String(Math.round(band * 1e4) / 1e4).padStart(12)}  ${left.informational ? 'info' : agree ? 'agree' : 'DISAGREE'}`,
-    )
-  }
-  log('')
-  log(disagreements === 0 ? '  ✓ reports agree within their declared bands' : `  ✗ ${disagreements} metric(s) disagree`)
-  return disagreements === 0 ? 0 : 1
-}
+// `--compare` itself now lives in lib/report.mjs, shared verbatim with the
+// Lighthouse bench (Layer 3): "two consecutive invocations agree within bands"
+// is the acceptance check BOTH layers are held to, and two copies of it could
+// drift into disagreeing about what "agree" means.
 
 // ── main ───────────────────────────────────────────────────────────────────
 
@@ -385,7 +322,7 @@ async function main() {
   }
   const { options } = parsed
 
-  if (options.compare) return compareReports(options.compare[0], options.compare[1])
+  if (options.compare) return compareReportFiles(options.compare[0], options.compare[1], log)
 
   log(`perf harness — ${options.scenarios.map((s) => s.name).join(', ')} · ${options.runs} run(s) each`)
 

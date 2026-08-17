@@ -229,7 +229,7 @@ Mechanics: every shot loads with `perf-seed=<seed>&perf-freeze=<t>&perf-role=0` 
 **Acceptance check:** two consecutive `node perf/lighthouse.mjs --runs 3` invocations agree within bands on both presets; report names the preset + flags used.
 
 - [ ] **Step 1:** `npm i -D lighthouse`; build the script; acceptance check green.
-- [ ] **Step 2:** Commit `feat(perf): lighthouse bench (median-of-N, preview-only)`.
+- [x] **Step 2:** Commit `feat(perf): lighthouse bench (median-of-N, preview-only)`.
 
 **Boundaries:** No app changes; no Lighthouse CI/server infra.
 

@@ -1,8 +1,9 @@
 // Report JSON + the comparison table.
 
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { applyBandOverrides } from './stats.mjs'
+import { RIG_KEYS } from './rig.mjs'
 
 // 2: `perRunMeta[].consoleErrors` changed from `string[]` to `{kind, text}[]`
 // (health-error taxonomy), and reports gained a top-level `machineLoad` block.
@@ -130,4 +131,87 @@ export async function writeReport(reportsDir, scenarioName, report) {
   const file = path.join(reportsDir, `${stamp}-${scenarioName}.json`)
   await writeFile(file, `${JSON.stringify(report, null, 2)}\n`, 'utf8')
   return file
+}
+
+/**
+ * `--compare A B`: do two reports agree within their own declared bands?
+ *
+ * SHARED BY BOTH MEASURING LAYERS. This lives here rather than in run.mjs
+ * because it is not the scenario runner's private helper — it is the literal
+ * form of the acceptance check BOTH Layer 2 and Layer 3 are held to ("two
+ * consecutive invocations agree within bands"). Forking a second copy into
+ * perf/lighthouse.mjs would mean the two layers could drift into disagreeing
+ * about what "agree" means, which is precisely the kind of quiet divergence
+ * this harness exists to prevent.
+ *
+ * It reads only fields every report in this harness carries — `scenario`,
+ * `build.distIndexHash`, `rig`, `metrics` — so a Lighthouse report and a
+ * scenario report are compared by exactly the same rules.
+ *
+ * Returns a process exit code: 0 agree · 1 disagree · 2 not comparable.
+ */
+export async function compareReportFiles(pathA, pathB, log) {
+  const a = JSON.parse(await readFile(pathA, 'utf8'))
+  const b = JSON.parse(await readFile(pathB, 'utf8'))
+
+  log(`compare: ${path.basename(pathA)} vs ${path.basename(pathB)}`)
+  if (a.scenario !== b.scenario) {
+    process.stderr.write(`error: different scenarios (${a.scenario} vs ${b.scenario})\n`)
+    return 2
+  }
+  if (a.build.distIndexHash !== b.build.distIndexHash) {
+    log(`  !! different builds — ${a.build.distIndexHash} vs ${b.build.distIndexHash}`)
+  }
+
+  let disagreements = 0
+  for (const key of RIG_KEYS) {
+    if (String(a.rig?.[key]) !== String(b.rig?.[key])) {
+      log(`  !! rig differs on ${key}: "${a.rig?.[key]}" vs "${b.rig?.[key]}" — these reports are not comparable`)
+      disagreements += 1
+    }
+  }
+
+  // Iterate the UNION. Walking only A's metrics would let B silently lose one
+  // and still report "reports agree" — the same class of hole as blending
+  // sources without saying so.
+  const allMetrics = [...new Set([...Object.keys(a.metrics), ...Object.keys(b.metrics)])].sort()
+  log(`  ${'metric'.padEnd(30)}${'A'.padStart(12)}${'B'.padStart(12)}${'|delta|'.padStart(12)}${'band'.padStart(12)}  verdict`)
+  for (const metric of allMetrics) {
+    const left = a.metrics[metric]
+    const right = b.metrics[metric]
+    if (!left) {
+      log(`  ${metric.padEnd(30)}${'—'.padStart(12)}${String(right.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  MISSING IN A`)
+      disagreements += 1
+      continue
+    }
+    if (!right) {
+      log(`  ${metric.padEnd(30)}${String(left.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  MISSING IN B`)
+      disagreements += 1
+      continue
+    }
+    if (left.sourceConflict || right.sourceConflict) {
+      log(`  ${metric.padEnd(30)}${String(left.median).padStart(12)}${String(right.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  BLENDED SOURCES`)
+      disagreements += 1
+      continue
+    }
+    if (left.sources?.length === 1 && right.sources?.length === 1 && left.sources[0] !== right.sources[0]) {
+      log(`  ${metric.padEnd(30)}${String(left.median).padStart(12)}${String(right.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  SOURCE A≠B`)
+      disagreements += 1
+      continue
+    }
+    // "Within their own declared bands": the wider of the two bands, because
+    // each report's band is that report's own honest statement of how much the
+    // metric may move. Requiring the narrower would make the stricter run the
+    // arbiter of the looser one.
+    const band = Math.max(left.band, right.band)
+    const delta = Math.abs(left.median - right.median)
+    const agree = delta <= band || left.informational
+    if (!agree) disagreements += 1
+    log(
+      `  ${metric.padEnd(30)}${String(left.median).padStart(12)}${String(right.median).padStart(12)}${String(Math.round(delta * 1e4) / 1e4).padStart(12)}${String(Math.round(band * 1e4) / 1e4).padStart(12)}  ${left.informational ? 'info' : agree ? 'agree' : 'DISAGREE'}`,
+    )
+  }
+  log('')
+  log(disagreements === 0 ? '  ✓ reports agree within their declared bands' : `  ✗ ${disagreements} metric(s) disagree`)
+  return disagreements === 0 ? 0 : 1
 }

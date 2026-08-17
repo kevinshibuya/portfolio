@@ -52,6 +52,26 @@ export async function readBaseline(baselinePath) {
  * "bands... overridable there" true in practice.
  */
 export async function updateScenarios(baselinePath, scenarioAggregates, rig) {
+  return updateSection(baselinePath, 'scenarios', scenarioAggregates, rig)
+}
+
+/**
+ * The Lighthouse bench's writer (Layer 3, perf/lighthouse.mjs). Same function,
+ * different key: `lighthouse.<preset>.<metric>` instead of
+ * `scenarios.<scenario>.<metric>`.
+ *
+ * This is the three-writer contract made structural rather than merely
+ * documented. Both writers go through ONE `updateSection`, so the merge rules
+ * that protect the other keys — never replace wholesale, retain dropped
+ * metrics, bootstrap `rig` per-key, preserve unknown keys — cannot be
+ * implemented twice and drift apart. A second hand-rolled copy for `lighthouse`
+ * is exactly how Task 4 would have silently clobbered Task 3's `scenarios`.
+ */
+export async function updateLighthouse(baselinePath, presetAggregates, rig) {
+  return updateSection(baselinePath, 'lighthouse', presetAggregates, rig)
+}
+
+async function updateSection(baselinePath, sectionKey, scenarioAggregates, rig) {
   const existing = (await readBaseline(baselinePath)) ?? {}
   const next = { ...existing }
   const notes = { retained: [], rigKeysAdded: [] }
@@ -67,7 +87,7 @@ export async function updateScenarios(baselinePath, scenarioAggregates, rig) {
   }
   next.rig = rigBlock
 
-  const scenarios = { ...(next.scenarios ?? {}) }
+  const scenarios = { ...(next[sectionKey] ?? {}) }
   for (const [name, metrics] of Object.entries(scenarioAggregates)) {
     const previous = scenarios[name] ?? {}
     const merged = { ...previous }
@@ -89,7 +109,7 @@ export async function updateScenarios(baselinePath, scenarioAggregates, rig) {
     }
     scenarios[name] = merged
   }
-  next.scenarios = scenarios
+  next[sectionKey] = scenarios
 
   await mkdir(path.dirname(baselinePath), { recursive: true })
   await writeFile(baselinePath, `${JSON.stringify(orderKeys(next), null, 2)}\n`, 'utf8')

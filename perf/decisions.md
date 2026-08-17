@@ -1127,3 +1127,154 @@ would have violated on every run. Selftest: **26/26**.
 (`/usr/bin/foo /path/config.json` → `config.json`), the abort-path report shape,
 the `detectorBlind`-only banner wording, and `combineMachineLoad` not surfacing
 `detectorBlind` at the combined level.
+
+---
+
+## 2026-08-17 · Task 4 · Lighthouse bench (`perf/lighthouse.mjs`)
+
+Layer 3 of the three-layer system: whole-page Lighthouse scores against the
+same `npx vite preview` server, rig stamp, band arithmetic and R10 load guard
+Layer 2 uses. `npm run perf:lh`.
+
+### Invocation and pinning
+
+**Node API, not the CLI.** Tasks 7-12 compare a number taken today against a
+baseline taken weeks earlier, so the only thing that must not drift is the
+measurement CONFIGURATION. The CLI expresses config as argv layered on that
+binary's defaults, and `npx lighthouse` can resolve a different version than
+package-lock pins. The Node API takes a config object that is checked in,
+diffable in review, and recorded verbatim in every report JSON.
+
+**Every throttling/emulation number is written out LITERALLY** in
+`perf/lighthouse.mjs` rather than imported from
+`lighthouse/core/config/constants.js`. Those constants are Lighthouse's own and
+they move across majors (mobile throttling, screen metrics and the emulated UA
+have all changed before). Imported, an `npm update lighthouse` would silently
+redefine the bench; every metric would step, with no diff to explain it, and
+the campaign would attribute the step to whichever batch was in flight.
+Transcribed from **Lighthouse 12.8.2** — the stock mobile/desktop presets, so
+the score still means what the outside world means by it. `PINNED_LIGHTHOUSE_VERSION`
+records the pin and the run warns loudly if the installed version drifts off it.
+
+The Chrome flag vector is pinned the same way and for the same reason
+(`ignoreDefaultFlags: true` + chrome-launcher 1.2.1's `defaultFlags()`
+transcribed, plus Layer 2's three anti-backgrounding flags).
+
+| choice | value | why |
+|---|---|---|
+| throttling method | `simulate` (Lantern) | far tighter run-to-run spread than `devtools`; a band wide enough to swallow a regression is worse than no bench. Also what PSI reports. |
+| presets | desktopDense4G / mobileSlow4G, stock | comparable to any other Lighthouse run of this site |
+| categories | `performance` only | the other categories add runtime and variance for metrics this campaign does not judge |
+| storage | cleared per run incl. `shader_cache` | on a WebGL-LCP page a warm shader cache measures the fifth visit, not the first |
+| browser | **headed**, Playwright's Chromium binary | Layer 2 runs headed for the real GPU. A headless Layer 3 could fall back to SwiftShader on the very canvas this campaign is about, and the two layers' LCP/TBT would be numbers about two different renderers while looking comparable in a table. Using Playwright's binary also means `rig.chrome` describes the browser that actually ran. |
+| URL | `/?perf-seed=0.5&perf-role=0` | the same URL Layer 2 audits. Both knobs only remove entropy (shader scatter, hero role index); neither disables work or takes a non-shipping branch. |
+
+### Metrics
+
+Required five plus three informational: `lh.performance` (0-100, the harness's
+only **higher-is-better** metric), `lh.lcpMs`, `lh.tbtMs`, `lh.cls`,
+`lh.transferBytes`, and informational `lh.fcpMs`, `lh.speedIndexMs`,
+`lh.runMs`. Band semantics are Layer 2's exactly: `max(10% of median, 1 x IQR,
+minBand)`.
+
+**Never silently skipped.** Any metric Lighthouse cannot produce is returned
+from `extractMetrics` with its REASON, and that reason lands in the report's
+`unavailableMetrics`, in the printed warnings, and in the `--update-baseline`
+gate. The quiet failure this prevents: an errored audit leaves nothing to
+aggregate, `compare()` then has no current value, and the metric drops out of
+the table — a budget that stops existing rather than failing.
+
+`lh.transferBytes` has two possible providers (`total-byte-weight`, falling
+back to `resource-summary`) which measure subtly different things, so it
+carries its own source string and a set that switched providers mid-run is
+flagged BLENDED by `aggregate()` rather than medianed.
+
+### Known band defect to fix at Task 5/6 (not a bug in this file)
+
+Within one build `lh.transferBytes` is very nearly constant, so the
+10%-of-median term makes its default band absurdly loose — the smoke run below
+measured 949,553 bytes with a band of **94,955 bytes**. A ~90 KB regression
+would read within-band. This is NOT fixed by forking the band formula (it is
+shared with Layer 2 deliberately); it is fixed the way the design intends, with
+a hand-set `"maxBand"` on that metric in `baseline.json`. **Task 5 must set
+`lighthouse.<preset>.lh.transferBytes.maxBand`** (~2048 suggested — the figure
+should be near-exact for a fixed dist hash). The same argument applies more
+weakly to `lh.performance`, whose 10% term tolerates a 6-point score drop.
+
+### Shared-module changes (both load-bearing for Layer 2)
+
+- `lib/report.mjs` gained `compareReportFiles`, moved verbatim out of
+  `run.mjs`, which now delegates to it. "Two consecutive invocations agree
+  within bands" is the acceptance check BOTH layers are held to; two copies
+  could drift into disagreeing about what "agree" means.
+- `lib/baseline.mjs` gained `updateLighthouse`, and `updateScenarios` now
+  delegates to a shared private `updateSection`. This makes the three-writer
+  contract structural rather than merely documented — the merge rules that
+  protect the other keys cannot be implemented twice and drift apart.
+- `perf/lighthouse.mjs` drives its presets through `runScenario` (imported from
+  `run.mjs`), reusing the warm-up discard, outlier gate and replacement budget
+  rather than reimplementing them.
+
+`npm run perf:selftest` stayed 26/26 across both refactors.
+
+### Acceptance check: DEFERRED — the rig is contaminated
+
+The check is "two consecutive `node perf/lighthouse.mjs --runs 3` invocations
+agree within bands on both presets". That is a timing measurement, and R10
+exists precisely to stop numbers being recorded in this state.
+
+Rig at implementation time — a macOS background-maintenance storm, not a
+transient spike. **8 of 10 polls over 3 minutes had a foreign process above
+R10's 50% limit**:
+
+| time | 1-min load | hottest foreign process |
+|---|---|---|
+| 01:13 | 12.09 | LeagueOfLegends 183.3% |
+| 01:25 | 5.20 | fseventsd 73.6% |
+| 01:26:19 | 4.56 | ApplicationsStorageExtension 88.6% |
+| 01:26:37 | 5.07 | StorageManagementService 74.7% |
+| 01:26:55 | 4.49 | StorageManagementService 54.8% |
+| 01:27:13 | 4.26 | WardaSynthesizer 40.6% |
+| 01:27:31 | 4.19 | ANECompilerService 92.3% |
+| 01:27:49 | 4.15 | com.apple.WebKit.Networking 30.0% |
+| 01:28:08 | 4.06 | StorageManagementService 76.9% |
+| 01:28:26 | 3.68 | ANECompilerService 39.6% |
+| 01:28:44 | 3.30 | ApplicationsStorageExtension 17.4% |
+| 01:29:02 | 3.48 | fseventsd 71.7% |
+
+`fseventsd` at 68-78% is the exact signature already recorded above as a
+contaminated state. A "pass" recorded here would be a statement about Spotlight
+indexing and Apple Neural Engine compilation, not about the build.
+
+**What WAS proved on this rig** (all load-independent, all green):
+
+- 31/31 assertions over the three-writer baseline contract, `extractMetrics`'s
+  happy path, all six of its never-silently-skip failure paths, the named
+  transfer-bytes fallback, band-override survival, dropped-metric retention,
+  and `parseArgs`.
+- `npm run perf:selftest` 26/26 (Layer 2 unaffected by the shared-module work).
+- A full end-to-end functional smoke, `desktop --runs 1 --no-warmup`: build →
+  serve → launch → audit → aggregate → report → server torn down. All 8 metrics
+  collected, **zero unavailable**, provenance recorded
+  (`lighthouse@12.8.2:simulate`, `audit:total-byte-weight`), and the R10 guard
+  fired loudly on the busy rig as designed. **These numbers are plumbing
+  evidence only and must NOT be used as a baseline** — desktop, n=1, on a rig
+  R10 declared busy: score 66, LCP 1750.6 ms, TBT 494 ms, CLS 0, transfer
+  949,553 bytes, dist `sha256:0d166dce…`.
+
+**To close the leg on a quiesced rig** (verify `uptime` and that no foreign
+process is above 50% first, and never run this concurrently with the Playwright
+suite — they contend for port 4173 and `dist/`):
+
+```sh
+node perf/lighthouse.mjs all --runs 3            # invocation A
+node perf/lighthouse.mjs all --runs 3 --no-build # invocation B, same dist
+ls -t perf/reports/*lighthouse-desktop.json | head -2   # newest two = B, A
+node perf/lighthouse.mjs --compare <A-desktop.json> <B-desktop.json>
+node perf/lighthouse.mjs --compare <A-mobile.json>  <B-mobile.json>
+```
+
+Both `--compare` invocations must exit 0. `--no-build` on B is deliberate: it
+holds the dist hash identical across the pair, so a disagreement is measurement
+noise rather than two different builds. Confirm the reports' `machineLoad.busy`
+is `false` at BOTH ends before believing the result.
