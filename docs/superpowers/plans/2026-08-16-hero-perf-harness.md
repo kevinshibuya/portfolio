@@ -240,6 +240,12 @@ Mechanics: every shot loads with `perf-seed=<seed>&perf-freeze=<t>&perf-role=0` 
 **Files:**
 - Create: `perf/baseline.json` (committed), `perf/decisions.md` (campaign log, seeded with a header)
 
+> **Execution ruling R14 (SDD, 2026-08-17, owner-approved):** this task SPLITS on the rig-quiescence dependency. The reference Mac has been under sustained foreign load (a game, then a macOS storage-maintenance storm), and ruling R10's load guard correctly refuses to write a baseline in that state — a baseline recorded on a loaded rig makes every later batch read as an improvement against an inflated reference.
+> - **Task 5a (rig-independent, runs now):** Work item 2 only — `exact.chunkBytesCeiling` + `exact.uniformUploadsPerFrame`, creating `perf/baseline.json` with its `exact` and `rig` blocks. Built bytes and GL call counts are EXACT metrics: deterministic properties of the code, unaffected by machine load. This unblocks Task 6, whose budgets are exact metrics too.
+> - **Task 5b (needs a quiesced Mac, deferred):** Work items 1, 3 and 4 — the runtime + Lighthouse baselines, the sensitivity proof and the determinism proof. Also carries the two acceptance legs deferred by Tasks 3 and 4 (`node perf/run.mjs idle-hero --runs 5 --compare` agreement, and the Lighthouse A/B), and the hand-set `maxBand` overrides for `lh.transferBytes` and `lh.performance`.
+> - **Checkbox consequence:** Step 1 below reads "Record baselines (both layers)" and stays `- [ ]` until 5b lands. 5a ticks nothing — same discipline Task 4 applied to its own unmet acceptance check.
+> - The three-writer contract makes this safe by construction: 5a writes only `exact`, and `--update-baseline` later merges `scenarios` and `lighthouse` without touching it.
+
 **Work:** On the tree as of Tasks 1–4 (whose app-side changes are hooks-only; their visual neutrality rests on the Task 1 dormancy test + review — the pixel gate cannot prove it, since every golden is captured WITH the params; this uncovered surface is a recorded known limit, alongside the spec's GPU one):
 1. `npm run perf -- --update-baseline` + `node perf/lighthouse.mjs --update-baseline` → full baseline recorded, rig block stamped. `battery-proxy` power source (powermetrics vs fallback) decided here — ask Kevin ONCE for the sudo grant; either answer is fine, record which.
 2. Fill `exact.chunkBytesCeiling`: every current `dist/assets` chunk prefix at measured bytes × 1.05 (the authoring-time table above is the cross-check — flag any drift > 2%).
