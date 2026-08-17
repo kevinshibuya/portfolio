@@ -1,5 +1,6 @@
 // Report JSON + the comparison table.
 
+import { createHash } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { applyBandOverrides } from './stats.mjs'
@@ -134,6 +135,86 @@ export async function writeReport(reportsDir, scenarioName, report) {
 }
 
 /**
+ * The rig is not the only instrument that can change under a measurement.
+ *
+ * `RIG_KEYS` covers the MACHINE — Chrome build, macOS, display, power. A Layer 3
+ * report is additionally produced by a specific Lighthouse version running a
+ * specific settings block, and neither is part of the rig. Left uncompared, a
+ * baseline recorded under 12.8.2 compares perfectly clean against a 13.x run
+ * across a scoring-curve change, and `perf/lighthouse.mjs`'s own drift warning
+ * only fires while its pinned constant is left alone — so the one case the
+ * warning cannot catch (someone re-pins the constant alongside the upgrade) is
+ * exactly the case that silently rewrites the campaign's reference.
+ *
+ * Settings are compared as a stable-key-order hash rather than field by field:
+ * the block is nested and open-ended, the answer needed here is only
+ * "same or not", and a hash cannot silently miss a key a field list forgot.
+ *
+ * Reports with no `lighthouse` block (every Layer 2 report) skip this entirely.
+ */
+function compareInstrument(a, b, log) {
+  if (!a.lighthouse && !b.lighthouse) return 0
+
+  let disagreements = 0
+  if (Boolean(a.lighthouse) !== Boolean(b.lighthouse)) {
+    log('  !! one report carries a lighthouse block and the other does not — different instruments')
+    return 1
+  }
+
+  if (a.lighthouse.version !== b.lighthouse.version) {
+    log(
+      `  !! lighthouse version differs: "${a.lighthouse.version}" vs "${b.lighthouse.version}" — ` +
+        'scoring curves and audit implementations are version-internal, so these scores are not comparable',
+    )
+    disagreements += 1
+  }
+  if (a.lighthouse.pinnedAgainst !== b.lighthouse.pinnedAgainst) {
+    log(
+      `  !! bench pin differs: settings were pinned against "${a.lighthouse.pinnedAgainst}" vs ` +
+        `"${b.lighthouse.pinnedAgainst}" — the bench itself was re-pinned between these runs`,
+    )
+    disagreements += 1
+  }
+
+  const settingsA = stableHash(a.lighthouse.settings)
+  const settingsB = stableHash(b.lighthouse.settings)
+  if (settingsA !== settingsB) {
+    log(`  !! lighthouse settings differ (${settingsA} vs ${settingsB}) — throttling/emulation changed between these runs`)
+    disagreements += 1
+  }
+
+  const flagsA = stableHash(a.lighthouse.chromeFlags)
+  const flagsB = stableHash(b.lighthouse.chromeFlags)
+  if (flagsA !== flagsB) {
+    log(`  !! chrome flag vector differs (${flagsA} vs ${flagsB}) — the browser was configured differently`)
+    disagreements += 1
+  }
+
+  if (Boolean(a.lighthouse.headless) !== Boolean(b.lighthouse.headless)) {
+    log(`  !! headless differs: ${a.lighthouse.headless} vs ${b.lighthouse.headless} — different rendering path`)
+    disagreements += 1
+  }
+
+  return disagreements
+}
+
+/** Short content hash with key order normalised, so `{a,b}` and `{b,a}` match. */
+function stableHash(value) {
+  const canonical = (node) => {
+    if (Array.isArray(node)) return node.map(canonical)
+    if (node && typeof node === 'object') {
+      return Object.fromEntries(
+        Object.keys(node)
+          .sort()
+          .map((key) => [key, canonical(node[key])]),
+      )
+    }
+    return node
+  }
+  return createHash('sha256').update(JSON.stringify(canonical(value) ?? null)).digest('hex').slice(0, 12)
+}
+
+/**
  * `--compare A B`: do two reports agree within their own declared bands?
  *
  * SHARED BY BOTH MEASURING LAYERS. This lives here rather than in run.mjs
@@ -170,6 +251,7 @@ export async function compareReportFiles(pathA, pathB, log) {
       disagreements += 1
     }
   }
+  disagreements += compareInstrument(a, b, log)
 
   // Iterate the UNION. Walking only A's metrics would let B silently lose one
   // and still report "reports agree" — the same class of hole as blending

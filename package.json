@@ -10,7 +10,7 @@
     "optimize:mockups": "tsx scripts/optimize-mockups.ts",
     "perf": "node perf/run.mjs all",
     "perf:lh": "node perf/lighthouse.mjs",
-    "perf:selftest": "node perf/selftest-retry.mjs",
+    "perf:selftest": "node perf/selftest-retry.mjs && node perf/selftest-lighthouse.mjs",
     "preview": "npm run build && wrangler dev",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",

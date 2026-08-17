@@ -1158,7 +1158,9 @@ records the pin and the run warns loudly if the installed version drifts off it.
 
 The Chrome flag vector is pinned the same way and for the same reason
 (`ignoreDefaultFlags: true` + chrome-launcher 1.2.1's `defaultFlags()`
-transcribed, plus Layer 2's three anti-backgrounding flags).
+transcribed — no additions beyond a `--window-size`. Layer 2's three
+anti-backgrounding flags are already in chrome-launcher's defaults, so both
+layers get that protection without this file adding it.)
 
 | choice | value | why |
 |---|---|---|
@@ -1167,7 +1169,34 @@ transcribed, plus Layer 2's three anti-backgrounding flags).
 | categories | `performance` only | the other categories add runtime and variance for metrics this campaign does not judge |
 | storage | cleared per run incl. `shader_cache` | on a WebGL-LCP page a warm shader cache measures the fifth visit, not the first |
 | browser | **headed**, Playwright's Chromium binary | Layer 2 runs headed for the real GPU. A headless Layer 3 could fall back to SwiftShader on the very canvas this campaign is about, and the two layers' LCP/TBT would be numbers about two different renderers while looking comparable in a table. Using Playwright's binary also means `rig.chrome` describes the browser that actually ran. |
-| URL | `/?perf-seed=0.5&perf-role=0` | the same URL Layer 2 audits. Both knobs only remove entropy (shader scatter, hero role index); neither disables work or takes a non-shipping branch. |
+| URL | `/?perf-seed=0.5&perf-role=0` | the same URL Layer 2 loads. Both knobs only remove entropy (shader scatter, hero role index); neither disables work or takes a non-shipping branch. **Same URL is not the same raster load — see below.** |
+
+### The two layers do NOT grade the same raster load
+
+Same URL, same build, same server — different number of fragments, because the
+device pixel ratio differs and `FluidWaves` caps its backing store at
+`min(dpr, 1.5)`:
+
+| | viewport | dSF | backing store | fragments |
+|---|---|---|---|---|
+| Layer 2 (`lib/browser.mjs`) | 1440x900 | 2 (cap engages at 1.5) | 2160x1350 | ~2.92M |
+| Layer 3 desktop preset | 1350x940 | 1 (cap never engages) | 1350x940 | ~1.27M |
+| Layer 3 mobile preset | 412x823 | 1.75 (cap engages at 1.5) | 618x1234 | ~0.76M |
+
+Layer 3 desktop therefore shades roughly **2.3x fewer fragments** than Layer 2.
+
+Both choices are deliberate and neither should be changed. Layer 2 picks dSF 2
+because the symptom it reproduces — heat, fans, battery — is fragment-bound and
+the retina display is what produces it. Layer 3 keeps the STOCK presets because
+their entire value is external comparability; bending them to match Layer 2
+would forfeit that and measure nothing Layer 2 does not already cover.
+
+**The consequence Tasks 7-12 must plan for: on fragment-bound work the two
+layers are not expected to track.** A batch that halves fragment cost should
+move Layer 2's GPU metrics hard and barely register in the Lighthouse score.
+That is the instrument, not a disagreement between the layers and not noise — do
+not read a flat Layer 3 as evidence against a real Layer 2 win, and do not read
+it as a reason to re-tune the presets.
 
 ### Metrics
 
@@ -1223,8 +1252,11 @@ The check is "two consecutive `node perf/lighthouse.mjs --runs 3` invocations
 agree within bands on both presets". That is a timing measurement, and R10
 exists precisely to stop numbers being recorded in this state.
 
-Rig at implementation time — a macOS background-maintenance storm, not a
-transient spike. **8 of 10 polls over 3 minutes had a foreign process above
+Rig at implementation time. The first reading was the owner actively gaming
+(**LeagueOfLegends at 183.3%** — a user application, not a system daemon); as
+that receded it was replaced by a macOS background-maintenance storm (Spotlight
+/ storage indexing, Apple Neural Engine compilation). Both states are
+contaminated and neither is transient on the timescale of a bench run. **8 of 10 polls over 3 minutes had a foreign process above
 R10's 50% limit**:
 
 | time | 1-min load | hottest foreign process |
@@ -1278,3 +1310,34 @@ Both `--compare` invocations must exit 0. `--no-build` on B is deliberate: it
 holds the dist hash identical across the pair, so a disagreement is measurement
 noise rather than two different builds. Confirm the reports' `machineLoad.busy`
 is `false` at BOTH ends before believing the result.
+
+### Round 2 — review fixes
+
+- **`perf/selftest-lighthouse.mjs` landed** (57 assertions) and wired into
+  `npm run perf:selftest`, which now runs both suites. Task 4 originally shipped
+  two shared-module refactors — `lib/baseline.mjs` (`updateLighthouse` +
+  the shared `updateSection`) and `lib/report.mjs` (`compareReportFiles`) —
+  with no permanent coverage, offering `selftest-retry.mjs` staying 26/26 as
+  evidence. That suite references neither module, so it was evidence that the
+  UNTOUCHED code still worked. The three-writer contract in particular is now
+  asserted in BOTH write orders, because a contract that only holds for whoever
+  writes second is not a contract.
+- **`compareReportFiles` now compares the INSTRUMENT, not just the rig**: a
+  Layer 3 report's `lighthouse.version`, `pinnedAgainst`, a canonicalised hash
+  of its `settings` block, its Chrome flag vector, and its headless flag. Before
+  this, a baseline recorded under 12.8.2 compared perfectly clean against a 13.x
+  run across a scoring-curve change. Layer 2 reports carry no `lighthouse` block
+  and skip the check entirely.
+- **Lighthouse version drift now reaches `warnings` and `blockingWarnings`**, so
+  it survives into the report JSON and refuses `--update-baseline`, instead of
+  only being printed to a terminal nobody will be watching during Tasks 7-12.
+- **A metric that could not be collected now sets `exitCode = 1`** (when it is
+  not informational). It already blocked a baseline write, but the run still
+  printed `result: no regressions` and exited 0 — so a scripted consumer read a
+  clean pass from an invocation that failed to measure a required budget.
+- `downloadThroughputKbps` corrected to `1474.5600000000002`, Lighthouse's
+  actual constant. No measurement impact (it is ignored under `simulate`), but
+  "transcribed literally" is the invariant the whole pinning argument rests on.
+- `chrome-launcher` is imported directly and is therefore declared directly in
+  `devDependencies` rather than relied on as a transitive dep of `lighthouse`.
+

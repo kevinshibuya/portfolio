@@ -69,6 +69,22 @@ const DEFAULT_RUNS = 5
 
 const log = (line = '') => process.stdout.write(`${line}\n`)
 
+/** Soft-wrap a long warning so a `!!` block stays readable in a terminal. */
+function wrap(text, width = 96) {
+  const lines = []
+  let current = ''
+  for (const word of text.split(/\s+/)) {
+    if (current && `${current} ${word}`.length > width) {
+      lines.push(current)
+      current = word
+    } else {
+      current = current ? `${current} ${word}` : word
+    }
+  }
+  if (current) lines.push(current)
+  return lines
+}
+
 // ── the pin ────────────────────────────────────────────────────────────────
 
 /**
@@ -159,7 +175,12 @@ const PRESETS = {
         rttMs: 150,
         throughputKbps: 1638.4,
         requestLatencyMs: 562.5,
-        downloadThroughputKbps: 1474.56,
+        // 1474.5600000000002, not 1474.56 — Lighthouse's own constant is the
+        // float that 1638.4 * 0.9 actually produces. Ignored under `simulate`,
+        // so it moves nothing; transcribed exactly anyway, because "transcribed
+        // literally" is the invariant the whole pinning argument rests on and an
+        // invariant with one convenient exception is not an invariant.
+        downloadThroughputKbps: 1474.5600000000002,
         uploadThroughputKbps: 675,
         cpuSlowdownMultiplier: 4,
       },
@@ -171,12 +192,23 @@ const PRESETS = {
  * The Chrome flag vector, pinned in full (`ignoreDefaultFlags: true`).
  *
  * This is chrome-launcher 1.2.1's `Launcher.defaultFlags()` transcribed
- * verbatim, plus the three anti-backgrounding flags Layer 2 already runs with,
- * for the same reason it does: on a Mac, putting another window in front of the
- * run makes Chrome throttle it, and this bench is expected to run while Kevin
- * is using the machine. Pinning the whole vector means a chrome-launcher
+ * verbatim — no additions. Pinning the whole vector means a chrome-launcher
  * upgrade cannot quietly change the bench, exactly as with the Lighthouse
  * constants above.
+ *
+ * Worth noting rather than assuming: the three anti-backgrounding flags Layer 2
+ * adds by hand (`--disable-backgrounding-occluded-windows`,
+ * `--disable-renderer-backgrounding`, `--disable-background-timer-throttling`)
+ * are ALREADY in this list, because chrome-launcher's defaults include them.
+ * So both layers get the same protection — on a Mac, putting another window in
+ * front of the run makes Chrome throttle it, and this bench is expected to run
+ * while Kevin is using the machine — but here it comes from the defaults rather
+ * than from an addition of ours.
+ *
+ * `--window-size` is the one genuine addition, and it is measurement hygiene
+ * rather than configuration: `screenEmulation` overrides the metrics the PAGE
+ * sees, so this cannot move a metric, but without it the OS window inherits
+ * whatever size Chrome last remembered. Layer 2 pins one for the same reason.
  *
  * chrome-launcher still appends `--remote-debugging-port=<n>` and a fresh
  * per-launch `--user-data-dir`; both are per-run plumbing rather than
@@ -213,17 +245,45 @@ const CHROME_FLAGS = [
   '--disable-prompt-on-repost',
   '--disable-domain-reliability',
   '--propagate-iph-for-testing',
+  // The one addition — see the note above. Matches the desktop preset's
+  // emulated viewport; `screenEmulation` overrides what the page sees either
+  // way, so a single value serves both presets.
+  '--window-size=1350,940',
 ]
 
 /**
  * The audited URL.
  *
- * `scenarioUrl()` appends the harness's `?perf-seed=0.5&perf-role=0` pins —
- * the SAME URL Layer 2 measures, so the two layers grade the same page state.
- * Both knobs only remove entropy (the shader's per-load random scatter, and the
- * hero's cycling role index); neither disables work, changes the bundle, or
- * takes a branch the shipped page does not take. Two runs a week apart
- * therefore render the same frames rather than two random draws.
+ * `scenarioUrl()` appends the harness's `?perf-seed=0.5&perf-role=0` pins — the
+ * same URL Layer 2 loads. Both knobs only remove entropy (the shader's per-load
+ * random scatter, and the hero's cycling role index); neither disables work,
+ * changes the bundle, or takes a branch the shipped page does not take. Two
+ * runs a week apart therefore render the same frames rather than two random
+ * draws.
+ *
+ * THE TWO LAYERS DO NOT GRADE THE SAME RASTER LOAD, and this is the one place
+ * that must not be misread as saying they do. Same URL, same build, same
+ * server — DIFFERENT number of fragments:
+ *
+ *   Layer 2   1440x900 at deviceScaleFactor 2 -> `FluidWaves` caps its backing
+ *             store at min(dpr, 1.5), so 2160x1350 = ~2.92M px
+ *   Layer 3   the stock LH desktop preset, 1350x940 at dSF 1 -> the 1.5 cap
+ *             never engages, so 1350x940 = ~1.27M px  (~2.3x FEWER)
+ *   Layer 3   the stock LH mobile preset, 412x823 at dSF 1.75 -> 618x1234
+ *             = ~0.76M px (smaller again, and under a 4x CPU multiplier)
+ *
+ * Layer 2 picks dSF 2 deliberately (see DEVICE_SCALE_FACTOR in lib/browser.mjs)
+ * because the symptom it reproduces — heat, fans, battery — is fragment-bound
+ * and Kevin's retina display is what produces it. Layer 3 keeps the STOCK
+ * presets deliberately, because their whole value is being comparable to what
+ * anyone else running Lighthouse on this site would see; bending them to match
+ * Layer 2 would forfeit that and buy nothing Layer 2 does not already measure.
+ *
+ * The consequence Tasks 7-12 must plan for: ON FRAGMENT-BOUND WORK THE TWO
+ * LAYERS ARE NOT EXPECTED TO TRACK. A batch that halves fragment cost should
+ * move Layer 2's GPU metrics hard and barely register in Lighthouse's score.
+ * That is the instrument, not a disagreement between the layers and not noise —
+ * do not read a flat Layer 3 as evidence against a real Layer 2 win.
  */
 const AUDIT_URL = scenarioUrl('/')
 
@@ -530,15 +590,25 @@ async function main() {
 
   log(`lighthouse bench — ${options.presets.map((p) => p.name).join(', ')} · ${options.runs} run(s) each`)
   log(`lighthouse: v${LIGHTHOUSE_VERSION} (settings pinned against v${PINNED_LIGHTHOUSE_VERSION}) · ${BASE_SETTINGS.throttlingMethod} throttling · headed`)
-  if (LIGHTHOUSE_VERSION !== PINNED_LIGHTHOUSE_VERSION) {
-    // Not fatal — the settings are written out literally, so the CONFIG is
-    // unchanged. But Lighthouse's scoring curves and audit implementations move
-    // between versions too, and those this file cannot pin. Anyone comparing
-    // across this line needs to know it was crossed.
+  // Version drift is a REPORTED condition, not just a printed one.
+  //
+  // Printing it to stdout only meant it vanished the moment anyone read the
+  // report JSON instead of watching the terminal — which is what Tasks 7-12
+  // will do. It now reaches `warnings` in every report written by this
+  // invocation and `blockingWarnings`, so it also refuses `--update-baseline`:
+  // a baseline recorded under a different Lighthouse than the one it will be
+  // compared against is precisely the corruption the rig guard exists to stop,
+  // with the scoring curve playing the part of the rig.
+  const versionDrift =
+    LIGHTHOUSE_VERSION === PINNED_LIGHTHOUSE_VERSION
+      ? null
+      : `Lighthouse is v${LIGHTHOUSE_VERSION} but this bench's settings were pinned against ` +
+        `v${PINNED_LIGHTHOUSE_VERSION}. The configuration is unaffected (every value is literal in ` +
+        'perf/lighthouse.mjs), but scoring curves and audit implementations are Lighthouse-internal and ' +
+        'cannot be pinned from here. Re-record the baseline rather than comparing across this line.'
+  if (versionDrift) {
     log('')
-    log(`  !! Lighthouse is v${LIGHTHOUSE_VERSION} but this bench's settings were pinned against v${PINNED_LIGHTHOUSE_VERSION}.`)
-    log('  !! The configuration is unaffected (every value is literal here), but scoring curves and audit')
-    log('  !! implementations are Lighthouse-internal. Re-record the baseline rather than comparing across.')
+    for (const line of wrap(versionDrift)) log(`  !! ${line}`)
     log('')
   }
   log(`url: ${AUDIT_URL}`)
@@ -584,7 +654,7 @@ async function main() {
 
   let exitCode = 0
   const aggregatesByPreset = {}
-  const blockingWarnings = []
+  const blockingWarnings = versionDrift ? [versionDrift] : []
   const writtenReports = []
 
   try {
@@ -596,6 +666,7 @@ async function main() {
       const outcome = await runScenario(scenario, options.runs, { baseUrl: BASE_URL, log }, { warmup: options.warmup })
       const comparison = compare(outcome.aggregated, baseline?.lighthouse?.[preset.name])
       comparison.warnings.push(...provenanceWarnings(outcome.aggregated, scenario.name))
+      if (versionDrift) comparison.warnings.push(versionDrift)
 
       // Metrics Lighthouse could not produce, gathered across the kept runs.
       // Loud, listed, and baseline-blocking — never dropped.
@@ -609,6 +680,14 @@ async function main() {
         const line = `${scenario.name}.${entry.metric}: NOT COLLECTED — ${entry.reason}`
         comparison.warnings.push(line)
         blockingWarnings.push(line)
+        // AND THE EXIT CODE, for anything that is not merely informational.
+        // Routing this to `blockingWarnings` alone closed the baseline hole but
+        // left a worse one open: the run would still print "result: no
+        // regressions" and exit 0, so a scripted consumer — which is the whole
+        // point of an exit code, and exactly what Tasks 7-12 will be — reads a
+        // clean pass from an invocation that failed to measure a required
+        // budget. A metric that could not be collected is not a pass.
+        if (METRICS[entry.metric] && !METRICS[entry.metric].informational) exitCode = 1
       }
       for (const warning of runWarnings) comparison.warnings.push(`${scenario.name}: lighthouse runWarning — ${warning}`)
 
