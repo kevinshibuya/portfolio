@@ -1692,13 +1692,24 @@ all survive; only `accent-yellow-deep`, which nothing references, went.
 2. **Dangling custom-property audit.** For both builds, every `var(--x)`
    reference in the emitted CSS was checked against every `--x:` definition in
    the same file. Before: 86 referenced / 106 defined / 6 dangling. After: 67 /
-   80 / **6 dangling — the same six**
+   78 / **6 dangling — the same six**
    (`--default-font-feature-settings`, `--default-font-variation-settings`,
    `--default-mono-font-feature-settings`,
    `--default-mono-font-variation-settings`, `--tw-duration`, and `--row-tint`,
    which is injected from JS by design). **No new dangling reference.** This is
    the check that would have caught a theme token being pruned out from under a
    rule that still uses it.
+
+   > **All four counts above are 78/106/86/67 — if you re-derive them and get
+   > 80, your regex is wrong, not the doc.** A naive `--[\w-]+\s*:` sweep over
+   > minified CSS also matches **BEM hover selectors**: `.btn--primary:hover`
+   > and `.btn--ghost:hover` read as definitions of `--primary` and `--ghost`.
+   > Those two phantoms are the entire 78→80 gap, and an intermediate revision
+   > of this line did carry the wrong 80. Re-verified with a postcss parse
+   > counting only real `Declaration` nodes whose `prop` starts with `--`,
+   > which reproduces 86/106 and 67/78 exactly and independently of the
+   > original grep. The dangling *set* of six is exact under either method and
+   > was never in doubt.
 3. **Live scan probes.** Both `@source` entries were confirmed to actually
    scan, not merely to parse: a real utility (`underline`, absent from the new
    build) was temporarily added to a `class` in `index.html`, and separately to
@@ -1729,3 +1740,59 @@ Prose in `perf/`, `docs/`, `tests/` and `.superpowers/` can no longer plant a
 utility in the shipped bundle. That includes this entry, which mentions
 `top-3`, `py-32` and `grid-cols-4` in plain text and — before this change —
 would have re-emitted all three.
+
+---
+
+## 2026-08-17 · Task 5c review follow-up · canonical tokens mirrored into `:root`
+
+Task 5c's scoping stopped the nine canonical `--color-*` dark tokens
+(`--color-bg`, `-bg-tonal`, `-text`, `-text-muted`, `-text-faded`,
+`-accent-pink`, `-accent-blue`, `-accent-yellow`, `-accent-yellow-deep`) from
+reaching the shipped `:root`. They live in `@theme`, which Tailwind tree-shakes
+to the tokens it sees referenced — and it scans for CLASS candidates, never for
+`var()` inside a `.tsx`. Nothing consumes them today, so this was latent, not
+broken; but CLAUDE.md tells new work to read exactly those names, and a future
+`style={{ color: 'var(--color-text)' }}` would have resolved to empty with no
+error and no failing test.
+
+They are now also declared in the plain `:root` alias block, which is not
+tree-shaken. `index.css` 46,952 → **47,213 B**; ceiling 49,300 → **49,574**.
+Pixel gate re-run rather than assumed (adding unused custom properties must be
+visually inert): **30/30, goldens untouched**.
+
+### The +261 B, accounted for exactly — and it is a live specimen
+
+"+261 = the nine mirrored tokens" is **wrong**, and the true account matters
+more than the number. Diffing every custom-property declaration in the two
+emitted stylesheets by `(at-rule context, selector, prop)` yields **ten** added
+declarations, not nine:
+
+| where | declarations | bytes |
+|---|---|---|
+| plain `:root` | the 9 mirrored tokens | 240 |
+| `@layer theme` `:root,:host` | **`--color-text` alone** | 21 |
+| | | **261** |
+
+The tenth is not a mistake in the mirroring — it is the prose-plants-output
+mechanism firing again, **inside the very comment that explains it**. The new
+comment block in `src/index.css` contains the literal string
+`var(--color-text)` (as an example of the breakage being prevented), Tailwind's
+scanner reads that as a genuine reference, and so it un-pruned `--color-text`
+back into the `@layer theme` block. Harmless — identical value, and the
+unlayered `:root` declaration wins on cascade order regardless — but note what
+it demonstrates: `@source` narrowing bounds *which files* can plant output, not
+*whether prose can*. A comment inside an allow-listed file is still input.
+
+(Two more `--color-*` names appear in the same comment as
+`getPropertyValue('--color-accent-pink')` and did **not** un-prune: the scanner
+matched the `var(…)` form specifically, not a bare quoted property name. So the
+trigger is narrower than "the token is mentioned" — it is "the token appears in
+`var()` syntax".)
+
+**For Task 12:** this is the same mechanism as the ~2.1 KB of unused utilities
+still planted by `src/`'s own text, and it is the concrete counter-example to
+the tempting one-line fix. `@source not "../src/index.css"` would excise this
+21 B and the `ease-in-out`-from-a-declaration-value class — but `src/index.css`
+is also where every real utility-bearing `@apply`-free rule and the theme live,
+so the batch must be measured through the keep-or-revert procedure, not landed
+blind.
