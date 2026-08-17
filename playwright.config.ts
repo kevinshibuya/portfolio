@@ -26,7 +26,10 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: [['list']],
   webServer: {
-    command: 'npm run build && npm run preview -- --port 4173',
+    // `npm run preview` is itself `npm run build && wrangler dev` — a leading
+    // `npm run build &&` here made every spawned e2e run build TWICE. Dropped;
+    // this still builds exactly once before serving.
+    command: 'npm run preview -- --port 4173',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

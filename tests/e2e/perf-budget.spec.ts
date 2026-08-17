@@ -90,11 +90,20 @@ const srcDir = fileURLToPath(new URL('../../src', import.meta.url))
 const htmlEntry = fileURLToPath(new URL('../../index.html', import.meta.url))
 const viteConfig = fileURLToPath(new URL('../../vite.config.ts', import.meta.url))
 
+const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
+
 // Every file under src/, for the build-freshness mtime guard below.
 const walk = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`]
   )
+
+// package-lock.json + every tsconfig*.json at the repo root. Both move chunk
+// bytes (dependency versions; compile `target`) without touching src/.
+const configInputs = (): string[] =>
+  readdirSync(repoRoot)
+    .filter((f) => f === 'package-lock.json' || /^tsconfig.*\.json$/.test(f))
+    .map((f) => `${repoRoot}${f}`)
 
 const readCounters = (page: Page): Promise<PerfStore> =>
   page.evaluate(() => (window as unknown as { __PERF_GL__: PerfStore }).__PERF_GL__)
@@ -253,27 +262,47 @@ test('every emitted chunk is within its recorded byte ceiling', async ({ request
   // step is not guaranteed.
   //
   // Guard 1 (the one that answers the scenario): dist must be NEWER than every
-  // source that feeds it. When the build is skipped, dist and the server agree
-  // with each other and are BOTH old — nothing observable at the HTTP layer
-  // distinguishes that from a fresh run, so the only honest signal is mtime.
-  // Measured: with a preview server up and src touched but not rebuilt, the
-  // HTTP-level check below stays green and this one goes red.
-  const newestSource = [...walk(srcDir), htmlEntry, viteConfig]
-    .reduce((newest, f) => Math.max(newest, statSync(f).mtimeMs), 0)
+  // input that feeds the build. When the build is skipped, the served HTML and
+  // the files on disk are two views of the SAME artifact and agree by
+  // construction — staleness is a property of that artifact relative to its
+  // inputs, a relation neither view contains. mtime is the only signal that
+  // sees it. Measured: with a preview server up and src touched but not
+  // rebuilt, the HTTP-level check below stays green and this one goes red.
+  //
+  // The watched set is every input that can move chunk bytes: src/**, the HTML
+  // entry, vite.config.ts, AND package-lock.json + tsconfig*.json — a
+  // dependency bump or a `target` change moves bytes with ZERO src mtime
+  // change, and dependency swaps are a plausible member of this very campaign.
+  const buildInputs = [...walk(srcDir), htmlEntry, viteConfig, ...configInputs()]
+  let newestFile = buildInputs[0]
+  let newestSource = 0
+  for (const f of buildInputs) {
+    const m = statSync(f).mtimeMs
+    if (m > newestSource) { newestSource = m; newestFile = f }
+  }
   const builtAt = statSync(distIndexHtml).mtimeMs
+  // Name the offending file, not two bare epoch floats. Most false REDs
+  // self-heal because the prescribed re-run triggers a real rebuild, but a
+  // source with a FUTURE mtime (clock skew, restored archive, synced drive)
+  // stays red forever — and then the reader needs to know WHICH file, because
+  // "the build was skipped" is the wrong cause in that case.
   expect(
-    builtAt,
-    'dist/ is older than src/ — the build was skipped (stale preview server on 4173?); kill it and re-run',
-  ).toBeGreaterThan(newestSource)
+    builtAt > newestSource,
+    `dist/index.html is ${Math.round(newestSource - builtAt)}ms older than ${newestFile} — ` +
+      'the build was skipped (stale preview server on 4173?), or that file has a future mtime; ' +
+      'kill the server and re-run, and check its timestamp if this persists',
+  ).toBe(true)
 
-  // Guard 2 (cheap, different mechanism): the server actually under test must
-  // serve the dist we just measured. This catches a preview server holding a
-  // stale file snapshot in memory — the failure mode recorded in this project's
-  // notes — which guard 1 cannot see because dist on disk is fine in that case.
-  // Fetched via the `request` fixture rather than page.goto: this is a pure
-  // filesystem/bytes test with no browser behaviour in it, and the raw HTML is
-  // exactly what we want — a rendered DOM would also surface runtime-injected
-  // preloads that index.html never declared.
+  // Guard 2 (cheap, different mechanism): what is answering on 4173 must be
+  // THIS production preview. Guard 1 only compares dist against src — it is
+  // completely blind to a leftover `npm run dev`, another checkout's server, or
+  // any stale foreign process holding the port, all of which `reuseExistingServer`
+  // will happily adopt. A dev server's HTML has no hashed asset refs at all, so
+  // the `size > 0` assertion below is what catches it.
+  //
+  // Fetched via the `request` fixture rather than page.goto: nothing about
+  // browser behaviour is under test here, so a raw fetch is the cheaper and
+  // more direct read of what the server hands out.
   const html = await (await request.get('/')).text()
   const served = [...html.matchAll(/assets\/([A-Za-z0-9_.-]+-[A-Za-z0-9_-]{8}\.(?:js|css))/g)].map((m) => m[1])
   expect(new Set(served).size, 'served index.html must reference hashed assets').toBeGreaterThan(0)

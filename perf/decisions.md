@@ -1957,3 +1957,44 @@ build and headed-Chrome activity, which is itself a heavy `fseventsd` producer.
 On a rig already near a threshold that could turn a legitimate run red at the
 last moment. Not observed firing here — flagged because Task 5b would have been
 the first invocation long enough to find out.
+
+---
+
+## 2026-08-17 · Task 6 (review round 3) · The e2e gate built twice per run
+
+**Not a campaign batch — a harness cost fix.** Recorded here because it changes
+what every gate run in Tasks 7–12 costs.
+
+`playwright.config.ts` webServer command was
+`npm run build && npm run preview -- --port 4173`, and `package.json`'s
+`preview` is itself `npm run build && wrangler dev`. So **every e2e run that
+spawned its own server built the app twice.** The leading `npm run build && `
+was dropped; the command is now just `npm run preview -- --port 4173`, which
+still builds exactly once before serving.
+
+| measurement | value |
+|---|---|
+| full serial e2e, before (Playwright-reported, 2 runs) | 6.6 min, 6.6 min |
+| full serial e2e, after (Playwright-reported / shell wall-clock) | 6.5 min / 390 s |
+| one `npm run build`, isolated (2 runs) | 4 s, 5 s |
+
+**Honest size of the win: ~4–5 s per spawned run, ≈1.2% of the suite.** The
+duplicate build was real and is now gone, but it was never the expensive part —
+anyone hoping this explains a slow gate should keep looking. It is free and
+recurs on every future gate invocation, which is the whole case for it.
+
+Suite green at 102/102 after the change, so the gate still gets its server the
+same way.
+
+**Consequence for Tasks 7–12:** the batch procedure's step 0 (kill any listener
+on 4173) is unchanged and still required — this fix removes a redundant build,
+it does not make a stale server safe. The chunk-bytes budget now enforces that
+independently (`tests/e2e/perf-budget.spec.ts`): dist must be newer than
+`src/**` + `index.html` + `vite.config.ts` + `package-lock.json` +
+`tsconfig*.json`, and whatever answers on 4173 must be the production preview
+rather than a dev server.
+
+**Budget-unit note for future batches:** `exact.chunkBytesCeiling` is
+**uncompressed** `statSync` bytes. A batch that trades raw size against
+compressed size will read backwards against this budget — state raw vs transfer
+explicitly in its decision line when that happens.
