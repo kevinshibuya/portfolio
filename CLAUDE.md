@@ -7,7 +7,7 @@ The MVP exists in `src/App.tsx` — the revamp will decompose it into proper com
 ## Tech Stack
 - **Framework**: React 19 + TypeScript (strict)
 - **Build**: Vite 6 + SWC
-- **Styling**: TailwindCSS v4 (Vite plugin — no `tailwind.config.js`, configure via CSS `@theme`)
+- **Styling**: TailwindCSS v4 (Vite plugin — no `tailwind.config.js`, configure via CSS `@theme`). Source scanning is an explicit **allow-list**, not v4's default repo-wide auto-detection: `src/index.css` opens with `@import "tailwindcss" source(none)` plus `@source "../src"` and `@source "../index.html"`. Any new markup outside `src/` or `index.html` needs its own `@source` line or it renders unstyled — silently, with no error. (Task 5c; rationale in `perf/decisions.md`.)
 - **Animation layer 1 — React**: Framer Motion v12
 - **Animation layer 2 — Scroll/Timeline**: GSAP + ScrollTrigger
 - **Animation layer 3 — WebGL/3D**: React Three Fiber (@react-three/fiber + @react-three/drei)
