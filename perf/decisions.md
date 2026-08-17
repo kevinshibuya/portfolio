@@ -1998,3 +1998,334 @@ rather than a dev server.
 **uncompressed** `statSync` bytes. A batch that trades raw size against
 compressed size will read backwards against this budget — state raw vs transfer
 explicitly in its decision line when that happens.
+
+---
+
+## 2026-08-17 · Task 7 (B1) · Dissolve-band early-exit guard — bound derivation
+
+**Verdict: DERIVED NO-OP. Keep `if (p > -0.6)` exactly as it is. Nothing was
+measured, nothing was changed, and no measurement is warranted** — the ceiling
+on the win is provably below this harness's detection band, so the batch
+procedure's step 2 ("target metric improved beyond band") cannot be satisfied
+even by a perfect implementation. The derivation below is the deliverable.
+
+A tighter bound **is** provable (`-0.45` is mathematically safe for today's
+constants, and the true activation point is `-0.3703125`), so this is *not* a
+"the math said no" outcome. It is "the math said yes, and the yes is worth
+~2.5% of one shader's fragment cost while costing 2.9× of the guard's
+robustness margin against a documented tuning knob". The second half is why the
+answer is still no.
+
+### The shader, for someone who has not opened it
+
+`src/components/canvas/FluidWaves.tsx`, hero variant only (the block is wrapped
+in `if (dissolveStrength > 0.0)`, which is 1 for hero, 0 for backdrop). The
+bottom of the hero canvas dissolves into cream via a noise-thresholded field:
+
+```glsl
+float p = 1.0 - vUv.y / max(dissolveStart, 1e-4);  // <0 above band, 0 at band top, 1 at canvas bottom
+float diss = 0.0, thin = 0.0;
+if (p > -0.6) {                                     // <-- THE GUARD UNDER TEST
+  float n     = fbm(...);                           // 4-octave value-noise fBm
+  float sweep = (fbm(...) - 0.5) * 0.55;
+  float amp   = 0.9 * (1.0 - smoothstep(0.55, 1.0, p));
+  float field = p + (n - 0.5 + sweep) * amp;
+  diss = smoothstep(0.34, 0.60, field);
+  thin = smoothstep(0.24, 0.56, field);
+}
+float floorCream = 1.0 - smoothstep(0.035, 0.047, vUv.y);   // OUTSIDE the guard
+diss = max(diss, floorCream) * dissolveStrength;
+thin = max(thin, floorCream) * dissolveStrength;
+ret_col = mix(ret_col, vec3(luma), thin * 0.45);
+ret_col = mix(ret_col, vec3(0.9608, 0.9490, 0.9255), diss);
+```
+
+`dissolveStart` is derived from real layout at resize: `(section - zone)/section`
+where `section` = `.hero` (`min-height: 130svh`) and `zone` = `.hero-zone`
+(`100svh`) → **`dissolveStart ≈ 0.2308`** nominally. `p` therefore ranges
+`[-3.33, 1]` across the canvas.
+
+**The safety criterion is bit-exact, not approximate.** GLSL `smoothstep(e0,e1,x)`
+returns *exactly* `0.0` for `x <= e0` (it clamps `t` to 0 and returns `t*t*(3-2t)`),
+and `mix(a, b, 0.0)` returns `a` bit-exactly. `thin`'s lower edge `0.24` is below
+`diss`'s `0.34`, so `thin` fires first. So:
+
+> Skipping the block is **bit-identical** to computing it, for every fragment
+> where `field <= 0.24`. The guard is safe iff no skipped fragment can reach
+> `field > 0.24`. There is no "close enough" here in either direction.
+
+`floorCream` is computed *outside* the guard, so the hard cream floor at the
+canvas bottom is unaffected by any choice of bound.
+
+### Step 1 — the honest bound on `n`. It is NOT [0, 1]
+
+```glsl
+float hash(vec2 p)  { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vnoise(vec2 p){ /* bilinear mix of 4 hashes, weights u = f*f*(3-2f) in [0,1] */ }
+float fbm(vec2 p)   { float v = 0.0, a = 0.5;
+                      for (int i = 0; i < 4; i++) { v += a * vnoise(p); p = p*2.0+3.1; a *= 0.5; }
+                      return v; }
+```
+
+- `fract()` returns `[0, 1)` for every finite input, including negatives
+  (`fract(x) = x - floor(x)`), so **`hash ∈ [0, 1)`**. This holds at any float
+  precision — it is a property of `fract`, not of `sin`.
+- `vnoise` is a *convex* combination of four hashes (two nested `mix`es with
+  weights in `[0,1]`), so **`vnoise ∈ [0, 1)`**.
+- `fbm` sums `a·vnoise` with `a = 0.5, 0.25, 0.125, 0.0625`. **`Σa = 0.9375`**,
+  so **`n ∈ [0, 0.9375)`**.
+
+**The plan brief's `n ∈ [0, 1]` is wrong** — it is the textbook range for a
+*normalised* fBm, and this fBm is not normalised (no `/Σa`). The correct
+supremum is `1 - 2^-4 = 0.9375`.
+
+**Attainability: the supremum is NOT attained, and this is not a technicality
+we lean on.** `0.9375` requires all four octaves to hit `vnoise = 1`
+simultaneously, at coordinates `p`, `2p+3.1`, `4p+9.3`, `8p+21.7` — four
+effectively decorrelated lattices — and each of those requires four corner
+hashes at their own supremum. Everything below uses `0.9375` as a hard,
+never-attained **upper bound**, which is the only kind of bound safe to ship.
+How far below it the attainable values actually sit is quantified further down,
+and deliberately **not** used to justify anything.
+
+### Step 2 — `sweep`
+
+`sweep = (fbm(...) - 0.5) * 0.55` with the same `fbm`, so
+**`sweep ∈ [-0.275, 0.240625)`**.
+
+**The brief's `[-0.275, 0.275]` is wrong on the upper end** (it inherits the
+same `n ∈ [0,1]` error). The lower end is right, because `fbm`'s infimum really
+is 0. The asymmetry is real: `0.55 × (0.9375 - 0.5) = 0.240625`, not `0.275`.
+
+### Step 3 — `amp` is a CONSTANT everywhere the guard matters
+
+`amp = 0.9 * (1 - smoothstep(0.55, 1.0, p))`. For `p <= 0.55` the `smoothstep`
+clamps to 0, so **`amp = 0.9` exactly for all `p <= 0.55`**, and in particular
+for every negative `p`. The brief's warning that "`field(p)` is not linear in
+the noise term" is true only in `p ∈ (0.55, 1]`, which is entirely *inside* any
+guard under discussion. In the region a negative-`p` guard governs, `field` is
+exactly linear in `p` with slope 1. No fixed-point solve is needed.
+
+### Step 4 — the activation bound, closed form
+
+Let `S = Σa = 0.9375` (fBm gain sum), `k = 0.55` (sweep scale),
+`A = 0.9` (`DISSOLVE_NOISE_AMP`), `T = 0.24` (`thin`'s lower smoothstep edge).
+
+```
+sup(n - 0.5 + sweep) = (S - 0.5) + k(S - 0.5) = (S - 0.5)(1 + k)
+                     = 0.4375 × 1.55 = 0.678125
+sup(field)(p)        = p + A · (S - 0.5)(1 + k) = p + 0.6103125
+```
+
+`field > T` is reachable only where `p + 0.6103125 > 0.24`, i.e.
+
+```
+        p_act = T − A·(S − 0.5)(1 + k)
+              = 0.24 − 0.9 × 0.678125
+        p_act = −0.3703125
+```
+
+> **A guard `if (p > g)` is provably safe iff `g ≤ −0.3703125`.**
+
+`n` and `sweep` are two different `fbm` calls at unrelated coordinates; treating
+both as simultaneously maximal is the conservative (safe) direction, so no
+independence assumption is needed.
+
+`−0.6` is safe. `−0.45` is safe. `−0.40` is safe. `−0.39` is safe. `−0.37`
+would **not** be.
+
+### Verdict on the in-tree `p > -0.39` claim: TRUE, but loose and accidentally so
+
+The comment at `FluidWaves.tsx:195-198` says activation "needs `p > -0.39`".
+Since the true activation set is `p > −0.3703125`, every activating fragment
+also satisfies `p > −0.39`. **The claim is therefore a correct upper bound** —
+just not the tight one, and stated without its derivation.
+
+It is also *accidentally* correct in a way worth recording: `−0.39` is only safe
+because `n ≤ 0.9375`. Under the brief's stated (wrong) bounds — `n ∈ [0,1]`,
+`sweep ∈ [-0.275, 0.275]` — the activation point would be
+`0.24 − 0.9 × 0.775 = −0.4575`, and a guard at `−0.39` would clip. Anyone who
+had trusted the brief's constants and hard-coded `−0.39` as the guard would have
+shipped the exact visual regression this task exists to prevent. The number
+`−0.39` reproduces from neither constant set; it looks hand-rounded.
+
+### Correction: the in-tree "~77% of the hero canvas exits with zeros" is wrong
+
+The guard skips where `p ≤ −0.6`, i.e. `vUv.y ≥ 1.6 × dissolveStart ≈ 0.369`.
+That is **~63%** of canvas height, not 77%. **76.92%** is `1 − dissolveStart` —
+the fraction of the canvas *above the band* (`p < 0`), which is not what the
+guard tests. Documentation defect only; no behavioural consequence. Suggested
+replacement comment text is in the task report.
+
+### How loose is the sup, really? (numerical, fp32-emulated)
+
+An fp32-emulated transcription of `hash`/`vnoise`/`fbm` (`Math.fround` at every
+step), sampling `n` and `sweep` at independent coordinates exactly as the shader
+forms them:
+
+| samples | coord domain | max `n` | max `(n − 0.5 + sweep)` | implied `p_act` |
+|---|---|---|---|---|
+| 5 × 10⁶ | 0..40 | 0.8748 (93.3% of sup) | 0.5197 (76.6% of sup) | −0.2277 |
+| 4 × 10⁷ | 0..40 | 0.8748 (93.3%) | 0.5384 (79.4%) | −0.2445 |
+| 8 × 10⁶ | 0..4000 | **0.9104 (97.1%)** | 0.5127 (75.6%) | −0.2214 |
+
+Upper tail of the term (4 × 10⁷ samples), decaying *super*-exponentially — the
+per-0.05-step survival ratio itself grows (4.3 → 6.2 → 10.0 → 20.1), as it must
+for a bounded sum whose density has a high-order zero at its endpoint:
+
+```
+  P(term > 0.30) = 3.73e-3     P(term > 0.45) = 1.41e-5
+  P(term > 0.35) = 8.65e-4     P(term > 0.50) = 7.00e-7
+  P(term > 0.40) = 1.40e-4     sup(term)      = 0.678125
+```
+
+Two things this establishes, pulling in opposite directions — both stated
+because the honest answer needs both:
+
+1. **The sup is enormously loose in practice.** Observed maxima reach 76-79% of
+   `sup(term)`; an empirically-fitted guard could sit near `−0.24` and never be
+   caught in these runs.
+2. **Which is exactly why an empirical bound must not be shipped.** Widening the
+   coordinate domain 100× raised the observed `max(n)` from 93.3% to 97.1% of
+   the sup — the observed maximum is a function of how much domain you sampled,
+   and the shader's domain is *unbounded*: `time * 0.05` drifts for the whole
+   session and `seed` shifts it per visit. Order-of-magnitude, one visit
+   evaluates ~6.5 × 10⁸ fragments in the guarded band (2160×1350 backing store
+   at the 1.5 DPR cap × ~37% band × 60 fps × ~10 s), so a guard at `−0.30` —
+   needing `term > 0.60`, extrapolated `P ≈ 2e-10` — would clip on the order of
+   one pixel every few visits. Invisible to a 3-seed frozen-frame gate; a real
+   defect. **Only the sup-based bound is shippable**, and everything above uses it.
+
+Caveat, stated rather than buried: GPU `sin()` precision differs from JS
+`Math.sin`, and `fract(sin(x) * 43758.5453)` is notoriously
+hardware-dependent, so **individual values will not match the GPU's**. These
+numbers are distributional evidence about `fract(sin(·))` as a uniform
+generator, not per-pixel predictions. **They inform nothing in the shipped
+decision** — the algebra in Steps 1-4 is precision-independent, because it rests
+only on `fract ∈ [0,1)` and convexity of `mix`.
+
+### What tightening would actually buy
+
+Fragments evaluated = `vUv.y < (1 − g) × dissolveStart`. The *relative*
+reduction in evaluated fragments is independent of `dissolveStart`:
+
+| guard | canvas evaluated | fBm fragments removed vs `−0.6` | `A` ceiling before clipping | margin |
+|---|---|---|---|---|
+| **`−0.6` (current)** | 36.92% | — | 1.239 | **37.6%** |
+| `−0.45` | 33.46% | **9.375%** | 1.018 | 13.1% |
+| `−0.40` | 32.31% | 12.5% | 0.944 | 4.9% |
+| `−0.39` (comment) | 32.08% | 13.1% | 0.929 | 3.2% |
+| `−0.3703125` (exact) | 31.62% | 14.36% | 0.900 | **0%** |
+
+Cost model, with `r = c_fbm / c_base` (cost of the two 4-octave fBm calls vs the
+rest of `effect()`). Instruction-counting puts `r ≈ 1.0-1.3`: the base path is
+~27 transcendentals (2 pre-warp + 5 per iteration × 5 iterations), the fBm block
+is 2 × 4 × 4 = **32 `sin` calls** plus 8 bilinear blends. Total hero fragment
+cost ∝ `c_base + 0.3692·c_fbm`; saving = `Δ·c_fbm / (c_base + 0.3692·c_fbm)`:
+
+| `r` | saving at `−0.45` | saving at `−0.3703` (zero margin) |
+|---|---|---|
+| 0.5 | 1.46% | 2.24% |
+| **1.0** | **2.53%** | **3.87%** |
+| 1.5 | 3.34% | 5.12% |
+| 2.0 | 3.98% | 6.10% |
+
+**Ceiling on this batch: ~4-6% of the hero shader's fragment cost, and ~2.5% for
+the recommended-margin variant.** Note this is a fraction of the *shader*, which
+is itself a fraction of `gpu.webglMsPerFrame`, which is a fraction of
+`gpu.busyMsPerFrame`.
+
+**The conclusion does not depend on `r`, which is the one estimated quantity in
+this entry.** Saving = `Δ·r / (1 + 0.3692·r)`, so as `r → ∞` (fBm dominating the
+shader entirely) it converges to `Δ / 0.3692` — the fraction of *band* fragments
+removed: **9.375% for `−0.45`, 14.36% at zero margin.** The asymptotic ceiling on
+the recommended variant is therefore 9.375% of the entire hero shader, still
+under a ≥10% band, before accounting for the shader being only part of the
+metric. No value of `r`, however large, rescues this batch — so the instruction
+count above is corroboration, not load-bearing.
+
+Branch divergence does not change with the bound: the guard boundary is a single
+horizontal line in screen space, so the number of *partially* divergent
+wavefronts is O(canvas width / tile width) either way. Moving the line only
+changes how many wavefronts are skipped **whole**.
+
+### Why the harness cannot measure it — this is the decisive point
+
+Task 3 measured `gpu.webglMsPerFrame` at 0.593 / 0.578 on two back-to-back
+10 s idle-hero windows: **2.5% run-to-run spread**. The band formula is
+`max(10% of median, 1 × IQR, minBand)`, so the acceptance band on that metric
+is **≥ 10%**.
+
+The best case above is ~4-6% *of the shader*, i.e. comfortably under 4-6% of the
+metric — roughly **2× the rig's own noise and ~2-4× inside the band**. The
+recommended-margin variant at ~2.5% is *at* the noise floor.
+
+`npm run perf` therefore cannot return "improved beyond band" for this
+hypothesis, no matter how well it is implemented. Per the shared batch
+procedure, a within-band result is a measured no-op and the batch is reverted.
+**The revert is decidable from arithmetic before the rig is ever booked**, which
+is the entire reason this half ran rig-independently. Booking a quiet machine
+for two full gate passes to reach a foregone conclusion is the expensive way to
+learn this.
+
+### Why `−0.6` is the right constant even ignoring perf
+
+`p_act = T − A·(S − 0.5)(1 + k)` depends on **four literals in three places**,
+none of which carries a comment linking it to the guard:
+
+| literal | value | where |
+|---|---|---|
+| `T` — `thin` lower edge | `0.24` | inline, `smoothstep(0.24, 0.56, field)` |
+| `A` — `DISSOLVE_NOISE_AMP` | `0.9` | module-level const, **documented as a tuning knob** |
+| `k` — sweep scale | `0.55` | inline, `* 0.55` |
+| `S` — fBm gain sum | `0.9375` | implied by `fbm()`'s octave count + `a *= 0.5` |
+
+The guard is a *derived* constant with no compile-time link to its inputs, so
+the margin's job is not to cover uncertainty in today's algebra (there is none —
+it is a hard supremum). **Its job is to survive an edit to one of those four
+literals by someone who does not re-derive it.** CLAUDE.md names
+`DISSOLVE_NOISE_AMP` as a tuning knob for exactly this kind of edit.
+
+| what changes | `−0.6` survives | `−0.45` survives |
+|---|---|---|
+| `DISSOLVE_NOISE_AMP` raised | up to **1.239** | up to 1.018 |
+| sweep scale `k` raised | up to **1.133** | up to 0.752 |
+| fBm octaves added | any N (limit `−0.4575`) | up to **N = 7** (N ≥ 8 clips) |
+| `thin` lower edge lowered | down to **0.010** | down to 0.160 |
+
+`−0.45` breaks on a `DISSOLVE_NOISE_AMP` bump as small as `0.9 → 1.02`. That is
+a plausible one-character tuning change, and its failure mode is silent: a
+horizontal clip line across the dissolve edge, at a `vUv.y` that no existing
+test samples (`hero-dissolve.spec.ts` probes three fixed heights; the pixel gate
+freezes 3 seeds). `−0.6` gives 2.9× the headroom on every axis, and its entire
+cost is ~2.5% of one shader's fragment time that no instrument in this repo can
+resolve.
+
+**Had `−0.6` needed justification beyond "it was picked", this is it — and the
+justification is robustness, not the (unmeasured) perf win it was shipped for.**
+
+### Recommendation
+
+- **Do not tighten. `−0.6` stands. Task 7 (B1) is a derived no-op**, on the
+  campaign's own terms: the derivation is the deliverable, no shader line
+  changed, and no rig time is owed to this hypothesis.
+- If a future batch ever *does* want the band back (e.g. B2 shows the hero
+  shader is genuinely fragment-bound and worth 3% more), the safe target is
+  **`−0.45`**, and it must ship **in the same commit as** a comment recording
+  `p_act = T − A(S−0.5)(1+k)` next to all four literals. Never as a bare number.
+- The correct in-tree figures are **`p > −0.3703125`** (not `−0.39`) and
+  **~63%** skipped (not ~77%). Both are comment-only corrections in
+  `FluidWaves.tsx`, outside this task's Files list; text is in
+  `.superpowers/sdd/2026-08-16-hero-perf-harness/task-7-report.md`.
+
+### Provenance
+
+Algebra by hand, re-checked with `node -e`; noise ranges read from
+`FluidWaves.tsx:127-138`; geometry from `FluidWaves.tsx:394-405` +
+`src/index.css:361,392`; tail statistics from an fp32-emulated transcription
+(scratchpad, not committed — it proves nothing the algebra does not, and would
+invite someone to fit a bound to it). Spread and band figures quoted from this
+file's Task 3 entries. **No measurement was run for this batch: `npm run perf`,
+`perf/lighthouse.mjs`, the pixel gate and the Playwright suite were all left
+alone deliberately** (contended rig), and none of them is load-bearing for a
+conclusion that is decidable from arithmetic.
