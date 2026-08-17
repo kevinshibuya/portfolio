@@ -293,10 +293,17 @@ export function baselineRefusal({ force, exitCode, blockingWarnings = [], machin
   // exact hole round 4 closed — a t=0 stamp vouching for a 20-minute
   // invocation. Refusing when the after-sample is absent makes that refactor
   // fail loudly (every baseline update refused) instead of quietly.
-  if (machineLoad && machineLoad.after == null) {
+  // `machineLoad &&` was the hole in the guard-of-the-guard: an ABSENT load
+  // block refused nothing at all, so a refactor that dropped the whole
+  // before/after sampling — rather than just the after sample — defeated R10
+  // silently, which is the louder of the two failures this was written to catch.
+  // No load evidence is not weaker than partial load evidence; it is the same
+  // refusal.
+  if (!machineLoad || machineLoad.after == null) {
     reasons.push(
-      'the post-run machine-load sample is MISSING — a baseline cannot be vouched for by a ' +
-        'load reading taken before any of its measurements existed (see combineMachineLoad)',
+      'the post-run machine-load sample is MISSING (or no load evidence was collected at all) — a ' +
+        'baseline cannot be vouched for by a load reading taken before any of its measurements ' +
+        'existed, nor by none (see combineMachineLoad)',
     )
   }
   const refuse = !force && (exitCode === 1 || reasons.length > 0)

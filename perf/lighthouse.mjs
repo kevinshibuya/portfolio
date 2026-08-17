@@ -523,7 +523,8 @@ options:
 the page is always served by "${SERVE_COMMAND}" — never the dev server, and never
 "npm run preview" (which is wrangler in this repo).
 
-exit codes: 0 ok · 1 regression (or reports disagree, with --compare) · 2 usage/refusal
+exit codes: 0 ok · 1 not clean — a regression, a required metric that could not be
+  collected, or (with --compare) two reports that disagree · 2 usage/refusal
 `)
 }
 
@@ -769,6 +770,15 @@ async function main() {
 
   if (uncollectedRequired.length > 0) exitCode = 1
 
+  // DISTINCT metrics, not occurrences. `uncollectedRequired` gets one push per
+  // (preset, run, metric), so a single audit failing on all 5 runs of both
+  // presets made the operator-facing message read "10 required metric(s) could
+  // not be collected (lh.lcpMs)" — a count contradicting its own parenthetical,
+  // in the very message a prior round existed to make truthful. Everything
+  // reader-facing counts and lists off this array; the raw one keeps its role as
+  // the trigger.
+  const uncollectedMetrics = [...new Set(uncollectedRequired)]
+
   // Re-sample and backfill, for the same reason Layer 2 does: a load reading
   // taken before any of the measurements existed cannot vouch for them.
   const loadAfter = await sampleMachineLoad('after')
@@ -797,11 +807,11 @@ async function main() {
       process.stderr.write(
         'REFUSING --update-baseline: this run is not a clean reference.\n' +
           (regressed ? '  - it REGRESSED against the current baseline (see the table above)\n' : '') +
-          (uncollectedRequired.length > 0
-            ? `  - it did not finish clean: ${uncollectedRequired.length} required metric(s) could not be collected ` +
-              `(${[...new Set(uncollectedRequired)].join(', ')})\n`
+          (uncollectedMetrics.length > 0
+            ? `  - it did not finish clean: ${uncollectedMetrics.length} required metric(s) could not be collected ` +
+              `(${uncollectedMetrics.join(', ')})\n`
             : '') +
-          (exitCode === 1 && !regressed && uncollectedRequired.length === 0 ? '  - it did not finish clean\n' : '') +
+          (exitCode === 1 && !regressed && uncollectedMetrics.length === 0 ? '  - it did not finish clean\n' : '') +
           reasons.map((warning) => `  - ${warning}\n`).join('') +
           'Quiesce the machine and/or fix the problem above and re-run, or pass --force if you\n' +
           'deliberately intend this to become the new reference.\n',
@@ -824,19 +834,24 @@ async function main() {
   // table in which every metric says `within-band` is a false trail.
   if (exitCode === 0) {
     log('result: no regressions')
-  } else if (regressed) {
-    log(`result: ${VERDICT.REGRESSION} — see the table(s) above`)
-  } else if (uncollectedRequired.length > 0) {
-    log(
-      `result: NOT CLEAN — no regression, but ${uncollectedRequired.length} required metric(s) ` +
-        `could not be collected (${[...new Set(uncollectedRequired)].join(', ')}). See the warnings above.`,
-    )
   } else {
-    // Unreachable today — the only two causes are handled above. It exists so
-    // that a future third cause of a non-zero exit reports "not clean" rather
-    // than inheriting one of the two messages above and naming the wrong thing,
-    // which is the exact defect this item fixed.
-    log('result: NOT CLEAN — see the warnings above')
+    // EVERY cause gets named, not just the first. The old chain short-circuited
+    // on `regressed`, so a run that both regressed AND failed to collect a
+    // required metric printed only the regression — the operator fixed it and
+    // was then surprised by a second non-zero exit for a cause the tool had
+    // known about all along.
+    const causes = []
+    if (regressed) causes.push('it REGRESSED against the current baseline (see the table(s) above)')
+    if (uncollectedMetrics.length > 0) {
+      causes.push(
+        `${uncollectedMetrics.length} required metric(s) could not be collected ` +
+          `(${uncollectedMetrics.join(', ')}) — see the warnings above`,
+      )
+    }
+    // The fallback keeps a future third cause of a non-zero exit reporting "not
+    // clean" rather than inheriting a message that names the wrong thing.
+    if (causes.length === 0) causes.push('see the warnings above')
+    log(`result: ${regressed ? VERDICT.REGRESSION : 'NOT CLEAN'} — ${causes.join('; and ')}`)
   }
   return exitCode
 }

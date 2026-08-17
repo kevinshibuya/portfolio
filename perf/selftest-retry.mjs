@@ -39,6 +39,8 @@
 //      selector fails on the first run instead of burning the budget on an
 //      outcome that cannot change.
 
+import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 import { baselineRefusal, healthBlocker, runScenario } from './run.mjs'
 import { assertPageHealthy } from './lib/browser.mjs'
 import { combineMachineLoad } from './lib/load.mjs'
@@ -231,6 +233,11 @@ const plainBug = () => new Error('#projects .stack-scroll not found')
     }).refuse,
   )
   check(
+    'an ABSENT machineLoad block refuses --update-baseline',
+    baselineRefusal({ force: false, exitCode: 0, blockingWarnings: [], machineLoad: undefined }).refuse,
+    'a refactor dropping the load block wholesale must not be quieter than one dropping half of it',
+  )
+  check(
     'a present after-sample on a quiet rig still allows it',
     !baselineRefusal({
       force: false,
@@ -239,6 +246,33 @@ const plainBug = () => new Error('#projects .stack-scroll not found')
       machineLoad: combineMachineLoad(quiet, quiet),
     }).refuse,
   )
+}
+
+// 7c — the LAST link in R10's wiring, asserted the only way it can be from a
+// browserless test: on the source text.
+//
+// Everything above proves the COMBINER and the GATE. Neither observes whether
+// the after-sample is ever actually TAKEN, so deleting `sampleMachineLoad('after')`
+// from run.mjs left the suite fully green — the tests proved the parts and not
+// the assembly. `combineMachineLoad(before, undefined)` would then yield
+// `after: null`, which 7b does refuse — but only once someone reaches
+// `--update-baseline`, and the point of a selftest is to fail before that.
+//
+// A source-text assertion is a blunt instrument (a rename breaks it, and it
+// cannot see whether the result is used), which is why it is scoped to the one
+// call whose absence is otherwise undetectable. lighthouse.mjs carries the
+// identical wiring for Layer 3 and so is covered identically.
+{
+  const sourceOf = async (file) => readFile(fileURLToPath(new URL(file, import.meta.url)), 'utf8')
+  const CALL = /sampleMachineLoad\(\s*['"]after['"]\s*\)/
+  for (const file of ['./run.mjs', './lighthouse.mjs']) {
+    const source = await sourceOf(file)
+    check(
+      `${file.replace('./', '')} still TAKES the post-run load sample`,
+      CALL.test(source),
+      "no sampleMachineLoad('after') call in the source — R10's after-sample would be absent and every gate above would still pass",
+    )
+  }
 }
 
 // 8 — the health CLASSIFICATION table, driven through a stubbed page so it
