@@ -918,3 +918,106 @@ The `emptyDelta`/`MISSING` rows showing the raw stored band, the broad
 `/net::ERR_/i` allowlist pattern, the back-compat page-vs-session branch, the
 symlink-fragile main guard, `--force` writing a blended metric without a
 `sourceConflict` marker, and per-run `sources` not being stored in `perRunMeta`.
+
+---
+
+## 2026-08-17 · Task 3 round-4 · load-guard onset + classification precision
+
+### IMPORTANT — the load guard now samples at BOTH ends
+
+R10 as originally ruled had a hole shaped like the incident that motivated it.
+The guard sampled once, before the first browser launch, so `machineLoad`
+described the machine at t=0 for every scenario in an ~20-minute
+`all --runs 5` invocation *and* for the baseline write at the end. The
+motivating incident was `legacyScreenSaver` starting **mid-evidence** — exactly
+the onset a pre-run sample cannot see. An operator could quiesce the machine,
+start `--update-baseline`, walk away, and get a contaminated baseline written
+under a clean-looking load block stamped minutes before any measurement in it.
+
+**Fix.** A second `ps` sample after the last scenario (no browser),
+`combineMachineLoad(before, after)` with `busy = before.busy || after.busy`
+feeding `baselineRefusal`, both samples recorded as `machineLoad.before` /
+`machineLoad.after`, and every reason labelled `at start:` / `at end:` so a
+mid-run onset is attributable rather than averaged away. Reports already written
+are backfilled with the after-sample, so a report can never vouch for a window
+using load data stamped before that window existed.
+
+### Why `LOAD_PER_CORE` did NOT move, despite looking wrong
+
+Review observed that `0.7` sits above two of the three contaminated states
+(0.56, 0.50) and only 0.17 above the quiesced runs (0.53) — i.e. the
+load-average rule is close to decorative and `HOT_PROCESS_PCT` carries the guard
+alone. That is correct, and moving the number does not fix it, because **the two
+populations overlap on this axis**:
+
+| | readings (1-min load / core) |
+|---|---|
+| contaminated | 0.50, 0.56, 0.75 |
+| clean | 0.31, 0.53 |
+
+A contaminated rig measured **lower** (0.50) than a clean one (0.53). No
+threshold on 1-min load average separates them. Lowering to 0.6 would not have
+caught the 0.50 or 0.56 cases — both of which `HOT_PROCESS_PCT` caught on its
+own, at 82% and 68% — while bringing the limit within 0.07 of a normal working
+machine, which the ruling explicitly forbids.
+
+So the honest position is not a better number but a corrected framing: **this
+rule cannot do this job.** It stays as a catastrophic-load backstop; the
+hot-process rule is the guard. Two consequences are therefore load-bearing
+rather than incidental:
+
+- **`ps` failure is blindness, not degradation.** `psTable()` is built on
+  `run()`, which never throws, so a failed `ps` returned an empty table →
+  no hot processes → the primary rule silently retired while `busy` rested on
+  the rule that cannot discriminate. The printed line said nothing, which reads
+  as "nothing notable". It now prints `top: UNAVAILABLE (ps returned nothing)`,
+  sets `detectorBlind`, and counts as a reason — so a blind guard refuses a
+  baseline write rather than waving one through.
+- **`foreignCpuPctOfMachine` is now recorded on every run.** Total foreign CPU
+  as a share of all cores DOES appear to separate the populations — measured
+  ~26-67% while contaminated versus ~6-7% quiet. It is printed and stored but
+  deliberately **not** thresholded: the contaminated figures above are partly
+  reconstructed from top-process lists rather than measured whole-table sums,
+  and calibrating a gate on reconstructed numbers is the exact mistake this file
+  exists to prevent. Task 5/6 now collect the real figure on every run;
+  threshold it once there is measured data.
+
+### Health classification is now per-entry, and collects both facts
+
+Two precision defects, both in `assertPageHealthy`:
+
+1. **`page-error` was applied to fatal *console* errors**, not just uncaught
+   exceptions, so the thrown message asserted "an uncaught page error is a
+   statement about the CODE" over what might be a bare `console.error`. Worse:
+   a WebGL context loss emits a GL console error *before* React re-renders the
+   fallback div, so a single DOM sample in that gap classified a genuinely
+   transient loss as non-retryable and hard-aborted the invocation. The kind is
+   now derived per entry (`pageerror` present → `page-error`, else
+   `console-error`), and a `GL_CONTEXT_LOSS_PATTERN` match re-checks the
+   fallback locator after a short settle before classifying — so the race is
+   closed from both directions.
+2. **Fallback-present short-circuited before page errors were read**, so a run
+   that both threw and lost its context reported only the context loss and the
+   exception vanished. Both facts are now gathered first; the error is still
+   classified `context-loss` (retryable, and Important 1's gate blocks the
+   baseline either way) but the message carries the uncaught errors too.
+
+### Minors closed
+
+- `shortName` split on the first space, so
+  `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` printed as
+  "Google". Since the printed top-3 list is the guard's only stated defence
+  against its disclosed GPU blind spot, a mangled name weakened exactly the
+  fallback the design leans on. It now cuts at the first argument flag (which
+  preserves paths containing spaces) and takes the last path segment.
+- `npm run perf:selftest` added — the durable guard for the riskiest logic in
+  the harness previously ran only if someone remembered it existed.
+- The refusal wrapper said "the rig was BUSY when this run started"; it now says
+  "during this run", since each reason carries its own start/end label.
+
+### Left alone, per ruling
+
+Double-counting of uncaught exceptions between `page.on('pageerror')` and
+`window.__PERF__.errors`; a warm-up health failure being swallowed into
+`warmupResult`; `--force` writing `baseline.json` with no busy-rig marker in the
+file; and the two `ps -A` calls per invocation.

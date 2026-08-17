@@ -147,6 +147,13 @@ const BENIGN_CONSOLE_PATTERNS = [
 
 const isBenign = (entry) => entry.kind === 'console' && BENIGN_CONSOLE_PATTERNS.some((re) => re.test(entry.text))
 
+/**
+ * A WebGL context loss as it appears on the CONSOLE, which happens before the
+ * React fallback swap lands in the DOM. Used to reclassify what would otherwise
+ * look like an ordinary fatal console error.
+ */
+const GL_CONTEXT_LOSS_PATTERN = /context[\s_-]*lost|CONTEXT_LOST_WEBGL|WEBGL_lose_context|GPU process (?:crashed|exited)/i
+
 /** Loader gone, hero rise finished, hero canvas mounted and not fallen back. */
 export async function waitForSettledHero(session, log = () => {}) {
   // Back-compat: earlier call sites passed the bare page.
@@ -200,16 +207,9 @@ export async function waitForSettledHero(session, log = () => {}) {
  * up to a bounded budget) is a separate decision — see `runScenario`.
  */
 export async function assertPageHealthy(session, when, log = () => {}) {
-  const fallbacks = await session.page.locator('[data-testid="fluid-waves-fallback"]').count()
-  if (fallbacks > 0) {
-    throw new MeasurementHealthError(
-      `hero WebGL context was lost ${when} (the gradient fallback is showing). ` +
-        'GPU metrics from this run would read as a large improvement and are discarded. ' +
-        'This is an environment/stability failure, not a performance result.',
-      'context-loss',
-    )
-  }
-
+  // Gather BOTH facts before classifying. The old order checked the fallback
+  // first and returned immediately, so a run that threw AND lost its context
+  // was reported as a bare context loss and the exception never surfaced.
   const rawPageErrors = await session.page
     .evaluate(() => (window.__PERF__?.errors ?? []).slice())
     .catch(() => [])
@@ -226,13 +226,50 @@ export async function assertPageHealthy(session, when, log = () => {}) {
   // the run, and a failure must always name what caused it.
   for (const entry of benign) log(`  (ignored ${entry.kind}: ${entry.text.slice(0, 140)})`)
 
-  if (fatal.length > 0) {
-    for (const entry of fatal) log(`  !! ${entry.kind}: ${entry.text.slice(0, 200)}`)
+  let fallbacks = await session.page.locator('[data-testid="fluid-waves-fallback"]').count()
+
+  // A context loss announces itself on the console BEFORE React re-renders the
+  // canvas into the fallback div. Sampling the DOM once, in that gap, would
+  // classify a genuinely transient GPU loss as a non-retryable page error and
+  // hard-abort the whole invocation. If the console says "context lost", give
+  // React a beat and look again rather than trusting a single sample.
+  if (fallbacks === 0 && fatal.some((entry) => GL_CONTEXT_LOSS_PATTERN.test(entry.text))) {
+    await sleep(400)
+    fallbacks = await session.page.locator('[data-testid="fluid-waves-fallback"]').count()
+  }
+
+  const contextLost = fallbacks > 0 || fatal.some((entry) => GL_CONTEXT_LOSS_PATTERN.test(entry.text))
+
+  if (fatal.length > 0) for (const entry of fatal) log(`  !! ${entry.kind}: ${entry.text.slice(0, 200)}`)
+
+  if (contextLost) {
+    const alsoThrew = fatal.filter((entry) => entry.kind === 'pageerror')
     throw new MeasurementHealthError(
-      `page reported ${fatal.length} error(s) ${when} — the run is not a clean measurement. ` +
-        'An uncaught page error is a statement about the CODE, not the rig, so this is NOT retried:\n  ' +
+      `hero WebGL context was lost ${when} (${fallbacks > 0 ? 'the gradient fallback is showing' : 'reported on the console'}). ` +
+        'GPU metrics from this run would read as a large improvement and are discarded. ' +
+        'This is an environment/stability failure, not a performance result.' +
+        (alsoThrew.length > 0
+          ? `\n  NOTE: the page ALSO threw ${alsoThrew.length} uncaught error(s) — retried as a context loss, but read these:\n  ` +
+            alsoThrew.slice(0, 3).map((entry) => entry.text).join('\n  ')
+          : ''),
+      'context-loss',
+    )
+  }
+
+  if (fatal.length > 0) {
+    // Derive the kind from what actually happened. `page-error` carries the
+    // claim "the app took a code path it does not take in a healthy run",
+    // which is only true of an uncaught exception — asserting it over a bare
+    // console.error would misattribute the failure.
+    const threw = fatal.some((entry) => entry.kind === 'pageerror')
+    const kind = threw ? 'page-error' : 'console-error'
+    const preamble = threw
+      ? 'An uncaught page error is a statement about the CODE, not the rig, so this is NOT retried'
+      : 'A non-benign console error is not attributable to the rig either, so this is NOT retried'
+    throw new MeasurementHealthError(
+      `page reported ${fatal.length} error(s) ${when} — the run is not a clean measurement. ${preamble}:\n  ` +
         fatal.slice(0, 5).map((entry) => `[${entry.kind}] ${entry.text}`).join('\n  '),
-      'page-error',
+      kind,
     )
   }
 }

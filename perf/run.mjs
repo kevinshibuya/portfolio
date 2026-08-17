@@ -21,11 +21,11 @@
 
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 
 import { BASE_URL, SERVE_COMMAND, buildOnce, distFingerprint, startPreview } from './lib/server.mjs'
 import { collectRig, rigMismatches, RIG_KEYS } from './lib/rig.mjs'
-import { reportMachineLoad, sampleMachineLoad } from './lib/load.mjs'
+import { combineMachineLoad, reportMachineLoad, sampleMachineLoad } from './lib/load.mjs'
 import { readBaseline, updateScenarios } from './lib/baseline.mjs'
 import { aggregate, findOutlierRun, provenanceWarnings, MIN_RUNS_FOR_OUTLIER } from './lib/stats.mjs'
 import { REPORT_VERSION, VERDICT, compare, printComparison, writeReport } from './lib/report.mjs'
@@ -279,7 +279,10 @@ export function healthBlocker(scenarioName, outcome) {
 export function baselineRefusal({ force, exitCode, blockingWarnings = [], machineLoad }) {
   const reasons = [...blockingWarnings]
   if (machineLoad?.busy) {
-    reasons.push(`the rig was BUSY when this run started (${machineLoad.reasons.join('; ')})`)
+    // Not "when this run started" — the load is sampled at BOTH ends and each
+    // reason carries its own "at start:" / "at end:" label, precisely so a
+    // mid-run onset is attributable rather than hidden behind a t=0 stamp.
+    reasons.push(`the rig was BUSY during this run (${machineLoad.reasons.join('; ')})`)
   }
   const refuse = !force && (exitCode === 1 || reasons.length > 0)
   return { refuse, reasons }
@@ -373,8 +376,8 @@ async function main() {
 
   // Sampled BEFORE any browser launches, so it describes the environment the
   // measurement is about to run in rather than the measurement's own load.
-  const machineLoad = await sampleMachineLoad()
-  reportMachineLoad(machineLoad, log)
+  const loadBefore = await sampleMachineLoad('before')
+  reportMachineLoad(loadBefore, log, 'before')
 
   const rig = await collectRig()
   log(`rig: chrome ${rig.chrome} · macOS ${rig.macos} · ${rig.arch} · display ${rig.displayScale}x · ${rig.acPower ? 'AC power' : 'BATTERY'}`)
@@ -420,6 +423,7 @@ async function main() {
   let exitCode = 0
   const aggregatesByScenario = {}
   const blockingWarnings = []
+  const writtenReports = []
 
   try {
     for (const scenario of options.scenarios) {
@@ -480,7 +484,10 @@ async function main() {
           warmup: outcome.warmup,
         },
         rig,
-        machineLoad,
+        // `after` is filled in once every scenario has run — see the re-sample
+        // below. A single t=0 sample cannot see a load onset mid-invocation,
+        // which is exactly how this guard's motivating incident happened.
+        machineLoad: { before: loadBefore, after: null, busy: loadBefore.busy },
         rigMismatchVsBaseline: mismatches,
         build: { serveCommand: SERVE_COMMAND, baseUrl: BASE_URL, built: options.build, ...fingerprint },
         sources: outcome.sources,
@@ -498,9 +505,23 @@ async function main() {
       if (comparison.regressions > 0) exitCode = 1
       if (outcome.flagged.length > 0) blockingWarnings.push(`${scenario.name}: an outlier run was kept after exhausting replacements`)
       aggregatesByScenario[scenario.name] = outcome.aggregated
+      writtenReports.push({ file, report })
     }
   } finally {
     await shutdown()
+  }
+
+  // RE-SAMPLE. `all --runs 5` runs ~20 minutes; the incident this guard exists
+  // for was a screensaver starting MID-run. One `ps` call, no browser.
+  const loadAfter = await sampleMachineLoad('after')
+  reportMachineLoad(loadAfter, log, 'after')
+  const machineLoad = combineMachineLoad(loadBefore, loadAfter)
+
+  // Backfill the after-sample into the reports already written, so a report can
+  // never vouch for a window with load data stamped before it existed.
+  for (const { file, report } of writtenReports) {
+    report.machineLoad = machineLoad
+    await writeFile(file, `${JSON.stringify(report, null, 2)}\n`, 'utf8')
   }
 
   if (options.updateBaseline) {

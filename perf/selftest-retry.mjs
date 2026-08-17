@@ -33,6 +33,7 @@
 //      outcome that cannot change.
 
 import { baselineRefusal, healthBlocker, runScenario } from './run.mjs'
+import { combineMachineLoad } from './lib/load.mjs'
 import { MeasurementHealthError } from './lib/browser.mjs'
 
 const quiet = () => {}
@@ -173,6 +174,32 @@ const plainBug = () => new Error('#projects .stack-scroll not found')
     '--force overrides the busy-rig refusal',
     !baselineRefusal({ force: true, exitCode: 0, blockingWarnings: [], machineLoad: busy }).refuse,
   )
+}
+
+// 7 — ruling R10's own hole: the guard samples at t=0, but an `all --runs 5`
+// invocation runs ~20 minutes and the motivating incident was a screensaver
+// starting MID-run. A load onset that begins after the first sample must still
+// block the baseline write at the end.
+{
+  const quiet = { busy: false, reasons: [] }
+  const loaded = { busy: true, reasons: ['"legacyScreenSaver" is using 82.0% CPU (limit 50%)'] }
+
+  const onsetMidRun = combineMachineLoad(quiet, loaded)
+  check(
+    'a load onset DURING the run marks the invocation busy',
+    onsetMidRun.busy && onsetMidRun.reasons.some((reason) => reason.startsWith('at end:')),
+    onsetMidRun.reasons.join(' | '),
+  )
+  check(
+    'a mid-run load onset refuses --update-baseline',
+    baselineRefusal({ force: false, exitCode: 0, blockingWarnings: [], machineLoad: onsetMidRun }).refuse,
+  )
+  check(
+    'load present at the START is still caught (and labelled)',
+    combineMachineLoad(loaded, quiet).busy &&
+      combineMachineLoad(loaded, quiet).reasons.some((reason) => reason.startsWith('at start:')),
+  )
+  check('quiet at both ends stays clean', !combineMachineLoad(quiet, quiet).busy)
 }
 
 const failed = results.filter((result) => !result.passed)
