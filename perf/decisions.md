@@ -1796,3 +1796,164 @@ the tempting one-line fix. `@source not "../src/index.css"` would excise this
 is also where every real utility-bearing `@apply`-free rule and the theme live,
 so the batch must be measured through the keep-or-revert procedure, not landed
 blind.
+
+---
+
+## 2026-08-17 · Task 5b · PARTIAL — the pixel-gate net is proven; the rig closed before the timing legs
+
+Task 5b was dispatched into a window the controller had measured clean at
+**07:42** (`busy: false`, `reasons: []`, 0.421 load/core, hottest process
+38.4%). That window had already closed by **07:43**, when this task's first
+sample ran, and it did not reopen. What follows is what the rig did, what was
+provable anyway, and what is still open.
+
+### The rig log (R10 guard, sampled every 20 s by this task)
+
+```
+07:43   fseventsd 74.2%  lpc 0.624  busy=true   <- storage-maintenance storm still running
+07:44:58 busy=true lpc=0.636 foreign=28.3% | Projeto.exe 104% · WindowServer 30% · Chrome Renderer 19%
+07:45:18 busy=true lpc=0.564 foreign=27.3% | Projeto.exe 102% · WindowServer 33% · Chrome Renderer 20%
+07:45:58 busy=true lpc=0.532 foreign=27.7% | Projeto.exe 103% · WindowServer 37% · Chrome Renderer 20%
+07:48:39 busy=true lpc=0.802 foreign=32.8% | Projeto.exe  98% · WindowServer 35% · Storage 22%
+07:49:19 busy=true lpc=0.808 foreign=47.3% | Projeto.exe  97% · node (vitest 1) 95% · Virtualization.VM 63%
+07:50:39 busy=true lpc=0.776 foreign=35.4% | Projeto.exe 102% · process.js 74% · WindowServer 31%
+07:51:40 busy=true lpc=0.676 foreign=49.5% | Projeto.exe  95% · node (vitest 1) 86% · Code Helper (Renderer) 67%
+07:52:00 busy=true lpc=1.044 foreign=60.2% | tsc 239%      · Projeto.exe  98% · WindowServer 32%
+07:53:40 busy=true lpc=0.563 foreign=29.8% | Projeto.exe 101% · WindowServer 32% · Storage 30%
+```
+
+Two distinct contaminants, and the second is the one that matters:
+
+1. **`fseventsd` at 74–78%** — the tail of the overnight storage-maintenance
+   storm. Confirmed as *current* rather than a `ps pcpu` lifetime-average
+   artefact by cross-checking with `top -l 2` (78.7% instantaneous). It decayed
+   away over the following minutes.
+2. **`Projeto.exe` at ~100%, continuously** — a Windows binary
+   (`C:/ProjetoMS/SysGuard.bin` → `Projeto.exe`) launched under CrossOver at
+   **07:44:20**, i.e. *38 seconds before* this task's second sample. It has held
+   ~100% of a core ever since, and on its own it keeps `HOT_PROCESS_PCT` red
+   regardless of what load average does. It is a foreign process on the owner's
+   machine and was left strictly alone.
+
+From 07:51 onward `tsc` (239%), `Code Helper (Renderer)` (67%) and a `vitest`
+worker (86%) join in: **the owner is at the keyboard.** This is no longer a
+transient to wait out.
+
+Note which rule did the work. Load-per-core spent most of this window *under*
+the 0.7 backstop (0.53–0.68) while a process sat at 100% of a core the whole
+time. That is exactly the asymmetry `lib/load.mjs` documents — the backstop
+cannot do this job and `HOT_PROCESS_PCT` carries the guard. This incident is a
+live confirmation of that design call, and a new row for its evidence table:
+
+| state | 1-min | /8 cores | hottest proc | foreign CPU | provenance |
+|---|---|---|---|---|---|
+| foreign CrossOver app, owner then active | 4.2–8.3 | 0.53–1.04 | 92–104% | 24–60% | Task 5b, 30 samples |
+
+**`--force` was not used, and no baseline was written.** A missing baseline is
+recoverable; a quietly contaminated one corrupts all six optimization batches in
+the direction that looks like success.
+
+### PROVEN ANYWAY: the pixel-gate half of the sensitivity proof
+
+The sensitivity proof has two nets, and **only one of them is a timing
+measurement.** The pixel gate renders a *frozen* frame (`?perf-freeze=<sec>`,
+`?perf-seed=<float>`, `data-perf-frozen="true"`) at a fixed sim time and a fixed
+seed, then compares images. Nothing about that verdict depends on how fast the
+machine is — a contended rig makes it slower, not different. So it was run under
+the contamination, deliberately, with a control first.
+
+Plant: `src/components/canvas/FluidWaves.tsx:158`, the domain-warp loop, `5 → 10`
+iterations (scratch commit `88d5cf5`, since reset away). Chosen per the brief
+because it executes for **every pixel of both canvases**, unlike the dissolve
+fbm which is spatially guarded to the band.
+
+```
+CONTROL — untouched tree at 5483e22
+  npx playwright test pixel-gate
+  30 passed (2.4m)
+
+PLANTED — 5 -> 10 iterations
+  npx playwright test pixel-gate
+  24 failed
+    [desktop-chromium] hero-top-t2/t8 · seed-0p137 / 0p512 / 0p873
+    [desktop-chromium] mid-dissolve-t2/t8 · seed-0p137 / 0p512 / 0p873
+    [mobile-chromium]  hero-top-t2/t8 · seed-0p137 / 0p512 / 0p873
+    [mobile-chromium]  mid-dissolve-t2/t8 · seed-0p137 / 0p512 / 0p873
+  6 passed (3.1m)
+```
+
+Diff magnitudes, against a `maxDiffPixelRatio` of **0.001**:
+
+```
+301963 pixels (ratio 0.24 of all image pixels) are different   hero-top-t2 · seed-0p137 · desktop
+ 58445 pixels (ratio 0.21 of all image pixels) are different   mid-dissolve-t8 · seed-0p873 · mobile
+        ... every failing golden landed in ratio 0.21 – 0.24 ...
+```
+
+**210–240× over tolerance.** This net is not marginal and it is not
+threshold-calibrated to hide the plant.
+
+The 6 that stayed green are the right 6. `stage-arrival` captures the Selected
+Work stage, where neither `FluidWaves` instance is on screen — so the gate
+discriminated by *what changed* rather than failing wholesale, which is the
+stronger result. Had all 30 gone red it would have been weak evidence (a global
+capture perturbation looks identical); 24-red/6-green matching the canvas
+footprint exactly is what a real detection looks like.
+
+Control-then-plant ordering matters here and was not incidental: 30/30 green on
+the untouched tree *under this same contamination* is what rules out "the rig
+made it red".
+
+### STILL OPEN — every leg that is a timing measurement
+
+None of these were attempted, none were faked, and none were forced:
+
+- Task 3's deferred acceptance leg (`idle-hero --runs 5` A/B agreement).
+- Task 4's deferred acceptance leg (`lighthouse --runs 3` A/B on both presets).
+- `npm run perf -- --update-baseline` → `scenarios`.
+- `node perf/lighthouse.mjs --update-baseline` → `lighthouse`.
+- The two hand-set `maxBand` overrides. **These cannot honestly be chosen yet:**
+  the brief asks for values "from the observed run-to-run spread", and no
+  trustworthy spread has been observed. `lh.transferBytes` is admittedly a byte
+  count and load-independent, but its override still has to be written into a
+  `lighthouse` block that does not exist, and `lh.performance` needs timing
+  spread outright. Guessing them from the authoring-time smoke figures would put
+  a number in the campaign's contract that no measurement backs.
+- The `npm run perf` half of the sensitivity proof (must run *after* a baseline
+  exists — there is nothing to regress against until then).
+- The determinism proof.
+- The `battery-proxy` powermetrics-vs-fallback sudo decision (needs Kevin, once).
+
+`perf/baseline.json` is therefore still `rig` + `exact` only, exactly as Task 5a
+left it, and **Task 5's Steps 1–3 all remain `- [ ]`.** Step 2 in particular is
+half-earned and stays unticked: it reads "detected by BOTH nets", and only one
+net has fired.
+
+### Verified untouched
+
+`git diff --stat 5483e22` is empty. The shader loop reads `for (int i = 0; i <
+5; i++)`. The scratch commit was `git reset --hard`-ed away rather than reverted,
+so the branch carries no scratch/revert pair. `baseline.json` still has all four
+top-level keys with `exact.chunkBytesCeiling` at its 21 entries — the
+three-writer merge contract is intact and unexercised by this task.
+
+### For whoever picks 5b back up
+
+Re-run the guard first; the whole task is gated on one line of output:
+
+```
+node -e "import('./perf/lib/load.mjs').then(async m=>{const s=await m.sampleMachineLoad('probe');console.log(s.busy,s.reasons)})"
+```
+
+`false []` means go. Then run the legs in the brief's order — the two acceptance
+A/Bs, the two `--update-baseline` writes, the `maxBand` overrides, then the
+`npm run perf` half of the sensitivity proof, then determinism. The pixel-gate
+half above does not need redoing; the plant is a one-line change and the result
+is reproducible from this entry.
+
+One rig note worth carrying forward, since it is not currently anywhere in the
+harness: the guard's *at-end* re-sample is taken after the invocation's own
+build and headed-Chrome activity, which is itself a heavy `fseventsd` producer.
+On a rig already near a threshold that could turn a legitimate run red at the
+last moment. Not observed firing here — flagged because Task 5b would have been
+the first invocation long enough to find out.
