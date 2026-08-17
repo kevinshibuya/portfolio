@@ -260,6 +260,23 @@ Mechanics: every shot loads with `perf-seed=<seed>&perf-freeze=<t>&perf-role=0` 
 
 ---
 
+### Task 5c (added by execution ruling R17): stop the harness leaking dead CSS into the production bundle
+
+**Files:**
+- Modify: `src/index.css` (Tailwind source scoping only), `perf/baseline.json` (re-record the `index.css` ceiling), `perf/decisions.md`, `perf/selftest-retry.mjs`
+
+**Why this exists:** Task 5a measured `index.css` +116 B against the authoring-time tree and proved the cause is not an app change. Tailwind v4's automatic source detection scans the repo's new files, so the harness's own artifacts now emit real utilities into the shipped stylesheet: `.top-3{top:calc(var(--spacing)*3)}` from the words "top 3" in `perf/decisions.md` prose, and `.antialiased{…}` from `tests/e2e/pixel-gate.spec.ts`. Both were verified present in `dist/assets/index-*.css` and used nowhere in `src/` or `index.html`. Two reasons this is scheduled rather than filed: it compounds (every future campaign-log entry can plant another false utility), and Task 5a's ceiling has now baked the artifact in as legitimate headroom in a budget whose entire job is policing app bytes.
+
+**Work:** Narrow Tailwind's source scanning to the app's real source (an `@source`/`@source not` declaration in `src/index.css`) so `perf/`, `tests/`, `docs/` and `.superpowers/` cannot contribute utilities. Rebuild, confirm `.top-3` and `.antialiased` are gone from `dist/assets/index-*.css` and that no class actually used by the app disappeared. Re-record ONLY the `index.css` ceiling in `perf/baseline.json` at the new `ceil(bytes × 1.05)`, leaving every other ceiling and both empty sections untouched. The pixel gate is the arbiter of zero visual change and is rig-independent (frozen frames, exact pixels), so it can and must run here even on a loaded machine.
+
+**Boundaries:** No change to any rule the app actually uses; no other ceiling touched; `scenarios`/`lighthouse` stay empty for Task 5b.
+
+- [ ] **Step 1:** Narrow the source scope; rebuild; verify both dead rules are gone and diff the emitted CSS for anything else that vanished.
+- [ ] **Step 2:** `npx playwright test pixel-gate` green (all 30 goldens) — zero visual change proven, not assumed.
+- [ ] **Step 3:** Re-record the `index.css` ceiling; full serial e2e green; commit.
+
+---
+
 ### Task 6: Layer-1 exact budgets (extend `tests/e2e/perf-budget.spec.ts`)
 
 **Files:**
@@ -271,7 +288,7 @@ Mechanics: every shot loads with `perf-seed=<seed>&perf-freeze=<t>&perf-role=0` 
 - One loop per canvas: hero `rafLoopStarts === 1` after settle (the draw/uniform ratios alone cannot detect a duplicate loop driving the same drawFrame). **Execution ruling R2:** assert this on a page load whose hero has NOT been scrolled out of view and back — a resume legitimately starts a new loop. Give the pause budget below its own page load, or assert `rafLoopStarts` before any scroll.
 - Pause: scroll to bottom, `waitForSelector('[data-canvas="fluid-waves"][data-paused="true"]')` (attribute wait, generous timeout — must NOT inherit the timing-race wait pattern of the known `hero-shader.spec.ts` flake; if the attribute genuinely never appears, that is the flake's root cause surfacing — stop and report, per spec "Error handling"), then hero `frames` delta === 0 over 500 ms.
 - Reduced motion (`emulateMedia({ reducedMotion: 'reduce' })`): `data-static="true"` present, hero `frames` delta === 0 over 1 s after settle, and total `frames ≤ 3` — the CURRENT code draws up to three startup frames (mount resize + mount branch + IO initial callback; verified at `FluidWaves.tsx:304/353/372`), so `frames === 1` is not a real invariant and Task 6 may not change app code to make it one. Deduplicating those startup draws is a legitimate future micro-batch, pixel-gated, NOT part of this task.
-- Chunk bytes: read `perf/baseline.json` `exact.chunkBytesCeiling`; list `dist/assets`, map chunks by name prefix; every chunk ≤ its ceiling; a chunk with NO ceiling entry fails the test. The rule is "no UNACCOUNTED chunk", not "no new chunk": a kept campaign batch (Task 12's rechunking especially) may add/rename ceiling entries in the same commit as its code, provided total initial-path bytes do not increase.
+- Chunk bytes: read `perf/baseline.json` `exact.chunkBytesCeiling`; list `dist/assets`, map chunks by name prefix; every chunk ≤ its ceiling; **execution ruling R16:** the key is `<name>.<ext>`, NOT the bare name — `index.js` and `index.css` both reduce to `index` and would collide. Task 5a recorded all 21 ceilings under that derivation; match it exactly. The regex matches `js|css` only, so if a future build emits another hashed asset type into `dist/assets`, do not feed it through the same derivation (the key would keep its content hash and orphan on every rebuild); a chunk with NO ceiling entry fails the test. The rule is "no UNACCOUNTED chunk", not "no new chunk": a kept campaign batch (Task 12's rechunking especially) may add/rename ceiling entries in the same commit as its code, provided total initial-path bytes do not increase.
 
 **Acceptance = the spec file itself running green:** `npx playwright test perf-budget --workers=1`. RED-first is satisfied per-assertion by writing each against the live values and confirming it fails when the tested invariant is deliberately broken locally (e.g., temporarily assert `frames === 2`); this is a budget net, not a feature — document the RED evidence in the commit message.
 
