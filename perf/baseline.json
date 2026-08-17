@@ -1,0 +1,41 @@
+{
+  "rig": {
+    "chrome": "147.0.7727.15",
+    "macos": "15.7.3",
+    "arch": "arm64",
+    "cpu": "Apple M1",
+    "displayScale": 2,
+    "refreshHz": 60,
+    "nominalFrameMs": 16.666666666666668,
+    "acPower": true,
+    "recordedAt": "2026-08-17T05:54:28.593Z"
+  },
+  "scenarios": {},
+  "lighthouse": {},
+  "exact": {
+    "chunkBytesCeiling": {
+      "Archive.js": 58464,
+      "Contact.js": 2999,
+      "Footer.js": 979,
+      "ProjectDetail.js": 10574,
+      "Projects.js": 6929,
+      "SectionHeading.js": 411,
+      "Skills.js": 2226,
+      "Stagger.js": 543,
+      "Stats.js": 2358,
+      "Tag.js": 288,
+      "WorkExperience.js": 8643,
+      "WorkRow.js": 3096,
+      "framer-motion.js": 130110,
+      "i18n.js": 53183,
+      "index.css": 53969,
+      "index.js": 116409,
+      "lenis.js": 19760,
+      "palette.js": 195,
+      "projects.js": 32327,
+      "react-core.js": 195961,
+      "router.js": 38936
+    },
+    "uniformUploadsPerFrame": 1
+  }
+}

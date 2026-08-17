@@ -1407,3 +1407,174 @@ Other round-3 fixes:
 and `eslint.config.js` does not lint `perf/*.mjs` — the harness is now ~2,000
 lines of unlinted JS that six later tasks depend on. Both are known.
 
+
+## 2026-08-17 · Task 5a · the `exact` block (ruling R14 split)
+
+Ruling R14 split Task 5 on the rig-quiescence dependency. This entry records
+**5a only**: `perf/baseline.json` created with its `rig` and `exact` blocks.
+`scenarios` and `lighthouse` are present but **deliberately EMPTY** — the
+reference Mac has been under sustained foreign load (a game, then a macOS
+storage-maintenance storm), and R10's load guard is right to refuse a runtime
+baseline recorded in that state: a baseline taken on a loaded rig makes every
+later optimization batch read as an improvement against an inflated reference.
+
+Built chunk bytes and per-frame GL call counts are **exact** metrics —
+deterministic properties of the code, not of the machine — so they are honest
+today and unblock Task 6, whose budgets are exact metrics too. 5b fills the two
+empty keys via `--update-baseline` on a quiesced rig. Task 5's Step 1 stays
+`- [ ]` until then; **5a ticks nothing**.
+
+The task's acceptance check ("all four top-level keys present and non-empty") is
+therefore NOT met by 5a and is not claimed to be. It is 5b's to satisfy.
+
+### Ceiling keys are `<name>.<ext>`, not `<name>`
+
+The plan says "keyed by name prefix". Taken literally that collides: `dist/assets`
+contains both `index-<hash>.js` and `index-<hash>.css`, and one `index` key
+cannot hold two ceilings. The key is therefore the Vite filename with the
+8-char content hash stripped and the extension retained:
+
+    file.replace(/-[A-Za-z0-9_-]{8}\.(js|css)$/, '.$1')
+
+`ProjectDetail-Czpbr-lH.js` → `ProjectDetail.js` (the hash may itself contain a
+`-`; the anchored 8-char class handles it). Task 6's chunk→ceiling mapping must
+use the same derivation, and its "a chunk with NO ceiling entry fails" rule then
+covers CSS as well as JS instead of silently aliasing them.
+
+Ceiling = `Math.ceil(measuredBytes * 1.05)`. Uncompressed on-disk bytes, which
+is what the plan's authoring-time table measured.
+
+### Measured bytes vs the authoring-time table (tree @ `4ed990d`)
+
+The authoring figures were re-derived rather than trusted: `4ed990d` was built in
+a throwaway worktree and **every one of its chunks reproduced the plan's table
+byte-for-byte**, so the drift below is real drift and not a measurement
+difference.
+
+| chunk key | @ `4ed990d` | @ `e2e8853` (ceiling basis) | drift | ceiling |
+|---|---|---|---|---|
+| `index.js` | 109,140 | **110,865** | **+1.58%** | 116,409 |
+| `index.css` | 51,283 | **51,399** | **+0.23%** | 53,969 |
+| `react-core.js` | 186,629 | 186,629 | 0 | 195,961 |
+| `framer-motion.js` | 123,914 | 123,914 | 0 | 130,110 |
+| `i18n.js` | 50,650 | 50,650 | 0 | 53,183 |
+| `router.js` | 37,081 | 37,081 | 0 | 38,936 |
+| `lenis.js` | 18,819 | 18,819 | 0 | 19,760 |
+| `Projects.js` | 6,599 | 6,599 | 0 | 6,929 |
+| `palette.js` | 185 | 185 | 0 | 195 |
+| `Archive.js` | 55,680 | 55,680 | 0 | 58,464 |
+| `projects.js` | 30,787 | 30,787 | 0 | 32,327 |
+| `ProjectDetail.js` | 10,070 | 10,070 | 0 | 10,574 |
+| `WorkExperience.js` | 8,231 | 8,231 | 0 | 8,643 |
+| `Contact.js` | 2,856 | 2,856 | 0 | 2,999 |
+| `Stats.js` | 2,245 | 2,245 | 0 | 2,358 |
+| `Skills.js` | 2,120 | 2,120 | 0 | 2,226 |
+| `Footer.js` | 932 | 932 | 0 | 979 |
+| `WorkRow.js` | 2,948 | 2,948 | 0 | 3,096 |
+| `Stagger.js` | 517 | 517 | 0 | 543 |
+| `SectionHeading.js` | 391 | 391 | 0 | 411 |
+| `Tag.js` | 274 | 274 | 0 | 288 |
+
+Both moves are **under the 2% flag threshold**, and both are attributable:
+
+- **`index.js` +1,725 B** — Tasks 1–4 added the perf instrumentation hooks to
+  `FluidWaves.tsx` (+144 lines) and `Hero.tsx` (+45 lines), the only two app
+  files touched since `4ed990d`. `FluidWaves` is statically imported by `Hero`
+  (Vite warns about it every build), so both land in the `index` entry chunk —
+  which is exactly and solely where the bytes appeared. Expected and legitimate.
+- **`index.css` +116 B** — NOT an app change: `src/index.css` is byte-identical
+  between the two trees. Diffing the two built stylesheets shows exactly two new
+  rules, `.top-3` and `.antialiased`. Neither class is used anywhere in `src/`
+  or `index.html`. They are **Tailwind v4 automatic source-detection false
+  positives scanning the harness's own new files**: the literal `top-3` appears
+  in `perf/decisions.md` (round-4 prose about "top-3 process lists") and
+  `antialiased` in `tests/e2e/pixel-gate.spec.ts`. Both files are new since
+  `4ed990d`, which is why the utilities are new too.
+
+  So this campaign's own instrumentation is emitting dead CSS into the shipped
+  bundle, and 116 B of that is now baked into the `index.css` ceiling. It is
+  small, but it is the exact class of thing this campaign exists to find, and it
+  will keep growing as `decisions.md` grows. **Recommended for a later task (not
+  done here — 5a's boundary is `perf/`):** narrow Tailwind's source detection in
+  `src/index.css` with `@source not "../perf"` / `@source not "../tests"`, then
+  re-derive this ceiling. Filed as a known limit, not a blocker.
+
+### `exact.uniformUploadsPerFrame` = 1
+
+Confirmed against the source, not assumed. `FluidWaves.tsx`'s steady-state frame
+is `drawFrameRaw` (`src/components/canvas/FluidWaves.tsx:416-419`):
+
+    gl.uniform1f(timeLoc, timeSec)
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+
+One uniform upload, one draw call. Every other upload in the component is
+setup-time (`seed`, the three `uniform3fv` colours, `contrast`,
+`dissolveStrength`, once after link) or resize-time (`resolution` via
+`uniform2f`, `dissolveStart` via `uniform1f`, inside `resize()`). The counting
+wrappers instrument `uniform1f` / `uniform2f` / `uniform3fv` / `drawArrays`, so
+those setup and resize uploads DO land in `uniformUploads` — which is precisely
+why the plan's Task 6 assertion is scoped to a window in which the `resizes`
+delta is 0. Under that scope `uniformUploads === frames === drawCalls`.
+
+### How the `rig` block was produced
+
+Not hand-written. A one-off scratch script (kept out of the repo — it is not a
+fourth writer) wrote `{"exact": {...}}`, then called the harness's own
+`collectRig()` from `perf/lib/rig.mjs` and passed it through
+`updateScenarios(path, {}, rig)` + `updateLighthouse(path, {}, rig)` from
+`perf/lib/baseline.mjs`. That is the same `updateSection` every real writer goes
+through, so the rig block, the key ordering, and the empty-section shape come
+from the production path rather than from a parallel one — and the round trip
+doubled as a live check that a `lighthouse` write leaves `exact` untouched.
+
+Rig as stamped: Chrome 147.0.7727.15 · macOS 15.7.3 · arm64 · Apple M1 ·
+displayScale 2 · 60 Hz · AC power. Note that 5b will run under `rigMismatches`
+against exactly these values, so any Chrome auto-update before 5b will
+(correctly) refuse the runtime baseline write.
+
+### Two parked one-liners from Task 3's review, folded in here
+
+Both protect R10's load guard — the guard that will gate 5b.
+
+- **`baselineRefusal`'s missing-sample guard was `machineLoad && machineLoad.after == null`.**
+  An ABSENT load block therefore refused nothing: the guard caught a refactor
+  that dropped half the sampling and waved through one that dropped all of it —
+  the louder failure being the one it missed. Now `!machineLoad || machineLoad.after == null`,
+  with a selftest case. No load evidence is not weaker than partial load
+  evidence; it is the same refusal.
+- **`perf/selftest-retry.mjs` proved the combiner, not the wiring.** Every load
+  assertion fed hand-built samples straight to `combineMachineLoad`, so deleting
+  `sampleMachineLoad('after')` from `run.mjs` left the suite at a full green.
+  A source-text assertion now requires the call to exist in `run.mjs` — and in
+  `lighthouse.mjs`, which carries the identical wiring for Layer 3 and had the
+  identical hole. Mutation-verified: renaming the call in `run.mjs` drops the
+  suite to 28/29 naming that assertion; restoring it returns 29/29.
+
+  A source-text assertion is blunt (a rename breaks it; it cannot see whether
+  the result is used). It is scoped to the one call whose absence is otherwise
+  undetectable from a browserless test.
+
+Selftests after both: `node perf/selftest-retry.mjs` **29/29** (was 26/26),
+`perf:selftest` **57/57** unchanged.
+
+### Three cosmetic fixes from Task 4's review (ruling R13)
+
+All operator-facing, all in `perf/lighthouse.mjs`:
+
+- **The uncollected-metric COUNT counted occurrences, not metrics.**
+  `uncollectedRequired` gets one push per (preset, run, metric), so one audit
+  failing on all 5 runs of both presets printed
+  `10 required metric(s) could not be collected (lh.lcpMs)` — a count
+  contradicting its own parenthetical, in the very message round 3 existed to
+  make truthful. A single `uncollectedMetrics = [...new Set(...)]` now feeds
+  every reader-facing count and list; the raw array keeps its role as the
+  trigger.
+- **The `--help` exit-code legend still said exit 1 meant a regression.** Since
+  round 3 it can also mean a required metric could not be collected. Reworded to
+  "not clean", naming all three causes.
+- **The result line short-circuited on `regressed`.** A run that both regressed
+  AND failed to collect a required metric named only the regression; the
+  operator fixed it and was then surprised by a second non-zero exit for a cause
+  the tool had known about all along. Every cause is now named, joined with
+  "; and", keeping the `REGRESSION` / `NOT CLEAN` prefix and the generic
+  fallback for a future third cause.
