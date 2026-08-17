@@ -20,7 +20,7 @@
 //   3. Exit 1 on any regression.
 
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { readFile } from 'node:fs/promises'
 
 import { BASE_URL, SERVE_COMMAND, buildOnce, distFingerprint, startPreview } from './lib/server.mjs'
@@ -120,7 +120,7 @@ function parseArgs(argv) {
 
 // ── run one scenario, N times, with the outlier gate ───────────────────────
 
-async function runScenario(scenario, runs, context, { warmup = true } = {}) {
+export async function runScenario(scenario, runs, context, { warmup = true } = {}) {
   const kept = []
   const discarded = []
   // Outliers that survived MAX_REPLACEMENTS and were kept anyway. Tracked
@@ -165,7 +165,40 @@ async function runScenario(scenario, runs, context, { warmup = true } = {}) {
   while (kept.length < runs) {
     const index = attempt++
     log(`  ${scenario.name}: run ${kept.length + 1}/${runs}${replacements > 0 ? ` (replacement ${replacements})` : ''}`)
-    const result = await scenario.run(context)
+
+    // A HEALTH failure (context loss, uncaught page error) is a bad RUN, and
+    // the spec's idiom for a bad run is "discarded and rerun, never averaged
+    // in" — so it spends from the same replacement budget as a statistical
+    // outlier instead of unwinding the whole invocation. A single real GPU
+    // context loss in run 4 of `all --runs 5` used to throw away every
+    // remaining scenario and ~20 minutes of wall clock.
+    //
+    // THE C2 GUARANTEE IS UNCHANGED, and that is the point of the budget: a
+    // PERSISTENT health failure exhausts the replacements and rethrows, so the
+    // invocation still fails loudly. What can never happen — before or after
+    // this change — is a number being produced from an unhealthy run.
+    //
+    // Only health failures are retried. A deterministic scenario bug (missing
+    // selector, changed card count, absent entrance landmark) rethrows on the
+    // first occurrence: retrying it three times hides the cause and wastes the
+    // budget on an outcome that cannot change.
+    let result
+    try {
+      result = await scenario.run(context)
+    } catch (error) {
+      if (!error?.isHealthFailure) throw error
+      if (replacements >= MAX_REPLACEMENTS) {
+        throw new Error(
+          `${scenario.name}: the page failed its health check on ${replacements + 1} runs ` +
+            `(budget ${MAX_REPLACEMENTS} exhausted) — this is not transient. Last failure:\n${error.message}`,
+        )
+      }
+      replacements += 1
+      discarded.push({ index, reason: `health failure: ${error.message}`, healthFailure: true, metrics: null })
+      log(`  ~~ ${scenario.name}: discarding run ${index + 1} — health failure, rerunning (${replacements}/${MAX_REPLACEMENTS})`)
+      log(`     ${error.message.split('\n')[0]}`)
+      continue
+    }
     kept.push({ index, ...result })
 
     // The spec: "a run whose spread exceeds a sanity threshold is discarded and
@@ -295,6 +328,17 @@ async function main() {
   }
 
   const baseline = await readBaseline(BASELINE_PATH)
+  // An absent or empty rig block makes `rigMismatches` return [] by design (it
+  // is the bootstrap case). Silence there is the danger: Task 5 hand-fills this
+  // file, so a written `"rig": {}` would disable rig verification permanently
+  // while every run went on printing nothing at all.
+  if (baseline && (!baseline.rig || Object.keys(baseline.rig).length === 0)) {
+    log('')
+    log('  !! baseline has no rig block — comparisons below are UNVERIFIED against this rig.')
+    log('  !! Nothing checks Chrome version, display scale, refresh rate or AC power until it is filled in.')
+    log('  !! Run with --update-baseline to stamp it, or hand-fill it before trusting any verdict.')
+    log('')
+  }
   const mismatches = rigMismatches(rig, baseline?.rig)
   if (mismatches.length > 0) {
     log('')
@@ -341,6 +385,13 @@ async function main() {
       comparison.warnings.push(...provenance)
       if (outcome.aggregated && Object.values(outcome.aggregated).some((metric) => metric.sourceConflict)) {
         blockingWarnings.push(`${scenario.name}: a metric blended two measurement sources`)
+      }
+      const healthDiscards = outcome.discarded.filter((entry) => entry.healthFailure)
+      if (healthDiscards.length > 0) {
+        comparison.warnings.push(
+          `${scenario.name}: ${healthDiscards.length} run(s) were discarded for PAGE HEALTH failures and rerun — ` +
+            'the kept runs are clean, but the page is not stable on this rig right now',
+        )
       }
       for (const meta of outcome.meta) {
         if (meta?.frameBufferOverflowed) {
@@ -433,10 +484,14 @@ async function main() {
   return exitCode
 }
 
-main().then(
-  (code) => process.exit(code),
-  (error) => {
-    process.stderr.write(`\nperf harness failed: ${error?.stack ?? error}\n`)
-    process.exit(2)
-  },
-)
+// Only run the CLI when executed directly, so `runScenario` can be imported and
+// driven by a focused test without launching a whole measurement invocation.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().then(
+    (code) => process.exit(code),
+    (error) => {
+      process.stderr.write(`\nperf harness failed: ${error?.stack ?? error}\n`)
+      process.exit(2)
+    },
+  )
+}

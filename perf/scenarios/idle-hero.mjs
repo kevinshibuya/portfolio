@@ -56,7 +56,7 @@ export async function run(ctx) {
   const session = await launchRun()
   try {
     await session.page.goto(scenarioUrl('/'), { waitUntil: 'commit' })
-    await waitForSettledHero(session.page)
+    await waitForSettledHero(session, ctx.log)
 
     await sleep(LEAD_MS)
 
@@ -74,7 +74,7 @@ export async function run(ctx) {
 
     // AFTER the window: a context lost mid-window would have collapsed every
     // GPU metric into a large fake "improvement".
-    await assertPageHealthy(session, 'during the idle-hero measurement window')
+    await assertPageHealthy(session, 'during the idle-hero measurement window', ctx.log)
 
     await sleep(Math.max(0, PARK_MS - LEAD_MS - WINDOW_MS))
 

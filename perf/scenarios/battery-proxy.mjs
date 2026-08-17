@@ -68,7 +68,7 @@ export async function run(ctx) {
   const session = await launchRun()
   try {
     await session.page.goto(scenarioUrl('/'), { waitUntil: 'commit' })
-    await waitForSettledHero(session.page)
+    await waitForSettledHero(session, ctx.log)
     await sleep(LEAD_MS)
 
     const power = powerProbe.available ? startPowermetrics(PARK_MS) : null
@@ -83,7 +83,7 @@ export async function run(ctx) {
     const cpuAfter = await sampleChromeProcesses(session.browserSession)
     const powerSample = power ? await power.stop() : null
 
-    await assertPageHealthy(session, 'during the battery-proxy measurement window')
+    await assertPageHealthy(session, 'during the battery-proxy measurement window', ctx.log)
     const collected = await collect(session.page)
 
     const windowSeconds = (windowEnd - windowStart) / 1000

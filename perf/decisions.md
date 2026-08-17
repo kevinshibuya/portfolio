@@ -95,6 +95,14 @@ cliff. Moving it onto the settle plateau cut the floor 28 px → 6 px.
 
 ### KNOWN BLIND SPOT — read this before Tasks 7/8
 
+> **THE PIXEL GATE HAS TWO BLIND SPOTS, NOT ONE.** This section covers the
+> per-pixel `threshold`. The second is **ruling R7 — the DPR/resolution blind
+> spot** (this gate renders desktop at `deviceScaleFactor: 1`, where
+> `FluidWaves`'s `DPR_CAP` of 1.5 never engages, while the perf harness measures
+> at dSF 2 where it does). It is written up under
+> *"2026-08-16 · Task 3 review · fixes + ruling R7"* further down this file.
+> **Read both before trusting this gate on a Task 7/8 batch.**
+
 `threshold: 0.05` is a **per-pixel** colour distance, evaluated before
 `maxDiffPixelRatio` is consulted. A change that shifts EVERY pixel by less than
 that threshold passes the gate no matter how many pixels it touches — the ratio
@@ -678,3 +686,121 @@ a shared constant would be the right call. **Not done: `tests/` is outside Task
 3's Files list**, and the shared module would have to be imported by a Task 2
 file. Flagged for whoever owns the next change to either file — the coupling is
 documented in both places, but documentation is not a guard.
+
+---
+
+## 2026-08-16 · Task 3 re-review · ruling R9 (final round)
+
+Re-review passed all earlier fixes. R9 closed four residual Minors that bite in
+Tasks 5–6 rather than "some day".
+
+### 1. A health failure is now DISCARDED AND RERUN, not an invocation abort
+
+`assertPageHealthy` threw and nothing caught it, so a real GPU context loss in
+run 4 of `all --runs 5` discarded every remaining scenario and ~20 minutes of
+wall clock. The spec's own idiom for a bad run is "discarded and rerun, never
+averaged in", so a health failure now spends from the SAME `MAX_REPLACEMENTS`
+budget as a statistical outlier.
+
+**The C2 guarantee is unchanged, and the budget is what preserves it:** a
+PERSISTENT health failure exhausts the replacements and rethrows, so the
+invocation still fails loudly. What can never happen — before or after this
+change — is a number being produced from an unhealthy run.
+
+Health failures carry their own error type (`MeasurementHealthError`). Only
+those are retried. A DETERMINISTIC scenario bug (missing selector, changed card
+count, absent entrance landmark) rethrows on first occurrence: retrying it three
+times only hides the cause and burns the budget on an outcome that cannot
+change. Proven on all three paths — transient (2 failures → discarded, rerun,
+median produced, invocation continued), persistent (budget exhausted → threw),
+deterministic (threw after 1 call, not 4).
+
+A health discard is surfaced as a report warning even when replacement
+succeeded: the kept runs are clean, but "the page needed 2 attempts" is a fact
+about rig stability that Task 5 should see.
+
+### 2. Console errors are scoped and classified
+
+Previously ANY console error from navigation onward failed the run, so one
+transient resource 404 would fail every run of every scenario — which, combined
+with (1), was the campaign-stall path.
+
+Now: errors are tagged `console` vs `pageerror`; `waitForSettledHero` records a
+checkpoint so the post-window check judges only what happened AFTER it; and a
+narrow allowlist (failed subresource loads only) treats content problems as
+non-fatal. **`pageerror` — an uncaught JS exception — is never allowlisted**,
+because it means the app took a code path it does not take in a healthy run.
+Allowlisted entries are logged every time, and every fatal error prints its own
+text before the throw, so no failure is undiagnosable.
+
+### 3. Band overrides are honoured on READ, not only on write
+
+`compare()` used `baseline.band` verbatim, so hand-adding `"maxBand": 0.02` to a
+metric whose stored band was `0.1236` did nothing until someone remembered to
+re-record — and Task 6's job is exactly that hand-edit. `applyBandOverrides` now
+runs in `compare()`. Proven with a discriminating pair against one baseline:
+
+| | delta | band in force | verdict | exit |
+|---|---|---|---|---|
+| stored band `0.5`, no override | +0.1385 (+8.68%) | 0.5 | within-band | 0 |
+| same baseline + `"maxBand": 0.02` | +0.0658 (+4.12%) | 0.02 | **REGRESSION** | 1 |
+
+Note the second run's delta is SMALLER and it correctly fails: the override, not
+the magnitude, is what changed.
+
+### 4. An empty rig block is now loud
+
+`"rig": {}` made `rigMismatches` return `[]` (the bootstrap carve-out) and
+nothing printed. Task 5 hand-fills this file, so the silence landed exactly
+where it does most damage. The carve-out is kept; the silence is gone:
+
+```
+  !! baseline has no rig block — comparisons below are UNVERIFIED against this rig.
+  !! Nothing checks Chrome version, display scale, refresh rate or AC power until it is filled in.
+  !! Run with --update-baseline to stamp it, or hand-fill it before trusting any verdict.
+```
+
+### ⚠ OPERATIONAL FINDING FOR TASK 5 — the rig must be QUIESCED, and n=2 is fragile
+
+While producing R9's covering evidence, two consecutive `idle-hero --runs 2`
+invocations DISAGREED on the GPU metrics — and the harness said so rather than
+reporting false agreement. Cause found by inspection, not guesswork:
+
+```
+ 78.4 fseventsd
+ 65.0 legacyScreenSaver        <- the screensaver had kicked in
+ 19.6 WindowServer
+ 12.9 com.docker.backend
+      load averages: 6.02 7.26 6.87
+```
+
+**`legacyScreenSaver` was burning 65–82% CPU on the measurement rig.** With it
+stopped (load average 6.0 → 2.5), a **`--runs 5` pair agreed on all 17
+metrics**, `COMPARE_EXIT=0`.
+
+Two things follow, both of which matter for Task 5's baseline:
+
+1. **Record the baseline on a quiesced machine.** No screensaver, and ideally no
+   Docker / Spotify / Discord / VMs. A baseline recorded under 65% background
+   CPU is junk, and every keep-or-revert decision in Tasks 7–12 inherits it.
+   Nothing in the harness currently checks this — the rig block records AC power
+   but not machine load. **Recommended (NOT implemented, out of R9 scope): a
+   load-average / top-process guard at invocation start that warns, and refuses
+   `--update-baseline`, when the rig is busy.** Worth deciding before Task 5.
+2. **`--runs 2` is fragile by construction and is not the campaign's mode.** At
+   n=2 the IQR is `0.5 × |a − b|`, which systematically UNDERestimates spread, so
+   the band is too tight and a noisy rig produces spurious disagreement. At the
+   default n=5 the IQR is a real estimate and the band widens honestly. The
+   brief's acceptance check uses `--runs 2` and passes on a quiet machine, but
+   **`--runs 5` is what the campaign runs and what should be trusted.**
+
+Even on a quiet-ish rig, a same-machine `--runs 2` pair disagreed on
+`gpu.busyMsPerFrame` in BOTH directions across attempts (A>B, then B>A), which
+is the signature of sampling noise rather than drift — exactly what the n=5
+median exists to remove.
+
+### Deferred by ruling (not fixed, deliberately)
+
+`--force` writing a blended metric with no `sourceConflict` marker in
+`baseline.json`, and per-run `sources` not being stored in `perRunMeta`. Both
+are diagnostics reachable only via `--force`.

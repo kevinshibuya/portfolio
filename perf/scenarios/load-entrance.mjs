@@ -69,7 +69,7 @@ export async function run(ctx) {
     await session.page.goto(scenarioUrl('/'), { waitUntil: 'commit' })
     const metricsBefore = await perfMetrics(session.client)
 
-    await waitForSettledHero(session.page)
+    await waitForSettledHero(session, ctx.log)
 
     // Read the main-thread counters AT settle, not after the tail dwell —
     // otherwise `load.main.*` would silently cover [commit, settled + tail]
@@ -79,7 +79,7 @@ export async function run(ctx) {
     // Let the last rise frames and any trailing long task land in the buffers
     // before they are read out; the window itself ends at entranceSettled.
     await sleep(SETTLE_TAIL_MS)
-    await assertPageHealthy(session, 'during the load-entrance measurement window')
+    await assertPageHealthy(session, 'during the load-entrance measurement window', ctx.log)
 
     const collected = await collect(session.page)
     return summarize(collected, metricsBefore, metricsAfter, ctx.nominalFrameMs, session.consoleErrors)

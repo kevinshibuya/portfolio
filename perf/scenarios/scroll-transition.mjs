@@ -65,7 +65,7 @@ export async function run(ctx) {
   const session = await launchRun()
   try {
     await session.page.goto(scenarioUrl('/'), { waitUntil: 'commit' })
-    await waitForSettledHero(session.page)
+    await waitForSettledHero(session, ctx.log)
     await sleep(PRE_DWELL_MS)
 
     const geometry = await session.page.evaluate((progress) => {
@@ -115,7 +115,7 @@ export async function run(ctx) {
     const cpuAfter = await sampleChromeProcesses(session.browserSession)
     const { events, traceSeconds } = await trace.stop()
 
-    await assertPageHealthy(session, 'during the scroll-transition measurement window')
+    await assertPageHealthy(session, 'during the scroll-transition measurement window', ctx.log)
     const collected = await collect(session.page)
 
     return summarize({

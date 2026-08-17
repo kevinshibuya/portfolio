@@ -64,11 +64,16 @@ export async function launchRun() {
   const page = await context.newPage()
   await page.addInitScript(INIT_SCRIPT)
 
+  // Errors are TAGGED, because the two kinds are not equally disqualifying.
+  // `pageerror` is an uncaught JS exception — the app did something it does not
+  // do in a healthy run, so the measurement is void. A `console` error is often
+  // just a failed subresource, which is a content problem the e2e suite and the
+  // pixel gate own, not a reason to void a timing measurement.
   const consoleErrors = []
   page.on('console', (message) => {
-    if (message.type() === 'error') consoleErrors.push(message.text())
+    if (message.type() === 'error') consoleErrors.push({ kind: 'console', text: message.text() })
   })
-  page.on('pageerror', (error) => consoleErrors.push(String(error)))
+  page.on('pageerror', (error) => consoleErrors.push({ kind: 'pageerror', text: String(error) }))
 
   const client = await context.newCDPSession(page)
   await client.send('Performance.enable')
@@ -91,12 +96,59 @@ export async function launchRun() {
   }
 }
 
+/**
+ * A run whose PAGE misbehaved, as opposed to a run that merely measured badly.
+ *
+ * Given its own type so the runner can tell it apart from a deterministic
+ * scenario bug (a missing selector, a changed card count). Health failures are
+ * transient by nature and get the discard-and-rerun treatment the spec
+ * prescribes for a bad run; deterministic bugs must abort immediately, because
+ * retrying them three times only wastes twenty minutes and hides the cause.
+ */
+export class MeasurementHealthError extends Error {
+  constructor(message) {
+    super(message)
+    this.name = 'MeasurementHealthError'
+    this.isHealthFailure = true
+  }
+}
+
+/**
+ * Console errors that do NOT void a timing measurement.
+ *
+ * Scoped deliberately to failed subresource loads. A 404 is a content problem
+ * that the e2e suite and the pixel gate already own; letting one transient
+ * resource hiccup fail every run of every scenario turns this harness into a
+ * campaign stall. Uncaught JS exceptions (`pageerror`) are NEVER allowlisted —
+ * those mean the app took a code path it does not take in a healthy run.
+ *
+ * Allowlisted entries are still logged, every time, so they can never rot into
+ * invisible background noise.
+ */
+const BENIGN_CONSOLE_PATTERNS = [
+  /Failed to load resource/i,
+  /net::ERR_/i,
+  /favicon/i,
+  /the server responded with a status of 4\d\d/i,
+]
+
+const isBenign = (entry) => entry.kind === 'console' && BENIGN_CONSOLE_PATTERNS.some((re) => re.test(entry.text))
+
 /** Loader gone, hero rise finished, hero canvas mounted and not fallen back. */
-export async function waitForSettledHero(page) {
+export async function waitForSettledHero(session, log = () => {}) {
+  // Back-compat: earlier call sites passed the bare page.
+  const ctx = session.page ? session : { page: session, consoleErrors: [] }
+  const { page } = ctx
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done', undefined, { timeout: 30_000 })
   await page.waitForSelector('[data-entrance="settled"]', { timeout: 30_000 })
   await page.waitForSelector('[data-canvas="fluid-waves"]', { timeout: 30_000 })
-  await assertPageHealthy({ page, consoleErrors: [] }, 'before the measurement window')
+  await assertPageHealthy(ctx, 'before the measurement window', log)
+
+  // Everything up to here is load noise. The post-window check judges only what
+  // happened AFTER this point, so a navigation-time console error cannot fail
+  // a window it never touched.
+  ctx.healthCheckpoint = (ctx.consoleErrors ?? []).length
+  ctx.pageErrorCheckpoint = await page.evaluate(() => (window.__PERF__?.errors ?? []).length).catch(() => 0)
 }
 
 /**
@@ -113,26 +165,40 @@ export async function waitForSettledHero(page) {
  *
  * So this is an assertion, never a warning: a measurement taken while the thing
  * being measured was not running is not a slow measurement, it is not a
- * measurement at all.
+ * measurement at all. What the RUNNER does with the failure (discard and rerun,
+ * up to a bounded budget) is a separate decision — see `runScenario`.
  */
-export async function assertPageHealthy(session, when) {
+export async function assertPageHealthy(session, when, log = () => {}) {
   const fallbacks = await session.page.locator('[data-testid="fluid-waves-fallback"]').count()
   if (fallbacks > 0) {
-    throw new Error(
+    throw new MeasurementHealthError(
       `hero WebGL context was lost ${when} (the gradient fallback is showing). ` +
         'GPU metrics from this run would read as a large improvement and are discarded. ' +
         'This is an environment/stability failure, not a performance result.',
     )
   }
 
-  const pageErrors = await session.page
+  const rawPageErrors = await session.page
     .evaluate(() => (window.__PERF__?.errors ?? []).slice())
     .catch(() => [])
-  const problems = [...(session.consoleErrors ?? []), ...pageErrors]
-  if (problems.length > 0) {
-    throw new Error(
-      `page reported ${problems.length} error(s) ${when} — the run is not a clean measurement:\n  ` +
-        problems.slice(0, 5).join('\n  '),
+  const pageErrors = rawPageErrors
+    .slice(session.pageErrorCheckpoint ?? 0)
+    .map((text) => ({ kind: 'pageerror', text: String(text) }))
+  const consoleErrors = (session.consoleErrors ?? []).slice(session.healthCheckpoint ?? 0)
+
+  const all = [...consoleErrors, ...pageErrors]
+  const benign = all.filter(isBenign)
+  const fatal = all.filter((entry) => !isBenign(entry))
+
+  // Always visible, never silent — an allowlisted error is still a fact about
+  // the run, and a failure must always name what caused it.
+  for (const entry of benign) log(`  (ignored ${entry.kind}: ${entry.text.slice(0, 140)})`)
+
+  if (fatal.length > 0) {
+    for (const entry of fatal) log(`  !! ${entry.kind}: ${entry.text.slice(0, 200)}`)
+    throw new MeasurementHealthError(
+      `page reported ${fatal.length} error(s) ${when} — the run is not a clean measurement:\n  ` +
+        fatal.slice(0, 5).map((entry) => `[${entry.kind}] ${entry.text}`).join('\n  '),
     )
   }
 }

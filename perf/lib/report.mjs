@@ -2,6 +2,7 @@
 
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
+import { applyBandOverrides } from './stats.mjs'
 
 export const REPORT_VERSION = 1
 
@@ -43,7 +44,13 @@ export function compare(aggregated, baselineScenario) {
       continue
     }
     const delta = current.median - baseline.median
-    const band = baseline.band ?? 0
+    // Hand-set overrides are applied on READ, not only when a later
+    // --update-baseline happens to rewrite the stored band. Task 6's job is
+    // exactly this: hand-add `"maxBand": 0.02` to a metric whose stored band is
+    // 0.1236 and expect the very next `npm run perf` to hold it. Using the
+    // stored band verbatim would let a 9% regression read within-band until
+    // someone remembered to re-record.
+    const band = applyBandOverrides(baseline.band ?? 0, baseline)
     const worse = current.lowerIsBetter ? delta > band : delta < -band
     const better = current.lowerIsBetter ? delta < -band : delta > band
     rows.push({
