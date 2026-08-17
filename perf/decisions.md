@@ -1244,7 +1244,12 @@ weakly to `lh.performance`, whose 10% term tolerates a 6-point score drop.
   `run.mjs`), reusing the warm-up discard, outlier gate and replacement budget
   rather than reimplementing them.
 
-`npm run perf:selftest` stayed 26/26 across both refactors.
+~~`npm run perf:selftest` stayed 26/26 across both refactors.~~ **STRUCK — this
+was not evidence for either refactor.** `perf/selftest-retry.mjs` references
+neither `baseline.mjs` nor `report.mjs`, so its 26/26 showed only that the
+UNTOUCHED code still worked. The refactors are covered by
+`perf/selftest-lighthouse.mjs` (see "Round 2" below), which is now part of
+`npm run perf:selftest`; both suites must be green.
 
 ### Acceptance check: DEFERRED — the rig is contaminated
 
@@ -1280,11 +1285,23 @@ indexing and Apple Neural Engine compilation, not about the build.
 
 **What WAS proved on this rig** (all load-independent, all green):
 
-- 31/31 assertions over the three-writer baseline contract, `extractMetrics`'s
-  happy path, all six of its never-silently-skip failure paths, the named
-  transfer-bytes fallback, band-override survival, dropped-metric retention,
-  and `parseArgs`.
-- `npm run perf:selftest` 26/26 (Layer 2 unaffected by the shared-module work).
+- **`npm run perf:selftest` — 26/26 (`selftest-retry.mjs`) + 57/57
+  (`selftest-lighthouse.mjs`).** The second suite is what covers this task: the
+  three-writer contract in BOTH write orders, `extractMetrics`'s happy path and
+  every never-silently-skip failure path, the named transfer-bytes fallback,
+  band-override survival, dropped-metric retention, instrument-drift
+  comparison, and `parseArgs`.
+
+  *Historical note, because this log is read cold:* the original Task 4 write-up
+  claimed "31/31 assertions" from a scratch suite that was never committed, and
+  cited `selftest-retry.mjs` 26/26 as evidence that Layer 2 was unaffected by
+  the shared-module refactors. Both claims are struck. The scratch suite no
+  longer exists (it was landed, extended and superseded by
+  `selftest-lighthouse.mjs`), and 26/26 was never evidence about the refactors
+  at all — see the strike above. Round 2 replaced both with the landed suite,
+  whose coverage of the refactors was independently confirmed by mutation
+  testing (breaking `updateSection` and `compareInstrument` four ways; each
+  break is caught by named assertions).
 - A full end-to-end functional smoke, `desktop --runs 1 --no-warmup`: build →
   serve → launch → audit → aggregate → report → server torn down. All 8 metrics
   collected, **zero unavailable**, provenance recorded
@@ -1340,4 +1357,53 @@ is `false` at BOTH ends before believing the result.
   "transcribed literally" is the invariant the whole pinning argument rests on.
 - `chrome-launcher` is imported directly and is therefore declared directly in
   `devDependencies` rather than relied on as a transitive dep of `lighthouse`.
+
+### Round 3 — review fixes, and one asymmetry Task 5 must know about
+
+**FOR TASK 5 — the informational/required asymmetry on `--update-baseline`.**
+An *informational* metric that cannot be collected (`lh.fcpMs`,
+`lh.speedIndexMs`, `lh.runMs`) deliberately does NOT set `exitCode` — it is
+informational precisely so it cannot fail a run. But it still lands in
+`blockingWarnings`, and therefore it still REFUSES `--update-baseline`. So a
+run can exit 0, print no regression, and still refuse to record a baseline
+because `lh.runMs` went missing. That asymmetry is defensible — a baseline is a
+stricter artefact than a pass, and a reference recorded with metrics silently
+absent is exactly the "budget that stops existing" failure this harness exists
+to prevent — but it is surprising if you meet it cold. **Task 5: if a baseline
+write is refused on an otherwise green run, read the warnings for a NOT
+COLLECTED line before assuming the rig is at fault.** `--force` is the
+deliberate override.
+
+Other round-3 fixes:
+
+- **A false-coverage assertion in `selftest-lighthouse.mjs`.** The "one report
+  with an instrument block and one without" fixture carried a `lighthouse`
+  block on BOTH sides, so its `1` came from the metric-key union, not from the
+  one-sided branch it named. Proven by neutralising that branch and still
+  getting 57/57. The fixture is now built by DELETING `lighthouse` from a full
+  copy of A, so everything else is identical and only that branch can produce a
+  non-zero result. Re-verified by mutation: old fixture 57/57 (false green), new
+  fixture 56/57 naming the assertion.
+- **`exitCode` now fails CLOSED on an unrecognised metric key**
+  (`!METRICS[k]?.informational`). A future extraction key not registered in
+  `METRICS` was previously reported as NOT COLLECTED while still exiting 0.
+- **The stated CAUSE of a non-zero exit is now tracked separately from the exit
+  code.** A run whose only problem was an uncollected metric printed
+  `result: REGRESSION` above a table containing no regression, and refused the
+  baseline with "(regressions)" — sending an operator hunting something that
+  does not exist. Regression and uncollected-metric causes are now tracked
+  independently and named accurately, with a generic "NOT CLEAN" fallback so a
+  future third cause cannot inherit a wrong explanation.
+- `compareReportFiles`'s doc block no longer claims both report kinds are
+  compared by identical rules (Layer 3 adds a strictly larger instrument check),
+  and its summary line says "disagreement(s)" rather than "metric(s) disagree",
+  since the counter now includes rig and instrument differences that are not
+  metrics.
+- `selftest-lighthouse.mjs` reads through optional chaining, so a sibling-clobber
+  regression fails as a named assertion instead of an uncaught `TypeError` that
+  aborts the remaining assertions.
+
+**Accepted, not fixed:** the suite's `mkdtemp` directory is never cleaned up,
+and `eslint.config.js` does not lint `perf/*.mjs` — the harness is now ~2,000
+lines of unlinted JS that six later tasks depend on. Both are known.
 

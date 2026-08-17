@@ -653,6 +653,12 @@ async function main() {
   process.on('SIGTERM', () => void shutdown().then(() => process.exit(143)))
 
   let exitCode = 0
+  // Tracked apart from `exitCode` because the exit code alone cannot say WHY.
+  // Both a regression and an uncollected metric set it to 1, and reporting the
+  // second as the first sends a Tasks 7-12 operator hunting a regression that
+  // is not in the table.
+  const uncollectedRequired = []
+  let regressed = false
   const aggregatesByPreset = {}
   const blockingWarnings = versionDrift ? [versionDrift] : []
   const writtenReports = []
@@ -687,7 +693,13 @@ async function main() {
         // point of an exit code, and exactly what Tasks 7-12 will be — reads a
         // clean pass from an invocation that failed to measure a required
         // budget. A metric that could not be collected is not a pass.
-        if (METRICS[entry.metric] && !METRICS[entry.metric].informational) exitCode = 1
+        //
+        // `?.` rather than `METRICS[k] && !METRICS[k].informational`, so this
+        // FAILS CLOSED: a future extraction key not registered in METRICS is
+        // unknown, and an unknown metric that could not be collected must gate
+        // the exit code rather than slip through it. Only a key explicitly
+        // declared informational is allowed not to.
+        if (!METRICS[entry.metric]?.informational) uncollectedRequired.push(entry.metric)
       }
       for (const warning of runWarnings) comparison.warnings.push(`${scenario.name}: lighthouse runWarning — ${warning}`)
 
@@ -743,7 +755,10 @@ async function main() {
       log(`  sources: ${Object.entries(outcome.sources).map(([k, v]) => `${k}=${v}`).join(' · ') || 'n/a'}`)
       log(`  report: ${path.relative(REPO_ROOT, file)}`)
 
-      if (comparison.regressions > 0) exitCode = 1
+      if (comparison.regressions > 0) {
+        regressed = true
+        exitCode = 1
+      }
       if (outcome.flagged.length > 0) blockingWarnings.push(`${scenario.name}: an outlier run was kept after exhausting replacements`)
       aggregatesByPreset[preset.name] = outcome.aggregated
       writtenReports.push({ file, report })
@@ -751,6 +766,8 @@ async function main() {
   } finally {
     await shutdown()
   }
+
+  if (uncollectedRequired.length > 0) exitCode = 1
 
   // Re-sample and backfill, for the same reason Layer 2 does: a load reading
   // taken before any of the measurements existed cannot vouch for them.
@@ -779,9 +796,14 @@ async function main() {
     if (refuse) {
       process.stderr.write(
         'REFUSING --update-baseline: this run is not a clean reference.\n' +
-          (exitCode === 1 ? '  - it did not finish clean (regressions)\n' : '') +
+          (regressed ? '  - it REGRESSED against the current baseline (see the table above)\n' : '') +
+          (uncollectedRequired.length > 0
+            ? `  - it did not finish clean: ${uncollectedRequired.length} required metric(s) could not be collected ` +
+              `(${[...new Set(uncollectedRequired)].join(', ')})\n`
+            : '') +
+          (exitCode === 1 && !regressed && uncollectedRequired.length === 0 ? '  - it did not finish clean\n' : '') +
           reasons.map((warning) => `  - ${warning}\n`).join('') +
-          'Quiesce the machine and/or fix the regression and re-run, or pass --force if you\n' +
+          'Quiesce the machine and/or fix the problem above and re-run, or pass --force if you\n' +
           'deliberately intend this to become the new reference.\n',
       )
       return 2
@@ -798,7 +820,24 @@ async function main() {
   }
 
   log('')
-  log(exitCode === 0 ? 'result: no regressions' : `result: ${VERDICT.REGRESSION} — see the table(s) above`)
+  // The final line names the ACTUAL cause. `result: REGRESSION` printed above a
+  // table in which every metric says `within-band` is a false trail.
+  if (exitCode === 0) {
+    log('result: no regressions')
+  } else if (regressed) {
+    log(`result: ${VERDICT.REGRESSION} — see the table(s) above`)
+  } else if (uncollectedRequired.length > 0) {
+    log(
+      `result: NOT CLEAN — no regression, but ${uncollectedRequired.length} required metric(s) ` +
+        `could not be collected (${[...new Set(uncollectedRequired)].join(', ')}). See the warnings above.`,
+    )
+  } else {
+    // Unreachable today — the only two causes are handled above. It exists so
+    // that a future third cause of a non-zero exit reports "not clean" rather
+    // than inheriting one of the two messages above and naming the wrong thing,
+    // which is the exact defect this item fixed.
+    log('result: NOT CLEAN — see the warnings above')
+  }
   return exitCode
 }
 

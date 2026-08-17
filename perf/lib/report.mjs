@@ -225,9 +225,18 @@ function stableHash(value) {
  * about what "agree" means, which is precisely the kind of quiet divergence
  * this harness exists to prevent.
  *
- * It reads only fields every report in this harness carries — `scenario`,
- * `build.distIndexHash`, `rig`, `metrics` — so a Lighthouse report and a
- * scenario report are compared by exactly the same rules.
+ * The METRIC rules are identical for both report kinds: `scenario`,
+ * `build.distIndexHash`, `rig` and `metrics` are fields every report here
+ * carries, and every median is judged by the same band arithmetic either way.
+ *
+ * THE INSTRUMENT RULES ARE NOT IDENTICAL, and must not be assumed to be. A
+ * Layer 3 report additionally carries a `lighthouse` block (version, pinned
+ * version, settings, Chrome flags, headless) and `compareInstrument` checks all
+ * of it; a Layer 2 report has no such block and skips that check entirely. So
+ * the two kinds are compared by the same rules PLUS, for Lighthouse reports, a
+ * strictly additional set. Anyone extending this comparator should add
+ * kind-specific checks the same way — inside a guarded helper that no-ops for
+ * reports lacking the block — rather than assuming one uniform rule set.
  *
  * Returns a process exit code: 0 agree · 1 disagree · 2 not comparable.
  */
@@ -294,6 +303,10 @@ export async function compareReportFiles(pathA, pathB, log) {
     )
   }
   log('')
-  log(disagreements === 0 ? '  ✓ reports agree within their declared bands' : `  ✗ ${disagreements} metric(s) disagree`)
+  // "disagreement(s)", not "metric(s)": this counter now includes rig and
+  // instrument differences, which are not metrics. A version-only drift used to
+  // print "1 metric(s) disagree" above a table in which every metric said
+  // `agree`, which reads as a bug in the table.
+  log(disagreements === 0 ? '  ✓ reports agree within their declared bands' : `  ✗ ${disagreements} disagreement(s)`)
   return disagreements === 0 ? 0 : 1
 }

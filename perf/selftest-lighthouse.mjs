@@ -52,6 +52,12 @@ const check = (name, passed, detail) => {
 const section = (title) => process.stdout.write(`\n${title}\n`)
 const quiet = () => {}
 
+// Assertions read through OPTIONAL CHAINING throughout. The regressions this
+// suite is aimed at — a writer clobbering a sibling key, a wholesale section
+// replace — delete the very paths these assertions walk, so a plain read throws
+// an uncaught TypeError and aborts the run before the remaining assertions get
+// to speak. The exit code is non-zero either way, but "FAIL <named assertion>"
+// tells you which contract broke and a stack trace does not.
 const RIG = { chrome: '147.0.7727.15', macos: '15.7.3', arch: 'arm64', cpu: 'Apple M1', displayScale: 2, refreshHz: 60, acPower: true }
 const lhAgg = (median) => ({
   'lh.performance': { median, iqr: 1, band: 2, n: 5, sources: ['lighthouse@12.8.2:simulate'] },
@@ -80,11 +86,11 @@ section('three-writer contract on perf/baseline.json')
 
   await updateLighthouse(baselinePath, { desktop: lhAgg(93), mobile: lhAgg(52) }, RIG)
   let baseline = await readBaseline(baselinePath)
-  check('lighthouse.desktop updated by its own writer', baseline.lighthouse.desktop['lh.performance'].median === 93)
-  check('lighthouse.mobile added by its own writer', baseline.lighthouse.mobile['lh.performance'].median === 52)
-  check('scenarios survives a lighthouse write', baseline.scenarios['idle-hero']['gpu.busyMsPerFrame'].median === 1.37)
-  check('exact survives a lighthouse write', baseline.exact['hero.transferBytes'] === 12345)
-  check('unknown key survives a lighthouse write', baseline.futureUnknownKey.keep === 'me')
+  check('lighthouse.desktop updated by its own writer', baseline.lighthouse?.desktop?.['lh.performance']?.median === 93)
+  check('lighthouse.mobile added by its own writer', baseline.lighthouse?.mobile?.['lh.performance']?.median === 52)
+  check('scenarios survives a lighthouse write', baseline.scenarios?.['idle-hero']?.['gpu.busyMsPerFrame']?.median === 1.37)
+  check('exact survives a lighthouse write', baseline.exact?.['hero.transferBytes'] === 12345)
+  check('unknown key survives a lighthouse write', baseline.futureUnknownKey?.keep === 'me')
 
   // The other direction. Both must hold, or the contract only works until
   // whoever writes second happens to run.
@@ -94,12 +100,12 @@ section('three-writer contract on perf/baseline.json')
     RIG,
   )
   baseline = await readBaseline(baselinePath)
-  check('scenarios updated by its own writer', baseline.scenarios['idle-hero']['gpu.busyMsPerFrame'].median === 1.5)
-  check('lighthouse survives a scenarios write', baseline.lighthouse.desktop['lh.performance'].median === 93)
-  check('exact survives a scenarios write', baseline.exact['hero.transferBytes'] === 12345)
-  check('unknown key survives a scenarios write', baseline.futureUnknownKey.keep === 'me')
-  check('rig left byte-identical when it already matches', baseline.rig.chrome === RIG.chrome && baseline.rig.refreshHz === 60)
-  check('single-source provenance recorded', baseline.scenarios['idle-hero']['gpu.busyMsPerFrame'].source === 'trace:gpu-process')
+  check('scenarios updated by its own writer', baseline.scenarios?.['idle-hero']?.['gpu.busyMsPerFrame']?.median === 1.5)
+  check('lighthouse survives a scenarios write', baseline.lighthouse?.desktop?.['lh.performance']?.median === 93)
+  check('exact survives a scenarios write', baseline.exact?.['hero.transferBytes'] === 12345)
+  check('unknown key survives a scenarios write', baseline.futureUnknownKey?.keep === 'me')
+  check('rig left byte-identical when it already matches', baseline.rig?.chrome === RIG.chrome && baseline.rig?.refreshHz === 60)
+  check('single-source provenance recorded', baseline.scenarios?.['idle-hero']?.['gpu.busyMsPerFrame']?.source === 'trace:gpu-process')
 }
 
 section('merge rules apply to the lighthouse key too, not just scenarios')
@@ -122,9 +128,9 @@ section('merge rules apply to the lighthouse key too, not just scenarios')
   // A run that produced only ONE of the two stored metrics.
   const { notes } = await updateLighthouse(baselinePath, { desktop: lhAgg(91) }, RIG)
   let baseline = await readBaseline(baselinePath)
-  check('a metric this run did not produce is RETAINED, not deleted', !!baseline.lighthouse.desktop['lh.transferBytes'])
+  check('a metric this run did not produce is RETAINED, not deleted', !!baseline.lighthouse?.desktop?.['lh.transferBytes'])
   check('the retention is reported to the caller', notes.retained.includes('desktop.lh.transferBytes'), JSON.stringify(notes.retained))
-  check('rig bootstrapped when absent', notes.rigKeysAdded.length > 0 && baseline.rig.chrome === RIG.chrome)
+  check('rig bootstrapped when absent', notes.rigKeysAdded.length > 0 && baseline.rig?.chrome === RIG.chrome)
 
   await updateLighthouse(
     baselinePath,
@@ -132,7 +138,7 @@ section('merge rules apply to the lighthouse key too, not just scenarios')
     RIG,
   )
   baseline = await readBaseline(baselinePath)
-  check('maxBand override survives the round trip AND caps the recomputed band', baseline.lighthouse.desktop['lh.transferBytes'].band === 2048, `band=${baseline.lighthouse.desktop['lh.transferBytes'].band}`)
+  check('maxBand override survives the round trip AND caps the recomputed band', baseline.lighthouse?.desktop?.['lh.transferBytes']?.band === 2048, `band=${baseline.lighthouse?.desktop?.['lh.transferBytes']?.band}`)
   check('KEY_ORDER puts rig before lighthouse', JSON.stringify(Object.keys(baseline)) === '["rig","lighthouse"]', Object.keys(baseline).join(','))
 }
 
@@ -264,7 +270,19 @@ section('compareReportFiles — instrument drift is a disagreement')
   const l2b = await write('l2b.json', layer2)
   check('Layer 2 reports (no lighthouse block) still compare clean', (await compareReportFiles(l2a, l2b, quiet)) === 0)
 
-  const mixed = await write('mixed.json', { ...layer2, scenario: 'lighthouse-desktop', lighthouse: baseReport().lighthouse })
+  // ONE-SIDED ON THE INSTRUMENT BLOCK AND NOTHING ELSE.
+  //
+  // This fixture is built by DELETING `lighthouse` from a full copy of A, not
+  // by adding metrics to a Layer 2 report. The earlier version did the latter,
+  // and it passed for the wrong reason: both reports ended up carrying a
+  // `lighthouse` block, and the `1` came from the metric-key union
+  // (MISSING IN A / MISSING IN B) rather than from the one-sided branch it
+  // claimed to cover — neutralising that branch still left the suite green.
+  // Everything except the instrument block must therefore be IDENTICAL here, so
+  // a non-zero result can only have come from the branch under test.
+  const oneSided = baseReport()
+  delete oneSided.lighthouse
+  const mixed = await write('mixed.json', oneSided)
   check('one report with an instrument block and one without disagrees', (await compareReportFiles(a, mixed, quiet)) === 1)
 
   // The pre-existing rules must still hold after the addition.
