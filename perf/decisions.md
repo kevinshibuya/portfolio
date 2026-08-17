@@ -2125,14 +2125,20 @@ sup(field)(p)        = p + A · (S - 0.5)(1 + k) = p + 0.6103125
         p_act = −0.3703125
 ```
 
-> **A guard `if (p > g)` is provably safe iff `g ≤ −0.3703125`.**
+> **A guard `if (p > g)` is provably safe if `g ≤ −0.3703125`.**
+
+Only the `⇐` direction is proven, and deliberately so. The sup is never
+attained, so a `g` marginally *above* `p_act` is very likely safe in fact — it
+simply cannot be shown so by this argument, nor by any argument that does not
+characterise the specific hash's maxima. Ship what is provable.
 
 `n` and `sweep` are two different `fbm` calls at unrelated coordinates; treating
 both as simultaneously maximal is the conservative (safe) direction, so no
 independence assumption is needed.
 
-`−0.6` is safe. `−0.45` is safe. `−0.40` is safe. `−0.39` is safe. `−0.37`
-would **not** be.
+`−0.6`, `−0.45`, `−0.40` and `−0.39` are all provably safe. `−0.37` is **not
+provably safe** — which is not the same as unsafe: it lands in the "unproven"
+zone characterised below, not the demonstrably-broken one.
 
 ### Verdict on the in-tree `p > -0.39` claim: TRUE, but loose and accidentally so
 
@@ -2157,65 +2163,106 @@ the fraction of the canvas *above the band* (`p < 0`), which is not what the
 guard tests. Documentation defect only; no behavioural consequence. Suggested
 replacement comment text is in the task report.
 
-### How loose is the sup, really? (numerical, fp32-emulated)
+### How loose is the sup? TIGHT — and only adversarial search shows it
 
-An fp32-emulated transcription of `hash`/`vnoise`/`fbm` (`Math.fround` at every
-step), sampling `n` and `sweep` at independent coordinates exactly as the shader
-forms them:
+> **This section was rewritten after review refuted its first version.** It
+> originally reported uniform-sampling maxima at 76-79% of `sup(term)` and
+> concluded "the sup is enormously loose". **That was wrong, and wrong in the
+> unsafe direction** — it read as licence to sit somewhere between the sup and
+> the observed maxima. The corrected finding is the opposite: the sup is
+> approached closely, and the apparent gap was an artifact of uniform sampling.
+
+**Uniform sampling (the refuted method).** An fp32-emulated transcription of
+`hash`/`vnoise`/`fbm` (`Math.fround` at every step), sampling `n` and `sweep` at
+independent coordinates as the shader forms them:
 
 | samples | coord domain | max `n` | max `(n − 0.5 + sweep)` | implied `p_act` |
 |---|---|---|---|---|
 | 5 × 10⁶ | 0..40 | 0.8748 (93.3% of sup) | 0.5197 (76.6% of sup) | −0.2277 |
 | 4 × 10⁷ | 0..40 | 0.8748 (93.3%) | 0.5384 (79.4%) | −0.2445 |
-| 8 × 10⁶ | 0..4000 | **0.9104 (97.1%)** | 0.5127 (75.6%) | −0.2214 |
+| 8 × 10⁶ | 0..4000 | 0.9104 (97.1%) | 0.5127 (75.6%) | −0.2214 |
 
-Upper tail of the term (4 × 10⁷ samples), decaying *super*-exponentially — the
-per-0.05-step survival ratio itself grows (4.3 → 6.2 → 10.0 → 20.1), as it must
-for a bounded sum whose density has a high-order zero at its endpoint:
+**Adversarial search (the method that actually probes the tail).** A
+multi-restart hill-climb over the same fp32 `fbm`, run by review and reproduced
+independently here:
+
+| search | max `fbm` (broad domain) | max `fbm` (sweep's own domain) |
+|---|---|---|
+| review, 400 restarts | 0.895598 | **0.883656** ⇒ `sweep = 0.211011` |
+| here, 400 restarts | 0.891906 | 0.862067 |
+| here, 4000 restarts | **0.906466** | 0.862067 |
+
+The sweep row is searched on the shader's *constrained* domain —
+`x = vUv.x·1.3 + seed·3 ∈ [0, 4.3)`, `y = time·0.03` over ~2.8 h of drift — not
+a free plane, because that is the only domain `sweep` can reach.
+
+Taking the best witness found on each axis (both searches produce *lower bounds*
+on attainability, so the larger of any two is the better-established fact):
 
 ```
-  P(term > 0.30) = 3.73e-3     P(term > 0.45) = 1.41e-5
-  P(term > 0.35) = 8.65e-4     P(term > 0.50) = 7.00e-7
-  P(term > 0.40) = 1.40e-4     sup(term)      = 0.678125
+  max n      >= 0.906466  (96.7% of sup 0.9375)
+  max sweep  >= 0.211011  (87.7% of sup 0.240625)
+  max term   >= 0.617477  (91.1% of sup 0.678125)
+  => attainable p_act >= -0.315729   vs provable bound  -0.3703125
+  => the real gap is 0.055 in p units, not the 0.13-0.15 uniform sampling implied
 ```
 
-Two things this establishes, pulling in opposite directions — both stated
-because the honest answer needs both:
+**And the gap is shrinking with search effort, not converging.** 400 restarts
+put the witness at `−0.2919`; 4000 restarts moved it to `−0.3050`; combining
+both searches' best axes gives `−0.3157`. Every increment of search pushes it
+toward the provable bound. **The "gap" measures how hard someone looked, not how
+much margin exists.**
 
-1. **The sup is enormously loose in practice.** Observed maxima reach 76-79% of
-   `sup(term)`; an empirically-fitted guard could sit near `−0.24` and never be
-   caught in these runs.
-2. **Which is exactly why an empirical bound must not be shipped.** Widening the
-   coordinate domain 100× raised the observed `max(n)` from 93.3% to 97.1% of
-   the sup — the observed maximum is a function of how much domain you sampled,
-   and the shader's domain is *unbounded*: `time * 0.05` drifts for the whole
-   session and `seed` shifts it per visit. Order-of-magnitude, one visit
-   evaluates ~6.5 × 10⁸ fragments in the guarded band (2160×1350 backing store
-   at the 1.5 DPR cap × ~37% band × 60 fps × ~10 s), so a guard at `−0.30` —
-   needing `term > 0.60`, extrapolated `P ≈ 2e-10` — would clip on the order of
-   one pixel every few visits. Invisible to a 3-seed frozen-frame gate; a real
-   defect. **Only the sup-based bound is shippable**, and everything above uses it.
+**Three zones, which is the operative summary:**
+
+| zone | range | status |
+|---|---|---|
+| provably safe | `g ≤ −0.3703125` | ship this |
+| unproven | `−0.3703125 < g ≤ −0.3157` | no witness *yet*; shrinking every time anyone searches |
+| demonstrably broken | `g > −0.3157` | a witness coordinate exists |
+
+A guard at `−0.30` needs `term > 0.6000` to be wrong; `0.6175` is *directly
+reachable by search on the real domain*. So such a guard does not "occasionally
+clip with probability P" — **it clips structurally, wherever the field visits
+that region.** (An earlier version of this entry derived `P ≈ 2e-10` for this
+from a tail extrapolation and called it "one pixel every few visits". That was
+wrong by many orders of magnitude and has been deleted: a rare-event
+extrapolation from uniform samples cannot see a region a search reaches
+directly.)
+
+**Conclusion, now *a fortiori* rather than by exhortation:** the provable bound
+and the demonstrated-attainable bound are 0.055 apart in `p`, the interval
+between them is not a margin but an unsearched region, and nothing distinguishes
+a guard placed inside it from one placed just past the moving edge of what
+search has found. **Only the sup-based bound `g ≤ −0.3703125` is shippable.**
 
 Caveat, stated rather than buried: GPU `sin()` precision differs from JS
-`Math.sin`, and `fract(sin(x) * 43758.5453)` is notoriously
-hardware-dependent, so **individual values will not match the GPU's**. These
-numbers are distributional evidence about `fract(sin(·))` as a uniform
-generator, not per-pixel predictions. **They inform nothing in the shipped
-decision** — the algebra in Steps 1-4 is precision-independent, because it rests
-only on `fract ∈ [0,1)` and convexity of `mix`.
+`Math.sin`, and `fract(sin(x) * 43758.5453)` is notoriously hardware-dependent,
+so **individual witness coordinates will not transfer to the GPU**. What
+transfers is the structural fact that `fbm` reaches ~91% of its supremum under
+search on this domain — and, in the safe direction, that a witness existing in
+*any* faithful arithmetic is reason enough not to ship a bound that depends on
+it not existing. **None of this informs the shipped decision** — the algebra in
+Steps 1-4 is precision-independent, resting only on `fract ∈ [0,1)` and the
+convexity of `mix`.
 
 ### What tightening would actually buy
 
 Fragments evaluated = `vUv.y < (1 − g) × dissolveStart`. The *relative*
 reduction in evaluated fragments is independent of `dissolveStart`:
 
-| guard | canvas evaluated | fBm fragments removed vs `−0.6` | `A` ceiling before clipping | margin |
+| guard | canvas evaluated | fBm fragments removed vs `−0.6` | `A` ceiling before clipping | `A` headroom |
 |---|---|---|---|---|
-| **`−0.6` (current)** | 36.92% | — | 1.239 | **37.6%** |
-| `−0.45` | 33.46% | **9.375%** | 1.018 | 13.1% |
-| `−0.40` | 32.31% | 12.5% | 0.944 | 4.9% |
+| **`−0.6` (current)** | 36.92% | — | 1.238 | **37.6%** |
+| `−0.45` | 33.46% | **9.375%** | 1.017 | 13.1% |
+| `−0.40` | 32.31% | 12.5% | 0.943 | 4.9% |
 | `−0.39` (comment) | 32.08% | 13.1% | 0.929 | 3.2% |
 | `−0.3703125` (exact) | 31.62% | 14.36% | 0.900 | **0%** |
+
+Ceilings are truncated toward the unsafe side and floors away from it (raw:
+1.238710 / 1.017512 / 0.943779 / 0.929032), so no figure in this entry overstates
+how far a literal may move. The last column is headroom on `A`
+(`DISSOLVE_NOISE_AMP`) specifically, not a global margin.
 
 Cost model, with `r = c_fbm / c_base` (cost of the two 4-octave fBm calls vs the
 rest of `effect()`). Instruction-counting puts `r ≈ 1.0-1.3`: the base path is
@@ -2288,16 +2335,19 @@ literals by someone who does not re-derive it.** CLAUDE.md names
 
 | what changes | `−0.6` survives | `−0.45` survives |
 |---|---|---|
-| `DISSOLVE_NOISE_AMP` raised | up to **1.239** | up to 1.018 |
+| `DISSOLVE_NOISE_AMP` raised | up to **1.238** | up to 1.017 |
 | sweep scale `k` raised | up to **1.133** | up to 0.752 |
 | fBm octaves added | any N (limit `−0.4575`) | up to **N = 7** (N ≥ 8 clips) |
-| `thin` lower edge lowered | down to **0.010** | down to 0.160 |
+| `thin` lower edge lowered | down to **0.011** | down to 0.161 |
 
-`−0.45` breaks on a `DISSOLVE_NOISE_AMP` bump as small as `0.9 → 1.02`. That is
+`−0.45` breaks on a `DISSOLVE_NOISE_AMP` raise to `1.02` (its exact ceiling is
+1.017512, so `1.02` is already past it). That is
 a plausible one-character tuning change, and its failure mode is silent: a
 horizontal clip line across the dissolve edge, at a `vUv.y` that no existing
 test samples (`hero-dissolve.spec.ts` probes three fixed heights; the pixel gate
-freezes 3 seeds). `−0.6` gives 2.9× the headroom on every axis, and its entire
+freezes 3 seeds). `−0.6` gives 2.9× the headroom of `−0.45` on every *continuous*
+axis — not a coincidence: each literal's headroom is proportional to the guard's
+own margin in `p` (`−g − p_act`, i.e. 0.2297 vs 0.0797 = 2.88×) — and its entire
 cost is ~2.5% of one shader's fragment time that no instrument in this repo can
 resolve.
 
@@ -2313,10 +2363,15 @@ justification is robustness, not the (unmeasured) perf win it was shipped for.**
   shader is genuinely fragment-bound and worth 3% more), the safe target is
   **`−0.45`**, and it must ship **in the same commit as** a comment recording
   `p_act = T − A(S−0.5)(1+k)` next to all four literals. Never as a bare number.
-- The correct in-tree figures are **`p > −0.3703125`** (not `−0.39`) and
-  **~63%** skipped (not ~77%). Both are comment-only corrections in
-  `FluidWaves.tsx`, outside this task's Files list; text is in
-  `.superpowers/sdd/2026-08-16-hero-perf-harness/task-7-report.md`.
+- **APPLIED** (review extended the boundary for this one block): the guard
+  comment at `FluidWaves.tsx:195` now carries the closed form, the correct
+  `−0.3703` bound (not `−0.39`), the correct ~63% skip fraction (not ~77%), and
+  a "retune ⇒ re-derive" instruction naming all four literals. Comment-only, but
+  the GLSL is a template literal, so the shader source string and `index.js`
+  bytes both move — verified with `npx playwright test pixel-gate --workers=1`:
+  **30 passed, zero goldens touched**, `tsc --noEmit` exit 0, lint 0 errors. The
+  log cannot defend a constant it does not sit next to; the next person to touch
+  this guard reads the code.
 
 ### Provenance
 
