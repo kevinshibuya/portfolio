@@ -266,7 +266,11 @@ const plainBug = () => new Error('#projects .stack-scroll not found')
   const sourceOf = async (file) => readFile(fileURLToPath(new URL(file, import.meta.url)), 'utf8')
   const CALL = /sampleMachineLoad\(\s*['"]after['"]\s*\)/
   for (const file of ['./run.mjs', './lighthouse.mjs']) {
-    const source = await sourceOf(file)
+    // `.catch(() => '')`: a missing/renamed file must fail HERE, by name, as the
+    // `check` below — not reject out of the whole suite and abort every later
+    // block plus the `N/N passed` line. Same house rule the rest of this file
+    // follows: a named assertion, never an uncaught throw.
+    const source = await sourceOf(file).catch(() => '')
     check(
       `${file.replace('./', '')} still TAKES the post-run load sample`,
       CALL.test(source),

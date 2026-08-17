@@ -1,4 +1,23 @@
-@import "tailwindcss";
+/* Automatic source detection is OFF (`source(none)`) and the app's real source
+   surface is registered explicitly below.
+
+   Why: Tailwind v4 auto-detection scans the whole repo, so non-app files emit
+   real utilities into the SHIPPED stylesheet — the perf campaign's own
+   artifacts planted `.top-3` (from the prose "top 3" in `perf/decisions.md`)
+   and `.antialiased` (from `tests/e2e/pixel-gate.spec.ts`), neither used
+   anywhere in `src/` or `index.html`. An `@source not` deny-list was rejected:
+   it only covers the directories that exist today, so the next new top-level
+   directory leaks again. An explicit allow-list is closed by construction —
+   and its own failure mode (silently dropping a utility the app really uses)
+   is bounded and detectable, which is why this change shipped with a full
+   emitted-CSS rule diff plus the 30-golden pixel gate.
+
+   Everything the browser ever renders comes from `src/` and `index.html`;
+   there is no other markup in the tree. Add an `@source` line here if that
+   ever stops being true. */
+@import "tailwindcss" source(none);
+@source "../src";
+@source "../index.html";
 
 /* =========================================================================
    FONTS

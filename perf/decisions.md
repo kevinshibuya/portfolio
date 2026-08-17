@@ -1578,3 +1578,142 @@ All operator-facing, all in `perf/lighthouse.mjs`:
   the tool had known about all along. Every cause is now named, joined with
   "; and", keeping the `REGRESSION` / `NOT CLEAN` prefix and the generic
   fallback for a future third cause.
+
+---
+
+## 2026-08-17 · Task 5c · Tailwind source scoping — the harness stops leaking dead CSS into the bundle
+
+**Problem (measured at Task 5a, ruling R17).** Tailwind v4's automatic source
+detection scans the whole repository, so files this campaign added were emitting
+real utilities into the **shipped** stylesheet. Two were named in the ruling:
+`.top-3` (planted by the literal words "top 3" in this very log's prose) and
+`.antialiased` (from `tests/e2e/pixel-gate.spec.ts`). Neither is used anywhere
+in `src/` or `index.html`. Note `src/index.css` carries a raw
+`-webkit-font-smoothing: antialiased` declaration that long predates the
+campaign — that is a CSS property, not the utility class, which is why the
+attribution is airtight: the *class* only started being emitted when the new
+files appeared.
+
+### Mechanism chosen: explicit allow-list, not a deny-list
+
+`src/index.css` now opens with `@import "tailwindcss" source(none);` followed by
+`@source "../src";` and `@source "../index.html";`.
+
+The alternative — leaving auto-detection on and adding `@source not "../perf"`,
+`"../tests"`, `"../docs"`, `".../.superpowers"` — was rejected. A deny-list only
+covers the directories that exist on the day it is written; the next new
+top-level directory leaks again, and the whole reason this was scheduled rather
+than filed is that the leak **compounds**. An allow-list is closed by
+construction.
+
+The allow-list's own failure mode is the opposite and is the one that actually
+had to be disproved: an include that is too narrow silently drops a utility the
+app really uses, and a byte count cannot see it. Three independent proofs were
+run (below). The app's entire markup surface is `src/` + `index.html` — no
+other HTML, JSX or TSX exists in the tree (`find public scripts -name '*.html'
+-o -name '*.tsx' -o -name '*.jsx'` → empty).
+
+### Result
+
+| | bytes | ceiling (`ceil(× 1.05)`) |
+|---|---|---|
+| before | 51,399 | 53,969 (as recorded by Task 5a) |
+| after  | **46,952** | **49,300** |
+
+**−4,447 B (−8.65%) off the shipped stylesheet.** Only the `index.css` ceiling
+was re-recorded in `perf/baseline.json`; every other ceiling, and both the empty
+`scenarios`/`lighthouse` sections, are untouched (Task 5b owns those and needs a
+quiesced machine).
+
+### Everything that disappeared, accounted for
+
+The emitted CSS was parsed with postcss before and after and every rule
+serialised as `at-rule-context || selector { declarations }`, then diffed —
+not compared by byte count.
+
+**33 utility classes removed.** None appears as a class token anywhere in the
+app's markup:
+
+`antialiased`, `backdrop-filter`, `border`, `container` (+ its 5
+`@media (min-width: …)` `max-width` variants), `contents`, `ease-in`,
+`ease-out`, `flex-shrink`, `flex-wrap`, `grayscale`, `grid`, `grid-cols-4`,
+`grid-rows-4`, `grow`, `inline-flex`, `invert`, `list-item`, `lowercase`,
+`max-w-[640px]`, `ms-1`, `opacity-0`, `ordinal`, `outline`, `py-32`, `rounded`,
+`shrink`, `tabular-nums`, `text-left`, `top-2`, `top-3`, `top-4`, `underline`,
+`uppercase`.
+
+Read the list as what it is: ordinary English words and doc fragments. `border`,
+`container`, `contents`, `grid`, `invert`, `lowercase`, `uppercase`,
+`underline`, `outline`, `grayscale`, `ordinal`, `rounded`, `grow` are prose from
+`CLAUDE.md` and the plan/spec documents; `top-2`/`top-3`/`top-4`,
+`grid-cols-4`, `grid-rows-4`, `py-32`, `ms-1`, `max-w-[640px]` are numbers and
+fragments from plan tables and this log; `antialiased` is the pixel-gate spec.
+The app styles itself through hand-written classes in `src/index.css`
+(`skills-grid`, `workrow-index`, `hero-name`, …), which is why the false-positive
+utilities outnumbered the real ones so heavily.
+
+**Supporting `@property` declarations and theme variables removed with them**
+(Tailwind emits these only for utilities it generates): the nine
+`--tw-backdrop-*` properties, `--tw-border-style`, `--tw-outline-style`,
+`--tw-ordinal`, `--tw-slashed-zero`, the three `--tw-numeric-*`, their entries in
+the `@layer properties` `@supports` fallback block, and — from the `@layer theme`
+`:root,:host` block — `--spacing`, `--ease-in`, `--ease-out`, `--color-bg`,
+`--color-bg-tonal`, `--color-text`, `--color-text-muted`, `--color-text-faded`,
+`--color-accent-pink`, `--color-accent-blue`, `--color-accent-yellow`,
+`--color-accent-yellow-deep`.
+
+The `--color-*` names look alarming and are not. Those are `@theme` tokens; the
+hand-written stylesheet reads the parallel `:root` aliases (`--bg`, `--text`,
+`--row-tint`, …), which are plain CSS and are emitted verbatim, untouched.
+`grep -rn 'var(--color-' src index.html --include='*.tsx' --include='*.ts'
+--include='*.html'` returns nothing — no inline style or JS reads them either.
+The `--color-*-deep` tokens the light chapter DOES reference (`surface-light`,
+`surface-light-tonal`, `ink-on-light`, `accent-pink-deep`, `accent-blue-deep`)
+all survive; only `accent-yellow-deep`, which nothing references, went.
+
+### Three proofs that no *used* rule was dropped
+
+1. **Class-token intersection.** Every `class=`/`className=` string literal in
+   `src/` + `index.html` was extracted (165 distinct tokens, including the ones
+   inside template literals and conditional expressions) and intersected with
+   the 33 removed classes. **Empty intersection.**
+2. **Dangling custom-property audit.** For both builds, every `var(--x)`
+   reference in the emitted CSS was checked against every `--x:` definition in
+   the same file. Before: 86 referenced / 106 defined / 6 dangling. After: 67 /
+   78 / **6 dangling — the same six**
+   (`--default-font-feature-settings`, `--default-font-variation-settings`,
+   `--default-mono-font-feature-settings`,
+   `--default-mono-font-variation-settings`, `--tw-duration`, and `--row-tint`,
+   which is injected from JS by design). **No new dangling reference.** This is
+   the check that would have caught a theme token being pruned out from under a
+   rule that still uses it.
+3. **Live scan probes.** Both `@source` entries were confirmed to actually
+   scan, not merely to parse: a real utility (`underline`, absent from the new
+   build) was temporarily added to a `class` in `index.html`, and separately to
+   a `className` in `src/components/sections/Skills.tsx`. Each build emitted
+   `.underline`; both probes were reverted. A registration that silently matched
+   nothing would look identical to a correct one in the byte count.
+
+### Pixel gate — zero visual change
+
+`npx playwright test pixel-gate --workers=1` → **30 passed (2.5m)**. All 30
+goldens (5 moments × 3 seeds × 2 projects) green against the **existing**
+committed goldens; nothing was re-baked (`git status` shows no change under
+`tests/e2e/pixel-gate.spec.ts-snapshots/`). Goldens regenerate only on a commit
+declaring visual intent, and this commit declares the opposite.
+
+### Carried fix from the Task 5a review
+
+`perf/selftest-retry.mjs` block 7 read `const source = await sourceOf(file)`
+outside any try, so a missing or renamed `run.mjs`/`lighthouse.mjs` rejected out
+of the whole suite — aborting every later block and the `N/N passed` line —
+instead of failing as the named check sitting directly beneath it. Now
+`await sourceOf(file).catch(() => '')`, so the empty string fails the existing
+`check` by name. Same house rule as the rest of the file.
+
+### Standing consequence
+
+Prose in `perf/`, `docs/`, `tests/` and `.superpowers/` can no longer plant a
+utility in the shipped bundle. That includes this entry, which mentions
+`top-3`, `py-32` and `grid-cols-4` in plain text and — before this change —
+would have re-emitted all three.
