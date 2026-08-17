@@ -194,15 +194,16 @@ const fragmentShader = `
       float thin = 0.0;
       // Skip the noise entirely where the field can never fire. thin's lower
       // smoothstep edge T=0.24 is reachable only where
-      //   p > T - A*(S-0.5)*(1+k) = 0.24 - 0.9*0.678125 = -0.3703
+      //   p > T - A*(S-0.5)*(1+k) = 0.24 - 0.9*0.678125 = -0.3703125
       // with A=DISSOLVE_NOISE_AMP, S=0.9375 (fbm's gain sum: 4 octaves halving
       // from 0.5 — NOT 1.0, this fbm is unnormalised) and k=0.55 (sweep scale).
-      // Any guard <= -0.3703 is provably safe; -0.6 keeps 37% headroom on A
-      // (raising DISSOLVE_NOISE_AMP to 1.02 already breaks a -0.45 guard) and
-      // skips ~63% of the hero canvas at dissolveStart ~0.23. RETUNING ANY of
-      // T / A / k / the octave count moves this bound — re-derive it, do not
-      // eyeball it. Full derivation, and why it is deliberately NOT tightened:
-      // perf/decisions.md, entry B1.
+      // Any guard <= -0.3703125 is provably safe — use the FULL value, since
+      // -0.3703 is GREATER than it and so falls outside the proven set. -0.6
+      // keeps 37% headroom on A (raising DISSOLVE_NOISE_AMP to 1.02 already
+      // breaks a -0.45 guard) and skips ~63% of the hero canvas at
+      // dissolveStart ~0.23. RETUNING ANY of T / A / k / the octave count moves
+      // this bound — re-derive it, do not eyeball it. Full derivation, and why
+      // it is deliberately NOT tightened: perf/decisions.md, entry B1.
       // The branch is vertically coherent — near-free on the wavefront.
       if (p > -0.6) {
         // Screen-anchored base frequency (wide, vertically stretched fingers) +
