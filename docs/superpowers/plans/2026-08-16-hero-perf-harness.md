@@ -273,7 +273,7 @@ Mechanics: every shot loads with `perf-seed=<seed>&perf-freeze=<t>&perf-role=0` 
 
 - [x] **Step 1:** Narrow the source scope; rebuild; verify both dead rules are gone and diff the emitted CSS for anything else that vanished.
 - [x] **Step 2:** `npx playwright test pixel-gate` green (all 30 goldens) — zero visual change proven, not assumed.
-- [ ] **Step 3:** Re-record the `index.css` ceiling; full serial e2e green; commit.
+- [x] **Step 3:** Re-record the `index.css` ceiling; full serial e2e green; commit.
 
 ---
 
