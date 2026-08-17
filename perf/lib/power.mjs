@@ -53,7 +53,12 @@ export function startPowermetrics(durationMs, intervalMs = 1000) {
   child.stderr?.on('data', (chunk) => chunks.push(String(chunk)))
   return {
     async stop() {
+      // powermetrics runs as ROOT, so `process.kill` from this (unprivileged)
+      // process EPERMs silently. It is spawned with a bounded `-n <samples>` and
+      // exits on its own, so this is best-effort tidy-up rather than the
+      // mechanism — but ask sudo to do it, since we cannot.
       killGroup(child, 'SIGTERM')
+      if (child.pid !== undefined) await run('sudo', ['-n', 'kill', '-TERM', String(child.pid)], { timeout: 5000 })
       await sleep(200)
       killGroup(child, 'SIGKILL')
       return parsePowermetrics(chunks.join(''))
@@ -81,13 +86,18 @@ export function parsePowermetrics(text) {
   const cpu = grab(/^CPU Power:\s*([\d.]+)\s*mW/gim)
   const gpu = grab(/^GPU Power:\s*([\d.]+)\s*mW/gim)
   const combined = grab(/^Combined Power[^:]*:\s*([\d.]+)\s*mW/gim)
-  const packageMw = grab(/^(?:Intel energy model derived )?package power:\s*([\d.]+)/gim)
+  // Intel Macs print "Intel energy model derived package power (CPUs+GT+SA):
+  // 12.34" — in WATTS, not milliwatts. Scaling here keeps the metric name
+  // `packageMw` honest across architectures; without it an Intel rig would
+  // report a number 1000x too small under a milliwatt label.
+  const packageW = grab(/^(?:Intel energy model derived )?package power[^:]*:\s*([\d.]+)/gim)
 
   const average = (values) => (values.length === 0 ? null : values.reduce((a, b) => a + b, 0) / values.length)
-  const combinedAverage = average(combined) ?? average(packageMw)
+  const packageWAverage = average(packageW)
+  const combinedAverage = average(combined) ?? (packageWAverage === null ? null : packageWAverage * 1000)
 
   return {
-    sampleCount: Math.max(cpu.length, gpu.length, combined.length, packageMw.length),
+    sampleCount: Math.max(cpu.length, gpu.length, combined.length, packageW.length),
     cpuMw: average(cpu),
     gpuMw: average(gpu),
     packageMw: combinedAverage,

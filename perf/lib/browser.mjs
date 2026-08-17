@@ -96,9 +96,72 @@ export async function waitForSettledHero(page) {
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done', undefined, { timeout: 30_000 })
   await page.waitForSelector('[data-entrance="settled"]', { timeout: 30_000 })
   await page.waitForSelector('[data-canvas="fluid-waves"]', { timeout: 30_000 })
-  const fallbacks = await page.locator('[data-testid="fluid-waves-fallback"]').count()
+  await assertPageHealthy({ page, consoleErrors: [] }, 'before the measurement window')
+}
+
+/**
+ * Fail the run if the page broke — checked BEFORE and, critically, AFTER every
+ * measurement window.
+ *
+ * The after-check is the one that matters. If the hero's WebGL context is lost
+ * mid-window the canvas unmounts and a flat gradient div takes over: GPU work
+ * stops, `gpu.busyMsPerFrame` and `gpu.webglMsPerFrame` COLLAPSE, and the run
+ * exits 0 printing `improvement`. Under `--update-baseline` those collapsed
+ * numbers become the reference, after which every healthy run reads as a
+ * permanent regression — and during Tasks 7-12 a shader batch that destabilises
+ * the context would read as the campaign's single biggest win.
+ *
+ * So this is an assertion, never a warning: a measurement taken while the thing
+ * being measured was not running is not a slow measurement, it is not a
+ * measurement at all.
+ */
+export async function assertPageHealthy(session, when) {
+  const fallbacks = await session.page.locator('[data-testid="fluid-waves-fallback"]').count()
   if (fallbacks > 0) {
-    throw new Error('hero WebGL context was lost (gradient fallback is showing) — environment failure, not a measurement')
+    throw new Error(
+      `hero WebGL context was lost ${when} (the gradient fallback is showing). ` +
+        'GPU metrics from this run would read as a large improvement and are discarded. ' +
+        'This is an environment/stability failure, not a performance result.',
+    )
+  }
+
+  const pageErrors = await session.page
+    .evaluate(() => (window.__PERF__?.errors ?? []).slice())
+    .catch(() => [])
+  const problems = [...(session.consoleErrors ?? []), ...pageErrors]
+  if (problems.length > 0) {
+    throw new Error(
+      `page reported ${problems.length} error(s) ${when} — the run is not a clean measurement:\n  ` +
+        problems.slice(0, 5).join('\n  '),
+    )
+  }
+}
+
+/**
+ * Measure the display's real frame cadence, on a blank page with nothing else
+ * running. Called once per invocation; the result pins `nominalMs` for every
+ * scenario's dropped-frame arithmetic (see `frameStats`).
+ */
+export async function measureRefresh() {
+  const browser = await chromium.launch({ headless: false, args: LAUNCH_ARGS })
+  try {
+    const context = await browser.newContext({ viewport: VIEWPORT })
+    const page = await context.newPage()
+    const deltas = await page.evaluate(
+      () =>
+        new Promise((resolve) => {
+          const stamps = []
+          const tick = (t) => {
+            stamps.push(t)
+            if (stamps.length < 90) requestAnimationFrame(tick)
+            else resolve(stamps.slice(1).map((s, i) => s - stamps[i]))
+          }
+          requestAnimationFrame(tick)
+        }),
+    )
+    return deltas
+  } finally {
+    await browser.close().catch(() => {})
   }
 }
 
@@ -121,17 +184,11 @@ export function mainThreadDeltas(before, after, windowSeconds) {
     const delta = (after[name] ?? 0) - (before[name] ?? 0)
     return windowSeconds > 0 ? (delta * 1000) / windowSeconds : 0
   }
-  const countPerSecond = (name) => {
-    const delta = (after[name] ?? 0) - (before[name] ?? 0)
-    return windowSeconds > 0 ? delta / windowSeconds : 0
-  }
   return {
     taskMsPerSec: perSecond('TaskDuration'),
     scriptMsPerSec: perSecond('ScriptDuration'),
     layoutMsPerSec: perSecond('LayoutDuration'),
     recalcStyleMsPerSec: perSecond('RecalcStyleDuration'),
-    layoutsPerSec: countPerSecond('LayoutCount'),
-    recalcStylesPerSec: countPerSecond('RecalcStyleCount'),
     heapUsedMb: (after.JSHeapUsedSize ?? 0) / (1024 * 1024),
   }
 }

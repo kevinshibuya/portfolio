@@ -99,6 +99,23 @@ export async function selfAncestry() {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 /**
+ * Never killable, at any round. An interactive or login shell is somebody's
+ * terminal session, and a dev server started from one has that shell as an
+ * ancestor — so generational escalation walks straight into it.
+ */
+const SHELL_PATTERN = /(^|\/)(-?(zsh|bash|sh|fish|ksh|tcsh|csh)|login|tmux[^/]*|screen)(\s|$)/i
+
+/**
+ * Commands the ESCALATION rounds (2 and 3) are allowed to target. Round 1 kills
+ * whatever is actually listening; rounds 2+ climb the process tree, where a
+ * blanket kill is dangerous, so they only fire on things that are recognisably
+ * a dev-server supervisor.
+ */
+const SUPERVISOR_PATTERN = /(vite|wrangler|workerd|miniflare|npm|npx|pnpm|yarn|serve|http-server|node .*(preview|serve))/i
+
+const describes = (command) => (command ?? '').slice(0, 110)
+
+/**
  * Free a port, escalating one generation per round.
  *
  * Round 1 kills the listeners themselves. That is not always enough on this
@@ -106,8 +123,19 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
  * fresh `workerd` listener within a second of the old one dying — observed
  * live while building this runner (a stale wrangler from a previous e2e run
  * was holding 4173 and answering nothing). So round 2 also kills each
- * listener's parent, round 3 the grandparent. Our own ancestry is excluded so
- * the runner can never kill the shell that launched it.
+ * listener's parent, round 3 the grandparent.
+ *
+ * THREE GUARDS, because escalation is the dangerous part. If another terminal
+ * happens to be running `npm run dev -- --port 4173`, its tree is
+ * `zsh -> npm -> node vite`, and an unguarded round 3 would SIGKILL that zsh
+ * and everything else in that terminal:
+ *
+ *   1. our own process ancestry is never a target;
+ *   2. no shell/login/tmux process is ever a target, at any round;
+ *   3. rounds 2+ only target recognisable server supervisors.
+ *
+ * SIGTERM first, SIGKILL only if the thing is still alive — a supervisor given
+ * the chance to shut down cleanly releases the port without orphaning children.
  */
 export async function freePort(port, log) {
   for (let round = 1; round <= 3; round += 1) {
@@ -122,7 +150,17 @@ export async function freePort(port, log) {
     for (const pid of listeners) {
       let current = pid
       for (let generation = 0; generation < round; generation += 1) {
-        if (current > 1 && !protectedPids.has(current)) targets.add(current)
+        const command = byPid.get(current)?.command ?? ''
+        const escalated = generation > 0
+        const allowed =
+          current > 1 &&
+          !protectedPids.has(current) &&
+          !SHELL_PATTERN.test(command) &&
+          (!escalated || SUPERVISOR_PATTERN.test(command))
+        if (allowed) targets.add(current)
+        else if (current > 1 && escalated && command) {
+          log(`  not escalating to ${current} (${describes(command)}) — not a recognised server supervisor`)
+        }
         current = byPid.get(current)?.ppid ?? 0
         if (current <= 1) break
       }
@@ -130,14 +168,24 @@ export async function freePort(port, log) {
 
     for (const pid of targets) {
       const command = byPid.get(pid)?.command ?? '?'
-      log(`  killing stale :${port} holder ${pid} — ${command.slice(0, 90)}`)
+      log(`  freeing :${port} — SIGTERM ${pid} (${describes(command)})`)
       try {
-        process.kill(pid, 'SIGKILL')
+        process.kill(pid, 'SIGTERM')
       } catch {
-        // Already gone between the ps snapshot and here. Fine.
+        continue // Already gone between the ps snapshot and here.
       }
     }
-    await sleep(700)
+    await sleep(600)
+    for (const pid of targets) {
+      try {
+        process.kill(pid, 0) // Probe: throws if the process is gone.
+        log(`  freeing :${port} — SIGKILL ${pid} (ignored SIGTERM)`)
+        process.kill(pid, 'SIGKILL')
+      } catch {
+        // Exited on SIGTERM, which is the good path.
+      }
+    }
+    await sleep(400)
   }
 
   const remaining = await listenersOn(port)

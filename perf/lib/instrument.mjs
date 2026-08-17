@@ -27,8 +27,18 @@ export const INIT_SCRIPT = String.raw`
     marks: Object.create(null),
     overflowed: false,
     errors: [],
+    lastScrollAt: null,
   };
   window.__PERF__ = P;
+
+  // Scroll-settle signal for scroll-transition. A PASSIVE listener updating one
+  // number lets the runner wait on an in-page predicate instead of polling
+  // page.evaluate() over CDP ~30 times inside its own measurement window.
+  window.addEventListener(
+    'scroll',
+    function () { P.lastScrollAt = performance.now(); },
+    { passive: true },
+  );
 
   // ── rAF ring buffer: the frame-time source ──────────────────────────────
   var loop = function (t) {

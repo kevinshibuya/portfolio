@@ -24,9 +24,9 @@ import { fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
 
 import { BASE_URL, SERVE_COMMAND, buildOnce, distFingerprint, startPreview } from './lib/server.mjs'
-import { collectRig, rigMismatches } from './lib/rig.mjs'
+import { collectRig, rigMismatches, RIG_KEYS } from './lib/rig.mjs'
 import { readBaseline, updateScenarios } from './lib/baseline.mjs'
-import { aggregate, findOutlierRun, MIN_RUNS_FOR_OUTLIER } from './lib/stats.mjs'
+import { aggregate, findOutlierRun, provenanceWarnings, MIN_RUNS_FOR_OUTLIER } from './lib/stats.mjs'
 import { REPORT_VERSION, VERDICT, compare, printComparison, writeReport } from './lib/report.mjs'
 
 import * as idleHero from './scenarios/idle-hero.mjs'
@@ -49,8 +49,11 @@ const MAX_REPLACEMENTS = 3
 const log = (line = '') => process.stdout.write(`${line}\n`)
 
 function usage(message) {
+  // Errors to stderr, the help text itself to stdout — `node perf/run.mjs
+  // --help | less` should show the help, not nothing.
+  const out = message ? process.stderr : process.stdout
   if (message) process.stderr.write(`\nerror: ${message}\n`)
-  process.stderr.write(`
+  out.write(`
 usage: node perf/run.mjs <scenario|all> [options]
        node perf/run.mjs --compare <reportA.json> <reportB.json>
 
@@ -64,6 +67,7 @@ options:
   --no-build          skip "npm run build" and serve the existing dist/ (iteration only)
   --no-warmup         skip the discarded warm-up run (iteration only — inflates the IQR)
   --compare A B       compare two report JSONs against each other's bands and exit
+  --force             allow --update-baseline despite regressions/flagged outliers
   -h, --help          this message
 
 exit codes: 0 ok · 1 regression (or reports disagree, with --compare) · 2 usage
@@ -71,7 +75,7 @@ exit codes: 0 ok · 1 regression (or reports disagree, with --compare) · 2 usag
 }
 
 function parseArgs(argv) {
-  const options = { scenarios: null, runs: DEFAULT_RUNS, updateBaseline: false, build: true, warmup: true, compare: null }
+  const options = { scenarios: null, runs: DEFAULT_RUNS, updateBaseline: false, build: true, warmup: true, force: false, compare: null }
   const positional = []
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -80,6 +84,7 @@ function parseArgs(argv) {
     else if (arg === '--update-baseline') options.updateBaseline = true
     else if (arg === '--no-build') options.build = false
     else if (arg === '--no-warmup') options.warmup = false
+    else if (arg === '--force') options.force = true
     else if (arg === '--runs') {
       const value = Number(argv[++i])
       if (!Number.isInteger(value) || value < 1) return { error: `--runs needs a positive integer, got "${argv[i]}"` }
@@ -213,11 +218,38 @@ async function compareReports(pathA, pathB) {
   }
 
   let disagreements = 0
+  for (const key of RIG_KEYS) {
+    if (String(a.rig?.[key]) !== String(b.rig?.[key])) {
+      log(`  !! rig differs on ${key}: "${a.rig?.[key]}" vs "${b.rig?.[key]}" — these reports are not comparable`)
+      disagreements += 1
+    }
+  }
+
+  // Iterate the UNION. Walking only A's metrics would let B silently lose one
+  // and still report "reports agree" — the same class of hole as blending
+  // sources without saying so.
+  const allMetrics = [...new Set([...Object.keys(a.metrics), ...Object.keys(b.metrics)])].sort()
   log(`  ${'metric'.padEnd(30)}${'A'.padStart(12)}${'B'.padStart(12)}${'|delta|'.padStart(12)}${'band'.padStart(12)}  verdict`)
-  for (const [metric, left] of Object.entries(a.metrics)) {
+  for (const metric of allMetrics) {
+    const left = a.metrics[metric]
     const right = b.metrics[metric]
+    if (!left) {
+      log(`  ${metric.padEnd(30)}${'—'.padStart(12)}${String(right.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  MISSING IN A`)
+      disagreements += 1
+      continue
+    }
     if (!right) {
       log(`  ${metric.padEnd(30)}${String(left.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  MISSING IN B`)
+      disagreements += 1
+      continue
+    }
+    if (left.sourceConflict || right.sourceConflict) {
+      log(`  ${metric.padEnd(30)}${String(left.median).padStart(12)}${String(right.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  BLENDED SOURCES`)
+      disagreements += 1
+      continue
+    }
+    if (left.sources?.length === 1 && right.sources?.length === 1 && left.sources[0] !== right.sources[0]) {
+      log(`  ${metric.padEnd(30)}${String(left.median).padStart(12)}${String(right.median).padStart(12)}${'—'.padStart(12)}${'—'.padStart(12)}  SOURCE A≠B`)
       disagreements += 1
       continue
     }
@@ -288,14 +320,34 @@ async function main() {
 
   let exitCode = 0
   const aggregatesByScenario = {}
+  const blockingWarnings = []
 
   try {
     for (const scenario of options.scenarios) {
       log('')
       log(`── ${scenario.name} ── ${scenario.description}`)
       const startedAt = new Date().toISOString()
-      const outcome = await runScenario(scenario, options.runs, { baseUrl: BASE_URL, log }, { warmup: options.warmup })
+      const outcome = await runScenario(
+        scenario,
+        options.runs,
+        { baseUrl: BASE_URL, log, nominalFrameMs: rig.nominalFrameMs },
+        { warmup: options.warmup },
+      )
       const comparison = compare(outcome.aggregated, baseline?.scenarios?.[scenario.name])
+
+      // Provenance problems are about whether a number MEANS anything, so they
+      // are surfaced next to the table and they block a baseline update.
+      const provenance = provenanceWarnings(outcome.aggregated, scenario.name)
+      comparison.warnings.push(...provenance)
+      if (outcome.aggregated && Object.values(outcome.aggregated).some((metric) => metric.sourceConflict)) {
+        blockingWarnings.push(`${scenario.name}: a metric blended two measurement sources`)
+      }
+      for (const meta of outcome.meta) {
+        if (meta?.frameBufferOverflowed) {
+          comparison.warnings.push(`${scenario.name}: the rAF frame buffer OVERFLOWED — frame metrics are truncated`)
+          blockingWarnings.push(`${scenario.name}: frame buffer overflowed`)
+        }
+      }
 
       const report = {
         version: REPORT_VERSION,
@@ -328,6 +380,7 @@ async function main() {
       log(`  report: ${path.relative(REPO_ROOT, file)}`)
 
       if (comparison.regressions > 0) exitCode = 1
+      if (outcome.flagged.length > 0) blockingWarnings.push(`${scenario.name}: an outlier run was kept after exhausting replacements`)
       aggregatesByScenario[scenario.name] = outcome.aggregated
     }
   } finally {
@@ -339,15 +392,40 @@ async function main() {
     if (mismatches.length > 0) {
       process.stderr.write(
         'REFUSING --update-baseline: this rig does not match the rig recorded in perf/baseline.json.\n' +
+          `Mismatched: ${mismatches.map((m) => m.key).join(', ')}.\n` +
           'Baselines are rig-relative by design; ratcheting them from a different rig corrupts every\n' +
           'comparison the campaign makes afterwards. Restore the rig, or delete the stored rig block\n' +
           'deliberately if the reference rig has genuinely changed.\n',
       )
       return 2
     }
-    await updateScenarios(BASELINE_PATH, aggregatesByScenario, rig)
+
+    // A baseline is the reference every later keep-or-revert decision is judged
+    // against. Ratcheting one in from a run that REGRESSED makes the regression
+    // the new normal and it can never be detected again — the single most
+    // damaging thing this tool could do quietly. Same for a run whose outlier
+    // survived the gate. Both are recoverable intentions, so they need --force
+    // rather than a refusal, but neither may happen by default.
+    if (!options.force && (exitCode === 1 || blockingWarnings.length > 0)) {
+      process.stderr.write(
+        'REFUSING --update-baseline: this run is not a clean reference.\n' +
+          (exitCode === 1 ? '  - it contains REGRESSIONS; baselining them makes them permanent and undetectable\n' : '') +
+          blockingWarnings.map((warning) => `  - ${warning}\n`).join('') +
+          'Fix the regression, or re-run to confirm, or pass --force if you deliberately intend this\n' +
+          'to become the new reference.\n',
+      )
+      return 2
+    }
+
+    const { notes } = await updateScenarios(BASELINE_PATH, aggregatesByScenario, rig)
     log(`baseline: updated "scenarios" key for ${Object.keys(aggregatesByScenario).join(', ')} in perf/baseline.json`)
     log('baseline: "lighthouse" and "exact" keys left untouched (Task 4 and Task 5 own those)')
+    if (notes.rigKeysAdded.length > 0) log(`baseline: filled missing rig key(s): ${notes.rigKeysAdded.join(', ')}`)
+    if (notes.retained.length > 0) {
+      log(`  !! ${notes.retained.length} baseline metric(s) were NOT produced by this run and were RETAINED, not deleted:`)
+      for (const key of notes.retained) log(`  !!   ${key}`)
+      log('  !! (a budget that silently stops existing is worse than one that fails — investigate the missing source)')
+    }
   }
 
   log('')

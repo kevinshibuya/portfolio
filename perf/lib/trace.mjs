@@ -46,18 +46,25 @@ export async function startTrace(browser) {
     transferMode: 'ReportEvents',
     traceConfig: { recordMode: 'recordAsMuchAsPossible', includedCategories: TRACE_CATEGORIES },
   })
+  // The trace necessarily spans slightly MORE wall clock than the metric window
+  // it brackets (a few CDP round trips at each end). Dividing trace-wide GPU
+  // work by the shorter metric window inflated every `gpu.*PerSec` figure —
+  // visible as a `presentedFps` of 60.05 on a 60Hz display. GPU rates are now
+  // divided by the trace's OWN duration, measured here.
+  const startedAt = Date.now()
   return {
     async stop() {
+      const endedAt = Date.now()
       await session.send('Tracing.end')
       await complete
       await session.detach().catch(() => {})
-      return events
+      return { events, traceSeconds: (endedAt - startedAt) / 1000 }
     },
   }
 }
 
 /** Aggregate GPU-process cost out of a trace slice. */
-export function gpuFromTrace(events, windowSeconds) {
+export function gpuFromTrace(events, traceSeconds) {
   let gpuPid = null
   for (const event of events) {
     if (event.ph === 'M' && event.name === 'process_name' && event.args?.name === 'GPU Process') {
@@ -87,11 +94,12 @@ export function gpuFromTrace(events, windowSeconds) {
     busyMs: busyUs / 1000,
     webglMs: webglUs / 1000,
     presentedFrames: swaps,
-    busyMsPerSec: windowSeconds > 0 ? busyUs / 1000 / windowSeconds : 0,
-    webglMsPerSec: windowSeconds > 0 ? webglUs / 1000 / windowSeconds : 0,
+    traceSeconds,
+    busyMsPerSec: traceSeconds > 0 ? busyUs / 1000 / traceSeconds : 0,
+    webglMsPerSec: traceSeconds > 0 ? webglUs / 1000 / traceSeconds : 0,
     busyMsPerFrame: swaps > 0 ? busyUs / 1000 / swaps : 0,
     webglMsPerFrame: swaps > 0 ? webglUs / 1000 / swaps : 0,
-    presentedFps: windowSeconds > 0 ? swaps / windowSeconds : 0,
+    presentedFps: traceSeconds > 0 ? swaps / traceSeconds : 0,
   }
 }
 

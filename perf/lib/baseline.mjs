@@ -17,6 +17,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
+import { applyBandOverrides } from './stats.mjs'
 
 const KEY_ORDER = ['rig', 'scenarios', 'lighthouse', 'exact']
 
@@ -34,31 +35,68 @@ export async function readBaseline(baselinePath) {
  * Merge scenario medians into the baseline, preserving every other key exactly
  * as found (including keys this runner has never heard of).
  *
- * Only `median`, `iqr` and `band` are stored. Per-run values stay in the report
- * JSONs: the baseline is a contract, not an archive, and a hand-edited band —
- * which the plan explicitly allows — must survive being read back next to
- * numbers this runner produced.
+ * Stored per metric: `median`, `iqr`, `band`, plus `n`/`source` as provenance.
+ * Per-run values stay in the report JSONs — the baseline is a contract, not an
+ * archive.
+ *
+ * MERGE, NEVER REPLACE, per scenario. A wholesale replace silently DELETES any
+ * metric the current invocation happened not to produce: let the sudo grant
+ * lapse for one afternoon and `power.*` vanishes from the baseline; let one
+ * trace fail and `gpu.webglMsPerFrame` vanishes. The `MISSING` machinery only
+ * fires on the READ side, so a deleted key stops being missing and simply stops
+ * being checked — a budget that silently ceases to exist is worse than one that
+ * fails. Dropped keys are therefore retained and reported to the caller.
+ *
+ * Hand-set band overrides (`bandAbsolute`, `maxBand`) survive the round trip and
+ * are applied to the freshly computed band, which is what makes the plan's
+ * "bands... overridable there" true in practice.
  */
 export async function updateScenarios(baselinePath, scenarioAggregates, rig) {
   const existing = (await readBaseline(baselinePath)) ?? {}
   const next = { ...existing }
+  const notes = { retained: [], rigKeysAdded: [] }
 
-  if (!next.rig) next.rig = rig
+  // Per-KEY rig bootstrap. `!next.rig` was wrong because `{}` is truthy: a
+  // hand-written empty rig block would never be filled in, and never checked.
+  const rigBlock = { ...(next.rig ?? {}) }
+  for (const [key, value] of Object.entries(rig)) {
+    if (rigBlock[key] === undefined) {
+      rigBlock[key] = value
+      notes.rigKeysAdded.push(key)
+    }
+  }
+  next.rig = rigBlock
 
   const scenarios = { ...(next.scenarios ?? {}) }
   for (const [name, metrics] of Object.entries(scenarioAggregates)) {
-    const stored = {}
+    const previous = scenarios[name] ?? {}
+    const merged = { ...previous }
     for (const [metric, value] of Object.entries(metrics)) {
-      stored[metric] = { median: value.median, iqr: value.iqr, band: value.band }
+      const overrides = previous[metric] ?? {}
+      const entry = {
+        median: value.median,
+        iqr: value.iqr,
+        band: round(applyBandOverrides(value.band, overrides)),
+        n: value.n,
+      }
+      if (value.sources.length === 1) entry.source = value.sources[0]
+      if (Number.isFinite(overrides.bandAbsolute)) entry.bandAbsolute = overrides.bandAbsolute
+      if (Number.isFinite(overrides.maxBand)) entry.maxBand = overrides.maxBand
+      merged[metric] = entry
     }
-    scenarios[name] = stored
+    for (const metric of Object.keys(previous)) {
+      if (!metrics[metric]) notes.retained.push(`${name}.${metric}`)
+    }
+    scenarios[name] = merged
   }
   next.scenarios = scenarios
 
   await mkdir(path.dirname(baselinePath), { recursive: true })
   await writeFile(baselinePath, `${JSON.stringify(orderKeys(next), null, 2)}\n`, 'utf8')
-  return next
+  return { baseline: next, notes }
 }
+
+const round = (value) => (Number.isFinite(value) ? Math.round(value * 1e4) / 1e4 : value)
 
 function orderKeys(object) {
   const out = {}

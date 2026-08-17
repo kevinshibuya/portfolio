@@ -469,3 +469,212 @@ brief made that mechanical, so `node perf/run.mjs --compare a.json b.json`
 does it: agree/DISAGREE per metric against the wider of the two bands, exit 1 on
 any disagreement. Small addition, and it turns the acceptance check from a
 hand-comparison into a command.
+
+---
+
+## 2026-08-16 · Task 3 review · fixes + ruling R7
+
+Review of the Task 3 runner returned "Needs fixes": 2 Critical, 7 Important.
+All disclosed deviations (warm-up run, `--compare`, dSF 2, `--strictPort`, the
+`rig` write rule) were accepted on merit. What follows is what changed.
+
+### RULING R7 — the pixel gate is blind to DPR/resolution changes
+
+**Record it; do NOT re-bake the 30 goldens.** (Owner-level ruling, taken during
+the Task 3 review.)
+
+This harness measures at `deviceScaleFactor: 2` — where `FluidWaves`'s
+`DPR_CAP` of 1.5 actually engages and the backing store is 1.5x, i.e. what a
+retina visitor renders. The pixel gate's desktop project runs at
+`deviceScaleFactor: 1`, where the cap never engages and the backing store is
+1.0x. **The two layers therefore exercise different resolution paths.**
+
+Consequence, identical in shape to the `threshold: 0.05` blind spot recorded
+above: **a batch that touches `DPR_CAP`, backing-store sizing, or any
+resolution scaling does NOT inherit the pixel gate's verdict.** The gate cannot
+see the visual cost of a change it never renders. Such a batch must bring its
+own visual evidence — e.g. capturing the canvas at dSF 2 and comparing
+numerically — exactly as the shader-precision case must.
+
+Not fixed by re-baking, because re-baking at dSF 2 would only move the blind
+spot to dSF 1 and would invalidate 30 committed goldens for no net coverage.
+
+### CRITICAL C1 — metrics could blend two measurement sources
+
+`sources` was recorded once per scenario from the LAST run
+(`kept.at(-1).sources`), and `aggregate()` took a median over whatever runs
+produced a finite value with no record of how many. If the GPU trace failed on
+runs 1-3 and succeeded on 4-5, `gpu.busyMsPerFrame` became a median blending
+*GPU-process CPU ms* with *GPU busy ms* — different quantities — labelled with
+whichever source ran last, and `gpu.webglMsPerFrame` was computed from 2 of 5
+runs. `--update-baseline` then wrote both as plain `{median, iqr, band}`.
+
+**Fix.** Metrics declare a `sourceKey`; `aggregate()` records per metric `n`,
+`runsTotal`, the distinct `sources` of the CONTRIBUTING runs, and
+`sourceConflict`. `provenanceWarnings()` surfaces both conditions, a blend
+BLOCKS `--update-baseline`, and `--compare` reports `BLENDED SOURCES` /
+`SOURCE A≠B` as disagreements.
+
+Reproduced against the reviewer's exact scenario:
+
+```
+gpu.busyMsPerFrame:   median=9.1  n=5/5  sourceConflict=true
+   sources=["cdp:SystemInfo-gpu-process-cpu","trace:gpu-process"]
+gpu.webglMsPerFrame:  median=0.585 n=2/5 sourceConflict=false
+
+  !! idle-hero.gpu.busyMsPerFrame: BLENDED SOURCES — contributing runs disagree
+     (cdp:SystemInfo-gpu-process-cpu vs trace:gpu-process). These are different
+     quantities; the median is not a measurement of either. Do not baseline it.
+  !! idle-hero.gpu.webglMsPerFrame: median is over 2 of 5 kept runs — 3 run(s)
+     did not produce this metric.
+```
+
+### CRITICAL C2 — a mid-window context loss read as a large improvement
+
+The WebGL-fallback check ran only INSIDE `waitForSettledHero`, i.e. before the
+window. Lose the hero context at t=10s of a 20s idle window and the gradient
+fallback takes over, GPU work stops, `gpu.*` collapse, the run exits 0 printing
+`improvement` — and under `--update-baseline` the collapsed numbers become the
+reference, after which every healthy run reads as a permanent regression. In
+Tasks 7-12 a shader batch that destabilised the context would have read as the
+campaign's biggest win.
+
+**Fix.** `assertPageHealthy()` re-asserts no fallback element, zero console
+errors and zero page errors AFTER every measurement window, in all four
+scenarios, and FAILS the run. Proven by forcing `WEBGL_lose_context`
+mid-window:
+
+```
+pre-window health check: PASSED (page is healthy)
+mid-window: context lost, fallback elements present = 1
+post-window health check: THREW, as required
+  hero WebGL context was lost during the idle-hero measurement window (the
+  gradient fallback is showing). GPU metrics from this run would read as a
+  large improvement and are discarded. This is an environment/stability
+  failure, not a performance result.
+```
+
+### I3 — the nominal frame interval is now a property of the RIG
+
+`snapNominal` inferred the nominal interval from the measured window's own
+fastest decile. A regression pushing every frame past 25ms would snap the
+nominal to 33.33ms (30Hz) and report **zero** dropped frames: the worse the
+page got, the healthier it looked. `frame.nominalMs` was also `informational`
+(so it could never regress) and absent entirely from two scenarios.
+
+**Fix.** `collectRig()` measures the display's real cadence on a blank page
+once per invocation (`rig.refreshHz` 60, `rig.nominalFrameMs` 16.6667) and
+pins it for every scenario. `frame.nominalMs` is now a GATING metric in all
+four, and `refreshHz` joined `RIG_KEYS`.
+
+### I4 — `--update-baseline` could ratchet a regression in, or delete metrics
+
+It updated unconditionally on rig match — including when the run REGRESSED —
+and replaced each per-scenario metric map wholesale, so one lapsed sudo grant
+or one failed trace silently DELETED `power.*` / `gpu.webglMsPerFrame` from the
+baseline. The `MISSING` machinery only fires on the read side, so a deleted key
+stops being missing and simply stops being checked.
+
+**Fix.** Refuses when regressions > 0, an outlier was kept, a source blended, or
+the frame buffer overflowed — `--force` for a deliberate re-record. Per-scenario
+maps MERGE; keys the run did not produce are retained and reported.
+
+```
+EXIT CODE: 2
+REFUSING --update-baseline: this run is not a clean reference.
+  - it contains REGRESSIONS; baselining them makes them permanent and undetectable
+Fix the regression, or re-run to confirm, or pass --force if you deliberately intend
+this to become the new reference.
+
+# and with --force, a metric this run could not produce:
+  !! 1 baseline metric(s) were NOT produced by this run and were RETAINED, not deleted:
+  !!   idle-hero.power.packageMw
+```
+
+### I5 — rig checking silently disabled itself on a partial rig block
+
+`rigMismatches` skipped any key the baseline lacked, and the bootstrap tested
+`!next.rig` — but `{}` is truthy. Since **Task 5 hand-fills `baseline.json`**, a
+written `"rig": {}` or an omitted `chrome` would have disabled rig checking
+forever while every run went on claiming apples-to-apples.
+
+**Fix.** A missing `RIG_KEYS` entry inside a PRESENT rig block is reported as a
+mismatch (`baseline: "(missing from baseline rig block)"`); bootstrap is
+per-KEY. Observed filling all of `chrome, macos, arch, cpu, displayScale,
+refreshHz, nominalFrameMs, acPower, recordedAt` into an empty block.
+
+The rig guard also fired for real mid-review when the laptop was plugged back
+into AC between recording and comparing:
+`REFUSING --update-baseline: ... Mismatched: acPower.`
+
+### I6 — `freePort` could have SIGKILLed the user's shell
+
+Round 3 killed the grandparent of any listener on 4173 with no command filter
+and no SIGTERM first. Another terminal running `npm run dev -- --port 4173`
+is `zsh → npm → node vite`; round 3 would have killed that **zsh** and
+everything else in that terminal.
+
+**Fix.** Three guards: our own ancestry is never a target (unchanged); no
+shell/login/tmux process is ever a target at any round; escalation rounds only
+target recognisable server supervisors (`vite|wrangler|workerd|miniflare|npm|
+npx|pnpm|yarn|serve|http-server`). SIGTERM first, SIGKILL only if still alive.
+
+### I8 — bands now have a hand-settable ceiling
+
+The formula `max(10% of median, IQR, minBand)` has a floor but no CEILING, so a
+`frame.fps` of 60 tolerated a drop to 54 and a 9% GPU regression passed. The
+default formula is plan-mandated and was NOT changed; instead the plan's "bands
+... overridable there" is now real. Two optional per-metric keys in
+`baseline.json` survive the round trip and are applied on update:
+
+```
+"bandAbsolute": n   pin the band to exactly n
+"maxBand": n        cap the formula's output at n
+```
+
+Verified: with `maxBand: 0.02` the recomputed band stayed `0.02` where the
+formula would have produced `0.1236`, and a +21.6% move was correctly flagged
+REGRESSION against it.
+
+### I9 — the outlier gate no longer gates on tail metrics
+
+It evaluated every non-informational metric, including `frame.maxMs`,
+`frame.dropped` and `longTasks.*` — metrics whose entire purpose is catching
+rare bad events. It was observed live discarding an idle-hero run for
+`frame.maxMs = 133.2`, which is a real 133ms stall on an idle page (GC, shader
+recompile, compositor hitch), not an environmental fault. Gating on the tail
+biases the whole harness optimistic.
+
+**Fix.** Only central-tendency metrics gate (`gates !== false`): `p50`, `fps`,
+`*MsPerSec`, `gpu.*PerFrame`, `heapUsedMb`, the entrance landmarks. Tail and
+count metrics ride into the median untouched. The 3xIQR threshold,
+`MIN_RUNS_FOR_OUTLIER = 4` and `MAX_REPLACEMENTS = 3` are unchanged.
+
+### Minors fixed
+
+- `--compare` iterates the UNION of both reports' metrics (it could previously
+  pass while B silently lost a metric) and compares rig blocks.
+- GPU per-second rates divide by the TRACE's own duration, not the shorter
+  metric window it brackets — the old form inflated them, visible as a
+  `presentedFps` of 60.05 on a 60Hz display (now ~60.01).
+- `load.main.*` counters are read AT settle, so the window matches its comment
+  (`[commit, settled]`, not `[commit, settled + 1500ms]`).
+- `waitForScrollSettle` waits on an in-page predicate fed by a passive scroll
+  listener, instead of ~30 `page.evaluate` round trips inside the very window
+  whose `main.taskMsPerSec` they contributed to.
+- Intel `package power` is parsed as WATTS and scaled to mW (dormant on Apple
+  Silicon, but the field is named `packageMw`).
+- `powermetrics` runs as root, so `process.kill` EPERMs silently; teardown now
+  also asks `sudo -n kill`. It is bounded by `-n <samples>` regardless.
+- `--help` goes to stdout; errors stay on stderr.
+- `frameBufferOverflowed` is surfaced as a warning and blocks a baseline update.
+- Removed unused `layoutsPerSec` / `recalcStylesPerSec`.
+
+### Minor NOT fixed, and why
+
+`STAGE_ARRIVAL_PROGRESS`, the 4-card assertion and the geometry derivation exist
+verbatim in both `tests/e2e/pixel-gate.spec.ts` and `scroll-transition.mjs`, and
+a shared constant would be the right call. **Not done: `tests/` is outside Task
+3's Files list**, and the shared module would have to be imported by a Task 2
+file. Flagged for whoever owns the next change to either file — the coupling is
+documented in both places, but documentation is not a guard.

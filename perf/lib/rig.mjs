@@ -5,13 +5,21 @@
 
 import { chromium } from '@playwright/test'
 import { runSync, run } from './proc.mjs'
+import { measureRefresh } from './browser.mjs'
+import { quantile, snapNominal } from './stats.mjs'
 
 /** Keys that must match for a baseline comparison to mean anything. */
-export const RIG_KEYS = ['chrome', 'macos', 'arch', 'cpu', 'displayScale', 'acPower']
+export const RIG_KEYS = ['chrome', 'macos', 'arch', 'cpu', 'displayScale', 'refreshHz', 'acPower']
 
 export async function collectRig() {
   const acResult = await run('pmset', ['-g', 'ps'])
   const acPower = /AC Power/i.test(acResult.stdout)
+
+  // The display's real cadence, measured on a blank page. This PINS the
+  // dropped-frame arithmetic for every scenario: inferring it from the window
+  // being judged made a page running at half rate report zero dropped frames.
+  const deltas = await measureRefresh()
+  const nominalFrameMs = snapNominal(quantile(deltas, 0.1))
 
   return {
     chrome: await chromeVersion(),
@@ -19,6 +27,8 @@ export async function collectRig() {
     arch: runSync('uname', ['-m']),
     cpu: runSync('sysctl', ['-n', 'machdep.cpu.brand_string']),
     displayScale: await displayScale(),
+    refreshHz: Math.round(1000 / nominalFrameMs),
+    nominalFrameMs,
     acPower,
     recordedAt: new Date().toISOString(),
   }
@@ -58,12 +68,27 @@ async function displayScale() {
   }
 }
 
-/** Field-by-field diff against a stored rig block. Empty array = match. */
+/**
+ * Field-by-field diff against a stored rig block. Empty array = match.
+ *
+ * A PRESENT-BUT-INCOMPLETE rig block counts as a mismatch, not as a pass. The
+ * old rule skipped any key the baseline did not carry, which meant a
+ * hand-written `"rig": {}` — entirely plausible, since Task 5 hand-fills this
+ * file — disabled rig checking permanently and silently. Chrome would
+ * auto-update, the machine would drop to battery, and every run would go on
+ * claiming apples-to-apples. Absent keys are now named and reported.
+ *
+ * A wholly absent rig block still returns [] — that is the bootstrap case, and
+ * `updateScenarios` fills it in.
+ */
 export function rigMismatches(current, stored) {
-  if (!stored) return []
+  if (!stored || Object.keys(stored).length === 0) return []
   const out = []
   for (const key of RIG_KEYS) {
-    if (stored[key] === undefined) continue
+    if (stored[key] === undefined) {
+      out.push({ key, baseline: '(missing from baseline rig block)', current: current[key] })
+      continue
+    }
     if (String(stored[key]) !== String(current[key])) {
       out.push({ key, baseline: stored[key], current: current[key] })
     }

@@ -16,7 +16,15 @@
 // scroll, capped 2x on a flick). This scenario therefore measures the shader
 // running hot on purpose. That is the symptom, not noise in it.
 
-import { launchRun, mainThreadDeltas, perfMetrics, scenarioUrl, sleep, waitForSettledHero } from '../lib/browser.mjs'
+import {
+  assertPageHealthy,
+  launchRun,
+  mainThreadDeltas,
+  perfMetrics,
+  scenarioUrl,
+  sleep,
+  waitForSettledHero,
+} from '../lib/browser.mjs'
 import { collect, framesIn, longTasksIn, now } from '../lib/instrument.mjs'
 import { frameStats } from '../lib/stats.mjs'
 import { gpuFromProcessCpu, gpuFromTrace, sampleChromeProcesses, startTrace } from '../lib/trace.mjs'
@@ -34,15 +42,16 @@ const SETTLE_TIMEOUT_MS = 6000
 
 export const metrics = {
   'frame.p50Ms': { unit: 'ms', lowerIsBetter: true, minBand: 0.5 },
-  'frame.p95Ms': { unit: 'ms', lowerIsBetter: true, minBand: 1.5 },
-  'frame.maxMs': { unit: 'ms', lowerIsBetter: true, minBand: 5 },
-  'frame.dropped': { unit: 'frames', lowerIsBetter: true, minBand: 3 },
+  'frame.p95Ms': { unit: 'ms', lowerIsBetter: true, minBand: 1.5, gates: false },
+  'frame.maxMs': { unit: 'ms', lowerIsBetter: true, minBand: 5, gates: false },
+  'frame.dropped': { unit: 'frames', lowerIsBetter: true, minBand: 3, gates: false },
   'frame.fps': { unit: 'fps', lowerIsBetter: false, minBand: 2 },
-  'longTasks.count': { unit: '', lowerIsBetter: true, minBand: 1 },
-  'longTasks.totalMs': { unit: 'ms', lowerIsBetter: true, minBand: 20 },
-  'gpu.busyMsPerFrame': { unit: 'ms', lowerIsBetter: true, minBand: 0.08 },
-  'gpu.webglMsPerFrame': { unit: 'ms', lowerIsBetter: true, minBand: 0.05 },
-  'gpu.busyMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 5 },
+  'frame.nominalMs': { unit: 'ms', lowerIsBetter: true, minBand: 0.5 },
+  'longTasks.count': { unit: '', lowerIsBetter: true, minBand: 1, gates: false },
+  'longTasks.totalMs': { unit: 'ms', lowerIsBetter: true, minBand: 20, gates: false },
+  'gpu.busyMsPerFrame': { unit: 'ms', lowerIsBetter: true, minBand: 0.08, sourceKey: 'gpu' },
+  'gpu.webglMsPerFrame': { unit: 'ms', lowerIsBetter: true, minBand: 0.05, sourceKey: 'gpu' },
+  'gpu.busyMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 5, sourceKey: 'gpu' },
   'main.taskMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 5 },
   'main.scriptMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 4 },
   'main.layoutMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 2 },
@@ -52,7 +61,7 @@ export const metrics = {
   'scroll.windowMs': { unit: 'ms', informational: true },
 }
 
-export async function run() {
+export async function run(ctx) {
   const session = await launchRun()
   try {
     await session.page.goto(scenarioUrl('/'), { waitUntil: 'commit' })
@@ -104,7 +113,9 @@ export async function run() {
     const windowEnd = await now(session.page)
     const metricsAfter = await perfMetrics(session.client)
     const cpuAfter = await sampleChromeProcesses(session.browserSession)
-    const events = await trace.stop()
+    const { events, traceSeconds } = await trace.stop()
+
+    await assertPageHealthy(session, 'during the scroll-transition measurement window')
     const collected = await collect(session.page)
 
     return summarize({
@@ -114,8 +125,10 @@ export async function run() {
       metricsBefore,
       metricsAfter,
       events,
+      traceSeconds,
       cpuBefore,
       cpuAfter,
+      nominalFrameMs: ctx.nominalFrameMs,
       distance,
       endY,
       target: geometry.target,
@@ -126,32 +139,38 @@ export async function run() {
   }
 }
 
-/** Lenis keeps easing after the gesture ends; wait for scrollY to stop moving. */
+/**
+ * Lenis keeps easing after the gesture ends; wait for scrollY to stop moving.
+ *
+ * The predicate runs IN-PAGE against `__PERF__.lastScrollAt`, which a passive
+ * scroll listener in the init script maintains. The earlier version polled
+ * `page.evaluate(() => window.scrollY)` every 100ms — ~30 CDP round trips, each
+ * executing a script inside the very measurement window whose
+ * `main.taskMsPerSec` it then contributed to. A harness must not be a
+ * meaningful share of what it measures.
+ */
 async function waitForScrollSettle(page) {
-  const deadline = Date.now() + SETTLE_TIMEOUT_MS
-  let last = await page.evaluate(() => window.scrollY)
-  let stableSince = Date.now()
-  while (Date.now() < deadline) {
-    await sleep(100)
-    const current = await page.evaluate(() => window.scrollY)
-    if (Math.abs(current - last) < 0.5) {
-      if (Date.now() - stableSince >= SETTLE_STABLE_MS) return current
-    } else {
-      stableSince = Date.now()
-    }
-    last = current
-  }
-  return last
+  await page
+    .waitForFunction(
+      (stableMs) => {
+        const perf = window.__PERF__
+        return perf.lastScrollAt !== null && performance.now() - perf.lastScrollAt >= stableMs
+      },
+      SETTLE_STABLE_MS,
+      { timeout: SETTLE_TIMEOUT_MS, polling: 100 },
+    )
+    .catch(() => {})
+  return page.evaluate(() => window.scrollY)
 }
 
-function summarize({ collected, windowStart, windowEnd, metricsBefore, metricsAfter, events, cpuBefore, cpuAfter, distance, endY, target, consoleErrors }) {
+function summarize({ collected, windowStart, windowEnd, metricsBefore, metricsAfter, events, traceSeconds, cpuBefore, cpuAfter, nominalFrameMs, distance, endY, target, consoleErrors }) {
   const windowSeconds = (windowEnd - windowStart) / 1000
   const frames = framesIn(collected.frames, windowStart, windowEnd)
-  const stats = frameStats(frames)
+  const stats = frameStats(frames, nominalFrameMs)
   const longTasks = longTasksIn(collected.longTasks, windowStart, windowEnd)
   const main = mainThreadDeltas(metricsBefore, metricsAfter, windowSeconds)
 
-  const traced = gpuFromTrace(events, windowSeconds)
+  const traced = gpuFromTrace(events, traceSeconds)
   const gpu = traced ?? gpuFromProcessCpu(cpuBefore, cpuAfter, windowSeconds, stats.count)
 
   const values = {
@@ -160,6 +179,7 @@ function summarize({ collected, windowStart, windowEnd, metricsBefore, metricsAf
     'frame.maxMs': stats.max,
     'frame.dropped': stats.dropped,
     'frame.fps': windowSeconds > 0 ? stats.count / windowSeconds : 0,
+    'frame.nominalMs': stats.nominalMs,
     'longTasks.count': longTasks.length,
     'longTasks.totalMs': longTasks.reduce((sum, task) => sum + task.duration, 0),
     'gpu.busyMsPerFrame': gpu.busyMsPerFrame,
@@ -179,12 +199,12 @@ function summarize({ collected, windowStart, windowEnd, metricsBefore, metricsAf
     sources: { gpu: gpu.source, scroll: `cdp:synthesizeScrollGesture@${SCROLL_SPEED}px/s` },
     meta: {
       windowSeconds,
+      traceSeconds: gpu.traceSeconds ?? null,
       scrollTarget: target,
       scrollEndY: endY,
       scrollOvershootPx: Math.round(endY - target),
       framesInWindow: stats.count,
       presentedFrames: gpu.presentedFrames,
-      nominalFrameMs: stats.nominalMs,
       traceEvents: events.length,
       frameBufferOverflowed: collected.overflowed,
       pageErrors: collected.errors,

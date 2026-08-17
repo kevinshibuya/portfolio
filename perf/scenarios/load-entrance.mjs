@@ -27,7 +27,15 @@
 // includes it, which is why that metric is a wall-clock landmark rather than a
 // jank measure.
 
-import { launchRun, mainThreadDeltas, perfMetrics, scenarioUrl, sleep, waitForSettledHero } from '../lib/browser.mjs'
+import {
+  assertPageHealthy,
+  launchRun,
+  mainThreadDeltas,
+  perfMetrics,
+  scenarioUrl,
+  sleep,
+  waitForSettledHero,
+} from '../lib/browser.mjs'
 import { collect, framesIn, longTasksIn } from '../lib/instrument.mjs'
 import { frameStats } from '../lib/stats.mjs'
 
@@ -43,37 +51,44 @@ export const metrics = {
   'entrance.settledMs': { unit: 'ms', lowerIsBetter: true, minBand: 25 },
   'window.durationMs': { unit: 'ms', informational: true },
   'window.frame.p50Ms': { unit: 'ms', lowerIsBetter: true, minBand: 0.6 },
-  'window.frame.p95Ms': { unit: 'ms', lowerIsBetter: true, minBand: 2 },
-  'window.frame.maxMs': { unit: 'ms', lowerIsBetter: true, minBand: 6 },
-  'window.frame.dropped': { unit: 'frames', lowerIsBetter: true, minBand: 2 },
+  'window.frame.p95Ms': { unit: 'ms', lowerIsBetter: true, minBand: 2, gates: false },
+  'window.frame.maxMs': { unit: 'ms', lowerIsBetter: true, minBand: 6, gates: false },
+  'window.frame.dropped': { unit: 'frames', lowerIsBetter: true, minBand: 2, gates: false },
   'window.frame.fps': { unit: 'fps', lowerIsBetter: false, minBand: 2 },
-  'window.longTasks.count': { unit: '', lowerIsBetter: true, minBand: 1 },
-  'window.longTasks.totalMs': { unit: 'ms', lowerIsBetter: true, minBand: 20 },
+  'window.frame.nominalMs': { unit: 'ms', lowerIsBetter: true, minBand: 0.5 },
+  'window.longTasks.count': { unit: '', lowerIsBetter: true, minBand: 1, gates: false },
+  'window.longTasks.totalMs': { unit: 'ms', lowerIsBetter: true, minBand: 20, gates: false },
   'load.main.taskMs': { unit: 'ms', lowerIsBetter: true, minBand: 30 },
   'load.main.scriptMs': { unit: 'ms', lowerIsBetter: true, minBand: 25 },
   'load.main.layoutMs': { unit: 'ms', lowerIsBetter: true, minBand: 10 },
 }
 
-export async function run() {
+export async function run(ctx) {
   const session = await launchRun()
   try {
     await session.page.goto(scenarioUrl('/'), { waitUntil: 'commit' })
     const metricsBefore = await perfMetrics(session.client)
 
     await waitForSettledHero(session.page)
+
+    // Read the main-thread counters AT settle, not after the tail dwell —
+    // otherwise `load.main.*` would silently cover [commit, settled + tail]
+    // while its own comment claimed [commit, settled].
+    const metricsAfter = await perfMetrics(session.client)
+
     // Let the last rise frames and any trailing long task land in the buffers
     // before they are read out; the window itself ends at entranceSettled.
     await sleep(SETTLE_TAIL_MS)
+    await assertPageHealthy(session, 'during the load-entrance measurement window')
 
-    const metricsAfter = await perfMetrics(session.client)
     const collected = await collect(session.page)
-    return summarize(collected, metricsBefore, metricsAfter, session.consoleErrors)
+    return summarize(collected, metricsBefore, metricsAfter, ctx.nominalFrameMs, session.consoleErrors)
   } finally {
     await session.close()
   }
 }
 
-function summarize(collected, metricsBefore, metricsAfter, consoleErrors) {
+function summarize(collected, metricsBefore, metricsAfter, nominalFrameMs, consoleErrors) {
   const marks = collected.marks
   const required = ['explosionStart', 'entranceSettled']
   for (const key of required) {
@@ -89,7 +104,7 @@ function summarize(collected, metricsBefore, metricsAfter, consoleErrors) {
   const windowEnd = marks.entranceSettled
   const windowSeconds = (windowEnd - windowStart) / 1000
   const frames = framesIn(collected.frames, windowStart, windowEnd)
-  const stats = frameStats(frames)
+  const stats = frameStats(frames, nominalFrameMs)
   const longTasks = longTasksIn(collected.longTasks, windowStart, windowEnd)
 
   // Whole-load main-thread cost: the delta is taken inside ONE document
@@ -107,6 +122,7 @@ function summarize(collected, metricsBefore, metricsAfter, consoleErrors) {
     'window.frame.maxMs': stats.max,
     'window.frame.dropped': stats.dropped,
     'window.frame.fps': windowSeconds > 0 ? stats.count / windowSeconds : 0,
+    'window.frame.nominalMs': stats.nominalMs,
     'window.longTasks.count': longTasks.length,
     'window.longTasks.totalMs': longTasks.reduce((sum, task) => sum + task.duration, 0),
     'load.main.taskMs': main.taskMsPerSec * loadSeconds,
@@ -124,7 +140,6 @@ function summarize(collected, metricsBefore, metricsAfter, consoleErrors) {
       marks,
       windowSeconds,
       framesInWindow: stats.count,
-      nominalFrameMs: stats.nominalMs,
       frameBufferOverflowed: collected.overflowed,
       pageErrors: collected.errors,
       consoleErrors,

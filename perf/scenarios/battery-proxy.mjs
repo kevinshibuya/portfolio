@@ -15,7 +15,15 @@
 // both are available is deliberate: it means the day the grant lands does not
 // split the campaign's energy baseline into two incomparable halves.
 
-import { launchRun, perfMetrics, mainThreadDeltas, scenarioUrl, sleep, waitForSettledHero } from '../lib/browser.mjs'
+import {
+  assertPageHealthy,
+  launchRun,
+  mainThreadDeltas,
+  perfMetrics,
+  scenarioUrl,
+  sleep,
+  waitForSettledHero,
+} from '../lib/browser.mjs'
 import { collect, framesIn, now } from '../lib/instrument.mjs'
 import { frameStats } from '../lib/stats.mjs'
 import { sampleChromeProcesses } from '../lib/trace.mjs'
@@ -28,14 +36,14 @@ const LEAD_MS = 3000
 const PARK_MS = 60_000
 
 export const metrics = {
-  'cpu.rendererMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 3 },
-  'cpu.gpuProcessMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 3 },
-  'cpu.browserMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 3 },
-  'cpu.totalMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 5 },
+  'cpu.rendererMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 3, sourceKey: 'cpu' },
+  'cpu.gpuProcessMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 3, sourceKey: 'cpu' },
+  'cpu.browserMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 3, sourceKey: 'cpu' },
+  'cpu.totalMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 5, sourceKey: 'cpu' },
   'main.taskMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 3 },
-  'power.cpuMw': { unit: 'mW', lowerIsBetter: true, minBand: 50 },
-  'power.gpuMw': { unit: 'mW', lowerIsBetter: true, minBand: 50 },
-  'power.packageMw': { unit: 'mW', lowerIsBetter: true, minBand: 80 },
+  'power.cpuMw': { unit: 'mW', lowerIsBetter: true, minBand: 50, sourceKey: 'power' },
+  'power.gpuMw': { unit: 'mW', lowerIsBetter: true, minBand: 50, sourceKey: 'power' },
+  'power.packageMw': { unit: 'mW', lowerIsBetter: true, minBand: 80, sourceKey: 'power' },
   'frame.fps': { unit: 'fps', informational: true },
 }
 
@@ -46,7 +54,8 @@ export const metrics = {
  */
 let powerProbe = null
 
-export async function run({ log }) {
+export async function run(ctx) {
+  const { log } = ctx
   if (powerProbe === null) {
     powerProbe = await powermetricsAvailable()
     log(
@@ -73,11 +82,13 @@ export async function run({ log }) {
     const metricsAfter = await perfMetrics(session.client)
     const cpuAfter = await sampleChromeProcesses(session.browserSession)
     const powerSample = power ? await power.stop() : null
+
+    await assertPageHealthy(session, 'during the battery-proxy measurement window')
     const collected = await collect(session.page)
 
     const windowSeconds = (windowEnd - windowStart) / 1000
     const frames = framesIn(collected.frames, windowStart, windowEnd)
-    const stats = frameStats(frames)
+    const stats = frameStats(frames, ctx.nominalFrameMs)
     const main = mainThreadDeltas(metricsBefore, metricsAfter, windowSeconds)
 
     const perSecond = (deltaSeconds) => (windowSeconds > 0 ? (deltaSeconds * 1000) / windowSeconds : 0)
