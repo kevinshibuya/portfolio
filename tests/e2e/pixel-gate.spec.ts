@@ -171,6 +171,24 @@ async function loadFrozen(
   // rather than trust: a device-preset change or a stray resize would
   // otherwise silently rebase every golden on the next `--update-snapshots`.
   expect(page.viewportSize()).toEqual(expected)
+
+  // …and the CSS viewport matching is NOT sufficient. `src/index.css` sets
+  // `html { scrollbar-gutter: stable }`, which reserves ~11px on a host whose
+  // scrollbars are CLASSIC (space-taking) and nothing at all on a host with
+  // OVERLAY scrollbars — macOS with only a trackpad, which is what these
+  // goldens were recorded on. Under a classic host `viewportSize()` still
+  // reads 1440 while the LAYOUT viewport is 1429, every centred element moves
+  // 5.5px, and all 15 desktop goldens go red for a reason that has nothing to
+  // do with the app. That happened once (2026-08-22, full ledger entry) and
+  // cost a full debugging cycle because the symptom looks like shader drift.
+  //
+  // Fail here instead, naming the cause, so the campaign's sole visual judge
+  // can never revert a good optimization batch over a host setting.
+  const layoutWidth = await page.evaluate(() => document.documentElement.clientWidth)
+  expect(
+    layoutWidth,
+    `layout viewport is ${layoutWidth}px but the golden was recorded at ${expected.width}px — the host is reserving a ${expected.width - layoutWidth}px scrollbar gutter (classic scrollbars). This is an ENVIRONMENT mismatch, not a visual regression: do not --update-snapshots to "fix" it.`,
+  ).toBe(expected.width)
 }
 
 /**
