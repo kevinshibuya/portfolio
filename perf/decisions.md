@@ -2418,3 +2418,145 @@ file's Task 3 entries. **No measurement was run for this batch: `npm run perf`,
 `perf/lighthouse.mjs`, the pixel gate and the Playwright suite were all left
 alone deliberately** (contended rig), and none of them is load-bearing for a
 conclusion that is decidable from arithmetic.
+
+---
+
+## 2026-08-23 · Task 5b round 2 · baselines recorded — and BOTH proofs FAIL
+
+Round 1 (2026-08-17, above) recorded nothing: the rig never went quiet. Round 2
+got a quiet rig, recorded both baseline layers, and then found two independent
+failures that block the campaign. The measurements are the deliverable; the
+failures are the finding.
+
+**Power source (ruling of 2026-08-23 applied):** `cdp:SystemInfo-process-cpu-time`
+— the CDP renderer+GPU CPU-time proxy, source (2) in `perf/lib/power.mjs`. The
+harness probed `sudo -n powermetrics` and printed
+"powermetrics unavailable (passwordless sudo for powermetrics is not granted on
+this rig)" on every `battery-proxy` run. No sudo was attempted.
+
+**Rig block NOT deleted, and the pre-authorisation to delete it was wrong.**
+`chromeVersion()` launches Playwright's chromium (pinned at revision 1217 by
+`playwright-core` 1.59.1), not the host Chrome. It re-detected `147.0.7727.15`,
+byte-identical to the stored value. No mismatch occurred. `exact` and `rig` are
+byte-identical to `f1e5752` after both writes — the three-writer merge contract
+held (21 `chunkBytesCeiling` entries, `uniformUploadsPerFrame: 1`).
+
+### Leg 1 — `npm run perf -- --update-baseline` · PASS · commit `d2b57cf`
+
+Guard before: 0.30/core, foreign CPU 3.2%, hottest Terminal 4%. Result: no
+regressions; `scenarios` written for all four scenarios.
+`dist/index.html` sha256 `cd111a14…4a93b39d` (23334 bytes).
+
+idle-hero: `gpu.busyMsPerFrame` 1.309 · `gpu.busyMsPerSec` 78.5069 ·
+`gpu.webglMsPerFrame` 0.4586 · `main.taskMsPerSec` 29.2819 · fps 59.9901.
+
+### Leg 2 — `node perf/lighthouse.mjs --update-baseline` · PASS on the 2nd attempt
+
+Attempt 1 was **REFUSED by the R10 guard** — a foreign `assets/build.py` (another
+session's) held 98.8–100% of a core at both the start and end samples. Not
+forced, not killed. Its duty cycle was then measured at 6 s resolution: ~2 min
+instances back-to-back with ~4 s gaps, stopping entirely at 15:31:04Z. Attempt 2
+ran in that gap and passed (foreign CPU 9.4%).
+
+desktop: perf 95 (iqr 1) · lcp 1033.5943 (iqr 23.6612) · fcp 925.7849 · si
+1773.3097 · tbt 0 · cls 0 · transferBytes 946047 (iqr 0) · runMs 5333.15
+mobile: perf 67 (iqr 0) · lcp 6111.3023 (iqr 10.8959) · fcp 4479.6586 · si
+4479.6586 · tbt 0 (iqr 4) · cls 0 · transferBytes 946047 (iqr 0) · runMs 5087.15
+
+### Leg 3 — the idle-hero A/B · arms AGREE with each other, and DISAGREE with the baseline
+
+`--compare` takes two report paths (`--compare A B`); it is not a modifier on a
+scenario run, so the dispatched literal `idle-hero --runs 5 --compare` is a usage
+error. The acceptance question — do two consecutive invocations agree within
+their own bands — was answered by running the invocations and comparing.
+
+Every row below is `node perf/run.mjs idle-hero --runs 5`, same dist hash:
+
+| invocation | time (Z) | gpu.busyMsPerFrame | gpu.webglMsPerFrame | main.taskMsPerSec |
+|---|---|---|---|---|
+| baseline (inside leg 1) | 15:12 | 1.3090 | 0.4586 | 29.2819 |
+| arm A | 15:35 | 1.7079 | 0.5989 | 37.6612 |
+| arm B | 15:39 | 1.7405 | 0.6057 | 38.1032 |
+| arm C (after an orphan kill) | 15:44 | 1.8729 | 0.6496 | 40.6593 |
+| arm D (after a 5 min cool-down) | 15:56 | 1.8382 | 0.6420 | 40.4519 |
+
+A vs B agree on every metric within band (`gpu.busyMsPerFrame` delta 0.0326 vs
+band 0.1708). So the Task 3 acceptance property — *two consecutive invocations
+agree* — HOLDS. What fails is agreement with the recorded baseline: every arm is
+~+40% and the within-invocation IQR (0.0069–0.0636) understates the
+across-invocation spread by an order of magnitude. fps stays pinned at ~60 and
+`droppedPerSec` is 0 everywhere — the page has headroom, so the drift is in how
+long the work takes, not in whether frames land.
+
+Three candidate causes were tested and REFUTED, not assumed:
+- **My own orphan.** A `Google Chrome for Testing` (PPID 1, lighthouse temp
+  profile, live gpu-process) survived a run I killed at 15:27. Killing it
+  dropped foreign CPU 12.3%→1.8% — and arm C, taken after the kill, drifted
+  *further*. Recorded because it is the campaign's recurring failure and I
+  reproduced it myself: my post-kill check grepped only
+  `wrangler dev|vite preview|lighthouse.mjs` and never looked for the browser.
+- **Thermal.** Arm D ran after a 5 min idle cool-down on a rig at 0.12/core and
+  foreign CPU 1.8%. Still 1.8382.
+- **Invocation shape** (`all` vs standalone). Leg 7 below is the same
+  `npm run perf` shape as leg 1 and reads 1.8689.
+
+The baseline invocation's own *warm-up* run read 1.3163, and arm C's read
+1.7943 — so the level is a whole-invocation property fixed at launch, not one
+odd run. `rig` blocks are identical across the reports (displayScale 2,
+refreshHz 60, AC). **Cause not identified.** `legacyScreenSaver` was running from
+16:15:30Z, i.e. after every arm above, so it is excluded. The host's system
+sleep timer is **1 minute** and the dispatch's `caffeinate` had a coverage gap in
+this window; that is the leading untested hypothesis and it is recorded as
+untested, not as the answer.
+
+### Leg 7 — determinism proof · **FAIL**
+
+Second full `npm run perf`, clean rig (0.16/core, foreign CPU 1.7%). Not within
+band vs the baseline recorded 48 minutes earlier — on **all four** scenarios:
+
+    idle-hero          gpu.busyMsPerFrame  1.8689 vs 1.309    +42.8%  REGRESSION
+                       main.taskMsPerSec  41.428  vs 29.2819  +41.5%  REGRESSION
+    scroll-transition  gpu.busyMsPerFrame  2.5426 vs 2.1709   +17.1%  REGRESSION
+                       main.taskMsPerSec  88.4637 vs 70.8251  +24.9%  REGRESSION
+    battery-proxy      cpu.gpuProcessMsPerSec 155.6214 vs 119.4114 +30.3% REGRESSION
+                       cpu.totalMsPerSec  249.6599 vs 189.652 +31.6%  REGRESSION
+
+### Leg 6 — sensitivity proof, net 1 (`npm run perf`) · **FAIL — the net does not fire**
+
+Plant per the brief: `FluidWaves.tsx:158`, the 5-iteration domain-warp loop,
+`for (int i = 0; i < 5; i++)` → `i < 10`. **Verified to have reached the served
+bundle** — `dist/assets/index-WL1jlPh6.js` contained `i < 10; i++` and no
+`i < 5`. Because the baseline is untrustworthy (above), the plant was judged
+against a warm control taken minutes earlier, in an A-B-A:
+
+| run | gpu.webglMsPerFrame | gpu.busyMsPerFrame |
+|---|---|---|
+| control 1 (leg 7, unplanted, 16:00Z) | 0.6483 | 1.8689 |
+| **plant `i < 10` (16:10Z)** | **0.6231** | **1.7770** |
+| control 2 (unplanted, 16:17Z) | 0.6075 | 1.8559 |
+
+The plant lands *between* the two controls on both metrics. Control-to-control
+spread on `gpu.webglMsPerFrame` is 0.0408; the plant's deviation from the
+control mean is −0.0048. **Doubling the fragment shader's main per-pixel loop is
+invisible to the timing layer.** `npm run perf` did exit 1 during the planted
+run, but on the pre-existing baseline drift, not on the plant — an exit code that
+would have read as a pass had the control not been taken.
+
+Net 2, the pixel gate, stays PROVEN at `5c9673b` (24 red / 6 green, the 6 green
+being exactly the `stage-arrival` shots where neither canvas is on screen, at
+210–240× over tolerance). It was not re-run.
+
+### What this means, stated plainly
+
+The two failures share one cause: **the layer-2 GPU/CPU timing metrics carry an
+invocation-to-invocation drift (~40%) that is an order of magnitude larger than
+the signal they must detect (<1%).** Until that is fixed, `scenarios` cannot
+judge an optimization batch — a batch would be reverted or accepted on drift.
+The `exact` block (Task 6 budgets) and the Lighthouse layer are unaffected: both
+attempts at leg 2, one contaminated and one clean, produced identical
+`transferBytes` (946047) and identical scores (95 desktop / 67 mobile).
+
+The recorded baseline is left committed rather than reverted, deliberately: it
+fails **loudly** — `npm run perf` on an untouched tree prints REGRESSION on six
+metrics — which is a far safer state than an empty `scenarios` that silently
+prints "no baseline". Task 5 Steps 2 and 3 stay unticked.

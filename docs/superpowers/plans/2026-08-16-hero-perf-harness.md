@@ -254,7 +254,7 @@ Mechanics: every shot loads with `perf-seed=<seed>&perf-freeze=<t>&perf-role=0` 
 
 **Acceptance check:** `perf/baseline.json` exists, rig-stamped, and schema-complete — all four top-level keys (`rig`, `scenarios`, `lighthouse`, `exact`) present and non-empty (this shape assertion also guards the three-writer merge contract); the sensitivity + determinism runs' outputs pasted into `perf/decisions.md`.
 
-- [ ] **Step 1:** Record baselines (both layers) — commit `perf: baseline recorded on untouched tree`.
+- [x] **Step 1:** Record baselines (both layers) — commit `perf: baseline recorded on untouched tree`.
 - [ ] **Step 2:** Sensitivity proof (scratch regression detected by BOTH nets, then reverted) — evidence into `perf/decisions.md`.
 - [ ] **Step 3:** Determinism proof (second run within bands) — evidence into `perf/decisions.md`; commit.
 
