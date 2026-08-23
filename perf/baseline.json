@@ -378,9 +378,10 @@
       "lh.performance": {
         "median": 95,
         "iqr": 1,
-        "band": 9.5,
+        "band": 3,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@12.8.2:simulate",
+        "maxBand": 3
       },
       "lh.lcpMs": {
         "median": 1033.5943,
@@ -420,9 +421,10 @@
       "lh.transferBytes": {
         "median": 946047,
         "iqr": 0,
-        "band": 94604.7,
+        "band": 2048,
         "n": 5,
-        "source": "audit:total-byte-weight"
+        "source": "audit:total-byte-weight",
+        "maxBand": 2048
       },
       "lh.runMs": {
         "median": 5333.15,
@@ -478,9 +480,10 @@
       "lh.transferBytes": {
         "median": 946047,
         "iqr": 0,
-        "band": 94604.7,
+        "band": 2048,
         "n": 5,
-        "source": "audit:total-byte-weight"
+        "source": "audit:total-byte-weight",
+        "maxBand": 2048
       },
       "lh.runMs": {
         "median": 5087.15,

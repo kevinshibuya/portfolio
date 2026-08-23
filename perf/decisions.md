@@ -2560,3 +2560,71 @@ The recorded baseline is left committed rather than reverted, deliberately: it
 fails **loudly** — `npm run perf` on an untouched tree prints REGRESSION on six
 metrics — which is a far safer state than an empty `scenarios` that silently
 prints "no baseline". Task 5 Steps 2 and 3 stay unticked.
+
+### Leg 4 — Lighthouse A/B (`--runs 3` × 2, both presets) · **FAIL on desktop `lh.lcpMs`**
+
+Task 4's acceptance check is *two consecutive `node perf/lighthouse.mjs --runs 3`
+invocations agree within bands on both presets*. Checked mechanically with
+`node perf/run.mjs --compare A B` rather than by hand:
+
+    MOBILE   ✓ reports agree within their declared bands              exit 0
+    DESKTOP  ✗ lh.lcpMs  A 1143.7315  B 1015.9634  |delta| 127.7681  band 114.3732  DISAGREE
+             (every other desktop metric agreed; transferBytes delta exactly 0)
+
+Desktop `lh.lcpMs` carried an IQR of 107.3 and 95.6 in the two arms, against
+23.7 when the baseline was recorded — it is simply a noisy metric on this rig.
+The miss is marginal (11% over band) but it is a miss, so **Task 4 Step 1 stays
+unticked.**
+
+An environment failure was diagnosed and fixed here, and it is worth recording
+because it looks like a page defect and is not one. A first attempt at this leg
+died with `NO_FCP: The page did not paint any content. Please ensure you keep
+the browser window in the foreground`. Cause: **this host's system sleep timer is
+1 minute**, and the `caffeinate` covering the window had lapsed — the Mac slept
+mid-run. Every layer of this harness runs HEADED by design (`perf/lib/browser.mjs`,
+`perf/lighthouse.mjs`; a headless Layer 3 would fall back to SwiftShader and
+measure software rasterisation), so Lighthouse genuinely requires an awake
+display and a foregrounded window. **NO_FCP is an environment failure; it must
+never be worked around by switching a layer to headless.** Re-armed with
+`caffeinate -disu -t 10800` and the leg ran clean.
+
+### Leg 5 — the two `maxBand` overrides · PARTIALLY SET, from measured spread
+
+Spread actually measured, across **32 Lighthouse runs** recorded today (4
+invocations × 2 presets):
+
+| metric | preset | per-run range | spread | medians across invocations |
+|---|---|---|---|---|
+| `lh.transferBytes` | both | 946047 – 946047 | **0** | 946047 ×4 |
+| `lh.performance` | desktop | 94 – 95 | 1 | 95, 95, 94, 95 |
+| `lh.performance` | mobile | 66 – 71 | **5** | 67, 67, 67, 67 |
+
+Set:
+- **`lh.transferBytes.maxBand = 2048`, both presets.** 946047 bytes in all 32
+  runs — spread exactly zero, as expected for a fixed dist hash. 2048 is 2× the
+  declared `minBand` (1024). The default band was 94,604.7, i.e. the campaign's
+  *main lever* could regress by 94 KB and read clean.
+- **`lh.performance.maxBand = 3`, desktop only.** Per-run spread 1 over 16 runs;
+  3 leaves 3× margin and replaces a default band of 9.5.
+
+**Deliberately NOT set: `lh.performance.maxBand` on mobile.** Its per-run spread
+is 5 points (66–71) against a default band of 6.7. Any tightening below ~6 would
+manufacture false regressions, and 6 buys almost nothing over 6.7. The brief
+calls this a hard requirement; the measurement does not support a number, so it
+is left unset and the reason is recorded rather than a value guessed. This is the
+same refusal round 1 made, now backed by data instead of by absence of data.
+
+Written with the harness's own `bandFor` + `applyBandOverrides`, so the stored
+`band` is exactly what a later `--update-baseline` recomputes. Note
+`report.mjs:58` applies overrides **on read** (`applyBandOverrides(baseline.band,
+baseline)`), so `maxBand` bites on the very next run without waiting for a
+re-record.
+
+**Mutation-tested, not asserted** — the boundary is exactly where it should be:
+
+    lh.transferBytes desktop (maxBand 2048)   +1000 within-band · +2048 within-band
+                                              +2100 REGRESSION  · +50000 REGRESSION
+    lh.performance   desktop (maxBand 3)      -2/-3 within-band · -4 REGRESSION
+    lh.performance   mobile  (no override)    -3/-5 within-band · -7 REGRESSION
+
+Under the pre-override band a **+50,000-byte** regression read within-band.
