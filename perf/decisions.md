@@ -2628,3 +2628,84 @@ re-record.
     lh.performance   mobile  (no override)    -3/-5 within-band · -7 REGRESSION
 
 Under the pre-override band a **+50,000-byte** regression read within-band.
+
+### Round-2 addendum · four hypotheses refuted, and both proofs re-run in a settled regime
+
+After the `caffeinate` lapse was found and fixed (`caffeinate -disu -t 10800`,
+with `pmset -g` confirming both "sleep prevented by ... caffeinate" and "display
+sleep prevented by caffeinate"), **both proofs were re-run** rather than left on
+the earlier, environmentally-suspect measurements.
+
+**Determinism, re-run under armed caffeinate on the cleanest rig of the session**
+(0.09/core, foreign CPU 3.1%): `idle-hero` `gpu.busyMsPerFrame` **1.8934**,
+i.e. +44.6% — the elevated level again. `scroll-transition` 2.761 (+27.2%),
+`battery-proxy` `cpu.totalMsPerSec` 257.4509 (+35.7%). **Determinism still FAILS,
+and the sleep hypothesis is refuted along with the other three.**
+
+The full refutation set, every one tested by execution rather than argued:
+
+| hypothesis | test | verdict |
+|---|---|---|
+| my orphaned lighthouse browser | killed it (foreign CPU 12.3%→1.8%); re-measured | REFUTED — next arm drifted *further* |
+| thermal | 5 min idle cool-down, rig at 0.12/core | REFUTED — 1.8382 |
+| invocation shape (`all` vs standalone) | ran both shapes | REFUTED — 1.8689 vs 1.8382 |
+| display/system sleep (1-minute timer) | re-armed caffeinate, verified via `pmset` | REFUTED — 1.8934 |
+
+**The shape of the drift, which is the actionable part.** `idle-hero`
+`gpu.busyMsPerFrame` across every unplanted invocation:
+
+    15:12  1.3090   <- the recorded baseline, first invocation after a long idle
+    15:35  1.7079
+    15:39  1.7405
+    15:44  1.8729
+    15:56  1.8382
+    16:00  1.8689
+    16:17  1.8559
+    18:0x  1.8934
+    18:2x  1.8284
+
+The last five span 1.8284–1.8934, a spread of 0.0650 against a band of 0.187 —
+**comfortably reproducible.** The baseline is not a member of that population.
+Best-supported reading: *the first invocation after the rig has been idle for a
+long period reads ~30% low, and the metric settles to a reproducible level after
+roughly half an hour of activity.* The baseline was recorded at minute zero of
+the session. This is a hypothesis consistent with all nine points, not a proven
+mechanism — the mechanism was not identified.
+
+**Sensitivity net 1, re-run in that settled regime** — a far more sensitive test,
+since control-to-control spread is now ~0.011 rather than ~0.041:
+
+| run | gpu.webglMsPerFrame | gpu.busyMsPerFrame |
+|---|---|---|
+| control 1 (the determinism run above) | 0.6508 | 1.8934 |
+| **plant `i < 10`** | **0.6582** | **1.8768** |
+| control 2 | 0.6398 | 1.8284 |
+
+Plant deviation from the control mean: **+0.0129** on `gpu.webglMsPerFrame`,
+against a control-to-control difference of 0.0110 and a band of 0.065. In round 1
+the same plant sat at **−0.0048**. **The two rounds straddle zero.** Doubling the
+fragment shader's main per-pixel loop produces no effect this layer can resolve,
+in either rig regime, under A-B-A control both times. **Net 1 does not fire.**
+
+Plant provenance both rounds: verified present in the served bundle
+(`dist/assets/index-WL1jlPh6.js` contained `i < 10; i++`, no `i < 5`), and the
+restored build returns a different hash (`index-CnmSswf_.js`) with `i < 5`. The
+plant was never committed — restored with `git checkout --` on the single file
+rather than `git reset --hard`, to preserve an uncommitted plan checkbox tick;
+the branch carries no scratch/revert pair either way, which was the point of the
+original instruction. `git diff f1e5752 -- src/` is empty.
+
+### Standing recommendations
+
+1. **Do not run optimization batches 8–12 against `scenarios` as recorded.** The
+   layer would judge them on drift. `exact` (Task 6) and the Lighthouse layer are
+   unaffected and can carry their batches.
+2. **Re-record `scenarios` only after a settling period**, and consider making
+   that structural — a mandatory warm-up invocation whose results are discarded,
+   or a guard that refuses the first invocation after a long idle. This is a plan
+   change and is deliberately NOT made here.
+3. **The sensitivity requirement needs a new plant.** The brief's plant was chosen
+   to hit every pixel of both canvases, and it does — it is simply too cheap for
+   this layer to resolve on an M1 at 60 fps with headroom. A plant must be
+   calibrated to the layer's demonstrated resolution (~0.01 ms/frame here), or
+   the acceptance must move to a layer that can see it.
