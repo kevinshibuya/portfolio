@@ -159,6 +159,34 @@ async function loadFrozen(
     await page.setViewportSize(expected)
   }
 
+  // Pin the layout width so the gate is immune to the HOST's scrollbar mode.
+  //
+  // `src/index.css` sets `html { scrollbar-gutter: stable }`, which reserves
+  // ~11px only where scrollbars are CLASSIC (space-taking). macOS flips between
+  // classic and overlay on `AppleShowScrollBars: Automatic` according to whether
+  // A MOUSE IS ATTACHED — so without this, plugging in a mouse re-lays-out the
+  // page at 1429, shifts every centred element 5.5px and reds all 15 desktop
+  // goldens. That happened twice on 2026-08-22/23.
+  //
+  // Injected as an INIT SCRIPT, not `addStyleTag`, and the distinction is
+  // load-bearing: adding it after load would reflow the page 11px wider AFTER
+  // the canvas had sized itself, and a frozen canvas cannot be re-rendered at a
+  // new size (rule 2 in the header block). This applies from first paint.
+  //
+  // The gutter is not what this gate judges — it judges shader paint and the
+  // design's own layout — and the goldens are recorded in this pinned state, so
+  // they are now valid on any host: trackpad, mouse, or a Linux CI box.
+  await page.addInitScript(() => {
+    const css = 'html { scrollbar-gutter: auto !important; }'
+    const apply = (): void => {
+      const style = document.createElement('style')
+      style.textContent = css
+      ;(document.head ?? document.documentElement).appendChild(style)
+    }
+    if (document.documentElement) apply()
+    else document.addEventListener('DOMContentLoaded', apply, { once: true })
+  })
+
   await page.goto(`/?perf-seed=${seed}&perf-freeze=${freezeSeconds}&perf-role=0`)
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
   await page.waitForSelector('[data-entrance="settled"]')
@@ -172,22 +200,27 @@ async function loadFrozen(
   // otherwise silently rebase every golden on the next `--update-snapshots`.
   expect(page.viewportSize()).toEqual(expected)
 
-  // …and the CSS viewport matching is NOT sufficient. `src/index.css` sets
-  // `html { scrollbar-gutter: stable }`, which reserves ~11px on a host whose
-  // scrollbars are CLASSIC (space-taking) and nothing at all on a host with
-  // OVERLAY scrollbars — macOS with only a trackpad, which is what these
-  // goldens were recorded on. Under a classic host `viewportSize()` still
-  // reads 1440 while the LAYOUT viewport is 1429, every centred element moves
-  // 5.5px, and all 15 desktop goldens go red for a reason that has nothing to
-  // do with the app. That happened once (2026-08-22, full ledger entry) and
-  // cost a full debugging cycle because the symptom looks like shader drift.
+  // …and matching `viewportSize()` is NOT sufficient to prove the page actually
+  // laid out at that width. This asserts the scrollbar-gutter pin above really
+  // took effect, because if it ever stops working the failure is a 5.5px shift
+  // on every centred element — which reads as shader drift and costs a full
+  // debugging cycle to attribute correctly. Ask directly instead.
   //
-  // Fail here instead, naming the cause, so the campaign's sole visual judge
-  // can never revert a good optimization batch over a host setting.
-  const layoutWidth = await page.evaluate(() => document.documentElement.clientWidth)
+  // MEASURE THE ROOT'S LAID-OUT BOX, NOT `clientWidth`. Under headless Chrome's
+  // `--hide-scrollbars` the scrollbar is zero-width as far as `clientWidth` is
+  // concerned, so `documentElement.clientWidth` reports 1440 even while the
+  // gutter is reserved — it is blind to exactly the condition being guarded,
+  // and an earlier version of this assertion used it and caught nothing.
+  // Measured on a mouse-attached host: innerWidth 1440, clientWidth 1440, but
+  // `documentElement.getBoundingClientRect().width` 1429, `body.clientWidth`
+  // 1429, and a `width:100%` child 1429. The root's border box is what every
+  // centred element ultimately derives from, so that is the sensor.
+  const rootWidth = await page.evaluate(
+    () => document.documentElement.getBoundingClientRect().width,
+  )
   expect(
-    layoutWidth,
-    `layout viewport is ${layoutWidth}px but the golden was recorded at ${expected.width}px — the host is reserving a ${expected.width - layoutWidth}px scrollbar gutter (classic scrollbars). This is an ENVIRONMENT mismatch, not a visual regression: do not --update-snapshots to "fix" it.`,
+    rootWidth,
+    `the page laid out at ${rootWidth}px but the golden was recorded at ${expected.width}px — a ${expected.width - rootWidth}px scrollbar gutter survived the pin set in loadFrozen(). This is an ENVIRONMENT mismatch, not a visual regression: fix the pin, and do NOT --update-snapshots to "fix" it.`,
   ).toBe(expected.width)
 }
 
