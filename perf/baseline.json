@@ -10,8 +10,487 @@
     "acPower": true,
     "recordedAt": "2026-08-17T05:54:28.593Z"
   },
-  "scenarios": {},
-  "lighthouse": {},
+  "scenarios": {
+    "idle-hero": {
+      "frame.p50Ms": {
+        "median": 16.7,
+        "iqr": 0,
+        "band": 1.67,
+        "n": 5
+      },
+      "frame.p95Ms": {
+        "median": 17.6,
+        "iqr": 0,
+        "band": 1.76,
+        "n": 5
+      },
+      "frame.maxMs": {
+        "median": 17.8,
+        "iqr": 0,
+        "band": 4,
+        "n": 5
+      },
+      "frame.fps": {
+        "median": 59.9901,
+        "iqr": 0.0018,
+        "band": 5.999,
+        "n": 5
+      },
+      "frame.droppedPerSec": {
+        "median": 0,
+        "iqr": 0,
+        "band": 0.25,
+        "n": 5
+      },
+      "frame.nominalMs": {
+        "median": 16.6667,
+        "iqr": 0,
+        "band": 1.6667,
+        "n": 5
+      },
+      "longTasks.count": {
+        "median": 0,
+        "iqr": 0,
+        "band": 2,
+        "n": 5
+      },
+      "longTasks.totalMs": {
+        "median": 0,
+        "iqr": 0,
+        "band": 20,
+        "n": 5
+      },
+      "main.taskMsPerSec": {
+        "median": 29.2819,
+        "iqr": 2.6308,
+        "band": 3,
+        "n": 5
+      },
+      "main.scriptMsPerSec": {
+        "median": 3.7337,
+        "iqr": 0.2657,
+        "band": 2,
+        "n": 5
+      },
+      "main.layoutMsPerSec": {
+        "median": 0,
+        "iqr": 0,
+        "band": 1,
+        "n": 5
+      },
+      "main.recalcStyleMsPerSec": {
+        "median": 0,
+        "iqr": 0,
+        "band": 1,
+        "n": 5
+      },
+      "main.heapUsedMb": {
+        "median": 9.0186,
+        "iqr": 0.4015,
+        "band": 2,
+        "n": 5
+      },
+      "gpu.busyMsPerFrame": {
+        "median": 1.309,
+        "iqr": 0.1557,
+        "band": 0.1557,
+        "n": 5,
+        "source": "trace:gpu-process"
+      },
+      "gpu.busyMsPerSec": {
+        "median": 78.5069,
+        "iqr": 9.2725,
+        "band": 9.2725,
+        "n": 5,
+        "source": "trace:gpu-process"
+      },
+      "gpu.presentedFps": {
+        "median": 59.979,
+        "iqr": 0.044,
+        "band": 5.9979,
+        "n": 5,
+        "source": "trace:gpu-process"
+      },
+      "gpu.webglMsPerFrame": {
+        "median": 0.4586,
+        "iqr": 0.0516,
+        "band": 0.0516,
+        "n": 5,
+        "source": "trace:gpu-process"
+      }
+    },
+    "load-entrance": {
+      "entrance.explosionStartMs": {
+        "median": 1265.4,
+        "iqr": 16.6,
+        "band": 126.54,
+        "n": 5
+      },
+      "entrance.settledMs": {
+        "median": 3597.6,
+        "iqr": 4.7,
+        "band": 359.76,
+        "n": 5
+      },
+      "window.durationMs": {
+        "median": 2335.8,
+        "iqr": 10.9,
+        "band": 233.58,
+        "n": 5
+      },
+      "window.frame.p50Ms": {
+        "median": 16.7,
+        "iqr": 0,
+        "band": 1.67,
+        "n": 5
+      },
+      "window.frame.p95Ms": {
+        "median": 18.6,
+        "iqr": 0.28,
+        "band": 2,
+        "n": 5
+      },
+      "window.frame.maxMs": {
+        "median": 18.7,
+        "iqr": 0.1,
+        "band": 6,
+        "n": 5
+      },
+      "window.frame.dropped": {
+        "median": 0,
+        "iqr": 0,
+        "band": 2,
+        "n": 5
+      },
+      "window.frame.fps": {
+        "median": 59.8521,
+        "iqr": 0.0311,
+        "band": 5.9852,
+        "n": 5
+      },
+      "window.frame.nominalMs": {
+        "median": 16.6667,
+        "iqr": 0,
+        "band": 1.6667,
+        "n": 5
+      },
+      "window.longTasks.count": {
+        "median": 0,
+        "iqr": 0,
+        "band": 1,
+        "n": 5
+      },
+      "window.longTasks.totalMs": {
+        "median": 0,
+        "iqr": 0,
+        "band": 20,
+        "n": 5
+      },
+      "load.main.taskMs": {
+        "median": 441.76,
+        "iqr": 13.997,
+        "band": 44.176,
+        "n": 5
+      },
+      "load.main.scriptMs": {
+        "median": 158.816,
+        "iqr": 17.006,
+        "band": 25,
+        "n": 5
+      },
+      "load.main.layoutMs": {
+        "median": 23.072,
+        "iqr": 1.112,
+        "band": 10,
+        "n": 5
+      },
+      "entrance.firstShaderFrameMs": {
+        "median": 112.4,
+        "iqr": 25.7,
+        "band": 25.7,
+        "n": 5
+      },
+      "entrance.loaderDoneMs": {
+        "median": 2444.9,
+        "iqr": 5.2,
+        "band": 244.49,
+        "n": 5
+      }
+    },
+    "scroll-transition": {
+      "frame.p50Ms": {
+        "median": 16.7,
+        "iqr": 0,
+        "band": 1.67,
+        "n": 5
+      },
+      "frame.p95Ms": {
+        "median": 18.6,
+        "iqr": 0,
+        "band": 1.86,
+        "n": 5
+      },
+      "frame.maxMs": {
+        "median": 18.7,
+        "iqr": 0,
+        "band": 5,
+        "n": 5
+      },
+      "frame.dropped": {
+        "median": 0,
+        "iqr": 0,
+        "band": 3,
+        "n": 5
+      },
+      "frame.fps": {
+        "median": 60.0334,
+        "iqr": 0.2193,
+        "band": 6.0033,
+        "n": 5
+      },
+      "frame.nominalMs": {
+        "median": 16.6667,
+        "iqr": 0,
+        "band": 1.6667,
+        "n": 5
+      },
+      "longTasks.count": {
+        "median": 0,
+        "iqr": 0,
+        "band": 1,
+        "n": 5
+      },
+      "longTasks.totalMs": {
+        "median": 0,
+        "iqr": 0,
+        "band": 20,
+        "n": 5
+      },
+      "gpu.busyMsPerFrame": {
+        "median": 2.1709,
+        "iqr": 0.0526,
+        "band": 0.2171,
+        "n": 5,
+        "source": "trace:gpu-process"
+      },
+      "gpu.busyMsPerSec": {
+        "median": 95.7851,
+        "iqr": 2.3766,
+        "band": 9.5785,
+        "n": 5,
+        "source": "trace:gpu-process"
+      },
+      "main.taskMsPerSec": {
+        "median": 70.8251,
+        "iqr": 0.4557,
+        "band": 7.0825,
+        "n": 5
+      },
+      "main.scriptMsPerSec": {
+        "median": 18.8356,
+        "iqr": 0.1665,
+        "band": 4,
+        "n": 5
+      },
+      "main.layoutMsPerSec": {
+        "median": 0.9319,
+        "iqr": 0.0404,
+        "band": 2,
+        "n": 5
+      },
+      "main.recalcStyleMsPerSec": {
+        "median": 3.2364,
+        "iqr": 0.1771,
+        "band": 2,
+        "n": 5
+      },
+      "scroll.distancePx": {
+        "median": 1514,
+        "iqr": 0,
+        "band": 151.4,
+        "n": 5
+      },
+      "scroll.endY": {
+        "median": 1514,
+        "iqr": 0,
+        "band": 151.4,
+        "n": 5
+      },
+      "scroll.windowMs": {
+        "median": 2932.9,
+        "iqr": 34.1,
+        "band": 293.29,
+        "n": 5
+      },
+      "gpu.webglMsPerFrame": {
+        "median": 0.1891,
+        "iqr": 0.003,
+        "band": 0.05,
+        "n": 5,
+        "source": "trace:gpu-process"
+      }
+    },
+    "battery-proxy": {
+      "cpu.rendererMsPerSec": {
+        "median": 64.7939,
+        "iqr": 3.0013,
+        "band": 6.4794,
+        "n": 5,
+        "source": "cdp:SystemInfo.getProcessInfo"
+      },
+      "cpu.gpuProcessMsPerSec": {
+        "median": 119.4114,
+        "iqr": 2.7679,
+        "band": 11.9411,
+        "n": 5,
+        "source": "cdp:SystemInfo.getProcessInfo"
+      },
+      "cpu.browserMsPerSec": {
+        "median": 4.3915,
+        "iqr": 0.1726,
+        "band": 3,
+        "n": 5,
+        "source": "cdp:SystemInfo.getProcessInfo"
+      },
+      "cpu.totalMsPerSec": {
+        "median": 189.652,
+        "iqr": 6.0473,
+        "band": 18.9652,
+        "n": 5,
+        "source": "cdp:SystemInfo.getProcessInfo"
+      },
+      "main.taskMsPerSec": {
+        "median": 26.9027,
+        "iqr": 0.6071,
+        "band": 3,
+        "n": 5
+      },
+      "frame.fps": {
+        "median": 59.9956,
+        "iqr": 0.0117,
+        "band": 5.9996,
+        "n": 5
+      }
+    }
+  },
+  "lighthouse": {
+    "desktop": {
+      "lh.performance": {
+        "median": 95,
+        "iqr": 1,
+        "band": 9.5,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.lcpMs": {
+        "median": 1033.5943,
+        "iqr": 23.6612,
+        "band": 103.3594,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.tbtMs": {
+        "median": 0,
+        "iqr": 0,
+        "band": 25,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.cls": {
+        "median": 0,
+        "iqr": 0,
+        "band": 0.005,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.fcpMs": {
+        "median": 925.7849,
+        "iqr": 3.649,
+        "band": 92.5785,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.speedIndexMs": {
+        "median": 1773.3097,
+        "iqr": 6.0704,
+        "band": 177.331,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.transferBytes": {
+        "median": 946047,
+        "iqr": 0,
+        "band": 94604.7,
+        "n": 5,
+        "source": "audit:total-byte-weight"
+      },
+      "lh.runMs": {
+        "median": 5333.15,
+        "iqr": 39.49,
+        "band": 533.315,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      }
+    },
+    "mobile": {
+      "lh.performance": {
+        "median": 67,
+        "iqr": 0,
+        "band": 6.7,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.lcpMs": {
+        "median": 6111.3023,
+        "iqr": 10.8959,
+        "band": 611.1302,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.tbtMs": {
+        "median": 0,
+        "iqr": 4,
+        "band": 25,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.cls": {
+        "median": 0,
+        "iqr": 0,
+        "band": 0.005,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.fcpMs": {
+        "median": 4479.6586,
+        "iqr": 2.7405,
+        "band": 447.9659,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.speedIndexMs": {
+        "median": 4479.6586,
+        "iqr": 2.7405,
+        "band": 447.9659,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      },
+      "lh.transferBytes": {
+        "median": 946047,
+        "iqr": 0,
+        "band": 94604.7,
+        "n": 5,
+        "source": "audit:total-byte-weight"
+      },
+      "lh.runMs": {
+        "median": 5087.15,
+        "iqr": 41.37,
+        "band": 508.715,
+        "n": 5,
+        "source": "lighthouse@12.8.2:simulate"
+      }
+    }
+  },
   "exact": {
     "chunkBytesCeiling": {
       "Archive.js": 58464,
