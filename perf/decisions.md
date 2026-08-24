@@ -2709,3 +2709,168 @@ original instruction. `git diff f1e5752 -- src/` is empty.
    this layer to resolve on an M1 at 60 fps with headroom. A plant must be
    calibrated to the layer's demonstrated resolution (~0.01 ms/frame here), or
    the acceptance must move to a layer that can see it.
+
+## 2026-08-24 · BLOCKER 1 · `wrangler dev` dies mid-suite — root cause, reproduction, proposed fix
+
+Fable diagnosis leg (HANDOFF 2026-08-23, "keep wrangler, understand the crash"). Diagnosis
+only: nothing below changes app, harness or config; the one committed file is the reproducer.
+
+### Symptom
+
+`npx playwright test` (webServer = `npm run preview -- --port 4173` = `npm run build &&
+wrangler dev`) runs green for minutes, then `[WebServer] ✘ [ERROR]` with an EMPTY message and
+every remaining test fails `ERR_CONNECTION_REFUSED`. Wrangler's log names the cause only at
+debug level: `Error in ProxyController: Error inside ProxyWorker`, `cause: { message:
+'Network connection lost.' }`, then `wrangler command errored`. No zombies, no contention.
+
+### What the failing log actually says (`wrangler-2026-08-23_21-45-50_321.log`)
+
+| t | event |
+|---|---|
+| 21:45:50.63 | `⎔ Starting local server...` |
+| 21:45:50.83 / .85 | `reloadStart` / `reloadComplete` — **startup**, not mid-suite |
+| 21:45:50 → 21:50:10 | nothing but `Runtime.getIsolateId` inspector keepalives every 10 s |
+| 21:50:13.39 | `Error inside ProxyWorker` ← `Network connection lost.` |
+| 21:50:13.47 | `✘ [ERROR]` (empty), `wrangler command errored`, `durationMs: 262912` |
+
+So the "hot reload mid-suite" lead is refuted by the timestamps: the only reload is the boot
+one, and `dist/` never changes during the run. Nor is the crash tied to any test's behaviour:
+the 30 failure dirs do NOT include test 72 (`[mobile-chromium] perf-budget.spec.ts:192 hero
+canvas pauses off-screen`) — it PASSED. The first failure is test 73 (`reduced motion: static
+frame, no loop`), whose very first request (`goto /?perf-seed=…`) is what died, after test 72's
+quiet tail (500 ms sample + fixture teardown + new context).
+
+### Mechanism, read from the code that runs
+
+`wrangler dev` is two workerd processes. wrangler's own miniflare hosts the **ProxyWorker**
+(a Durable Object; binds 4173) and forwards every request over TCP to the **UserWorker**
+workerd (`127.0.0.1:<random>`, here the assets server + `templates/no-op-worker.js`). The copy
+that executes is `node_modules/wrangler/wrangler-dist/ProxyWorker.js` (resolved by path at
+`cli.js:278718`; the on-disk `templates/startDevWorker/ProxyWorker.ts` is reference only).
+
+```js
+// wrangler-dist/ProxyWorker.js:155
+}).catch((error) => {
+  if (isSameUserWorkerOrigin(userWorkerUrl, this.proxyData?.userWorkerUrl)) {   // :156
+    void sendMessageToProxyController(this.env, { type: "error", error: {…} });  // → fatal
+    deferredResponse.reject(error);
+  } else if (request.method === "GET" || request.method === "HEAD") {
+    this.requestRetryQueue.set(request, deferredResponse);                       // silent retry
+  } else { /* 503 "worker restarted mid-request" */ }
+});
+```
+
+- `ProxyController.onProxyWorkerMessage` (`cli.js:280065`) → `emitErrorEvent("Error inside
+  ProxyWorker", cause)`; `castErrorCause` (`cli.js:179580`) gets a JSON object, not an `Error`,
+  so it returns `new Error()` with no message — the empty `✘ [ERROR]`.
+- `DevEnv.handleErrorEvent` (`cli.js:434426`) carves out exactly two ProxyController reasons as
+  non-fatal (`Failed to send message to…`, `Could not connect to InspectorProxyWorker`);
+  `Error inside ProxyWorker` falls through to `this.emit("error")` → the dev command exits.
+- **Why the branch flipped in this repo's lifetime:** PR cloudflare/workers-sdk#14593 (merged
+  2026-07-23, shipped in **wrangler 4.114.0**) changed the classification from href to origin.
+  Before it, `userWorkerUrl.href` (with path/query) vs an origin-only URL never matched except
+  for a bare `/`, so a failed GET for any asset or query URL was silently requeued and retried on
+  the next inbound request. After it, every failure on an unchanged origin — and the origin never
+  changes here, nothing reloads — is reported and fatal. This repo moved 4.95.0 → 4.123.0 in
+  `f9b8188` (2026-08-16, the npm-audit bump). The wrangler logs agree: 187 logs, first crash
+  signature 2026-08-16, all 7 crashes on 4.123.0 (durations 7 s, 28 s, 68.1 s, 68.7 s, 68.8 s,
+  262 s, 312 s — never the same test).
+
+### The transient failure itself: a 5 s / 5 s keep-alive race
+
+`"Network connection lost."` is how workerd renders a kj `DISCONNECTED` exception to JS. On the
+ProxyWorker → UserWorker hop both sides run kj's HTTP defaults, which workerd does not override:
+`HttpClientSettings.idleTimeout = 5 s` (the ProxyWorker's pool keeps an idle connection that
+long) and `HttpServerSettings.pipelineTimeout = 5 s` (the UserWorker closes an idle keep-alive
+connection after that long). A request that checks a pooled connection out ≈5.000 s after the
+previous response on it is written into a socket the server is closing → no response, kj
+`DISCONNECTED`. Upstream #14641 traced this at TCP level (`DATA A→B` and `CLOSE by-B` in the
+same millisecond); #15252's author reproduced it organically with idle-gap sweeps.
+
+### Reproduction on this machine (`perf/wrangler-cadence-repro.mjs`)
+
+GET `/` against this repo's own `dist/` via `npx wrangler dev --port 4199`, steady
+send-time-aligned cadence, a FRESH inbound socket per shot so only the inner pooled hop can race.
+
+| interval | idle on the pooled connection | result |
+|---|---|---|
+| 5000 ms (run 1) | ≈5.005 s | shot 1 → **HTTP 500**, shot 2 → `ECONNREFUSED`, **wrangler exit 1**, empty `✘ [ERROR]` |
+| 4000 ms | ≈3.99 s | 24/24 `200`, alive |
+| 5000 ms (run 2) | ≈5.000 s | shot 1 → **HTTP 500**, **wrangler exit 1** — A-B-A holds |
+| 4950 / 4980 ms | 4.92–4.93 s | 3/3 `200`, alive |
+| 5020 / 5050 / 5100 / 5200 / 5400 ms | 5.01–5.42 s | 3/3 `200`, alive (pool had evicted the connection) |
+
+The fatal window is idle ∈ (5.000 s, ~5.010 s) — about 10 ms. Two requests are enough to kill
+the server, deterministically, on a machine with nothing else running. The wrangler log for each
+kill carries the identical `Error inside ProxyWorker` / `Network connection lost.` signature.
+
+**Why the suite hits it intermittently:** every test boundary is a page load after a quiet tail
+(last lazy asset → sampling waits → teardown → next `goto`) of a few seconds, timed by the app
+(loader dwell, explosion, IO settle) rather than by the tests; boundaries whose gap sits near
+5.000 s roll a ~10 ms die each run. The three crashes at 68.1–68.8 s are the same early-suite
+boundary rolling badly three times; the rest are other boundaries. `hero-entrance.spec.ts:17,55`
+and `loader.spec.ts:14` use 5000 as a *timeout*, not a sleep — no spec sleeps 5 s.
+
+### Hypotheses refuted by execution
+
+1. Hot reload mid-suite → refuted (reload pair is at boot; log is silent until the crash).
+2. `dist/` changing during the run → refuted (same; `dist/` is written once by `npm run build`).
+3. A specific test aborting requests (`route.abort`, `page.close` mid-load, deep-route `goto`)
+   → refuted (test 72 passed; test 73's first plain `goto` died; no spec does any of those).
+4. Zombies / port contention → refuted 2026-08-23 already (`pgrep` empty before and after).
+5. The vite-plugin / config shape → irrelevant: the reproducer needs only `wrangler dev` on a
+   static `dist/`; upstream reproduces with a one-line worker and no assets at all.
+
+### Upstream state (cloudflare/workers-sdk, checked 2026-08-24)
+
+- Open: **#14926** (canonical regression 4.114+, 7 independent repros, `awaiting-response:
+  cloudflare`), **#15317** (2026-08-22, our symptom and analysis verbatim), **#14641** (the 5 s
+  phase-lock, TCP-traced), **#15203** (assets + POST variant), #8087. Closed as dup of #14926:
+  #15002 (bisected 4.113 clean / 4.114 red). None connects #14593 to the 4.114 window explicitly;
+  the bisection and the merge date do.
+- **Fix PR #15252** (opened 2026-08-18, `REVIEW_REQUIRED`, codeowners `@cloudflare/wrangler`):
+  (1) `ProxyWorker.ts` retries bodyless (GET/HEAD) same-origin failures immediately and once
+  more after 250 ms before reporting; (2) `DevEnv.handleErrorEvent` logs `Error inside
+  ProxyWorker` instead of re-emitting it fatally. Also open: #15207 (non-fatal only), #14906
+  (`castErrorCause` keeps the message). Not in 4.124.0 or 4.125.0 (release notes checked).
+- pkg.pr.new publishes #15252 as an installable package:
+  `https://pkg.pr.new/cloudflare/workers-sdk/wrangler@15252` → wrangler **4.124.0** + commit
+  `5fc41f0`, depending on `miniflare@https://pkg.pr.new/…/miniflare@5fc41f0…` and workerd
+  1.20260820.1. Tarball fetched and inspected: `templates/startDevWorker/ProxyWorker.ts`
+  carries `attemptUserWorkerFetch(attempt)` with the 250 ms second retry.
+
+### Proposed fix — keeps `wrangler dev` as the webServer (Kevin's ruling)
+
+**A (recommended).** `npm i -D https://pkg.pr.new/cloudflare/workers-sdk/wrangler@15252`. It is
+the upstream fix, on wrangler 4.124.0, both halves (retry + non-fatal). Cost: package.json /
+lockfile pin a URL instead of a semver, and pkg.pr.new tarballs are not guaranteed forever —
+record here that the pin reverts to `wrangler@^4.x` in the first release containing #15252, and
+confirm `@cloudflare/vite-plugin@1.52.1`'s peer range accepts 4.124.0 at install time.
+
+**B (fallback).** `patch-package` on 4.123.0 with the two #15252 hunks: the retry wrapper around
+the inner `fetch` in `wrangler-dist/ProxyWorker.js:155` and a third `startsWith("Error inside
+ProxyWorker")` arm in `handleErrorEvent` (`cli.js:434426`) that logs instead of emitting.
+Patching a 440 k-line bundle is brittle across bumps; only if A's build misbehaves.
+
+**Acceptance (RED today):** `node perf/wrangler-cadence-repro.mjs 5000,4000 24` must go from
+exit 1 (dies at shot 1 of the 5000 ms leg) to exit 0 (24/24 `200` on both legs, wrangler alive).
+Then `npx playwright test` 102/102 twice, then the real `tier2-journeys` PASS on the registry.
+
+**Not the fix:** `retries: 1` (masks a 30-test cascade as a flake), `freePort` (there is no
+port contention), bumping to 4.125.0 (same code paths), hoping the 10 ms window stops landing.
+Kevin rejected swapping to `vite preview` on 2026-08-23; one fact he did not have then, offered
+for his judgment and not as a re-proposal: with `@cloudflare/vite-plugin` present, `vite
+preview` also serves `dist/` from workerd via miniflare (`configurePreviewServer` in
+`@cloudflare/vite-plugin/dist/index.mjs`), but without wrangler's ProxyWorker hop — the exact
+component that crashes.
+
+### Method notes
+
+- The wrangler log's **timestamps** killed the leading hypothesis in one read; the previous
+  session had the right file and stopped at the word `reloadStart`.
+- The **absent** failure dir (test 72's) located the crash more precisely than the 30 present ones.
+- `gh search issues` / `gh pr list --search` on the exact error string found the upstream root
+  cause, a fix PR and a prebuilt package in one call each — faster than the docs, which do not
+  mention the ProxyWorker at all.
+- **Falsify by execution:** the cadence script turned "a narrow race, probably" into a two-request
+  deterministic kill with an A-B-A control and a measured window, in under ten minutes.
