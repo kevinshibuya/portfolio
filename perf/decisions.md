@@ -2874,3 +2874,65 @@ component that crashes.
   mention the ProxyWorker at all.
 - **Falsify by execution:** the cadence script turned "a narrow race, probably" into a two-request
   deterministic kill with an A-B-A control and a measured window, in under ten minutes.
+
+---
+
+## 2026-08-24 · BLOCKER 1 · FIX APPLIED AND PROVEN — option A, wrangler 4.124.0 + #15252
+
+Option **A** was taken. `npm i -D https://pkg.pr.new/cloudflare/workers-sdk/wrangler@15252`
+resolved to wrangler **4.124.0**, pulling a nested
+`miniflare@5.20260815.0-alpha` and `workerd@1.20260820.1` under `node_modules/wrangler/`
+(the top-level `miniflare@5.20260811.1-alpha` / `workerd@1.20260811.1` still belong to
+`@cloudflare/vite-plugin@1.52.1` and were left alone). Option B (`patch-package`) was not needed.
+
+**Both halves verified in the copy that actually RUNS**, not in the shipped `templates/` source:
+- `node_modules/wrangler/wrangler-dist/ProxyWorker.js` contains `attemptUserWorkerFetch` (×3).
+- `node_modules/wrangler/wrangler-dist/cli.js:480835` carries the third arm:
+  `else if (event.source === "ProxyController" && event.reason.startsWith("Error inside ProxyWorker"))`
+  → `logger2.error(... "(the affected request failed; the dev server continues)" ...)` instead of
+  `this.emit("error", event)`. That is the non-fatal carve-out.
+
+**Peer range:** `@cloudflare/vite-plugin@1.52.1` declares `wrangler: "^4.123.0"`; 4.124.0 satisfies
+it, and npm installed with no peer warning.
+
+### Acceptance — RED → GREEN, same script, same machine, same `dist/`
+
+| run | command | result |
+|---|---|---|
+| before (wrangler 4.123.0) | `node perf/wrangler-cadence-repro.mjs 5000,4000 6` | **exit 1** — 5000 ms leg: shot 0 `200`, shot 1 `500`, shot 2 `ECONNREFUSED`, `wrangler EXITED code=1`; 4000 ms leg 6/6 alive |
+| after (wrangler 4.124.0 + #15252) | `node perf/wrangler-cadence-repro.mjs 5000,4000 24` | **exit 0** — 5000 ms leg **24/24 `200`**, wrangler alive; 4000 ms leg 24/24 `200`, wrangler alive |
+
+### The fix was exercised by the real suite, and said so out loud
+
+`npx playwright test` at this commit ran to **completion in 7.9 min — 100 passed, 2 failed, and
+ZERO `ERR_CONNECTION_REFUSED`** (grep count 0 over the whole log). Before the fix the same suite
+died at test 73 and cascaded 30. The webServer log carries the retry firing twice:
+
+```
+▲ [WARNING] ProxyWorker: GET http://localhost:4173/assets/react-core-CtLa9F_C.js recovered on attempt 2 after a dropped connection to the UserWorker
+▲ [WARNING] ProxyWorker: GET http://localhost:4173/assets/i18n-BmEeI7Pj.js recovered on attempt 2 after a dropped connection to the UserWorker
+```
+
+Each of those two is a keep-alive drop that, on 4.123.0, would have been a fatal `✘ [ERROR]` exit.
+So this is not "the race stopped landing" — it landed twice and was survived. That distinction is
+the whole point of the acceptance test being a cadence script rather than a suite re-run.
+
+### The 2 remaining failures are NOT BLOCKER 1 and are not yet judged
+
+Both are `tests/e2e/perf-budget.spec.ts`, desktop-chromium only, both timing assertions:
+`no long task > 200ms during scroll` (longest task **461 ms**, budget 300) and `hero GL work …
+from one loop` (**7** rAF frames sampled, assertion `> 10`).
+
+The harness's own guard, sampled immediately after the run, says the machine was **not fit to
+measure**: `busy: true`, reasons `1-min load average 8.16 on 8 cores = 1.02/core (limit 0.7)` and
+`"build.py" is using 100.0% CPU (limit 50%)` — the ts6-server session's script, which is to be
+waited out, never killed. A saturated CPU produces exactly a stretched long task and a short
+frame count. **Verdict deferred: re-run these two specs on a quiet machine before reading them as
+either flake or defect.** They are recorded here unjudged rather than dismissed.
+
+### Standing note on the pin
+
+`package.json` now pins a **URL**, not a semver: `"wrangler": "https://pkg.pr.new/cloudflare/workers-sdk/wrangler@15252"`.
+pkg.pr.new tarballs are not guaranteed to persist. Revert to a plain `wrangler@^4.x` in the first
+release that contains #15252 — it is not in 4.124.0 or 4.125.0 as published. Until then a fresh
+`npm ci` on another machine depends on pkg.pr.new being up.
