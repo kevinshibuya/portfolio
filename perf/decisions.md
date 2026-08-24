@@ -2183,42 +2183,96 @@ question about one canvas row, `vUv.y = (1 − g)·dissolveStart`. And on that r
 `vUv.x`, `seed` and `time`, and `n`'s also carries the flow coordinate `uv`,
 itself a function of `vUv`. **At a single fragment you do not get to pick both.**
 
-**Joint search with `vUv.y` pinned** (run by review, reported as given):
+**Joint search with `vUv.y` pinned.** Round 4 replaced every figure in this
+section with output from a **committed** script, `perf/dissolve-guard-search.mjs`
+— see "Why the numbers in this entry are now reproducible" at the end of this
+entry.
+Reproduce with:
+
+```
+node perf/dissolve-guard-search.mjs joint -0.3157 40000
+```
 
 | search | max joint `term` at `p = −0.3157` | needed to break that guard |
 |---|---|---|
-| hill-climb, 4 000 restarts | 0.504222 | 0.617444 |
-| hill-climb, 40 000 restarts | **0.518451** | 0.617444 |
-| 4 × 10⁶ uniform real fragments | 0.500458 | 0.617444 |
-| 6 000 restarts × 4 aspect ratios | 0.495 – 0.507 | 0.617444 |
+| 1440×900 | 0.520960 | 0.617444 |
+| 1440×1080 | **0.541167** | 0.617444 |
+| 390×844 | 0.537125 | 0.617444 |
+| 2560×1440 | 0.526683 | 0.617444 |
 
-Neither axis sits near its individual maximum in the best joint witness. **That
-is the coupling, made visible.** Demonstrated joint witnesses reach
-`field = 0.24` only down to **`p ≈ −0.21`**.
+The best witness has `n = 0.863130`, `sweep = 0.178038` — **neither axis near its
+own maximum (0.903 / 0.220). That is the coupling, made visible**, and it is the
+one thing in this section that a per-axis number cannot show. `field` at that
+witness is `0.171351`, well under `T = 0.24`: the search does **not** break a
+`−0.3157` guard.
+
+**How far down a witness actually reaches: `p = −0.230`, at 12 000 restarts per
+row** (`node perf/dissolve-guard-search.mjs boundary 12000`). **This supersedes
+the `−0.21` this entry carried through v1–v3, which was never witnessed** — it
+was produced by inverting a max `term` measured on a *different* row, in the very
+section that opens by saying `vUv.y` must be pinned. Round-4 review flagged it
+(Important 4); the script settles it by searching each candidate row on its own.
+
+**And the figure is a function of search effort, so it is quoted with one.** At
+2 000 restarts/row the break column comes out *ragged* — `−0.20` no, `−0.21`
+yes — which is an artifact of the estimator, not a property of the field. At
+12 000 the gaps fill and the frontier moves down to `−0.230`. A witnessed
+frontier is monotone non-decreasing in effort **by construction**, so this
+number can only ever descend further. Quoting it without its budget is what
+produced four mutually-inconsistent passes.
+
+Corroborating how soft the frontier is: at `p = −0.250` the best `term` found is
+`0.544443` against `0.544444` needed — `field = 0.239999` versus `T = 0.24`, a
+miss by one part in a million. Nothing structural separates −0.23 from −0.25.
 
 **Per-axis maxima, and what they do and do not give.** fp32-emulated
 transcription of `hash`/`vnoise`/`fbm` (`Math.fround` at every step); the sweep
 row is searched on the shader's *constrained* domain
-(`x = vUv.x·1.3 + seed·3 ∈ [0, 4.3)`, `y = time·0.03` over ~2.8 h of drift),
-because that is the only domain `sweep` can reach:
+(`x = vUv.x·1.3 + seed·3 ∈ [0, 4.3)`, `y = time·0.03` over a `time ∈ [0, 1e5]` s
+domain ≈ 27.8 h of drift), because that is the only domain `sweep` can reach:
+
+Reproduce with `node perf/dissolve-guard-search.mjs per-axis 40000`:
 
 | axis | best found | % of that axis's sup |
 |---|---|---|
-| `n`, broad domain | 0.906466 | 96.7% of 0.9375 |
-| `sweep`'s `fbm`, constrained domain | 0.883656 ⇒ `sweep = 0.211011` | 87.7% of 0.240625 |
+| `n`, broad domain | 0.903147 | 96.3% of 0.9375 |
+| `sweep`'s `fbm`, constrained domain | 0.900858 ⇒ `sweep = 0.220472` | 91.6% of 0.240625 |
+
+**These two figures may NOT be combined, and v3 of this entry combined them.**
+It wrote:
 
 ```
-  max term  <=  max n - 0.5 + max sweep  =  0.617477      <-- UPPER bound
-  => attainable p_act >= -0.315729                        <-- LOWER bound on the boundary
+  max term  <=  max n - 0.5 + max sweep  =  0.617477      <-- claimed UPPER bound
+  => attainable p_act >= -0.315729                        <-- claimed LOWER bound
 ```
 
-**Both of those are bounds, not witnesses.** Combining a best-`n` witness with a
-best-`sweep` witness assumes both maxima occur at the same fragment, which the
-coupling above forbids — it is the identical "treat both as simultaneously
-maximal" move that Step 4 correctly labels *the conservative (safe) direction*,
-reused here in the direction where it is **not** conservative. v2 of this entry
-wrote that combination as `≥` and derived attainability from it. It is `≤`.
-Nothing reaches `0.617477`; the joint searches top out around `0.50 – 0.52`.
+Both lines are **retracted** (round-4 review, Important 1). The arithmetic is
+right for the inputs it used — and that is the whole trap: correct arithmetic on
+inputs that do not license it. (On round-4's numbers the same combination gives
+`0.903147 − 0.5 + 0.220472 = 0.623619`, a *different* "bound" from the same
+method — which is itself the tell: a real upper bound does not move when you
+search harder.)
+
+- **The `≤` does not hold.** Its right-hand side is built from *searched* maxima,
+  and a search result is a **lower** bound on its axis's true maximum, never an
+  upper one. `max term ≤ (best found n) − 0.5 + (best found sweep)` is therefore
+  unproven in the direction it is written; the next restart could raise either
+  input. The only valid upper bound on `term` is the algebraic one from Step 4,
+  `sup(term) = (S − 0.5)(1 + k) = 0.678125`, which is already stated there.
+- **The `≥` on `p_act` inherits that defect and points the wrong way.** It reads
+  as "the true boundary is no lower than `−0.3157`", i.e. as licence to place a
+  guard above the proven `−0.3703125`. It is not a bound, it is an estimate, and
+  it drifts to the **unsafe** side of the shipped constant. Nothing about guard
+  placement may be derived from it.
+- **It is also the same mistake Step 4 gets right, run backwards.** Treating `n`
+  and `sweep` as simultaneously maximal is the *conservative* direction when
+  bounding what the field can reach — that is why Step 4 may do it. Reused to
+  argue what the field *does* reach, it is anti-conservative, and the coupling
+  above forbids it outright: the two maxima do not occur at one fragment.
+
+What the per-axis numbers legitimately give is a sense of how much of each
+axis's own sup a search recovers (~96% and ~88%) — nothing joint. The joint
+figure comes from the row-pinned search below, and only from there.
 
 **Uniform product-sampling, for the record.** Sampling `n` and `sweep` at
 independent coordinates (also not the real joint manifold, but cheap):
@@ -2229,18 +2283,25 @@ independent coordinates (also not the real joint manifold, but cheap):
 | 4 × 10⁷ | 0..40 | 0.5384 (79.4%) | −0.2445 |
 | 8 × 10⁶ | 0..4000 | 0.5127 (75.6%) | −0.2214 |
 
-Its magnitude agrees with the joint search (~0.50 vs 0.495-0.518), so **v1's
-numbers were roughly right and only v1's conclusion was wrong.** Recorded as
-observed agreement, not as vindication of the method — a product-distribution
-maximum has no general reason to track a coupled one.
+Its magnitude agrees with the joint search (~0.52-0.54 vs the row-pinned
+0.521-0.541), so **v1's numbers were roughly right and only v1's conclusion was
+wrong.** Recorded as observed agreement, not as vindication of the method — a
+product-distribution maximum has no general reason to track a coupled one.
 
 **Three zones, the operative summary:**
 
 | zone | range | status |
 |---|---|---|
-| provably safe | `g ≤ −0.3703125` | **ship this** |
-| unproven | `−0.3703125 < g ≤ −0.21` | no witness; not proven safe either |
-| demonstrably broken | `g > −0.21` | joint witnesses reach `field > 0.24` |
+| provably safe | `g ≤ −0.3703125` | **ship this** — algebraic, Steps 1-4 |
+| unproven | `−0.3703125 < g ≤ −0.230` | no witness *at 12 000 restarts/row*; **not** proven safe |
+| demonstrably broken | `g > −0.230` | a row-pinned witness reaches `field > 0.24` |
+
+**The middle row's boundary is an upper estimate that moves.** `−0.230` is the
+deepest witness found at 12 000 restarts/row; at 2 000 it was `−0.21`, and a
+larger budget can only push it further down (an observed frontier is monotone
+non-decreasing in effort by construction). Read the middle zone as "nobody has
+looked hard enough yet", never as "safe" — which is precisely why the shipped
+guard sits in the top row and not in this one.
 
 **A note on why there is no "the gap shrinks as you search harder" argument
 here.** v2 made one, from three cross-axis combinations, and it was cut for
@@ -2248,9 +2309,11 @@ three reasons. The trend lived in the upper-bound construction rather than in
 attainability; an observed maximum is monotone non-decreasing in effort **by
 construction**, so "it moved when I searched harder" is a tautology about the
 estimator, not evidence about the limit; and it is not even monotone in
-practice — on `n`'s reachable strip 400 restarts gave `0.890326` and 4 000 gave
-`0.883689` (more effort, lower result), while `sweep`'s constrained domain
-saturates flat at `0.883655` across 400 / 4 000 / 40 000 restarts. A correct
+practice — a hill-climb's best-of-N is monotone only in expectation, and this
+entry's own history shows per-axis figures moving in both directions across
+passes and budgets (v3 recorded `n = 0.906466` where round 4's 40 000-restart
+run finds `0.903147`, and `sweep`'s fbm `0.883656` where round 4 finds
+`0.900858`). A correct
 conclusion propped up by an argument that fails on inspection is worse than the
 conclusion stated plainly, because the reader who checks discards both.
 
@@ -2293,7 +2356,7 @@ reduction in evaluated fragments is independent of `dissolveStart`:
 | `−0.39` (comment) | 32.08% | 13.1% | 0.929 | 3.2% |
 | `−0.3703125` (exact) | 31.62% | 14.36% | 0.900 | **0%** |
 
-Ceilings are truncated toward the unsafe side and floors away from it (raw:
+Ceilings are truncated AWAY from the unsafe side, and so are floors (raw:
 1.238710 / 1.017512 / 0.943779 / 0.929032), so no figure in this entry overstates
 how far a literal may move. The last column is headroom on `A`
 (`DISSOLVE_NOISE_AMP`) specifically, not a global margin.
@@ -2304,7 +2367,7 @@ rest of `effect()`). Instruction-counting puts `r ≈ 1.0-1.3`: the base path is
 is 2 × 4 × 4 = **32 `sin` calls** plus 8 bilinear blends. Total hero fragment
 cost ∝ `c_base + 0.3692·c_fbm`; saving = `Δ·c_fbm / (c_base + 0.3692·c_fbm)`:
 
-| `r` | saving at `−0.45` | saving at `−0.3703` (zero margin) |
+| `r` | saving at `−0.45` | saving at `−0.3703125` (zero margin) |
 |---|---|---|
 | 0.5 | 1.46% | 2.24% |
 | **1.0** | **2.53%** | **3.87%** |
@@ -2399,7 +2462,7 @@ justification is robustness, not the (unmeasured) perf win it was shipped for.**
   `p_act = T − A(S−0.5)(1+k)` next to all four literals. Never as a bare number.
 - **APPLIED** (review extended the boundary for this one block): the guard
   comment at `FluidWaves.tsx:195` now carries the closed form, the correct
-  `−0.3703` bound (not `−0.39`), the correct ~63% skip fraction (not ~77%), and
+  `−0.3703125` bound (not `−0.39`), the correct ~63% skip fraction (not ~77%), and
   a "retune ⇒ re-derive" instruction naming all four literals. Comment-only, but
   the GLSL is a template literal, so the shader source string and `index.js`
   bytes both move — verified with `npx playwright test pixel-gate --workers=1`:
@@ -2407,17 +2470,91 @@ justification is robustness, not the (unmeasured) perf win it was shipped for.**
   log cannot defend a constant it does not sit next to; the next person to touch
   this guard reads the code.
 
+### Why the numbers in this entry are now reproducible (round 4, 2026-08-24)
+
+Round-3 review returned CHANGES REQUESTED with a structural finding that was the
+right one: **four passes had each produced a figure the next pass retracted, and
+every one of them was a figure with no script behind it.** Its recommendation was
+not "reason harder" — it explicitly declined an escalation — it was *commit the
+search next to the numbers*. Round 4 does that.
+
+`perf/dissolve-guard-search.mjs` is an fp32-emulated (`Math.fround`) transcription
+of the shader's whole sampling path: `hash`/`vnoise`/`fbm` **and** the 5-iteration
+flow warp that produces the `uv` coordinate `n` is dragged by. That last part is
+what makes the coupling real rather than asserted — `n` and `sweep` share
+`vUv.x`, `seed` and `time`, and `n` additionally rides the warped flow field, so
+a fragment does not get to choose them independently.
+
+| section figure | mode |
+|---|---|
+| per-axis maxima of `n` and `sweep` | `node perf/dissolve-guard-search.mjs per-axis 40000` |
+| max joint `term` at a pinned row | `node perf/dissolve-guard-search.mjs joint -0.3157 40000` |
+| the witnessed break frontier | `node perf/dissolve-guard-search.mjs boundary 12000` |
+| product-sampling cross-check | `node perf/dissolve-guard-search.mjs product 5e6` |
+
+Every mode **prints its search domain**, because Important 4 of the round-3
+review was precisely that the retracted `−0.21` was a function of an unrecorded
+`time` domain — widening it `1e4 → 1e5` moved the answer by 0.08 in `p`. A domain
+that is not printed is not a result. The PRNG is fixed-seed, so a re-run
+reproduces a re-run.
+
+**What the script is not.** Nothing it prints is load-bearing for the shipped
+guard. `−0.6` rests on the Steps 1-4 algebra, which needs only `fract ∈ [0,1)`
+and the convexity of `mix` and is therefore precision-independent. The script
+measures *how loose* that sup is. The standing prohibition is unchanged and now
+sits in the file's own header: **a bound must never be fitted to this output.**
+GPU `sin()` is not `Math.sin`, so magnitudes transfer and individual witness
+coordinates do not.
+
 ### Provenance
 
 Algebra by hand, re-checked with `node -e`; noise ranges read from
 `FluidWaves.tsx:127-138`; geometry from `FluidWaves.tsx:394-405` +
-`src/index.css:361,392`; tail statistics from an fp32-emulated transcription
-(scratchpad, not committed — it proves nothing the algebra does not, and would
-invite someone to fit a bound to it). Spread and band figures quoted from this
-file's Task 3 entries. **No measurement was run for this batch: `npm run perf`,
+`src/index.css:361,392`; **all empirical figures from the committed
+`perf/dissolve-guard-search.mjs`** (round 4 — earlier passes used an
+uncommitted scratchpad transcription, which is the defect that caused four
+retractions). Spread and band figures quoted from this file's Task 3 entries. **No measurement was run for this batch: `npm run perf`,
 `perf/lighthouse.mjs`, the pixel gate and the Playwright suite were all left
 alone deliberately** (contended rig), and none of them is load-bearing for a
 conclusion that is decidable from arithmetic.
+
+### Round 4 (2026-08-24) — what changed, and one gap that could not be closed
+
+The shipped decision is **unchanged**: `if (p > -0.6)` stands, Task 7 remains a
+derived no-op, and no shader line moved (`src/` is untouched by this round —
+`git diff --stat src/` is empty). Everything below is documentation accuracy in
+the one document whose entire value is that its numbers reproduce.
+
+Closed, all four Importants:
+
+1. **The invalid `≤`.** `max term ≤ max n − 0.5 + max sweep = 0.617477 ⇒ p_act ≥
+   −0.315729` is now explicitly **retracted** in place. Its right-hand side was
+   built from *searched* maxima, and a search result is a **lower** bound on its
+   axis's true maximum, never an upper one — so the inequality was unproven in
+   the direction written, and the `p_act ≥` it fed drifted to the **unsafe** side
+   of the shipped constant. Same move Step 4 gets right, run backwards.
+2. **`−0.3703` truncations.** Both sites (the cost-table header and the
+   Recommendation) now carry the full `−0.3703125`. This mattered rather than
+   being cosmetic: `−0.3703 > −0.3703125`, so the entry was recommending a value
+   its own shader comment calls outside the proven set.
+3. **Unreproducible figures.** `0.518451` / `0.500458` / `0.906466` / `0.883656`
+   appeared nowhere but this file. All replaced by output of the committed
+   script, each with its command and budget.
+4. **The unwitnessed `−0.21`.** Superseded by `−0.230`, witnessed row-by-row, and
+   now quoted **with its search budget** — because the frontier moves with effort
+   (`−0.21` at 2 000 restarts/row, `−0.230` at 12 000) and can only descend.
+
+Closed, the one Minor that survived: "Ceilings are truncated *toward* the unsafe
+side and floors away from it" now reads *away* for both, which is what the raw
+figures actually show.
+
+**The gap, stated rather than buried: 4 of the round-3 review's 5 Minors are
+unrecoverable.** No round-4 review report was ever written to disk — only the
+SDD ledger's summary survives, and it records all 4 Importants but names just one
+Minor. Those four were not judged and not fixed; they were never written down.
+This round does **not** claim to have closed the review. If they mattered, the
+re-review will surface them again — which is cheaper than inventing four
+findings to look complete.
 
 ---
 
