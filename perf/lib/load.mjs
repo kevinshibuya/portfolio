@@ -90,6 +90,20 @@ const OWN_PROCESS_PATTERN = /ms-playwright|chrome_crashpad|Google Chrome for Tes
  * reports is the environment the measurement is about to run in.
  */
 export async function sampleMachineLoad(label = 'sample') {
+  // WHICH END OF THE RUN THIS IS, derived from the label the callers already
+  // pass, so no call site changes and `selftest-retry`'s structural regex on
+  // `sampleMachineLoad('after')` keeps holding.
+  //
+  // It matters because `os.loadavg()` is SYSTEMWIDE and cannot be decomposed by
+  // process. Every other term here excludes harness-owned processes (`mine`),
+  // but the load average counts our own headed browsers and builds. At the END
+  // of a 20-minute invocation that is mostly OUR footprint, so gating on it
+  // there lets a clean run refuse itself. Measured 2026-09-01: a run was
+  // refused at 1.00/core while the hottest FOREIGN process was 21% (limit 50)
+  // and foreign CPU was 23.7% of the machine — nothing foreign was competing.
+  // The term stays REPORTED at both ends and gating only at the start, where
+  // the harness has not yet added anything.
+  const phase = label === 'after' ? 'after' : 'before'
   const cpuCount = os.cpus().length || 1
   const [oneMinute, fiveMinute, fifteenMinute] = os.loadavg()
   const loadPerCore = oneMinute / cpuCount
@@ -120,8 +134,12 @@ export async function sampleMachineLoad(label = 'sample') {
 
   const hottest = hot[0] ?? null
   const reasons = []
+  const observations = []
   if (loadPerCore > LOAD_PER_CORE) {
-    reasons.push(`1-min load average ${oneMinute.toFixed(2)} on ${cpuCount} cores = ${loadPerCore.toFixed(2)}/core (limit ${LOAD_PER_CORE})`)
+    const line = `1-min load average ${oneMinute.toFixed(2)} on ${cpuCount} cores = ${loadPerCore.toFixed(2)}/core (limit ${LOAD_PER_CORE})`
+    // Gating at the start, observed-only at the end — see the `phase` comment.
+    if (phase === 'before') reasons.push(line)
+    else observations.push(`${line} — NOT gating at end-of-run: includes this harness's own browsers and builds`)
   }
   if (hottest && hottest.cpu >= HOT_PROCESS_PCT) {
     reasons.push(`"${hottest.command}" is using ${hottest.cpu.toFixed(1)}% CPU (limit ${HOT_PROCESS_PCT}%)`)
@@ -139,8 +157,12 @@ export async function sampleMachineLoad(label = 'sample') {
     topProcesses: hot,
     foreignCpuPctOfMachine,
     detectorBlind,
+    phase,
     busy: reasons.length > 0,
     reasons,
+    // Non-gating findings, printed but never refusing. Kept separate from
+    // `reasons` so nothing can promote an observation to a refusal by accident.
+    observations,
     thresholds: { loadPerCore: LOAD_PER_CORE, hotProcessPct: HOT_PROCESS_PCT },
   }
 }
@@ -193,6 +215,9 @@ export function reportMachineLoad(load, log, when = '') {
     `load${when ? ` (${when})` : ''}: ${load.loadAverage.oneMinute.toFixed(2)} 1-min on ${load.cpuCount} cores ` +
       `(${load.loadPerCore.toFixed(2)}/core) · foreign CPU ${load.foreignCpuPctOfMachine}% of machine · top: ${top}`,
   )
+  // Printed whether or not the run is refused: a non-gating finding that is
+  // never shown is the same as no finding at all.
+  for (const note of load.observations ?? []) log(`  ·  ${note}`)
   if (!load.busy) return
   log('')
   log('  !! THE RIG IS BUSY — these numbers are measuring the machine, not the page.')

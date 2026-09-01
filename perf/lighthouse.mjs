@@ -214,12 +214,23 @@ const PRESETS = {
  * per-launch `--user-data-dir`; both are per-run plumbing rather than
  * measurement configuration, which is why they are not listed here.
  *
- * NOT HEADLESS, and that is deliberate. Layer 2 runs headed
- * (`lib/browser.mjs`) so it measures the real GPU rather than a software
- * rasteriser. A headless Layer 3 could fall back to SwiftShader on the very
- * WebGL canvas this whole campaign is about, and the two layers' LCP and TBT
- * would then be numbers about two different renderers — while looking perfectly
- * comparable in a table.
+ * HEADLESS since 2026-09-01, and the reason it wasn't is now closed rather
+ * than waived. The old note read: "A headless Layer 3 could fall back to
+ * SwiftShader on the very WebGL canvas this whole campaign is about, and the
+ * two layers' LCP and TBT would then be numbers about two different renderers
+ * — while looking perfectly comparable in a table." That risk was real and is
+ * measured away: default headless on this rig DOES report
+ * "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device ...))", but with
+ * `--use-angle=metal --enable-gpu` it reports
+ * "ANGLE (Apple, ANGLE Metal Renderer: Apple M1)" — the same renderer Layer 2
+ * gets. Both layers stay on one renderer, which is what the note was protecting.
+ *
+ * CONSEQUENCE THAT MUST NOT BE FORGOTTEN: the `lighthouse` key in
+ * `perf/baseline.json` was recorded HEADED. Layer 2's headed/headless GPU-time
+ * offset measured +12-14%, so these presets' numbers cannot be assumed
+ * unchanged. The lighthouse baseline must be RE-RECORDED before any Task 12
+ * decision leans on it. (It was already unresolved: Task 5b leg 4 had desktop
+ * `lh.lcpMs` disagreeing at 127.77 against a 114.37 band.)
  */
 const CHROME_FLAGS = [
   '--disable-features=Translate,OptimizationHints,MediaRouter,DialMediaRouteProvider,CalculateNativeWinOcclusion,InterestFeedContentSuggestions,CertificateTransparencyComponentUpdater,AutofillServerCommunication,PrivacySandboxSettings4,RenderDocument',
@@ -249,6 +260,11 @@ const CHROME_FLAGS = [
   // emulated viewport; `screenEmulation` overrides what the page sees either
   // way, so a single value serves both presets.
   '--window-size=1350,940',
+  // Headless WITH a real GPU. `--headless=new` alone drops to SwiftShader on
+  // this rig; the two angle/gpu flags are what keep Metal. Never separate them.
+  '--headless=new',
+  '--use-angle=metal',
+  '--enable-gpu',
 ]
 
 /**
@@ -728,7 +744,7 @@ async function main() {
           settings: { ...BASE_SETTINGS, ...preset.settings },
           chromeFlags: CHROME_FLAGS,
           chromePath: chromium.executablePath(),
-          headless: false,
+          headless: true,
         },
         runner: {
           argv: process.argv.slice(2),

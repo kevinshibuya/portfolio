@@ -40,13 +40,48 @@ const LAUNCH_ARGS = [
   // Occlusion/backgrounding heuristics are the loudest source of "the numbers
   // changed and the code didn't" on a Mac: put another window in front of the
   // run and Chrome quietly throttles it. All three are measurement hygiene,
-  // not performance tuning — none of them make the page faster.
+  // not performance tuning — none of them make the page faster. They are kept
+  // under headless too: harmless, and they document the intent.
   '--disable-backgrounding-occluded-windows',
   '--disable-renderer-backgrounding',
   '--disable-background-timer-throttling',
   '--disable-features=CalculateNativeWinOcclusion',
   `--window-size=${VIEWPORT.width},${VIEWPORT.height}`,
+  // THESE TWO ARE WHY THE HARNESS CAN RUN HEADLESS AT ALL. Default headless on
+  // this Mac falls back to SwiftShader — measured 2026-09-01, the renderer
+  // string comes back "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device ...))"
+  // and EXT_disjoint_timer_query is absent, i.e. software rasterisation, which
+  // is exactly the trap the old headed-by-design rule was written to avoid.
+  // WITH these flags headless reports "ANGLE (Apple, ANGLE Metal Renderer:
+  // Apple M1)" and the GPU timer works with zero disjoint samples.
+  '--use-angle=metal',
+  '--enable-gpu',
 ]
+
+/**
+ * HEADLESS, since 2026-09-01 — and the reason the old rule said otherwise is
+ * gone rather than ignored.
+ *
+ * The harness ran headed because headless meant SwiftShader. `--use-angle=metal`
+ * removes that, verified on this rig by renderer string, by a working GPU
+ * timer, and by measurement:
+ *
+ *   frame p50   16.700 ms headed vs 16.700 ms headless (identical, still vsync)
+ *   frame count ~480 per 8 s in both (60 fps in both)
+ *   GPU p50      5.32 ms headed vs 6.05 ms headless
+ *
+ * The GPU offset is real and reproducible (+12.3% and +13.7% on two alternated
+ * A/B/A/B/A/B runs, every pair positive), so headed and headless numbers are
+ * NOT interchangeable. That cost nothing here only because the `scenarios`
+ * baseline had never been successfully written when the switch was made — both
+ * attempts were refused. Anything recorded before this date is headed and must
+ * not be compared against a headless run.
+ *
+ * The win is not cosmetic: headed opened a Chrome window per run — dozens per
+ * batch — each stealing focus from whatever the owner was doing, which made
+ * every long measurement session hostile to using the machine at all.
+ */
+const HEADLESS = true
 
 /**
  * Launch one run's browser. `chromium.launch()` allocates a throwaway user
@@ -54,7 +89,7 @@ const LAUNCH_ARGS = [
  * HTTP and shader cache.
  */
 export async function launchRun() {
-  const browser = await chromium.launch({ headless: false, args: LAUNCH_ARGS })
+  const browser = await chromium.launch({ headless: HEADLESS, args: LAUNCH_ARGS })
   const context = await browser.newContext({
     viewport: VIEWPORT,
     deviceScaleFactor: DEVICE_SCALE_FACTOR,
@@ -300,7 +335,7 @@ export async function assertPageHealthy(session, when, log = () => {}) {
  * scenario's dropped-frame arithmetic (see `frameStats`).
  */
 export async function measureRefresh() {
-  const browser = await chromium.launch({ headless: false, args: LAUNCH_ARGS })
+  const browser = await chromium.launch({ headless: HEADLESS, args: LAUNCH_ARGS })
   try {
     const context = await browser.newContext({ viewport: VIEWPORT })
     const page = await context.newPage()

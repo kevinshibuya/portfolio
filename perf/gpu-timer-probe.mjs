@@ -46,6 +46,7 @@
 
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { pathToFileURL } from 'node:url'
 import { chromium } from '@playwright/test'
 
 const VIEWPORT = { width: 1440, height: 900 }
@@ -393,15 +394,21 @@ async function aaa(seconds) {
   console.log('An A-B-A can only resolve a plant LARGER than this spread.')
 }
 
-const [mode = 'availability', secondsArg] = process.argv.slice(2)
+// Only dispatch when RUN, not when imported: other harness scripts reuse
+// GPU_TIMER_INIT and summarise(), and a bare import must not execute a mode.
+const runDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href
+
+const [mode = 'availability', secondsArg] = runDirectly ? process.argv.slice(2) : ['none']
 const seconds = Number(secondsArg ?? 6)
 
-if (mode === 'availability') await availability()
+if (!runDirectly) {
+  // imported as a library — nothing to do
+} else if (mode === 'availability') await availability()
 else if (mode === 'hero') console.log(JSON.stringify(await hero(seconds), null, 2))
 else if (mode === 'aba') await aba(seconds)
 else if (mode === 'overhead') await overhead(seconds)
 else if (mode === 'aaa') await aaa(seconds)
-else {
+else if (runDirectly) {
   console.error(`unknown mode "${mode}" — expected availability | hero | aba | aaa | overhead`)
   process.exit(1)
 }

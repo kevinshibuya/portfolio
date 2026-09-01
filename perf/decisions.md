@@ -3073,3 +3073,85 @@ either flake or defect.** They are recorded here unjudged rather than dismissed.
 pkg.pr.new tarballs are not guaranteed to persist. Revert to a plain `wrangler@^4.x` in the first
 release that contains #15252 — it is not in 4.124.0 or 4.125.0 as published. Until then a fresh
 `npm ci` on another machine depends on pkg.pr.new being up.
+
+---
+
+## 2026-09-01 · The harness goes HEADLESS, and the load guard stops refusing its own runs
+
+Two harness changes, both owner-approved in chat, both driven by the same complaint: a batch
+opened a Chrome window per run — dozens per batch — each stealing focus, and the machine had to
+sit unused for the whole thing. That made every long measurement session hostile to actually
+using the computer, which is a real cost and not a cosmetic one.
+
+### 1. Headless with a real GPU
+
+The harness ran headed for exactly one reason, recorded in `lib/browser.mjs` and again in
+`lighthouse.mjs`: headless would fall back to SwiftShader and measure software rasterisation on
+the very WebGL canvas this campaign is about. **That was true, and it is no longer the whole
+story.** Measured on this rig, all four modes in one pass:
+
+| mode | GPU timer | renderer |
+|---|---|---|
+| headed (previous default) | yes | `ANGLE (Apple, ANGLE Metal Renderer: Apple M1)` |
+| headed, `--window-position=-3000,-3000` | yes | `ANGLE (Apple, ANGLE Metal Renderer: Apple M1)` |
+| `--headless=new` | **NO** | `ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device …))` |
+| `--headless=new --use-angle=metal --enable-gpu` | yes | `ANGLE (Apple, ANGLE Metal Renderer: Apple M1)` |
+
+So the old rule was right about default headless and wrong about headless as such. With
+`--use-angle=metal --enable-gpu` the renderer is the same Metal device the headed run gets, and
+`EXT_disjoint_timer_query` is present.
+
+**Renderer identity is necessary, not sufficient — so the numbers were compared too.** Legs were
+ALTERNATED (H h H h H h) rather than blocked, so whatever the machine was doing hit both arms and
+cancelled in the comparison:
+
+| | headed | headless+metal |
+|---|---|---|
+| frame p50 | 16.700 ms | **16.700 ms** |
+| frames per 8 s | ~480 (60 fps) | ~478 (60 fps) |
+| GPU p50 | 5.32 ms | 6.05 ms |
+
+Frame cadence is **identical** — headless still vsync-caps, so every `frame.*` metric keeps its
+meaning. GPU time is **+12–14% higher** in headless, reproducible across two independent
+alternated runs with every pair positive (+0.73/+0.68/+0.56, then +0.75/+0.55/+0.88).
+
+**That offset means headed and headless numbers are NOT interchangeable.** The switch cost nothing
+only because of timing: the `scenarios` baseline had never been successfully written when it was
+made — both attempts that night were refused by the guard. Anything recorded before 2026-09-01 is
+headed. The `lighthouse` key IS pre-existing headed data and **must be re-recorded before any
+Task 12 decision leans on it** (it was already unresolved — Task 5b leg 4 had desktop `lh.lcpMs`
+at 127.77 against a 114.37 band).
+
+Unexpected second benefit, measured: a headless invocation barely moves the machine's load average
+(2.46 → 2.58 on 8 cores) where headed runs drove it past 8.0. The harness's own footprint was a
+large part of what made the rig look busy.
+
+### 2. The load guard was refusing clean runs on the harness's own load
+
+`--update-baseline` was refused twice on 2026-08-31/09-01. The second refusal is the interesting
+one:
+
+```
+- the rig was BUSY during this run (at end: 1-min load average 8.04 on 8 cores = 1.00/core)
+load (after): foreign CPU 23.7% of machine · top: swcd 21% · WindowServer 19% · coreaudiod 8%
+```
+
+No foreign process was near the 50% limit and foreign CPU was 23.7%. **The only tripping term was
+the load average** — and `os.loadavg()` is systemwide and cannot be decomposed by process. Every
+other term in `load.mjs` excludes harness-owned processes via `mine()`; the load-average term
+counts our own headed browsers and builds. At the end of a 20-minute invocation that is mostly OUR
+footprint, so a clean run could refuse itself.
+
+**Fix:** the load-average term now gates only at the START of a run, where the harness has not yet
+added anything, and is REPORTED but non-gating at the end. It is pushed to a new `observations`
+array kept deliberately separate from `reasons`, so nothing can promote an observation into a
+refusal by accident, and `reportMachineLoad` prints observations whether or not the run is refused
+— a non-gating finding that is never shown is the same as no finding at all. The phase is derived
+from the label callers already pass (`'after'`), so no call site changes and
+`selftest-retry.mjs`'s structural regex asserting the after-sample call keeps holding.
+
+Every foreign-process check still gates at BOTH ends. Genuine contention — the TeamSpeak at 51.2%
+that refused the first attempt — still blocks a baseline, exactly as R10 intends.
+
+**Not changed:** the hot-process limit (50%), the foreign-CPU observable, `--force`, or the rule
+that a busy rig is a baseline-corrupting condition. Selftests stay green (29/29 and 57/57).
