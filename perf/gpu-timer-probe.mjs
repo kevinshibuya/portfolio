@@ -3,7 +3,8 @@
 // WHY THIS FILE EXISTS AT ALL
 //
 // Task 5b's sensitivity proof failed: doubling the fragment shader's main
-// per-pixel loop moved `gpu.webglMsPerFrame` by -0.0048 and +0.0129 across two
+// per-pixel loop moved `gpu.webglMsPerFrame` (since renamed
+// `gpu.decodeMsPerFrame`) by -0.0048 and +0.0129 across two
 // A-B-A rounds — noise. The failure was the instrument, not the shader. Both
 // Layer 2 GPU metrics are CPU-side trace events (`ThreadControllerImpl::RunTask`
 // = CPU task time in the GPU process, `WebGL` = command-buffer DECODE), and
@@ -36,6 +37,8 @@
 //   node perf/gpu-timer-probe.mjs availability   # what this rig exposes
 //   node perf/gpu-timer-probe.mjs hero [seconds] # time the real hero canvas
 //   node perf/gpu-timer-probe.mjs aba [seconds]  # full plant/revert proof
+//   node perf/gpu-timer-probe.mjs overhead [s]   # does the timer perturb frame time?
+//   node perf/gpu-timer-probe.mjs aaa [seconds]  # noise floor: three UNPLANTED legs
 //
 // `hero` and `aba` need a server on 4173 serving the real `dist/` — the same
 // `vite preview` Task 3 pins as the perf server. `aba` manages its own builds
@@ -46,6 +49,13 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { chromium } from '@playwright/test'
 
 const VIEWPORT = { width: 1440, height: 900 }
+
+// Must match `browser.mjs`'s DEVICE_SCALE_FACTOR. At 1 the canvas backing
+// store caps at DPR 1 instead of 1.5, so the shaded area — and therefore the
+// GPU time — is a DIFFERENT QUANTITY from the harness's own metric. An
+// earlier version of this probe defaulted to 1 and read 3.85 ms where the
+// runner reads 5.92 for the same idle hero.
+const DEVICE_SCALE_FACTOR = 2
 
 // The harness's own launch args, duplicated rather than imported because
 // `browser.mjs` does not export them. Occlusion/backgrounding heuristics are
@@ -156,6 +166,7 @@ async function withPage(fn) {
   try {
     const context = await browser.newContext({
       viewport: VIEWPORT,
+      deviceScaleFactor: DEVICE_SCALE_FACTOR,
       colorScheme: 'dark',
       reducedMotion: 'no-preference',
     })
@@ -297,13 +308,100 @@ async function aba(seconds) {
   }
 }
 
+/**
+ * A bare rAF ring buffer, so frame time can be measured with the GPU timer
+ * installed and without it. Deliberately NOT `instrument.mjs`'s script: this
+ * has to isolate the timer's cost, so nothing else may differ between legs.
+ */
+const FRAME_INIT = String.raw`
+(() => {
+  var F = [];
+  window.__FRAMES__ = F;
+  var loop = function (t) { F.push(t); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+})();
+`
+
+async function frameWindow({ withTimer, seconds }) {
+  return withPage(async (page) => {
+    // Order matters: the timer script integrates its own drawArrays wrapper, so
+    // it must not be stacked under another one.
+    if (withTimer) await page.addInitScript(GPU_TIMER_INIT)
+    await page.addInitScript(FRAME_INIT)
+    await page.goto(`${BASE_URL}/?${PERF_PARAMS}`, { waitUntil: 'load' })
+    await page.waitForTimeout(seconds * 1000)
+    const stamps = await page.evaluate(() => window.__FRAMES__)
+    const deltas = stamps.slice(1).map((t, i) => t - stamps[i]).sort((a, b) => a - b)
+    return {
+      frames: deltas.length,
+      p50: percentile(deltas, 0.5),
+      p95: percentile(deltas, 0.95),
+    }
+  })
+}
+
+/**
+ * Step 3 of Task 7b, and a gate on the whole approach: a timer query per frame
+ * plus the drain loop is work, and if it moves the frame times it would be
+ * collected alongside then it may not share a window with `frame.*`.
+ *
+ * The bar is the one `trace.mjs:11-18` set for tracing overhead: a difference
+ * below the measurement's own resolution. A-B-A again, because a single pair
+ * cannot separate the timer's cost from drift.
+ */
+async function overhead(seconds) {
+  const off1 = await frameWindow({ withTimer: false, seconds })
+  const on = await frameWindow({ withTimer: true, seconds })
+  const off2 = await frameWindow({ withTimer: false, seconds })
+
+  const row = (name, r) =>
+    `${name.padEnd(12)} p50 ${r.p50.toFixed(3)} ms | p95 ${r.p95.toFixed(3)} ms | ${r.frames} frames`
+  console.log(row('timer OFF 1', off1))
+  console.log(row('timer ON', on))
+  console.log(row('timer OFF 2', off2))
+
+  const offP50 = (off1.p50 + off2.p50) / 2
+  const offSpread = Math.abs(off1.p50 - off2.p50)
+  console.log('')
+  console.log(`off-to-off p50 spread : ${offSpread.toFixed(4)} ms  (the measurement's own resolution)`)
+  console.log(`timer effect on p50   : ${(on.p50 - offP50 >= 0 ? '+' : '')}${(on.p50 - offP50).toFixed(4)} ms`)
+  console.log(
+    (Math.abs(on.p50 - offP50) <= Math.max(offSpread, 0.001)
+      ? 'VERDICT: below the measurement resolution — the timer may share a window with frame.*'
+      : 'VERDICT: ABOVE resolution — the timer needs its own pass, per Task 7b Step 3'),
+  )
+}
+
+/**
+ * The noise floor, and the control for `aba`.
+ *
+ * Three identical unplanted legs, each with its own rebuild, preview restart
+ * and browser. If their spread is the size of the plant's effect then `aba`
+ * cannot separate signal from drift no matter how many samples each leg holds
+ * — the limit is leg-to-leg, not within-leg. Running this BEFORE trusting an
+ * A-B-A is the difference between an instrument and a number.
+ */
+async function aaa(seconds) {
+  const legs = []
+  for (const name of ['A1', 'A2', 'A3']) legs.push(await leg(name, seconds))
+  const p50s = legs.map((l) => l.p50Ms)
+  const spread = Math.max(...p50s) - Math.min(...p50s)
+  const mean = p50s.reduce((a, b) => a + b, 0) / p50s.length
+  console.log('')
+  console.log(`unplanted leg-to-leg spread : ${spread.toFixed(4)} ms (${((spread / mean) * 100).toFixed(1)}% of mean)`)
+  console.log(`mean p50                    : ${mean.toFixed(4)} ms`)
+  console.log('An A-B-A can only resolve a plant LARGER than this spread.')
+}
+
 const [mode = 'availability', secondsArg] = process.argv.slice(2)
 const seconds = Number(secondsArg ?? 6)
 
 if (mode === 'availability') await availability()
 else if (mode === 'hero') console.log(JSON.stringify(await hero(seconds), null, 2))
 else if (mode === 'aba') await aba(seconds)
+else if (mode === 'overhead') await overhead(seconds)
+else if (mode === 'aaa') await aaa(seconds)
 else {
-  console.error(`unknown mode "${mode}" — expected availability | hero | aba`)
+  console.error(`unknown mode "${mode}" — expected availability | hero | aba | aaa | overhead`)
   process.exit(1)
 }

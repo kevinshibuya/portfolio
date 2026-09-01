@@ -5,12 +5,23 @@
 //
 //   Categories ['gpu', 'viz', 'toplevel'] yield, in the GPU process,
 //   `ThreadControllerImpl::RunTask` (top-level, non-nesting -> summing them is
-//   real busy time), `WebGL` (command-buffer decode -> the shader's own cost)
-//   and `SkiaOutputSurfaceImplOnGpu::SwapBuffers` (presented frames).
+//   real busy time), `WebGL` (command-buffer decode — CPU-side, and NOT the
+//   shader's own cost; see the correction below) and
+//   `SkiaOutputSurfaceImplOnGpu::SwapBuffers` (presented frames).
+//
+//   CORRECTION (BLOCKER 2, 2026-08-31): this header used to describe `WebGL`
+//   as "command-buffer decode -> the shader's own cost". The first half was
+//   right and the arrow was the error. Doubling the fragment shader's
+//   per-pixel loop issues the IDENTICAL command stream, and moved this
+//   metric by noise (-0.0048 and +0.0129 across two A-B-A rounds). Measured
+//   against a real GPU timer the same frame costs 3.85 ms where this event
+//   reports 0.4586 — off by ~8.4x. The metric is KEPT and RENAMED to
+//   `gpu.decodeMsPerFrame` so it no longer claims to be shader cost; actual
+//   GPU execution is `gpu.shaderMsPerFrame`, from `perf/lib/instrument.mjs`.
 //
 //   Stability, two back-to-back 10s idle-hero windows:
 //     gpu.busyMsPerFrame   1.707 vs 1.685  (1.3% apart)
-//     gpu.webglMsPerFrame  0.593 vs 0.578  (2.5% apart)
+//     gpu.decodeMsPerFrame 0.593 vs 0.578  (2.5% apart)
 //
 //   Tracing overhead on the very frame times measured in the same window:
 //     no trace  p50 16.70 / p95 17.50 / 601 frames
@@ -92,13 +103,13 @@ export function gpuFromTrace(events, traceSeconds) {
     source: 'trace:gpu-process',
     gpuPid,
     busyMs: busyUs / 1000,
-    webglMs: webglUs / 1000,
+    decodeMs: webglUs / 1000,
     presentedFrames: swaps,
     traceSeconds,
     busyMsPerSec: traceSeconds > 0 ? busyUs / 1000 / traceSeconds : 0,
-    webglMsPerSec: traceSeconds > 0 ? webglUs / 1000 / traceSeconds : 0,
+    decodeMsPerSec: traceSeconds > 0 ? webglUs / 1000 / traceSeconds : 0,
     busyMsPerFrame: swaps > 0 ? busyUs / 1000 / swaps : 0,
-    webglMsPerFrame: swaps > 0 ? webglUs / 1000 / swaps : 0,
+    decodeMsPerFrame: swaps > 0 ? webglUs / 1000 / swaps : 0,
     presentedFps: traceSeconds > 0 ? swaps / traceSeconds : 0,
   }
 }
@@ -145,12 +156,12 @@ export function gpuFromProcessCpu(before, after, windowSeconds, presentedFramesG
     source: 'cdp:SystemInfo-gpu-process-cpu',
     gpuPid: after.pids.gpu[0] ?? null,
     busyMs,
-    webglMs: null,
+    decodeMs: null,
     presentedFrames: presentedFramesGuess,
     busyMsPerSec: windowSeconds > 0 ? busyMs / windowSeconds : 0,
-    webglMsPerSec: null,
+    decodeMsPerSec: null,
     busyMsPerFrame: presentedFramesGuess > 0 ? busyMs / presentedFramesGuess : 0,
-    webglMsPerFrame: null,
+    decodeMsPerFrame: null,
     presentedFps: windowSeconds > 0 ? presentedFramesGuess / windowSeconds : 0,
   }
 }

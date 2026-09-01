@@ -42,7 +42,7 @@ export async function readBaseline(baselinePath) {
  * MERGE, NEVER REPLACE, per scenario. A wholesale replace silently DELETES any
  * metric the current invocation happened not to produce: let the sudo grant
  * lapse for one afternoon and `power.*` vanishes from the baseline; let one
- * trace fail and `gpu.webglMsPerFrame` vanishes. The `MISSING` machinery only
+ * trace fail and `gpu.decodeMsPerFrame` vanishes. The `MISSING` machinery only
  * fires on the READ side, so a deleted key stops being missing and simply stops
  * being checked — a budget that silently ceases to exist is worse than one that
  * fails. Dropped keys are therefore retained and reported to the caller.

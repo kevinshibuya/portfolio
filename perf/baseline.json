@@ -111,7 +111,7 @@
         "n": 5,
         "source": "trace:gpu-process"
       },
-      "gpu.webglMsPerFrame": {
+      "gpu.decodeMsPerFrame": {
         "median": 0.4586,
         "iqr": 0.0516,
         "band": 0.0516,
@@ -322,7 +322,7 @@
         "band": 293.29,
         "n": 5
       },
-      "gpu.webglMsPerFrame": {
+      "gpu.decodeMsPerFrame": {
         "median": 0.1891,
         "iqr": 0.003,
         "band": 0.05,

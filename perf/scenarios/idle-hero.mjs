@@ -16,7 +16,7 @@ import {
   sleep,
   waitForSettledHero,
 } from '../lib/browser.mjs'
-import { collect, framesIn, longTasksIn, now } from '../lib/instrument.mjs'
+import { collect, framesIn, gpuShaderMs, longTasksIn, now } from '../lib/instrument.mjs'
 import { frameStats } from '../lib/stats.mjs'
 import { gpuFromProcessCpu, gpuFromTrace, sampleChromeProcesses, startTrace } from '../lib/trace.mjs'
 
@@ -47,7 +47,21 @@ export const metrics = {
   'main.recalcStyleMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 1 },
   'main.heapUsedMb': { unit: 'MB', lowerIsBetter: true, minBand: 2 },
   'gpu.busyMsPerFrame': { unit: 'ms', lowerIsBetter: true, minBand: 0.05, sourceKey: 'gpu' },
-  'gpu.webglMsPerFrame': { unit: 'ms', lowerIsBetter: true, minBand: 0.03, sourceKey: 'gpu' },
+  'gpu.decodeMsPerFrame': { unit: 'ms', lowerIsBetter: true, minBand: 0.03, sourceKey: 'gpu' },
+  // Real GPU execution time for the hero draw (EXT_disjoint_timer_query).
+  //
+  // minBand is the MEASURED unplanted leg-to-leg spread at this rig's own
+  // scale: `gpu-timer-probe.mjs aaa 12` gave 5.4157 / 5.7829 / 5.7402 ms,
+  // spread 0.3672 (6.5% of mean), on a quiet machine at 0.209 load/core.
+  // An earlier 0.03 came from probe runs at deviceScaleFactor 1 — a
+  // DIFFERENT quantity (smaller canvas), and it would have flagged every
+  // single run as a regression.
+  //
+  // KNOWN LIMIT, not papered over: a single run cannot resolve the 2x
+  // shader plant here (+0.3369 ms, inside the 0.3672 floor). The runner's
+  // median-of-N is what has to close that gap, which is why Task 7b Step 5
+  // puts the acceptance through `npm run perf` and not through the probe.
+  'gpu.shaderMsPerFrame': { unit: 'ms', lowerIsBetter: true, minBand: 0.37, sourceKey: 'gpuTimer' },
   'gpu.busyMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 3, sourceKey: 'gpu' },
   'gpu.presentedFps': { unit: 'fps', lowerIsBetter: false, minBand: 1, sourceKey: 'gpu' },
 }
@@ -137,11 +151,21 @@ function summarize({
     'gpu.busyMsPerSec': gpu.busyMsPerSec,
     'gpu.presentedFps': gpu.presentedFps,
   }
-  if (gpu.webglMsPerFrame !== null) values['gpu.webglMsPerFrame'] = gpu.webglMsPerFrame
+  if (gpu.decodeMsPerFrame !== null) values['gpu.decodeMsPerFrame'] = gpu.decodeMsPerFrame
+  // An absent extension or an empty window yields null, and the metric goes
+  // MISSING rather than reporting a zero that would read as a free shader.
+  const shader = gpuShaderMs(collected.gpu, 'fluid-waves', windowStart, windowEnd)
+  if (shader.p50Ms !== null) values['gpu.shaderMsPerFrame'] = shader.p50Ms
 
   return {
     metrics: values,
-    sources: { gpu: gpu.source },
+    sources: {
+      gpu: gpu.source,
+      // Named so a reader can never confuse the CPU-side decode metric with
+      // real GPU execution, and so an unavailable extension is legible in the
+      // report rather than showing up as a suspiciously good number.
+      gpuTimer: shader.n ? 'webgl1:EXT_disjoint_timer_query@fluid-waves' : 'unavailable',
+    },
     meta: {
       windowSeconds,
       traceSeconds: gpu.traceSeconds ?? null,
@@ -149,6 +173,11 @@ function summarize({
       presentedFrames: gpu.presentedFrames,
       traceEvents: events.length,
       frameBufferOverflowed: collected.overflowed,
+      // Sample count and discarded-query count travel WITH the number: a
+      // thin window or a preempted GPU has to be visible to whoever reads it.
+      gpuTimerSamples: shader.n,
+      gpuTimerDisjointDiscarded: shader.disjoint,
+      gpuTimerMissingOn: collected.gpu?.missing ?? [],
       pageErrors: collected.errors,
       consoleErrors,
     },

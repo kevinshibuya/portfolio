@@ -195,7 +195,7 @@ export async function waitForSettledHero(session, log = () => {}) {
  *
  * The after-check is the one that matters. If the hero's WebGL context is lost
  * mid-window the canvas unmounts and a flat gradient div takes over: GPU work
- * stops, `gpu.busyMsPerFrame` and `gpu.webglMsPerFrame` COLLAPSE, and the run
+ * stops, `gpu.busyMsPerFrame` and `gpu.decodeMsPerFrame` COLLAPSE, and the run
  * exits 0 printing `improvement`. Under `--update-baseline` those collapsed
  * numbers become the reference, after which every healthy run reads as a
  * permanent regression — and during Tasks 7-12 a shader batch that destabilises
