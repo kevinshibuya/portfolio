@@ -290,6 +290,61 @@ section('compareReportFiles — instrument drift is a disagreement')
   check('a rig mismatch still disagrees', (await compareReportFiles(a, otherRig, quiet)) === 1)
   const otherScenario = await write('scen.json', { ...baseReport(), scenario: 'lighthouse-mobile' })
   check('different scenarios still exit 2 (not comparable)', (await compareReportFiles(a, otherScenario, quiet)) === 2)
+
+  // ── BAND OVERRIDES ON THE `--compare` PATH ────────────────────────────────
+  //
+  // The bug these cover, found 2026-09-01: `compare()` (the baseline path)
+  // applied `maxBand`/`bandAbsolute` on read while THIS path used the reports'
+  // own bands verbatim. For idle-hero `gpu.shaderMsPerFrame` that handed back a
+  // 0.67 ms tolerance where the baseline says 0.1 — and printed "agree" while
+  // doing it. Each case below fails if the override stops being threaded
+  // through, and the pair of them pins the direction: capping must be able to
+  // turn an agreement INTO a disagreement, or it is not capping anything.
+  const wide = (median) => ({
+    scenario: 'idle-hero',
+    rig: RIG,
+    build: { distIndexHash: 'sha256:abc' },
+    metrics: { 'gpu.shaderMsPerFrame': { median, band: 0.6641, sources: ['webgl1:EXT_disjoint_timer_query@fluid-waves'] } },
+  })
+  const near = await write('band-a.json', wide(6.7194))
+  const far = await write('band-b.json', wide(7.1032))
+
+  // 0.3838 apart: inside the reports' own 0.6641 band, outside a 0.1 ceiling.
+  check('without a baseline, --compare uses the reports own band (agree)', (await compareReportFiles(near, far, quiet)) === 0)
+
+  const capBaseline = tmpFile('compare-cap.json')
+  await writeFile(capBaseline, JSON.stringify({ scenarios: { 'idle-hero': { 'gpu.shaderMsPerFrame': { median: 6.6409, band: 0.6641, maxBand: 0.1 } } } }, null, 2))
+  check('a baseline maxBand CAPS the --compare band (disagree)', (await compareReportFiles(near, far, quiet, capBaseline)) === 1)
+
+  // The cap must not manufacture disagreements out of genuinely close runs.
+  const alsoNear = await write('band-c.json', wide(6.7264))
+  check('a capped band still agrees when the runs are close', (await compareReportFiles(near, alsoNear, quiet, capBaseline)) === 0)
+
+  // `bandAbsolute` is the other override `applyBandOverrides` honours, and it
+  // must travel the same path. It PINS rather than caps, so the test that
+  // distinguishes it from `maxBand` is the one only it can pass: WIDENING two
+  // narrow-band reports into agreement. A capping-only implementation fails
+  // this case, which is what makes it worth having.
+  const narrow = (median) => ({
+    scenario: 'idle-hero',
+    rig: RIG,
+    build: { distIndexHash: 'sha256:abc' },
+    metrics: { 'gpu.shaderMsPerFrame': { median, band: 0.05, sources: ['webgl1:EXT_disjoint_timer_query@fluid-waves'] } },
+  })
+  const narrowA = await write('band-d.json', narrow(6.7194))
+  const narrowB = await write('band-e.json', narrow(7.1032))
+  check('two narrow-band reports 0.38 apart disagree on their own bands', (await compareReportFiles(narrowA, narrowB, quiet)) === 1)
+
+  const pinBaseline = tmpFile('compare-pin.json')
+  await writeFile(pinBaseline, JSON.stringify({ scenarios: { 'idle-hero': { 'gpu.shaderMsPerFrame': { median: 6.6409, band: 0.6641, bandAbsolute: 1 } } } }, null, 2))
+  check('a baseline bandAbsolute reaches --compare and can WIDEN', (await compareReportFiles(narrowA, narrowB, quiet, pinBaseline)) === 0)
+
+  // A baseline that cannot be read, or has no entry for the scenario, must fall
+  // back to the reports' own bands — announced, never silently.
+  check('a missing baseline file falls back to the reports own bands', (await compareReportFiles(near, far, quiet, tmpFile('does-not-exist.json'))) === 0)
+  const emptyBaseline = tmpFile('compare-empty.json')
+  await writeFile(emptyBaseline, JSON.stringify({ scenarios: { 'scroll-transition': {} } }, null, 2))
+  check('a scenario absent from the baseline falls back to the reports own bands', (await compareReportFiles(near, far, quiet, emptyBaseline)) === 0)
 }
 
 // ── 4. CLI parsing ─────────────────────────────────────────────────────────

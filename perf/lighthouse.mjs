@@ -603,7 +603,7 @@ async function main() {
   }
   const { options } = parsed
 
-  if (options.compare) return compareReportFiles(options.compare[0], options.compare[1], log)
+  if (options.compare) return compareReportFiles(options.compare[0], options.compare[1], log, BASELINE_PATH)
 
   log(`lighthouse bench — ${options.presets.map((p) => p.name).join(', ')} · ${options.runs} run(s) each`)
   log(`lighthouse: v${LIGHTHOUSE_VERSION} (settings pinned against v${PINNED_LIGHTHOUSE_VERSION}) · ${BASE_SETTINGS.throttlingMethod} throttling · headed`)

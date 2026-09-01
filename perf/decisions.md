@@ -3405,19 +3405,65 @@ measurement question.
 
 ### Open, not closed
 
-- **`maxBand 0.1` has very little headroom against the standing baseline median.** The four control
-  legs sit **+0.053 to +0.086 ms** above the stored 6.6409 (recorded at `47527d2`, same rig, same
+- **`maxBand 0.1` has very little headroom against the standing baseline median — SHIPPED AS-IS ON
+  KEVIN'S RULING (2026-09-01), and the hazard is accepted, not unnoticed.** The four control legs
+  sit **+0.053 to +0.086 ms** above the stored 6.6409 (recorded at `47527d2`, same rig, same
   headless mode, same `src/`), leaving as little as **0.0145 ms** of margin on C1. Cross-session
   offset (~0.073) is more than 2x the within-session control range (0.0323), and the ruling's rule
-  could only see the within-session term. The band holds today; it is one session's drift away from
-  a false REGRESSION on unchanged code. Re-recording the idle-hero baseline is the obvious remedy
-  and it is NOT taken here — it moves the reference every batch in the campaign is judged against,
-  which is Kevin's call, not this session's.
-- **The plan's Task 7b Acceptance paragraph is now provably unsatisfiable as written.** It says
-  "`npm run perf` detects the doubled-shader plant as a regression on `gpu.shaderMsPerFrame`". The
-  doubled plant is **not a regression on this rig** — it measures 4.4% faster. The harness detects
-  the move with the correct sign. The acceptance needs rewording to the MDE that Step 5's own
-  revision already implies; that is a plan edit and it is left for Kevin.
+  could only see the within-session term. Kevin's decision was to keep the baseline where it is
+  rather than re-record it — re-recording moves the reference all of Tasks 8-12 are judged against,
+  and it would only re-zero the offset, not remove cross-session drift.
+
+  **So the standing hazard is: an idle-hero run on UNCHANGED code can read `REGRESSION` on
+  `gpu.shaderMsPerFrame` by ~0.02 ms.** How to tell that apart from a real regression, in order:
+  1. Re-run. A drift artefact does not reproduce at the same magnitude; a real regression does.
+  2. Better, and now available: compare against a **same-session control run** with
+     `node perf/run.mjs --compare <control> <batch>`. That path obeys `maxBand` as of this session
+     (see below) and the cross-session offset cancels out of it entirely, because both reports were
+     taken in the same session. This is the recommended arbiter for every Task 8-12 keep/revert
+     decision on this metric.
+  3. A delta in the 0.05-0.09 ms range with no code change in the shader path is drift. A real win
+     or regression from this campaign's batches is expected at 1 ms and up.
+
+  Do NOT "fix" this by widening `maxBand`: the cross-session offset has exactly ONE observation
+  behind it, and pinning a band to one sample is how a band becomes fiction.
+- **The plan's Task 7b Acceptance paragraph was provably unsatisfiable as written — REWORDED on
+  Kevin's ruling (2026-09-01).** It said "`npm run perf` detects the doubled-shader plant as a
+  regression on `gpu.shaderMsPerFrame`". The doubled plant is **not a regression on this rig** — it
+  measures 4.4% faster, and the harness detects the move with the correct sign. The acceptance now
+  reads as the three-part MDE bar Step 5's own revision implied, and records it as MET.
+- **`--compare` was silently ignoring band overrides — FOUND AND FIXED THIS SESSION.** Found while
+  checking whether same-session comparison could sidestep the drift above, which makes it the second
+  time in this campaign that a mitigation turned up a hole in the thing it was going to lean on.
+  `compare()` (the baseline path) applies `maxBand`/`bandAbsolute` on read; `compareReportFiles()`
+  (the `--compare A B` path) computed `Math.max(left.band, right.band)` from the reports' own bands
+  and applied nothing. For idle-hero `gpu.shaderMsPerFrame` that is a 0.67 ms band where the
+  baseline says 0.1 — `--compare` would have handed back exactly the tolerance Step 5b had just
+  removed, **while printing "agree"**. The shared batch procedure names `--compare`, so this was
+  loaded, not theoretical.
+
+  **Fix:** both production call sites (`run.mjs`, `lighthouse.mjs`) now pass `BASELINE_PATH`, and
+  `compareReportFiles` resolves the scenario's per-metric overrides from the baseline — the same
+  source `compare()` reads, so the two paths can no longer disagree about how wide a band is. Every
+  way of ending up without overrides (no baseline passed, unreadable file, scenario absent from the
+  baseline) prints a `!!` line: silence is what made the original gap invisible. An applied cap
+  prints too (`band capped by a baseline override: ...`), so a comparison never quietly runs under a
+  different band than the one on screen.
+
+  **Proof, end-to-end through the real CLI on the sweep's own reports:**
+  ```
+  C0 vs P20   gpu.shaderMsPerFrame  6.7194  7.1032  0.3838  0.1  DISAGREE
+              band capped by a baseline override: gpu.shaderMsPerFrame 0.7103 -> 0.1000
+  C0 vs C1    gpu.shaderMsPerFrame  6.7194  6.7264  0.0070  0.1  agree
+              band capped by a baseline override: gpu.shaderMsPerFrame 0.6726 -> 0.1000
+  ```
+  Before the fix the first of those printed `agree` at a band of 0.7103. Seven selftest cases pin
+  it, including the two directions that matter: a `maxBand` must be able to turn an agreement INTO a
+  disagreement, and `bandAbsolute` must be able to WIDEN two narrow-band reports into agreement — a
+  capping-only implementation fails the second, which is why it is there.
+
+  **`npm run perf:selftest` is now `29/29 + 64/64`** (was 57/57 — seven new cases). Update any
+  handoff or note still quoting 57.
 - `perf/gpu-timer-probe.mjs` still performs no rig check. Under the ruling no probe-derived number
   enters the MDE, so it blocks nothing, and nothing in this section depends on the probe.
 - scroll-transition `gpu.decodeMsPerFrame` +148.4% (0.1891 -> 0.4697) stays OPEN. Leading candidate

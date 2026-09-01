@@ -329,7 +329,7 @@ async function main() {
   }
   const { options } = parsed
 
-  if (options.compare) return compareReportFiles(options.compare[0], options.compare[1], log)
+  if (options.compare) return compareReportFiles(options.compare[0], options.compare[1], log, BASELINE_PATH)
 
   log(`perf harness — ${options.scenarios.map((s) => s.name).join(', ')} · ${options.runs} run(s) each`)
 

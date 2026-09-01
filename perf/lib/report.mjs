@@ -215,6 +215,35 @@ function stableHash(value) {
 }
 
 /**
+ * The per-metric band overrides a scenario's baseline entry declares, for the
+ * `--compare` path.
+ *
+ * Returns `{}` and SAYS SO when there is nothing to read. Every branch here is
+ * a way for a comparison to run without the ceiling it should have had, and the
+ * bug this function exists to close was invisible precisely because no branch
+ * announced itself.
+ */
+async function bandOverridesFor(baselinePath, scenario, log) {
+  if (!baselinePath) {
+    log('  !! no baseline supplied — per-metric band overrides (maxBand/bandAbsolute) are NOT applied')
+    return {}
+  }
+  let baseline
+  try {
+    baseline = JSON.parse(await readFile(baselinePath, 'utf8'))
+  } catch (error) {
+    log(`  !! could not read ${path.basename(baselinePath)} (${error.message}) — band overrides are NOT applied`)
+    return {}
+  }
+  const entry = baseline?.scenarios?.[scenario] ?? baseline?.lighthouse?.[scenario]
+  if (!entry) {
+    log(`  !! "${scenario}" has no baseline entry — band overrides are NOT applied`)
+    return {}
+  }
+  return entry
+}
+
+/**
  * `--compare A B`: do two reports agree within their own declared bands?
  *
  * SHARED BY BOTH MEASURING LAYERS. This lives here rather than in run.mjs
@@ -240,11 +269,27 @@ function stableHash(value) {
  *
  * Returns a process exit code: 0 agree · 1 disagree · 2 not comparable.
  */
-export async function compareReportFiles(pathA, pathB, log) {
+export async function compareReportFiles(pathA, pathB, log, baselinePath = null) {
   const a = JSON.parse(await readFile(pathA, 'utf8'))
   const b = JSON.parse(await readFile(pathB, 'utf8'))
 
   log(`compare: ${path.basename(pathA)} vs ${path.basename(pathB)}`)
+
+  // PER-METRIC BAND OVERRIDES APPLY HERE TOO. They did not until 2026-09-01,
+  // and the gap was silent: `compare()` (the baseline path) applies
+  // `maxBand`/`bandAbsolute` on read, while this path used the reports' own
+  // bands verbatim. For idle-hero `gpu.shaderMsPerFrame` that is the difference
+  // between a 0.1 ms band and a 0.67 ms one — `--compare` handed back exactly
+  // the tolerance Task 7b Step 5b had just removed, and did it while printing
+  // "agree". Two comparison paths that disagree about how wide a band is are
+  // two different instruments wearing one name.
+  //
+  // The overrides are read from the baseline rather than from the reports
+  // because that is where they are authored (`stats.mjs:39`) and where
+  // `compare()` reads them, so both paths resolve the same band from the same
+  // source. A missing baseline is announced, never assumed benign: silence here
+  // is what made the original gap invisible.
+  const overrides = await bandOverridesFor(baselinePath, a.scenario, log)
   if (a.scenario !== b.scenario) {
     process.stderr.write(`error: different scenarios (${a.scenario} vs ${b.scenario})\n`)
     return 2
@@ -254,6 +299,7 @@ export async function compareReportFiles(pathA, pathB, log) {
   }
 
   let disagreements = 0
+  const capped = []
   for (const key of RIG_KEYS) {
     if (String(a.rig?.[key]) !== String(b.rig?.[key])) {
       log(`  !! rig differs on ${key}: "${a.rig?.[key]}" vs "${b.rig?.[key]}" — these reports are not comparable`)
@@ -293,8 +339,12 @@ export async function compareReportFiles(pathA, pathB, log) {
     // "Within their own declared bands": the wider of the two bands, because
     // each report's band is that report's own honest statement of how much the
     // metric may move. Requiring the narrower would make the stricter run the
-    // arbiter of the looser one.
-    const band = Math.max(left.band, right.band)
+    // arbiter of the looser one. THEN the baseline's hand-set override caps it,
+    // exactly as `compare()` does — a ceiling authored in the baseline is a
+    // statement about the metric, not about one comparison direction.
+    const declared = Math.max(left.band, right.band)
+    const band = applyBandOverrides(declared, overrides[metric] ?? {})
+    if (band !== declared) capped.push(`${metric} ${declared.toFixed(4)} -> ${band.toFixed(4)}`)
     const delta = Math.abs(left.median - right.median)
     const agree = delta <= band || left.informational
     if (!agree) disagreements += 1
@@ -303,6 +353,7 @@ export async function compareReportFiles(pathA, pathB, log) {
     )
   }
   log('')
+  if (capped.length > 0) log(`  band capped by a baseline override: ${capped.join(' · ')}`)
   // "disagreement(s)", not "metric(s)": this counter now includes rig and
   // instrument differences, which are not metrics. A version-only drift used to
   // print "1 metric(s) disagree" above a table in which every metric said
