@@ -123,6 +123,7 @@
         "median": 6.6409,
         "iqr": 0.0495,
         "band": 0.6641,
+        "maxBand": 0.1,
         "n": 5,
         "source": "webgl1:EXT_disjoint_timer_query@fluid-waves"
       }

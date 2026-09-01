@@ -50,18 +50,23 @@ export const metrics = {
   'gpu.decodeMsPerFrame': { unit: 'ms', lowerIsBetter: true, minBand: 0.03, sourceKey: 'gpu' },
   // Real GPU execution time for the hero draw (EXT_disjoint_timer_query).
   //
-  // minBand is the MEASURED unplanted leg-to-leg spread at this rig's own
-  // scale: `gpu-timer-probe.mjs aaa 12` gave 5.4157 / 5.7829 / 5.7402 ms,
-  // spread 0.3672 (6.5% of mean), on a quiet machine at 0.209 load/core.
-  // An earlier 0.03 came from probe runs at deviceScaleFactor 1 — a
-  // DIFFERENT quantity (smaller canvas), and it would have flagged every
-  // single run as a regression.
+  // NO minBand, and that is the point (Task 7b Step 5b, `perf/mde-sweep.mjs`).
+  // The interim 0.37 was a SINGLE-RUN floor, measured from three probe legs
+  // before the runner's median-of-5 existed. It never did anything here: the
+  // band is `max(10% of median, IQR, minBand)` and 10% of 6.7 is 0.67, so 0.37
+  // sat below the term that already dominated — while sitting ABOVE the effects
+  // this metric has to see. What replaces it is a CEILING, not a floor:
+  // `"maxBand": 0.1` on this metric in `baseline.json`, derived from the sweep's
+  // four interleaved control legs (medians 6.7194 / 6.7264 / 6.6941 / 6.7149,
+  // range 0.0323; largest within-leg IQR 0.03) by the rule fixed in code before
+  // any leg ran — the larger of 3x the median range and 2x the largest IQR,
+  // ceiled to 0.01 ms.
   //
-  // KNOWN LIMIT, not papered over: a single run cannot resolve the 2x
-  // shader plant here (+0.3369 ms, inside the 0.3672 floor). The runner's
-  // median-of-N is what has to close that gap, which is why Task 7b Step 5
-  // puts the acceptance through `npm run perf` and not through the probe.
-  'gpu.shaderMsPerFrame': { unit: 'ms', lowerIsBetter: true, minBand: 0.37, sourceKey: 'gpuTimer' },
+  // The ceiling lives in the baseline, not here, because `bandFor` has a floor
+  // and no ceiling by design (`stats.mjs:39`) and `compare` applies the
+  // override on READ. scroll-transition keeps its 0.37 and gets no ceiling: its
+  // within-leg IQR is 0.1514, about the size of the band a ceiling would set.
+  'gpu.shaderMsPerFrame': { unit: 'ms', lowerIsBetter: true, sourceKey: 'gpuTimer' },
   'gpu.busyMsPerSec': { unit: 'ms/s', lowerIsBetter: true, minBand: 3, sourceKey: 'gpu' },
   'gpu.presentedFps': { unit: 'fps', lowerIsBetter: false, minBand: 1, sourceKey: 'gpu' },
 }

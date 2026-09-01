@@ -3155,3 +3155,275 @@ that refused the first attempt — still blocks a baseline, exactly as R10 inten
 
 **Not changed:** the hot-process limit (50%), the foreign-CPU observable, `--force`, or the rule
 that a busy rig is a baseline-corrupting condition. Selftests stay green (29/29 and 57/57).
+
+---
+
+## 2026-09-01 · Task 7b (BLOCKER 2) · A real GPU-execution timer for Layer 2 — the whole record
+
+Task 7b was not in the original plan. It was inserted on 2026-08-31 after Task 5b's sensitivity
+proof failed and the failure was traced to the INSTRUMENT rather than to the shader. This section
+is the record the plan's Step 7 asks for: the route and why the standing ruling's extension was
+superseded, the 8.4x mismeasurement the old metrics were making, the instrumentation effect, both
+A-B-A tables, and the Step 5 MDE sweep that closes it.
+
+### Route C, and why the ruling's extension was superseded
+
+Kevin's ruling of 2026-08-24 was "add `EXT_disjoint_timer_query_webgl2` before any batch runs". The
+2026-08-31 probe established that **that extension cannot attach**: the hero canvas is WebGL **1**
+(`FluidWaves.tsx:257`), and the webgl2 extension has nothing to bind to. WebGL 1's
+`EXT_disjoint_timer_query` **is** available on this rig and does measure the real canvas.
+
+Route B — upgrade the canvas to `webgl2` so the named extension applies — was declined by Kevin: it
+is an app-code change to a shipped visual surface in service of a measurement. **Route C** was
+approved in chat on 2026-08-31: install the timer from the RUNNER side by wrapping
+`HTMLCanvasElement.prototype.getContext` and then `drawArrays`, exactly as the existing `firstDraw`
+hook already does. That keeps Layer 2's hard rule (`instrument.mjs:4`, no app-code edits) intact.
+The ruling's INTENT — a real GPU timer rather than a CPU-side proxy — is unchanged; only the
+mechanism named in it was superseded, by measurement rather than by preference.
+
+### The 8.4x mismeasurement
+
+`trace.mjs:8` described the CPU-side GPU-process decode event as "the shader's own cost". It is not,
+and it is off by roughly **8.4x**. Kevin's naming decision of 2026-08-31 was to KEEP and RELABEL
+rather than retire, so continuity with every measurement taken so far survives:
+`gpu.webglMsPerFrame` -> `gpu.decodeMsPerFrame`, with the real quantity arriving as a new metric,
+`gpu.shaderMsPerFrame`.
+
+**The old metrics are blind at harness level too — measured, not asserted.** Across the Step 5
+A-B-A below, on a plant that moved `gpu.shaderMsPerFrame` by 3%:
+
+| metric | A1 | B (plant) | A2 | verdict |
+|---|---|---|---|---|
+| `gpu.decodeMsPerFrame` | 0.6408 | 0.6412 | 0.6558 | **+0.0004 (0.06%)** — blind |
+| `gpu.busyMsPerFrame` | 1.9127 | 1.8596 | 1.9317 | moved **DOWN** under the plant — blind |
+
+That is the 8.4x mismeasurement reproduced through the runner rather than through a probe. Every
+number this campaign took before the timer existed was reading a proxy that does not track shader
+cost.
+
+### The instrumentation effect — and why Step 3's own test could not see it
+
+Step 3 recorded frame time with the timer installed and removed over identical windows
+(`instrument.mjs:81`): p50/p95 **16.700 / 17.400 with it on, 16.700 / 17.400 with it off**,
+off-to-off spread **0.000**. Unmoved to the digit.
+
+**That test is structurally insufficient and the record says so.** `frame.p50Ms` is pinned at the
+16.7 ms vsync cadence and is insensitive to added main-thread JS by construction — it cannot detect
+this class of cost, so "identical" is not evidence of "free". `main.scriptMsPerSec` can detect it,
+and later did. The `+96%` that blocked a `--update-baseline` splits cleanly in three:
+
+| stage | `main.scriptMsPerSec` | step |
+|---|---|---|
+| headed baseline | 3.7337 | — |
+| timer OFF, headless | 5.0535 | **+35.3%**, and it reads within-band |
+| timer ON, headless | ~7.67 | **+51.9% on top** |
+
+which multiplies to the observed ~+105%. Control spread 0.1189 against a +2.6208 ms/sec effect =
+**SNR ~22x**, so the split is resolved, not inferred. **The GPU timer is the dominant term, larger
+than the headless shift** — the regression verdict that blocked the baseline was caused mostly by
+our own instrument. The timer runs `createQueryEXT` + `beginQueryEXT` + `endQueryEXT` + a poll/drain
+loop every frame; +3.58 ms/sec at 60 fps is ~0.06 ms/frame, squarely the right order for that work.
+
+### The two A-B-A tables, and what they actually established
+
+**Probe level**, at the corrected rig scale (the probe originally ran at `deviceScaleFactor: 1`
+where the harness runs at 2 — a different shaded area, so the probe's 3.85 ms and the runner's
+5.92 ms were never comparable), quiet at 0.209 load/core, ~715 samples per leg:
+
+| leg | `gpu.shaderMsPerFrame` |
+|---|---|
+| A1 | 5.3681 |
+| B (`i<10`) | 5.8895 |
+| A2 | 5.7370 |
+
+Plant **+0.3369 ms (+6.1%)** — against three UNPLANTED legs (`aaa` mode, added for exactly this)
+spreading **0.3672 ms (6.5%)**. The plant sat INSIDE the noise floor. Within-leg quality was perfect
+(0 disjoint, 0 zeros, n~715), so no amount of within-leg sampling fixes it: **the limit is
+leg-to-leg**, which is what the runner's median-of-N exists to attack.
+
+**Harness level** (median-of-5 plus the runner's own warm-up — the statistic the probe lacks, and
+the acceptance the plan always specified):
+
+| leg | `gpu.shaderMsPerFrame` |
+|---|---|
+| A1 | 5.8348 |
+| B (`i<10`) | 6.0396 |
+| A2 | 5.8868 |
+| third control | 5.9310 |
+
+Median-of-5 shrank leg-to-leg noise ~4x (three-control spread **0.0962** vs 0.3672 single-run). The
+plant exceeded every control, but by only 0.1086 over the highest — SNR ~1.6x — and the three
+controls trended **monotonically upward** (5.8348 -> 5.8868 -> 5.9310), so the same warming drift
+was confounding the A-B-A from both sides.
+
+**The conclusion that sent Step 5 to a sweep: the BAND, not the signal, was what blocked
+acceptance.** `bandFor` is `max(10% of median, 1x IQR, minBand)`, and 10% of 5.89 = 0.5887 dominates
+an observed IQR of 0.0403-0.1114. The runner reported the plant as within-band not because it could
+not see it but because it was told to tolerate ten times more than it needed to.
+
+### Step 5 · the MDE sweep — seven legs, verbatim
+
+Design ruled by Kevin 2026-09-01 (full text in the plan under Step 5b), executed by
+`perf/mde-sweep.mjs`, committed at `32f1eab` **before** it produced a number. Seven legs,
+`C P10 C P20 C P40 C`, controls interleaved because a block design lets leg-to-leg drift masquerade
+as signal. Every leg is a child `node perf/run.mjs idle-hero --runs 5` through the public CLI, so
+the MDE is the number `npm run perf` itself produces. Run 2026-09-01 16:30-16:56, headless, on AC,
+`caffeinate` armed, load guard sampled and clean before every leg, power confirmed at both ends of
+every leg.
+
+| leg | plant | median | iqr | n | exit | served bundle | dist hash |
+|---|---|---|---|---|---|---|---|
+| C0 | — | 6.7194 | 0.0203 | 5 | 0 | control loop present, no plant | `cd111a14` |
+| P10 | `i<10` | 6.4273 | 0.0773 | 5 | 0 | `i<10` present, control absent | — |
+| C1 | — | 6.7264 | 0.0241 | 5 | 0 | control loop present, no plant | `cd111a14` |
+| P20 | `i<20` | 7.1032 | 0.0291 | 5 | 0 | `i<20` present, control absent | — |
+| C2 | — | 6.6941 | 0.0155 | 5 | 0 | control loop present, no plant | `cd111a14` |
+| P40 | `i<40` | 12.0131 | 0.0009 | 5 | 1 | `i<40` present, control absent | — |
+| C3 | — | 6.7149 | 0.0300 | 5 | 0 | control loop present, no plant | `cd111a14` |
+
+The four control legs built to an **identical** `dist/index.html` hash
+(`sha256:cd111a14b09d88a04454a9850c66d3c6a15da61fdd84e3ea29a6b1404a93b39d`), so the build is
+deterministic and the deltas below are readable. Every leg's plant state was verified by grepping
+`dist/assets` AFTER the leg — the artifact the browser actually executed, not the source. No run was
+discarded in any leg. `git diff --name-only -- src/` was empty before leg 1 and after leg 7.
+
+**THE HEADLINE IS NOT THE MDE. The plant ladder is NON-MONOTONIC, and that kills it as a ruler.**
+
+| plant | work vs control | delta vs bracketing controls | delta% |
+|---|---|---|---|
+| `i<10` | 2x the loop | **−0.2956 ms** | **−4.40%** |
+| `i<20` | 4x the loop | +0.3929 ms | +5.86% |
+| `i<40` | 8x the loop | +5.3086 ms | +79.18% |
+
+Doubling the loop measured **4.4% FASTER** than the controls bracketing it, at ~9x the
+control-to-control range (0.0323 ms). Quadrupling it cost +5.9%. Only at 8x does cost appear, and
+then it explodes. A linear reading of the `i<40` leg would predict +0.76 ms at `i<10` and +2.28 ms
+at `i<20`; observed were −0.30 and +0.39. This is flat-then-cliff, the signature of a shader that is
+not loop-bound until it suddenly is — latency hiding and compiler unrolling absorbing the extra
+iterations until they exceed whatever else was the bottleneck. `i<10`'s within-leg IQR (0.0773) is
+3-5x every control's, and `i<40`'s is 0.0009, so the three plants are not three points on one curve;
+they are three differently-compiled shaders.
+
+**Consequence, stated plainly: the plant ladder cannot calibrate an effect-size threshold, and no
+future session should treat `i<N` as a proxy for "N/5 times the shader cost".** What the sweep
+calibrates instead is the INSTRUMENT, and it does that very well — see below.
+
+### Step 5b · `maxBand`, derived by a rule fixed in code before any leg ran
+
+The rule (ruling point 6, implemented in `mde-sweep.mjs:deriveMaxBand` and committed before the
+run): the larger of **3x the range of the four control medians** and **2x the largest within-leg
+control IQR**, rounded up to 0.01 ms.
+
+```
+control medians       : 6.7194, 6.7264, 6.6941, 6.7149   (range 0.0323)
+control iqrs          : 0.0203, 0.0241, 0.0155, 0.0300
+3 x (max-min medians) : 0.0969
+2 x largest iqr       : 0.0600
+maxBand (ceil 0.01)   : 0.10
+```
+
+**Applied:** `"maxBand": 0.1` on idle-hero `gpu.shaderMsPerFrame` in `baseline.json`, and the interim
+`minBand: 0.37` retired from `idle-hero.mjs` in the same edit. The 0.37 was a single-run floor
+measured from three probe legs before the runner's median-of-5 existed, and it never did anything:
+10% of 6.7 is 0.67, so it sat below the term that already dominated — while sitting ABOVE the
+effects this metric has to see. What replaces it is a CEILING, which is what `stats.mjs:39` was
+written for.
+
+**idle-hero only.** scroll-transition keeps `minBand: 0.37` and gets no ceiling: its within-leg IQR
+is 0.1514, about the size of the band a ceiling would set, so a ceiling there would be pinning a
+band to noise rather than under it.
+
+`npm run perf:selftest` after the edit: **29/29 + 57/57**, exit 0.
+
+### The MDE, evaluated twice over one collection
+
+Ruling point 4: collect once, evaluate twice. Verdict rule (point 3): plant k is SEPARATED iff
+`median(Pk) − mean(median(C_k), median(C_k+1))` exceeds the band of the WIDER of the two bracketing
+controls, mirroring what `--compare` does. The runner's own verdict against `baseline.json` is the
+second column.
+
+**Under the default band** (`minBand 0.37`, no ceiling — the pre-5b configuration):
+
+| plant | median | control mean | delta | delta% | band | separated | runner |
+|---|---|---|---|---|---|---|---|
+| `i<10` | 6.4273 | 6.7229 | −0.2956 | −4.40% | 0.6726 | no | within-band |
+| `i<20` | 7.1032 | 6.7103 | +0.3929 | +5.86% | 0.6726 | no | within-band |
+| `i<40` | 12.0131 | 6.7045 | +5.3086 | +79.18% | 0.6715 | **YES** | **REGRESSION** |
+
+MDE = `i<40` = **+5.31 ms**. Both columns agree. That is far above Task 8's expected ~1.35 ms win,
+so **the default band cannot decide a single batch in this campaign** — which is precisely the
+argument Step 5b exists to make, and the ruling predicted it ("MDE likely lands at `i<20` or `i<40`
+under the default band").
+
+**Under the post-5b band** (`minBand` retired, `maxBand 0.1`):
+
+| plant | median | control mean | delta | delta% | band | separated | runner |
+|---|---|---|---|---|---|---|---|
+| `i<10` | 6.4273 | 6.7229 | −0.2956 | −4.40% | 0.10 | **YES** (negative-going) | **improvement** |
+| `i<20` | 7.1032 | 6.7103 | +0.3929 | +5.86% | 0.10 | **YES** | **REGRESSION** |
+| `i<40` | 12.0131 | 6.7045 | +5.3086 | +79.18% | 0.10 | **YES** | **REGRESSION** |
+
+MDE = **`i<20`, +0.3929 ms (+5.86%)** — the smallest POSITIVE-going plant both columns separate.
+
+**On the second column, and the one place this needed care.** The sweep's legs were measured while
+`baseline.json` still carried the pre-5b band, so the runner column it printed live said
+"within-band" at `i<20`, and the ruling's disagreement rule pushed the MDE out to `i<40`. That
+disagreement was an artifact of a stale baseline, not a measurement: `compare()` applies band
+overrides on READ (`report.mjs`, the `applyBandOverrides(baseline.band, baseline)` line). The
+verdicts above were therefore **recomputed by calling the runner's own `compare()` over the seven
+reports already on disk against the post-5b baseline** — no leg was re-run and no number was
+re-measured, which is exactly what "collect once, evaluate twice" authorises. Recomputed:
+
+```
+leg     median     delta    band  headroom  verdict
+C0      6.7194    0.0785     0.1    0.0215  within-band
+P10     6.4273   -0.2136     0.1   -0.1136  improvement
+C1      6.7264    0.0855     0.1    0.0145  within-band
+P20     7.1032    0.4623     0.1   -0.3623  REGRESSION
+C2      6.6941    0.0532     0.1    0.0468  within-band
+P40    12.0131    5.3722     0.1   -5.2722  REGRESSION
+C3      6.7149    0.0740     0.1    0.0260  within-band
+```
+
+All four controls agree within band; both plants above zero are flagged; the `i<10` plant is
+detected too, correctly signed as an improvement because on this rig it genuinely is one.
+
+### THE CAMPAIGN'S STATED DETECTION THRESHOLD
+
+**idle-hero `gpu.shaderMsPerFrame` resolves effects of ~0.1 ms (~1.5% of a 6.7 ms shader).** That is
+the `maxBand`, and it is not a hopeful number: four interleaved control legs spanning 26 minutes,
+with three differently-built plant legs between them, spread **0.0323 ms peak-to-peak (0.48%)**, and
+the largest within-leg IQR was 0.030. The band sits 3x above the drift term and 2x above the spread
+term by construction.
+
+**Any batch claiming a win smaller than 0.1 ms on this metric is not decidable by this harness and
+must say so in its decision line.**
+
+Task 8's expected ~23% / ~1.35 ms win sits **~13x above** that threshold, and the demonstrated MDE
+plant (+0.39 ms) sits ~3.4x below it. **Task 8 is decidable.** Tasks 8-12 are unblocked on the
+measurement question.
+
+### Open, not closed
+
+- **`maxBand 0.1` has very little headroom against the standing baseline median.** The four control
+  legs sit **+0.053 to +0.086 ms** above the stored 6.6409 (recorded at `47527d2`, same rig, same
+  headless mode, same `src/`), leaving as little as **0.0145 ms** of margin on C1. Cross-session
+  offset (~0.073) is more than 2x the within-session control range (0.0323), and the ruling's rule
+  could only see the within-session term. The band holds today; it is one session's drift away from
+  a false REGRESSION on unchanged code. Re-recording the idle-hero baseline is the obvious remedy
+  and it is NOT taken here — it moves the reference every batch in the campaign is judged against,
+  which is Kevin's call, not this session's.
+- **The plan's Task 7b Acceptance paragraph is now provably unsatisfiable as written.** It says
+  "`npm run perf` detects the doubled-shader plant as a regression on `gpu.shaderMsPerFrame`". The
+  doubled plant is **not a regression on this rig** — it measures 4.4% faster. The harness detects
+  the move with the correct sign. The acceptance needs rewording to the MDE that Step 5's own
+  revision already implies; that is a plan edit and it is left for Kevin.
+- `perf/gpu-timer-probe.mjs` still performs no rig check. Under the ruling no probe-derived number
+  enters the MDE, so it blocks nothing, and nothing in this section depends on the probe.
+- scroll-transition `gpu.decodeMsPerFrame` +148.4% (0.1891 -> 0.4697) stays OPEN. Leading candidate
+  is the `gpu.webglMsPerFrame` -> `gpu.decodeMsPerFrame` rename in `7f76f01` carrying a pre-timer
+  value forward.
+- `baseline.json`'s `lighthouse` key is still HEADED data and must be re-recorded before Task 12;
+  `--update-baseline` does not touch it.
+- `main.taskMsPerSec`'s band may be too tight for its noise (it flaked once at IQR 8.7x). It is a
+  candidate for the same measured-band treatment Step 5b gave the shader metric.
