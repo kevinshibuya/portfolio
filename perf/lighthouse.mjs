@@ -634,7 +634,7 @@ async function main() {
   reportMachineLoad(loadBefore, log, 'before')
 
   const rig = await collectRig()
-  log(`rig: chrome ${rig.chrome} · macOS ${rig.macos} · ${rig.arch} · display ${rig.displayScale}x · ${rig.acPower ? 'AC power' : 'BATTERY'}`)
+  log(`rig: chrome ${rig.chrome} · macOS ${rig.macos} · ${rig.arch} · display ${rig.displayScale}x · ${rig.acPower ? 'AC power' : 'BATTERY'} · ${rig.headless ? 'headless' : 'HEADED'}`)
   if (!rig.acPower) {
     log('  !! WARNING: this rig is on BATTERY. macOS throttles differently on battery; every number below is suspect.')
   }

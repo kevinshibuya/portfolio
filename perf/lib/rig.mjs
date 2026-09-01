@@ -5,11 +5,21 @@
 
 import { chromium } from '@playwright/test'
 import { runSync, run } from './proc.mjs'
-import { measureRefresh } from './browser.mjs'
+import { measureRefresh, HEADLESS } from './browser.mjs'
 import { quantile, snapNominal } from './stats.mjs'
 
-/** Keys that must match for a baseline comparison to mean anything. */
-export const RIG_KEYS = ['chrome', 'macos', 'arch', 'cpu', 'displayScale', 'refreshHz', 'acPower']
+/**
+ * Keys that must match for a baseline comparison to mean anything.
+ *
+ * `headless` is here because it is the LARGEST confounder on this list and was
+ * the last to be added (2026-09-01). Headed and headless are not
+ * interchangeable: measured on this rig, headless reads GPU p50 +12-14% and
+ * `main.scriptMsPerSec` +35%. `acPower` — worth a few percent — was already
+ * gated while this was not, so a headed run could be compared against a
+ * headless baseline silently. It reflects Layer 2's launch mode
+ * (`browser.mjs`); Layer 3 (`lighthouse.mjs`) is headless too as of `9065ec6`.
+ */
+export const RIG_KEYS = ['chrome', 'macos', 'arch', 'cpu', 'displayScale', 'refreshHz', 'acPower', 'headless']
 
 export async function collectRig() {
   const acResult = await run('pmset', ['-g', 'ps'])
@@ -30,6 +40,7 @@ export async function collectRig() {
     refreshHz: Math.round(1000 / nominalFrameMs),
     nominalFrameMs,
     acPower,
+    headless: HEADLESS,
     recordedAt: new Date().toISOString(),
   }
 }

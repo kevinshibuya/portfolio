@@ -81,7 +81,7 @@ const LAUNCH_ARGS = [
  * batch — each stealing focus from whatever the owner was doing, which made
  * every long measurement session hostile to using the machine at all.
  */
-const HEADLESS = true
+export const HEADLESS = true
 
 /**
  * Launch one run's browser. `chromium.launch()` allocates a throwaway user
