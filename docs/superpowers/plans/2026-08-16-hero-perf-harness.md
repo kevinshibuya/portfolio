@@ -318,6 +318,30 @@ Mechanics: every shot loads with `perf-seed=<seed>&perf-freeze=<t>&perf-role=0` 
 - [ ] **Step 1:** Implement → run the shared batch procedure → keep or revert.
 - [ ] **Step 2:** Record decision + evidence in `perf/decisions.md`; commit (kept) or log-only commit (reverted).
 
+### Task 7b (BLOCKER 2): A real GPU-execution timer for Layer 2
+
+**Origin:** not in the original plan. Inserted 2026-08-31 after Task 5b's sensitivity proof failed and the failure was found to be the instrument, not the shader. Kevin's ruling of 2026-08-24 was "add `EXT_disjoint_timer_query_webgl2` before any batch runs"; the 2026-08-31 probe showed that extension cannot attach (the hero canvas is WebGL **1**, `FluidWaves.tsx:257`) but that WebGL1's `EXT_disjoint_timer_query` **is** available on this rig and measures the real canvas. Kevin approved **Route C** (runner-side WebGL1 timer, no app-code edit) in chat on 2026-08-31, superseding the extension named in the ruling; intent — a real GPU timer — is unchanged.
+
+**Files:**
+- Modify: `perf/lib/instrument.mjs` (timer in `INIT_SCRIPT` + `collect`), `perf/lib/trace.mjs` (rename + fix the false comment), `perf/scenarios/idle-hero.mjs`, `perf/scenarios/scroll-transition.mjs`, `perf/baseline.json`, `perf/lib/browser.mjs:198` + `perf/lib/baseline.mjs:45` (comment references)
+- Create: `perf/gpu-timer-probe.mjs` (the committed instrument proof — see Step 1)
+
+**Why this shape:** Layer 2's hard rule (`instrument.mjs:4`) is no app-code edits, and Route C keeps it: the timer installs from the runner side by wrapping `HTMLCanvasElement.prototype.getContext` and then `drawArrays`, exactly as the existing `firstDraw` hook already does.
+
+**Boundaries:** No app-code edits — if the timer cannot be made to work runner-side, return `blocked:`, do NOT reach for a `webgl2` upgrade on your own (that is Route B and Kevin declined it). No shader changes. The plant/revert in Step 5 must leave `git diff --stat src/` empty.
+
+**Naming decision (Kevin, 2026-08-31):** the CPU-side metric is **kept and relabelled**, not retired — `gpu.webglMsPerFrame` -> `gpu.decodeMsPerFrame`, so it stops claiming to be shader cost while preserving continuity with every measurement taken so far. The new metric is `gpu.shaderMsPerFrame`.
+
+- [x] **Step 1:** Commit the instrument BEFORE its numbers — Task 7 round 4's structural lesson, which cost four retracted passes. `perf/gpu-timer-probe.mjs` carries the availability probe, the hero-canvas probe, and the A-B-A driver, each printing its own domain.
+- [ ] **Step 2:** Add the timer to `instrument.mjs` `INIT_SCRIPT`: wrap `getContext` -> `drawArrays` on each `data-canvas` GL context, bracket the draw with `beginQueryEXT(TIME_ELAPSED_EXT)`/`endQueryEXT`, drain by polling `QUERY_RESULT_AVAILABLE_EXT` (**never block**), discard every query overlapping a `GPU_DISJOINT_EXT` window and COUNT the discards. Extend `collect()` to return the samples. If the extension is absent the harness records that fact and the metric goes MISSING — it never silently reports zero.
+- [ ] **Step 3:** **Measure the instrumentation effect before trusting a single number** — the same treatment `trace.mjs:11-18` gave tracing overhead: `frame.p50Ms`/`p95Ms` over identical windows with the timer installed and removed. If the timer perturbs frame time above the measurement's own resolution it may NOT share a window with `frame.*` and needs its own pass. Record the comparison either way.
+- [ ] **Step 4:** Wire `gpu.shaderMsPerFrame` (p50 of per-frame elapsed) into `idle-hero.mjs` and `scroll-transition.mjs` metric specs + values, with `sourceKey` and a `minBand` derived from OBSERVED control-to-control spread, not guessed. Rename `gpu.webglMsPerFrame` -> `gpu.decodeMsPerFrame` across scenarios, `trace.mjs`, `baseline.json`, and the two comment sites. Fix `trace.mjs:8`, which calls the CPU-side decode event "the shader's own cost" — it is off by ~8.4x.
+- [ ] **Step 5:** Re-run the sensitivity proof **through the real runner** (`npm run perf`), not just the probe: plant `FluidWaves.tsx:158` `i < 5` -> `i < 10`, verify the plant is in the SERVED bundle, A-B-A, revert. The harness itself must flag it. Probe-level evidence (A1 3.8328 / B 5.6896 / A2 3.8297 ms, spread 0.0031, SNR ~600x) is viability, NOT this acceptance.
+- [ ] **Step 6:** Re-record `scenarios` in `perf/baseline.json` after a warm-up, per the ruling's second half. The first-invocation-reads-low effect (recorded 2026-08-24, mechanism still unidentified) is untouched by the new timer — the warm-up protocol must be stated and followed, and the determinism proof re-run.
+- [ ] **Step 7:** Record the whole thing in `perf/decisions.md` (route chosen + why the ruling's extension was superseded, the 8.4x mismeasurement, the A-B-A tables, the instrumentation-effect comparison); tick these boxes as each step lands.
+
+**Acceptance (this is what unblocks Tasks 8-12):** `npm run perf` detects the doubled-shader plant as a regression on `gpu.shaderMsPerFrame`, and the control legs agree within band. Until that passes, Tasks 8-12 stay blocked.
+
 ### Task 8 (B2): Scissor the shading to the visible intersection
 
 **Files:** Modify: `src/components/canvas/FluidWaves.tsx`
