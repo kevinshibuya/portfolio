@@ -32,6 +32,35 @@ const BOOST_DECAY_TAU = 0.9 // s, settle
 // liquid fingers that move with the sim, never a straight horizontal fade.
 // NOISE_AMP = finger reach in band-progress units; the bottom CREAM_FLOOR of
 // the canvas is forced 100% cream regardless.
+// ---------------------------------------------------------------------------
+// Scissored shading (Task 8 / B2) — hero only.
+//
+// The hero section is 130svh but at most ~100svh of it is ever on screen, so
+// ~23% of the canvas is shaded every frame for nobody. `gl.scissor` restricts
+// the fragment stage to the canvas<->viewport intersection. Nothing about the
+// shading of the pixels that ARE drawn changes: scissor is a raster test, and
+// `vUv`/`gl_FragCoord` still come from the full-canvas quad, so the dissolve
+// band and the flow field are computed exactly as before.
+//
+// UNDRAWN ROWS ARE UNDEFINED, NOT RETAINED. The context is `{ alpha: false }`
+// with `preserveDrawingBuffer` at its default false, so a row outside the rect
+// holds whatever the driver leaves there — in practice opaque black. Anything
+// that becomes visible without having been drawn in the SAME frame is a hard
+// visual break. Two consequences, both load-bearing:
+//
+//   1. The rect is PADDED, never exact. The pad is a floor plus a velocity
+//      term, because the hazard is not the frame we draw — we read `scrollY`
+//      in the same rAF callback that draws, so that frame is self-consistent —
+//      it is the frame we DON'T draw. A dropped main-thread frame leaves the
+//      compositor re-presenting this texture at a scroll offset it was never
+//      drawn for, and Lenis runs its own rAF, so our `scrollY` can already be
+//      one frame behind the visual position. The velocity term buys ~12 frames
+//      of travel at the current speed; the floor covers acceleration from rest
+//      (where last frame's velocity is still ~0) and rounding.
+//   2. Every STATIC-frame path draws the full canvas — see `scissorFull`.
+const SCISSOR_PAD_CSS = 32
+const SCISSOR_PAD_SECONDS = 0.2
+
 const DISSOLVE_NOISE_AMP = 0.9
 const CREAM_FLOOR = 0.035
 
@@ -52,6 +81,14 @@ interface PerfCounters {
   frames: number
   resizes: number
   rafLoopStarts: number
+  // The last scissor rect, in CSS px measured DOWN from the canvas top — the
+  // frame's own statement of which rows it shaded. Task 8's arbiter (c) reads
+  // this and asserts it covers the viewport intersection it computes
+  // independently from layout, which is a direct test of the geometry rather
+  // than a screenshot heuristic that has to tell undrawn black apart from the
+  // page's own near-black ink.
+  scissorTopCss: number
+  scissorBottomCss: number
 }
 
 declare global {
@@ -266,7 +303,7 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     // test asserts `'__PERF_GL__' in window === false`). A fresh record per
     // effect run means a remount resets rather than accumulates.
     const perf: PerfCounters | null = PERF.counters
-      ? { drawCalls: 0, uniformUploads: 0, frames: 0, resizes: 0, rafLoopStarts: 0 }
+      ? { drawCalls: 0, uniformUploads: 0, frames: 0, resizes: 0, rafLoopStarts: 0, scissorTopCss: 0, scissorBottomCss: 0 }
       : null
     if (perf) {
       const counted = perf
@@ -390,6 +427,64 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     gl.enableVertexAttribArray(positionLoc)
     gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0)
 
+    // Geometry the scissor rect is built from. Refreshed in resize() ONLY: the
+    // rAF loop may not force layout, so no getBoundingClientRect/innerHeight
+    // read happens per frame. `window.resize` is also what fires on a mobile
+    // URL-bar collapse, which is the one thing that changes the viewport height
+    // without changing the canvas box.
+    let canvasTopDoc = 0
+    let canvasCssHeight = 0
+    let viewportCssHeight = 0
+
+    // Hero only. The backdrop canvas is roughly viewport-sized, so there is
+    // nothing to save there, and the plan's "the hero is the target" keeps the
+    // blast radius to one surface. The backdrop keeps a full-canvas rect.
+    const scissored = variant === 'hero'
+
+    /**
+     * Set the shaded band, in CSS px measured DOWN from the canvas top.
+     * Converted here to the drawing buffer's BOTTOM-left origin, which is the
+     * one place this file has to think about GL's flipped Y.
+     */
+    const setScissorCss = (topCss: number, bottomCss: number): void => {
+      const scale = canvasCssHeight > 0 ? canvas.height / canvasCssHeight : 1
+      const top = Math.max(0, Math.min(canvasCssHeight, topCss))
+      const bottom = Math.max(top, Math.min(canvasCssHeight, bottomCss))
+      const y = Math.max(0, Math.floor((canvasCssHeight - bottom) * scale))
+      // +1 device px of slack so a fractional CSS edge can never round the
+      // band one row short of what is on screen.
+      const height = Math.max(0, Math.min(canvas.height - y, Math.ceil((bottom - top) * scale) + 1))
+      gl.scissor(0, y, canvas.width, height)
+      if (perf) {
+        perf.scissorTopCss = top
+        perf.scissorBottomCss = bottom
+      }
+    }
+
+    /**
+     * The full canvas. EVERY static-frame path goes through this — the frozen
+     * frame, the reduced-motion frame, the resize repaint, the IO re-entry
+     * repaint, and the first frame drawn at mount. They may each be the only
+     * frame this canvas ever draws, and a partial rect would leave the rest of
+     * it undefined with nothing scheduled to fix it.
+     */
+    const scissorFull = (): void => {
+      setScissorCss(0, canvasCssHeight)
+    }
+
+    /** The live path: viewport intersection, padded. See the SCISSOR_PAD note. */
+    const scissorToViewport = (scrollY: number, velocityPxPerSec: number): void => {
+      const pad = SCISSOR_PAD_CSS + velocityPxPerSec * SCISSOR_PAD_SECONDS
+      const viewportTopInCanvas = scrollY - canvasTopDoc
+      setScissorCss(viewportTopInCanvas - pad, viewportTopInCanvas + viewportCssHeight + pad)
+    }
+
+    // Enabled once, for the life of the context, and every draw site sets its
+    // own rect. An enable/disable pair around the live path would invite
+    // exactly one bug — a path that forgets to re-enable — and buy nothing: the
+    // scissor test is fixed-function and a full-canvas rect costs nothing.
+    gl.enable(gl.SCISSOR_TEST)
+
     const resize = (): void => {
       if (frozenAt !== null && frozenDrawn) return // keep the one frozen frame intact
       if (perf) perf.resizes++
@@ -400,6 +495,15 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       canvas.height = Math.max(1, Math.round(h * dpr))
       gl.viewport(0, 0, canvas.width, canvas.height)
       gl.uniform2f(resolutionLoc, canvas.width, canvas.height)
+      // Scissor geometry, re-read here and nowhere else (see the declarations).
+      canvasTopDoc = canvas.getBoundingClientRect().top + window.scrollY
+      canvasCssHeight = h
+      viewportCssHeight = window.innerHeight
+      // Setting canvas.width/height above reallocated AND cleared the buffer,
+      // so leave the rect at full canvas: whatever draws next — the
+      // reduced-motion repaint below, the frozen frame, the first live frame —
+      // repaints everything. The loop narrows it again on its own next frame.
+      scissorFull()
       // Dissolve band = the part of the hero section BELOW the 100svh zone
       // (the ~30svh veil region), expressed as a fraction of the full section
       // height measured from the bottom (vUv.y). Derived from actual layout so
@@ -447,6 +551,9 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       const tau = target > boost ? BOOST_ATTACK_TAU : BOOST_DECAY_TAU
       boost += (target - boost) * (1 - Math.exp(-dt / tau))
       simTime += dt * (1 + boost)
+      // Same `y` and `vel` the boost is derived from — the scissor costs no
+      // extra scroll read, and the rect is consistent with the frame it gates.
+      if (scissored) scissorToViewport(y, vel)
       drawFrame(simTime)
       rafId = requestAnimationFrame(loop)
     }
@@ -480,17 +587,39 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     if (frozenAt !== null) {
       // Exactly one frame, through the LIVE frame path (not the reduced-motion
       // static path) so whatever per-frame state the loop sets applies to it.
+      //
+      // FULL CANVAS, and this is a DELIBERATE DEVIATION from the plan's "the
+      // perf-freeze frame draws through the LIVE path so it IS scissored". It
+      // still draws through the live path — same drawFrame, same uniforms, same
+      // sim time — but with the full-canvas rect, because a frozen canvas is
+      // precisely the case the plan's OWN static-frame rule was written for:
+      // "they may be the only frame ever drawn".
+      //
+      // `?perf-freeze` draws one frame at mount, at scrollY 0, and suppresses
+      // every later redraw INCLUDING resize. The pixel gate then SCROLLS and
+      // screenshots (mid-dissolve-t2/t8, stage-arrival-t2), and Task 8's own
+      // arbiter (b) walks eight offsets the same way. A rect computed at
+      // scrollY 0 would leave every row those shots actually photograph
+      // undrawn — a black band, on the gate whose ruling R1 exists to stop this
+      // exact class of false positive. Scissoring here would not test the
+      // optimization; it would only break the instrument that judges it.
+      // Measured evidence for the collision is in perf/decisions.md.
+      scissorFull()
       drawFrame(frozenAt)
       frozenDrawn = true
       canvas.dataset.perfFrozen = 'true'
     } else if (prefersReducedMotion) {
       // One static frame, time frozen at a seed-derived phase; no loop.
       canvas.dataset.static = 'true'
+      scissorFull()
       drawFrame(seed * 10)
     } else {
       // rAF loop starts at mount (spec §2) — no entrance gate. One frame is
       // drawn immediately so the first paint has content, then the IO starts
-      // the continuous loop while in view.
+      // the continuous loop while in view. FULL canvas: if the canvas is
+      // off-screen at mount the loop never starts, and this is the only frame
+      // that exists until the IO brings it back.
+      scissorFull()
       drawFrame(simTime)
       if (inView) start()
     }
@@ -508,7 +637,10 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       // untouched) but never draw or start a loop on re-entry.
       if (frozenAt !== null) return
       if (prefersReducedMotion) {
-        if (inView) drawFrame(seed * 10) // one-frame repaint on re-entry
+        if (inView) {
+          scissorFull() // static path: the whole canvas, or the rest stays undefined
+          drawFrame(seed * 10) // one-frame repaint on re-entry
+        }
         return
       }
       if (inView) start()
