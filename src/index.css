@@ -2075,9 +2075,13 @@ body[data-loader-state="loading"] {
   }
 }
 
-/* Provisional cream→ink exit veil (Plan A) — sits below the cream Selected Work
-   stage so the return to the dark sections has no hard edge. Plan B relocates
-   this below Skills. Pure tone, no shader, no text. */
+/* THE exit veil (cream→ink): the single tonal bridge out of the light chapter,
+   between Skills' bottom and the Contact/Footer stage. Owned by Home.tsx, where
+   it is deliberately a SIBLING of #chapter-light and not a child — its gradient
+   ends in var(--bg), which the wrapper's token scope resolves to cream, so
+   nesting it would erase the fade. Pure tone: no shader, no text ever.
+   There is no matching entry veil; the hero side is handled in the shader by
+   FluidWaves' cream dissolve across the hero's lower band. */
 .chapter-exit-veil {
   height: 30svh;
   background: linear-gradient(to bottom, var(--color-surface-light) 0%, var(--bg) 100%);

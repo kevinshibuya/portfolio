@@ -207,11 +207,11 @@ Leave `.section-index` / `.section-title em` (`--blue-500`) for T6. `.chip` / `.
 
 **Boundaries:** do not touch the Suspense fallback, the `stageRef` callback, scroll restoration, or chunk warming in `Home.tsx`. Do not change rootMargin.
 
-- [ ] `Home.tsx` wrapper + veil placement; `Projects.tsx` veil line removed; `tsc -b` clean
-- [ ] `Header.tsx` observes `chapter-light`; theme-color effect; comments updated
-- [ ] veil comment in `index.css`
-- [ ] nav-on-light GREEN; light-chapter 2 and 5 GREEN; stack + pixel-gate GREEN, no golden change
-- [ ] commit `feat(chapter): #chapter-light wrapper; exit veil below Skills as its sibling; nav + theme-color follow the chapter`
+- [x] `Home.tsx` wrapper + veil placement; `Projects.tsx` veil line removed; `tsc -b` clean
+- [x] `Header.tsx` observes `chapter-light`; theme-color effect; comments updated
+- [x] veil comment in `index.css`
+- [x] nav-on-light GREEN; light-chapter 2 and 5 GREEN; stack + pixel-gate GREEN, no golden change
+- [x] commit `feat(chapter): #chapter-light wrapper; exit veil below Skills as its sibling; nav + theme-color follow the chapter`
 
 ---
 

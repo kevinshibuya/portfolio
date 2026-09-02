@@ -49,20 +49,26 @@ export function Header() {
       io = new IntersectionObserver(
         (entries) => setOnLight(entries.some((e) => e.isIntersecting)),
         // A 1% band (not a zero-height line) at the very top, where the fixed nav
-        // sits: on-light while #projects crosses the nav, dark above and below.
+        // sits: on-light while the light chapter crosses the nav, dark above
+        // and below. The spec asked to "extend the root margin to the whole
+        // chapter", but a rootMargin cannot express a chapter — so the observed
+        // ELEMENT widened to #chapter-light (Projects → Skills) and the band is
+        // unchanged. The exit veil sits outside the wrapper, so the flip back to
+        // dark happens at Skills' bottom, mirroring the entry at Projects' top.
         { rootMargin: "-8% 0px -91% 0px", threshold: 0 },
       );
       io.observe(el);
       return true;
     };
 
-    const existing = document.getElementById("projects");
+    const existing = document.getElementById("chapter-light");
     if (existing) {
       arm(existing);
     } else {
-      // #projects mounts later (lazy chunk). Arm on first appearance, then stop watching.
+      // #chapter-light mounts later (it commits in the same Suspense boundary
+      // that gated #projects before). Arm on first appearance, then stop watching.
       mo = new MutationObserver(() => {
-        const el = document.getElementById("projects");
+        const el = document.getElementById("chapter-light");
         if (el && arm(el)) {
           mo?.disconnect();
           mo = null;
@@ -78,6 +84,14 @@ export function Header() {
       mo = null;
     };
   }, [location.pathname]);
+
+  // theme-color follows the nav flip, so the mobile browser chrome matches the
+  // sheet beneath it: cream over the light chapter, ink over hero and Contact.
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+    meta.setAttribute("content", onLight ? "#F5F2EC" : "#0B0E14");
+  }, [onLight]);
 
   useEffect(() => {
     let cancelled = false;
