@@ -336,7 +336,7 @@ Prose rules: keep the doc's existing register; `·` as separator in any site cop
 - [x] tsc, lint, unit, serial e2e: outputs captured, all green, count = T1 + 12
 - [x] build + preview + Lighthouse on AC: ≥ 89, recorded under Baselines
 - [x] Contact/Footer/FluidWaves diff-stat empty
-- [ ] branch pushed; PR into `staging` opened with the body above; report to Kevin and stop
+- [x] branch pushed; PR into `staging` opened with the body above; report to Kevin and stop
 
 ---
 
