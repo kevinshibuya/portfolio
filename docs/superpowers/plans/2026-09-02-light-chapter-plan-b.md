@@ -37,11 +37,11 @@
 
 | check | command | handoff value (2026-09-01) | T1 measured | T9 final |
 |---|---|---|---|---|
-| typecheck | `npx tsc -b` | clean | | |
-| lint | `npm run lint` | 0 errors, 4 react-refresh warnings (`SmoothScroll.tsx`, `MotionContext.tsx`) | | |
-| unit | `npm run test:unit` | 99 / 99, 14 files | | |
-| serial e2e | `npx playwright test --workers=1` | not recorded since Plan A polish | | (T1 + 12) |
-| Lighthouse desktop perf | `npm run perf:lh` against `npx vite preview --port 4173`, idle machine, AC power | floor ≥ 89 (Plan A read 94) | | |
+| typecheck | `npx tsc -b` | clean | exit 0, clean | |
+| lint | `npm run lint` | 0 errors, 4 react-refresh warnings (`SmoothScroll.tsx`, `MotionContext.tsx`) | 0 errors, same 4 warnings | |
+| unit | `npm run test:unit` | 99 / 99, 14 files | 99 / 99, 14 files | |
+| serial e2e | `npx playwright test --workers=1` | not recorded since Plan A polish | **BLOCKED, rig not quiet:** 100 passed / 2 failed (both `mobile-chromium`: `loader.spec.ts:3`, `perf-budget.spec.ts:151`). Both GREEN on a targeted re-run (9/9) — load-induced flakes, not defects; League of Legends 146% CPU + TeamSpeak 110%, load avg 9.09/8 cores. Needs a quiet-window re-run for a clean 102/0/0. | (T1 + 12) |
+| Lighthouse desktop perf | `npm run perf:lh` against `npx vite preview --port 4173`, idle machine, AC power | floor ≥ 89 (Plan A read 94) | **NOT RUN:** T1 boundary forbids it off a quiet rig; a live game was running. | |
 
 ## Task → model routing
 
@@ -95,9 +95,9 @@ Not in the chapter, unchanged: Plan A's card interior (rows 1-9 of the Plan A ta
 
 **Boundaries:** no source changes. If `pmset -g ps` shows battery, do not run Lighthouse; wait for AC.
 
-- [ ] `git checkout -b feat/light-chapter-b` from the `perf/hero-harness` tip; `pmset -g ps` shows AC
-- [ ] `npx tsc -b` and `npm run lint`; record
-- [ ] `npm run test:unit`; record
+- [x] `git checkout -b feat/light-chapter-b` from the `perf/hero-harness` tip; `pmset -g ps` shows AC
+- [x] `npx tsc -b` and `npm run lint`; record
+- [x] `npm run test:unit`; record
 - [ ] `pgrep -fl "wrangler dev|vite preview"` clean, then `npx playwright test --workers=1`; record the totals
 - [ ] `npm run build`, `npx vite preview --port 4173`, `npm run perf:lh`; record; kill preview
 - [ ] fill the T1 column; commit `docs(plan-b): T1 baseline snapshot`
@@ -135,10 +135,10 @@ Unit (`palette.test.ts`): assert `accentDeepLargeFor(0..3)` returns `#B22B47`, `
 
 **Boundaries:** no `src/` changes. Do not weaken or delete existing assertions. `blocked:` if `#contact` does not exist as an id (the section-enters spec says it does).
 
-- [ ] palette unit block added; `npx vitest run tests/unit/palette.test.ts` RED on import
-- [ ] `nav-on-light.spec.ts` test 1 updated; RED at the archive step
-- [ ] `light-chapter.spec.ts` written, six tests; all RED
-- [ ] the four adjacent specs still green; commit `test(plan-b): RED acceptance tests for the light chapter`
+- [x] palette unit block added; `npx vitest run tests/unit/palette.test.ts` RED on import
+- [x] `nav-on-light.spec.ts` test 1 updated; RED at the archive step
+- [x] `light-chapter.spec.ts` written, six tests; all RED
+- [x] the four adjacent specs still green; commit `test(plan-b): RED acceptance tests for the light chapter`
 
 ---
 
