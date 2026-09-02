@@ -615,8 +615,8 @@ html[data-loading='true'] {
   white-space: nowrap;
 }
 .btn--primary {
-  background: var(--ink);
-  color: var(--cream);
+  background: var(--text);
+  color: var(--bg);
 }
 .btn--primary:hover {
   background: var(--blue-400);
@@ -624,13 +624,13 @@ html[data-loading='true'] {
 }
 .btn--ghost {
   background: transparent;
-  color: var(--ink);
-  border: 1.5px solid var(--ink);
+  color: var(--text);
+  border: 1.5px solid var(--text);
   padding: 14.5px 26.5px;
 }
 .btn--ghost:hover {
-  background: var(--ink);
-  color: var(--cream);
+  background: var(--text);
+  color: var(--bg);
 }
 .btn-arrow { display: inline-block; transition: transform var(--dur-hover-in) var(--ease-house); }
 .btn:hover { transition-duration: var(--dur-hover-in); }
@@ -647,7 +647,7 @@ html[data-loading='true'] {
   position: relative;
 }
 .section--sand {
-  background: var(--sand);
+  background: var(--bg-tonal);
   max-width: none;
   padding-left: 80px;
   padding-right: 80px;
@@ -671,7 +671,7 @@ html[data-loading='true'] {
 .section-title {
   font-size: clamp(44px, 6vw, 84px);
   font-weight: 400;
-  color: var(--ink);
+  color: var(--text);
   margin: 0 0 20px;
   text-transform: lowercase;
   letter-spacing: -0.035em;
@@ -684,7 +684,7 @@ html[data-loading='true'] {
 }
 .section-desc {
   font-size: 17px;
-  color: var(--bark);
+  color: var(--text-muted);
   line-height: 1.7;
   margin: 0;
   text-transform: lowercase;
@@ -701,9 +701,9 @@ html[data-loading='true'] {
 .pill {
   display: inline-block;
   font-size: 11px; font-weight: 500;
-  color: var(--bark);
-  background: var(--sand);
-  border: 1px solid var(--mist);
+  color: var(--text-muted);
+  background: var(--bg-tonal);
+  border: 1px solid var(--hairline);
   padding: 6px 12px;
   border-radius: 999px;
   text-transform: lowercase;
@@ -712,7 +712,7 @@ html[data-loading='true'] {
 .pill:hover {
   background: var(--blue-100);
   border-color: var(--blue-200);
-  color: var(--ink);
+  color: var(--text);
 }
 
 /* chip = filter variant of pill */
@@ -1117,7 +1117,7 @@ body[data-loader-state="loading"] {
    (heading left, numbered rows right), single column on mobile. */
 .stats {
   padding: 128px 80px;
-  background: var(--cream);
+  background: var(--bg);
 }
 .stats-inner {
   max-width: 1440px;
@@ -1245,7 +1245,7 @@ body[data-loader-state="loading"] {
   border: 1px solid var(--hairline);
   border-radius: 999px;
   background: var(--bg-tonal);
-  color: var(--ink);
+  color: var(--text);
   font: inherit;
   font-size: 12px;
   font-weight: 500;
@@ -1257,7 +1257,7 @@ body[data-loader-state="loading"] {
 .archive-dropdown-trigger:hover { border-color: var(--accent-blue); }
 .archive-dropdown-trigger.is-open { border-color: var(--accent-blue); background: var(--bg); }
 .archive-dropdown-label { color: var(--text-faded); }
-.archive-dropdown-value { color: var(--ink); font-weight: 600; }
+.archive-dropdown-value { color: var(--text); font-weight: 600; }
 .archive-dropdown-caret { font-size: 10px; color: var(--text-muted); }
 .archive-dropdown-list {
   position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
@@ -1279,7 +1279,7 @@ body[data-loader-state="loading"] {
   cursor: pointer;
   white-space: nowrap;
 }
-.archive-dropdown-option.is-active { background: var(--bg); color: var(--ink); }
+.archive-dropdown-option.is-active { background: var(--bg); color: var(--text); }
 .archive-dropdown-option.is-selected { color: var(--accent-blue); font-weight: 600; }
 
 /* =========================================================================
@@ -1300,7 +1300,7 @@ body[data-loader-state="loading"] {
   background: transparent;
   font: inherit;
   font-size: 12px;
-  color: var(--ink);
+  color: var(--text);
   letter-spacing: 0.02em;
   transition: border-color var(--dur-hover-in) var(--ease-house);
 }
@@ -1325,7 +1325,7 @@ body[data-loader-state="loading"] {
   cursor: pointer;
   transition: background var(--dur-hover-in) var(--ease-house), border-color var(--dur-hover-in) var(--ease-house), color var(--dur-hover-in) var(--ease-house);
 }
-.archive-chip:hover { background: var(--bg-tonal); border-color: var(--accent-blue); color: var(--ink); }
+.archive-chip:hover { background: var(--bg-tonal); border-color: var(--accent-blue); color: var(--text); }
 
 .archive-count {
   font-size: 12px;
@@ -1334,7 +1334,7 @@ body[data-loader-state="loading"] {
   letter-spacing: 0.04em;
   margin-bottom: 24px;
 }
-.archive-count strong { color: var(--ink); font-weight: 600; }
+.archive-count strong { color: var(--text); font-weight: 600; }
 
 .archive-star {
   color: var(--accent-blue);

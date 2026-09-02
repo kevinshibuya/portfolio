@@ -183,9 +183,9 @@ Leave `.section-index` / `.section-title em` (`--blue-500`) for T6. `.chip` / `.
 
 **Boundaries:** no other rule edits. If a listed line does not match the description (drift since 2026-09-02), report `blocked: <selector> reads <what you found>` rather than guessing.
 
-- [ ] block list derived and compared to the list above; deviations noted
-- [ ] replacements applied; derivation grep clean; build clean
-- [ ] the three e2e specs green; commit `refactor(css): chapter rules read canonical tokens (value-identical)`
+- [x] block list derived and compared to the list above; deviations noted
+- [x] replacements applied; derivation grep clean; build clean
+- [x] the three e2e specs green; commit `refactor(css): chapter rules read canonical tokens (value-identical)`
 
 ---
 
