@@ -156,8 +156,8 @@ Unit (`palette.test.ts`): assert `accentDeepLargeFor(0..3)` returns `#B22B47`, `
 
 **Boundaries:** do not change `ACCENTS_DEEP` values.
 
-- [ ] const + type + function + both comments; unit GREEN; `tsc -b` clean
-- [ ] commit `feat(palette): accentDeepLargeFor, the on-light large-text triplet`
+- [x] const + type + function + both comments; unit GREEN; `tsc -b` clean
+- [x] commit `feat(palette): accentDeepLargeFor, the on-light large-text triplet`
 
 ---
 
