@@ -265,9 +265,9 @@ Named visual consequences, accepted: `.stats-row-num` and `.skills-num` (real or
 
 **Boundaries:** no `.workrow-*`, `.work-*`, `.pill`, `.stats-*`, `.skills-*` rule outside the scope is edited. No new tokens. If a computed color comes back transparent or as the raw tricolor, the token is not resolving: fix by referencing it via `var()` in plain CSS, never by hardcoding a hex.
 
-- [ ] consumer audit run; classified table saved for the commit body
-- [ ] scope block + eight override groups in `index.css`; faded-token comment updated
-- [ ] `WorkRow.tsx` root style + imports; `tsc -b` clean; unit GREEN
+- [x] consumer audit run; classified table saved for the commit body
+- [x] scope block + eight override groups in `index.css`; faded-token comment updated
+- [x] `WorkRow.tsx` root style + imports; `tsc -b` clean; unit GREEN
 - [ ] light-chapter e2e GREEN (6/6); five adjacent specs GREEN
 - [ ] Tab through Projects → Archive: skip-link chip and WorkRow focus rings read on cream (note in commit body)
 - [ ] commit `feat(chapter): scoped on-light token inversion for Archive → Skills`

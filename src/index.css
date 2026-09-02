@@ -110,7 +110,13 @@
   --periwinkle-300: #7AA0ED;
 
   /* On-light alpha steps (Plan A). Muted = always-visible small text (≥4.5:1);
-     faded = decorative/aria-hidden ONLY (below AA, matches .contact-num). */
+     faded = decorative/aria-hidden ONLY (2.62:1, below AA, matches .contact-num).
+     Inside .chapter-light the faded STEP collapses into muted (A2): no alpha
+     between 0.62 and ink is both AA-passing and visually distinct from 0.62,
+     so --text-faded is remapped to the muted value there and this token is
+     applied by hand to its only two legitimate consumers, .workrow-index and
+     .workrow-arrow, which are aria-hidden. Do not widen that list: any
+     always-visible text on this step fails AA on cream. */
   --color-ink-on-light-muted: rgba(11, 14, 20, 0.62);
   --color-ink-on-light-faded: rgba(11, 14, 20, 0.40);
   --color-hairline-on-light:  rgba(11, 14, 20, 0.12);
@@ -2085,6 +2091,91 @@ body[data-loader-state="loading"] {
 .chapter-exit-veil {
   height: 30svh;
   background: linear-gradient(to bottom, var(--color-surface-light) 0%, var(--bg) 100%);
+}
+
+/* =========================================================================
+   LIGHT CHAPTER — scoped on-light token inversion (Plan B)
+   The wrapper is #chapter-light in Home.tsx and spans Projects → Skills.
+   Re-declaring the canonical tokens here flips every descendant rule that
+   already reads them, with no per-rule edits: that is the whole mechanism,
+   and it is why T4 moved the chapter's rules off the legacy aliases first.
+   The ONE thing this scope cannot reach is an inline custom property, so the
+   --row-tint* channels set on .workrow / .stack-inner style attributes stay
+   raw tricolor and every consumer of one is overridden explicitly below.
+   ========================================================================= */
+.chapter-light {
+  background: var(--color-surface-light);
+
+  --bg:            var(--color-surface-light);
+  --bg-tonal:      var(--color-surface-light-tonal);
+  --text:          var(--color-ink-on-light);
+  --text-muted:    var(--color-ink-on-light-muted);
+  --text-faded:    var(--color-ink-on-light-muted); /* A2: forced — no AA-passing step exists between muted and ink */
+  --hairline:      var(--color-hairline-on-light);
+  --accent-pink:   var(--color-accent-pink-deep);
+  --accent-blue:   var(--color-accent-blue-deep);
+  --accent-yellow: var(--color-accent-yellow-deep); /* decorative only in the chapter (.skills-dot) */
+}
+
+/* 1. Section numerals + title emphasis read --blue-500 outside the scope. (A5) */
+.chapter-light .section-index,
+.chapter-light .section-title em {
+  color: var(--accent-blue);
+}
+
+/* 2. The two aria-hidden row marks keep a faded step. (A2)
+   Specificity is deliberate and determinate: this is (0,2,0), while the hover
+   lifts below are (0,3,0), so hovering still raises them to ink. */
+.chapter-light .workrow-index,
+.chapter-light .workrow-arrow {
+  color: var(--color-ink-on-light-faded);
+}
+
+/* 3. Row title hover tint → the LARGE-text deep triplet, so the tricolor
+   rotation survives on cream (the yellow row goes olive-gold, 4.94:1 on a
+   28-64px title). Mirrors the dark rule's selector list, prefixed to outrank it. */
+.chapter-light .workrow-link:hover .workrow-title,
+.chapter-light .workrow-toggle:hover .workrow-title,
+.chapter-light .workrow:focus-within .workrow-title {
+  color: var(--row-tint-deep-large);
+}
+
+/* 4. Award label is small text → the small-text-safe deep channel. */
+.chapter-light .work-highlight-label {
+  color: var(--row-tint-deep);
+}
+
+/* 5. Decorative marks → the large/decorative channel, so the yellow slot stays
+   visible as olive instead of raw #E6CC4D at 1.43 on cream. */
+.chapter-light .work-mode-dot,
+.chapter-light .work-bullets li::before {
+  background: var(--row-tint-deep-large);
+}
+.chapter-light .work-highlight {
+  border-left-color: var(--row-tint-deep-large);
+}
+
+/* 6. Cream-alpha surfaces are invisible on cream; restate them as ink-alpha. */
+.chapter-light .work-mode-pill {
+  background: rgba(11, 14, 20, 0.06);
+}
+.chapter-light .work-highlight {
+  background: rgba(11, 14, 20, 0.04);
+}
+
+/* 7. The dark pill hover (--blue-100/--blue-200) has no canonical equivalent. */
+.chapter-light .pill:hover {
+  background: rgba(11, 14, 20, 0.06);
+  border-color: var(--accent-blue);
+  color: var(--text);
+}
+
+/* 8. Black-alpha shadows read far heavier on cream than on ink. */
+.chapter-light .workrow-float-inner {
+  box-shadow: 0 24px 60px rgba(11, 14, 20, 0.22);
+}
+.chapter-light .archive-dropdown-list {
+  box-shadow: 0 12px 32px rgba(11, 14, 20, 0.16);
 }
 
 /* =========================================================================
