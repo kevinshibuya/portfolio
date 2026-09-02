@@ -105,7 +105,6 @@ export function Projects() {
           </div>
         </div>
       </div>
-      <div className="chapter-exit-veil" aria-hidden="true" />
     </section>
   )
 }

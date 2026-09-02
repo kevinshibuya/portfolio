@@ -11,9 +11,10 @@ async function scrollIntoSection(page: import('@playwright/test').Page, id: stri
   await page.waitForTimeout(200)
 }
 
-test('nav flips to on-light over the cream Selected Work zone and back to dark', async ({ page }) => {
+test('nav flips to on-light over the cream chapter (Projects → Skills) and back to dark', async ({ page }) => {
   await page.goto('/')
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+  await page.locator('#skills').waitFor()
 
   // Hero (dark): nav is not on-light.
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }))
@@ -24,14 +25,31 @@ test('nav flips to on-light over the cream Selected Work zone and back to dark',
   await scrollIntoSection(page, 'projects', 0.4)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
 
-  // Into the dark section below (Archive): nav returns to dark.
+  // Archive is INSIDE the light chapter now (Plan B): the nav stays on-light
+  // all the way from #projects to the bottom of #skills, and theme-color
+  // follows the flip so the mobile browser chrome matches the cream sheet.
   await scrollIntoSection(page, 'archive', 0.3)
+  await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#F5F2EC')
+
+  // Still on-light at the chapter's last section.
+  await scrollIntoSection(page, 'skills', 0.5)
+  await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
+
+  // Past the exit veil into the dark Contact/Footer stage: nav returns to dark.
+  await scrollIntoSection(page, 'contact', 0.3)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(0)
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#0B0E14')
 })
 
 test('nav re-arms on-light after SPA back-nav from a project page', async ({ page }) => {
   await page.goto('/')
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+  // Wait for the lazy chunk before scrolling. scrollIntoSection() silently
+  // no-ops when its target is absent (`if (!el) return`), so without this the
+  // scroll below can land nowhere and the nav never flips — a pre-existing race
+  // that shows up as an intermittent red at line 50 under machine load.
+  await page.locator('#projects').waitFor()
 
   // Scrub into the cream Selected Work stage: nav flips on-light.
   await scrollIntoSection(page, 'projects', 0.4)
@@ -42,12 +60,22 @@ test('nav re-arms on-light after SPA back-nav from a project page', async ({ pag
   await page.locator('#projects .stack-card-link').click()
   await expect(page).toHaveURL(new RegExp(href!.replace(/[/]/g, '\\/')))
 
+  // On the project page there is no chapter, and the page is fully ink. Both the
+  // nav variant and theme-color must follow — this is the regression guard for
+  // the stale-onLight bug found in review: the IO is disconnected in the same
+  // commit that unmounts #chapter-light, so it never delivers a final
+  // "not intersecting" and the flag has to be cleared explicitly.
+  await expect(page.locator('header.nav.nav--on-light')).toHaveCount(0)
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#0B0E14')
+
   // Back to Home: the loader/route settle, then #projects remounts fresh.
   await page.goBack()
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
 
-  // Re-arm check: scrubbing back into the (freshly-mounted) #projects node
+  // Re-arm check: the observer watches #chapter-light, which remounts with the
+  // lazy chunk; scrubbing back into #projects (still the wrapper's first child)
   // must flip the nav on-light again, not stay stuck dark on a detached observer.
   await scrollIntoSection(page, 'projects', 0.4)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#F5F2EC')
 })

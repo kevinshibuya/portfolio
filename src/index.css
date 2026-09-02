@@ -110,7 +110,13 @@
   --periwinkle-300: #7AA0ED;
 
   /* On-light alpha steps (Plan A). Muted = always-visible small text (≥4.5:1);
-     faded = decorative/aria-hidden ONLY (below AA, matches .contact-num). */
+     faded = decorative/aria-hidden ONLY (2.62:1, below AA, matches .contact-num).
+     Inside .chapter-light the faded STEP collapses into muted (A2): no alpha
+     between 0.62 and ink is both AA-passing and visually distinct from 0.62,
+     so --text-faded is remapped to the muted value there and this token is
+     applied by hand to its only two legitimate consumers, .workrow-index and
+     .workrow-arrow, which are aria-hidden. Do not widen that list: any
+     always-visible text on this step fails AA on cream. */
   --color-ink-on-light-muted: rgba(11, 14, 20, 0.62);
   --color-ink-on-light-faded: rgba(11, 14, 20, 0.40);
   --color-hairline-on-light:  rgba(11, 14, 20, 0.12);
@@ -615,8 +621,8 @@ html[data-loading='true'] {
   white-space: nowrap;
 }
 .btn--primary {
-  background: var(--ink);
-  color: var(--cream);
+  background: var(--text);
+  color: var(--bg);
 }
 .btn--primary:hover {
   background: var(--blue-400);
@@ -624,13 +630,13 @@ html[data-loading='true'] {
 }
 .btn--ghost {
   background: transparent;
-  color: var(--ink);
-  border: 1.5px solid var(--ink);
+  color: var(--text);
+  border: 1.5px solid var(--text);
   padding: 14.5px 26.5px;
 }
 .btn--ghost:hover {
-  background: var(--ink);
-  color: var(--cream);
+  background: var(--text);
+  color: var(--bg);
 }
 .btn-arrow { display: inline-block; transition: transform var(--dur-hover-in) var(--ease-house); }
 .btn:hover { transition-duration: var(--dur-hover-in); }
@@ -647,7 +653,7 @@ html[data-loading='true'] {
   position: relative;
 }
 .section--sand {
-  background: var(--sand);
+  background: var(--bg-tonal);
   max-width: none;
   padding-left: 80px;
   padding-right: 80px;
@@ -671,7 +677,7 @@ html[data-loading='true'] {
 .section-title {
   font-size: clamp(44px, 6vw, 84px);
   font-weight: 400;
-  color: var(--ink);
+  color: var(--text);
   margin: 0 0 20px;
   text-transform: lowercase;
   letter-spacing: -0.035em;
@@ -684,7 +690,7 @@ html[data-loading='true'] {
 }
 .section-desc {
   font-size: 17px;
-  color: var(--bark);
+  color: var(--text-muted);
   line-height: 1.7;
   margin: 0;
   text-transform: lowercase;
@@ -701,9 +707,9 @@ html[data-loading='true'] {
 .pill {
   display: inline-block;
   font-size: 11px; font-weight: 500;
-  color: var(--bark);
-  background: var(--sand);
-  border: 1px solid var(--mist);
+  color: var(--text-muted);
+  background: var(--bg-tonal);
+  border: 1px solid var(--hairline);
   padding: 6px 12px;
   border-radius: 999px;
   text-transform: lowercase;
@@ -712,7 +718,7 @@ html[data-loading='true'] {
 .pill:hover {
   background: var(--blue-100);
   border-color: var(--blue-200);
-  color: var(--ink);
+  color: var(--text);
 }
 
 /* chip = filter variant of pill */
@@ -1117,7 +1123,7 @@ body[data-loader-state="loading"] {
    (heading left, numbered rows right), single column on mobile. */
 .stats {
   padding: 128px 80px;
-  background: var(--cream);
+  background: var(--bg);
 }
 .stats-inner {
   max-width: 1440px;
@@ -1245,7 +1251,7 @@ body[data-loader-state="loading"] {
   border: 1px solid var(--hairline);
   border-radius: 999px;
   background: var(--bg-tonal);
-  color: var(--ink);
+  color: var(--text);
   font: inherit;
   font-size: 12px;
   font-weight: 500;
@@ -1257,7 +1263,7 @@ body[data-loader-state="loading"] {
 .archive-dropdown-trigger:hover { border-color: var(--accent-blue); }
 .archive-dropdown-trigger.is-open { border-color: var(--accent-blue); background: var(--bg); }
 .archive-dropdown-label { color: var(--text-faded); }
-.archive-dropdown-value { color: var(--ink); font-weight: 600; }
+.archive-dropdown-value { color: var(--text); font-weight: 600; }
 .archive-dropdown-caret { font-size: 10px; color: var(--text-muted); }
 .archive-dropdown-list {
   position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
@@ -1279,7 +1285,7 @@ body[data-loader-state="loading"] {
   cursor: pointer;
   white-space: nowrap;
 }
-.archive-dropdown-option.is-active { background: var(--bg); color: var(--ink); }
+.archive-dropdown-option.is-active { background: var(--bg); color: var(--text); }
 .archive-dropdown-option.is-selected { color: var(--accent-blue); font-weight: 600; }
 
 /* =========================================================================
@@ -1300,7 +1306,7 @@ body[data-loader-state="loading"] {
   background: transparent;
   font: inherit;
   font-size: 12px;
-  color: var(--ink);
+  color: var(--text);
   letter-spacing: 0.02em;
   transition: border-color var(--dur-hover-in) var(--ease-house);
 }
@@ -1325,7 +1331,7 @@ body[data-loader-state="loading"] {
   cursor: pointer;
   transition: background var(--dur-hover-in) var(--ease-house), border-color var(--dur-hover-in) var(--ease-house), color var(--dur-hover-in) var(--ease-house);
 }
-.archive-chip:hover { background: var(--bg-tonal); border-color: var(--accent-blue); color: var(--ink); }
+.archive-chip:hover { background: var(--bg-tonal); border-color: var(--accent-blue); color: var(--text); }
 
 .archive-count {
   font-size: 12px;
@@ -1334,7 +1340,7 @@ body[data-loader-state="loading"] {
   letter-spacing: 0.04em;
   margin-bottom: 24px;
 }
-.archive-count strong { color: var(--ink); font-weight: 600; }
+.archive-count strong { color: var(--text); font-weight: 600; }
 
 .archive-star {
   color: var(--accent-blue);
@@ -2075,12 +2081,127 @@ body[data-loader-state="loading"] {
   }
 }
 
-/* Provisional cream→ink exit veil (Plan A) — sits below the cream Selected Work
-   stage so the return to the dark sections has no hard edge. Plan B relocates
-   this below Skills. Pure tone, no shader, no text. */
+/* THE exit veil (cream→ink): the single tonal bridge out of the light chapter,
+   between Skills' bottom and the Contact/Footer stage. Owned by Home.tsx, where
+   it is deliberately a SIBLING of #chapter-light and not a child — its gradient
+   ends in var(--bg), which the wrapper's token scope resolves to cream, so
+   nesting it would erase the fade. Pure tone: no shader, no text ever.
+   There is no matching entry veil; the hero side is handled in the shader by
+   FluidWaves' cream dissolve across the hero's lower band. */
 .chapter-exit-veil {
   height: 30svh;
-  background: linear-gradient(to bottom, var(--color-surface-light) 0%, var(--bg) 100%);
+  /* First stop MUST equal the background of #chapter-light's LAST child.
+     Skills carries .section--sand, i.e. the tonal step, so starting this fade
+     on plain cream put a faint 1.08:1 hard edge at the one seam whose whole
+     purpose is not having one. light-chapter.spec.ts test 5 asserts the two
+     agree, so a reorder of the chapter's last section cannot silently re-break it. */
+  background: linear-gradient(to bottom, var(--color-surface-light-tonal) 0%, var(--bg) 100%);
+}
+
+/* =========================================================================
+   LIGHT CHAPTER — scoped on-light token inversion (Plan B)
+   The wrapper is #chapter-light in Home.tsx and spans Projects → Skills.
+   Re-declaring the canonical tokens here flips every descendant rule that
+   already reads them, with no per-rule edits: that is the whole mechanism,
+   and it is why T4 moved the chapter's rules off the legacy aliases first.
+   The ONE thing this scope cannot reach is an inline custom property, so the
+   --row-tint* channels set on .workrow / .stack-inner style attributes stay
+   raw tricolor and every consumer of one is overridden explicitly below.
+   ========================================================================= */
+.chapter-light {
+  background: var(--color-surface-light);
+
+  --bg:            var(--color-surface-light);
+  --bg-tonal:      var(--color-surface-light-tonal);
+  --text:          var(--color-ink-on-light);
+  --text-muted:    var(--color-ink-on-light-muted);
+  --text-faded:    var(--color-ink-on-light-muted); /* A2: forced — no AA-passing step exists between muted and ink */
+  --hairline:      var(--color-hairline-on-light);
+  --accent-pink:   var(--color-accent-pink-deep);
+  --accent-blue:   var(--color-accent-blue-deep);
+  --accent-yellow: var(--color-accent-yellow-deep); /* decorative only in the chapter (.skills-dot) */
+
+  /* The @theme --color-* names carry the same roles and are what Tailwind emits
+     at the use site (e.g. `text-text-muted` compiles to var(--color-text-muted)).
+     Nothing in the chapter reads one today — verified by grep — but CLAUDE.md
+     tells the next author that canonical work uses these names, so leaving them
+     un-scoped would make that instruction silently produce cream on cream.
+     Kept in lockstep with the six shorthands above. */
+  --color-bg:           var(--color-surface-light);
+  --color-bg-tonal:     var(--color-surface-light-tonal);
+  --color-text:         var(--color-ink-on-light);
+  --color-text-muted:   var(--color-ink-on-light-muted);
+  --color-text-faded:   var(--color-ink-on-light-muted);
+  --color-accent-pink:  var(--color-accent-pink-deep);
+  --color-accent-blue:  var(--color-accent-blue-deep);
+  --color-accent-yellow: var(--color-accent-yellow-deep);
+}
+
+/* 1. Section numerals + title emphasis read --blue-500 outside the scope. (A5) */
+.chapter-light .section-index,
+.chapter-light .section-title em {
+  color: var(--accent-blue);
+}
+
+/* 2. The row ORDINAL keeps a faded step. (A2)
+   Specificity is deliberate and determinate: this is (0,2,0), while the hover
+   lifts below are (0,3,0), so hovering still raises it to ink.
+   .workrow-arrow is deliberately NOT in this rule. On the expandable variant it
+   is the only visible cue that the row opens, inside a <button aria-expanded>,
+   which makes it a state indicator under WCAG 1.4.11 (3:1) — and being
+   aria-hidden does not exempt it, since 1.4.11 is about sighted users. The
+   faded step is 2.62:1 on cream. It therefore falls through to --text-faded,
+   which the scope above remaps to the muted value: 5.23:1. On the dark side it
+   sat at ~7.9:1, which is why this only surfaces on light. */
+.chapter-light .workrow-index {
+  color: var(--color-ink-on-light-faded);
+}
+
+/* 3. Row title hover tint → the LARGE-text deep triplet, so the tricolor
+   rotation survives on cream (the yellow row goes olive-gold, 4.94:1 on a
+   28-64px title). Mirrors the dark rule's selector list, prefixed to outrank it. */
+.chapter-light .workrow-link:hover .workrow-title,
+.chapter-light .workrow-toggle:hover .workrow-title,
+.chapter-light .workrow:focus-within .workrow-title {
+  color: var(--row-tint-deep-large);
+}
+
+/* 4. Award label is small text → the small-text-safe deep channel. */
+.chapter-light .work-highlight-label {
+  color: var(--row-tint-deep);
+}
+
+/* 5. Decorative marks → the large/decorative channel, so the yellow slot stays
+   visible as olive instead of raw #E6CC4D at 1.43 on cream. */
+.chapter-light .work-mode-dot,
+.chapter-light .work-bullets li::before {
+  background: var(--row-tint-deep-large);
+}
+.chapter-light .work-highlight {
+  border-left-color: var(--row-tint-deep-large);
+}
+
+/* 6. Cream-alpha surfaces are invisible on cream; restate them as ink-alpha. */
+.chapter-light .work-mode-pill {
+  background: rgba(11, 14, 20, 0.06);
+}
+.chapter-light .work-highlight {
+  background: rgba(11, 14, 20, 0.04);
+}
+
+/* 7. The dark pill hover (--blue-100/--blue-200) has no canonical equivalent. */
+.chapter-light .pill:hover {
+  background: rgba(11, 14, 20, 0.06);
+  border-color: var(--accent-blue);
+  color: var(--text);
+}
+
+/* 8. Black-alpha shadows read far heavier on cream than on ink. */
+.chapter-light .workrow-float-inner {
+  box-shadow: 0 24px 60px rgba(11, 14, 20, 0.22);
+}
+.chapter-light .archive-dropdown-list {
+  box-shadow: 0 12px 32px rgba(11, 14, 20, 0.16);
 }
 
 /* =========================================================================

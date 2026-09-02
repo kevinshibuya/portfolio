@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMotion } from '../../context/MotionContext'
 import { EASE_HOUSE } from '../../utils/animations'
-import { accentFor } from '../../utils/palette'
+import { accentFor, accentDeepFor, accentDeepLargeFor } from '../../utils/palette'
 
 export interface WorkRowPreview {
   /** Image src (project mockup) — takes precedence over gradient. */
@@ -68,8 +68,15 @@ export function WorkRow(props: WorkRowProps): React.ReactElement {
   const { prefersReducedMotion } = useMotion()
 
   const paddedIndex = String(index + 1).padStart(2, '0')
-  const rootStyle = { '--row-tint': accentFor(index) } as React.CSSProperties &
-    Record<'--row-tint', string>
+  // Three tint channels. --row-tint is the raw tricolor for the ink sections;
+  // the two deep channels are read only inside .chapter-light, where the token
+  // scope cannot reach an inline custom property (see index.css, LIGHT CHAPTER).
+  const rootStyle = {
+    '--row-tint': accentFor(index),
+    '--row-tint-deep': accentDeepFor(index),
+    '--row-tint-deep-large': accentDeepLargeFor(index),
+  } as React.CSSProperties &
+    Record<'--row-tint' | '--row-tint-deep' | '--row-tint-deep-large', string>
 
   // Link decision (L2): explicit `internal` wins, else the href-prefix heuristic.
   const isInternal = internal ?? href?.startsWith('/') ?? false

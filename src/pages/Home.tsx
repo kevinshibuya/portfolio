@@ -233,11 +233,24 @@ export function Home() {
     <main>
       <Hero />
       <Suspense fallback={<div style={{ minHeight: '100vh' }} aria-hidden />}>
-        <Projects />
-        <Archive />
-        <WorkExperience />
-        <Stats />
-        <Skills />
+        {/* The light chapter. One wrapper owns the cream sheet and carries the
+            scoped token inversion (.chapter-light in index.css), so every
+            descendant rule that already reads a canonical token flips to the
+            on-light system without being edited. Deliberately a plain block:
+            no overflow, no position. The sticky stage inside #projects needs
+            the viewport as its scroll container, and any overflow on an
+            ancestor would silently break the pin. */}
+        <div id="chapter-light" className="chapter-light">
+          <Projects />
+          <Archive />
+          <WorkExperience />
+          <Stats />
+          <Skills />
+        </div>
+        {/* The exit veil is the wrapper's SIBLING, never a child: its gradient
+            ends in var(--bg), which the scope above would resolve to cream and
+            the fade would vanish. */}
+        <div className="chapter-exit-veil" aria-hidden="true" />
         <div className="contact-footer-stage" ref={stageRef}>
           <Suspense fallback={null}>
             {stageApproached && <FluidWavesBackdrop variant="backdrop" />}
