@@ -37,9 +37,9 @@
 
 | check | command | handoff value (2026-09-01) | T1 measured | T9 final |
 |---|---|---|---|---|
-| typecheck | `npx tsc -b` | clean | exit 0, clean | |
-| lint | `npm run lint` | 0 errors, 4 react-refresh warnings (`SmoothScroll.tsx`, `MotionContext.tsx`) | 0 errors, same 4 warnings | |
-| unit | `npm run test:unit` | 99 / 99, 14 files | 99 / 99, 14 files | |
+| typecheck | `npx tsc -b` | clean | exit 0, clean | exit 0, clean |
+| lint | `npm run lint` | 0 errors, 4 react-refresh warnings (`SmoothScroll.tsx`, `MotionContext.tsx`) | 0 errors, same 4 warnings | 0 errors, same 4 warnings |
+| unit | `npm run test:unit` | 99 / 99, 14 files | 99 / 99, 14 files | **102 / 102**, 14 files (+3 from T3) |
 | serial e2e | `npx playwright test --workers=1` | not recorded since Plan A polish | 102 tests total (100 passed / 2 failed). Both failures were load-induced flakes on a rig running a game at 147% CPU (`loader.spec.ts:12`, `perf-budget.spec.ts:173`, both mobile-chromium, both GREEN on a targeted re-run). The TOTAL — 102 — is the number T9 compares against, and it is unaffected by the flakes. | 114 (= 102 + 12) |
 | Lighthouse desktop perf | `npm run perf:lh` against `npx vite preview --port 4173`, idle machine, AC power | floor ≥ 89 (Plan A read 94) | **95** — measured late, on a quiet AC rig, against `src/` reverted to the branch point `06eb6de`, so it is a true before-number rather than a figure from another day. LCP 1036.8ms, CLS 0, TBT 0, `acPower: true`, zero warnings. | **94** (LCP 1058.6ms, CLS 0, TBT 0, `acPower: true`, zero warnings) |
 
@@ -98,9 +98,9 @@ Not in the chapter, unchanged: Plan A's card interior (rows 1-9 of the Plan A ta
 - [x] `git checkout -b feat/light-chapter-b` from the `perf/hero-harness` tip; `pmset -g ps` shows AC
 - [x] `npx tsc -b` and `npm run lint`; record
 - [x] `npm run test:unit`; record
-- [ ] `pgrep -fl "wrangler dev|vite preview"` clean, then `npx playwright test --workers=1`; record the totals
-- [ ] `npm run build`, `npx vite preview --port 4173`, `npm run perf:lh`; record; kill preview
-- [ ] fill the T1 column; commit `docs(plan-b): T1 baseline snapshot`
+- [x] `pgrep -fl "wrangler dev|vite preview"` clean, then `npx playwright test --workers=1`; record the totals
+- [x] `npm run build`, `npx vite preview --port 4173`, `npm run perf:lh`; record; kill preview
+- [x] fill the T1 column; commit `docs(plan-b): T1 baseline snapshot`
 
 ---
 
@@ -314,10 +314,10 @@ Prose rules: keep the doc's existing register; `·` as separator in any site cop
 
 **Boundaries:** only `## Design Direction`. Do not touch Architecture, Content Types, Code Standards, the checkbox-discipline section, or the Contact/Footer table.
 
-- [ ] section rewritten per items 1-10
-- [ ] both greps pass
-- [ ] reviewer fact-check: zero mismatches (fix any, re-check)
-- [ ] commit `docs(claude-md): Design Direction reflects the light chapter (Plan A as shipped + Plan B)`
+- [x] section rewritten per items 1-10
+- [x] both greps pass
+- [x] reviewer fact-check: zero mismatches (fix any, re-check)
+- [x] commit `docs(claude-md): Design Direction reflects the light chapter (Plan A as shipped + Plan B)`
 
 ---
 
@@ -333,9 +333,9 @@ Prose rules: keep the doc's existing register; `·` as separator in any site cop
 
 **Boundaries:** no merging. No spec TODO ticks. No `git add -A`.
 
-- [ ] tsc, lint, unit, serial e2e: outputs captured, all green, count = T1 + 12
-- [ ] build + preview + Lighthouse on AC: ≥ 89, recorded under Baselines
-- [ ] Contact/Footer/FluidWaves diff-stat empty
+- [x] tsc, lint, unit, serial e2e: outputs captured, all green, count = T1 + 12
+- [x] build + preview + Lighthouse on AC: ≥ 89, recorded under Baselines
+- [x] Contact/Footer/FluidWaves diff-stat empty
 - [ ] branch pushed; PR into `staging` opened with the body above; report to Kevin and stop
 
 ---
