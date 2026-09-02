@@ -2090,7 +2090,12 @@ body[data-loader-state="loading"] {
    FluidWaves' cream dissolve across the hero's lower band. */
 .chapter-exit-veil {
   height: 30svh;
-  background: linear-gradient(to bottom, var(--color-surface-light) 0%, var(--bg) 100%);
+  /* First stop MUST equal the background of #chapter-light's LAST child.
+     Skills carries .section--sand, i.e. the tonal step, so starting this fade
+     on plain cream put a faint 1.08:1 hard edge at the one seam whose whole
+     purpose is not having one. light-chapter.spec.ts test 5 asserts the two
+     agree, so a reorder of the chapter's last section cannot silently re-break it. */
+  background: linear-gradient(to bottom, var(--color-surface-light-tonal) 0%, var(--bg) 100%);
 }
 
 /* =========================================================================
@@ -2115,6 +2120,21 @@ body[data-loader-state="loading"] {
   --accent-pink:   var(--color-accent-pink-deep);
   --accent-blue:   var(--color-accent-blue-deep);
   --accent-yellow: var(--color-accent-yellow-deep); /* decorative only in the chapter (.skills-dot) */
+
+  /* The @theme --color-* names carry the same roles and are what Tailwind emits
+     at the use site (e.g. `text-text-muted` compiles to var(--color-text-muted)).
+     Nothing in the chapter reads one today — verified by grep — but CLAUDE.md
+     tells the next author that canonical work uses these names, so leaving them
+     un-scoped would make that instruction silently produce cream on cream.
+     Kept in lockstep with the six shorthands above. */
+  --color-bg:           var(--color-surface-light);
+  --color-bg-tonal:     var(--color-surface-light-tonal);
+  --color-text:         var(--color-ink-on-light);
+  --color-text-muted:   var(--color-ink-on-light-muted);
+  --color-text-faded:   var(--color-ink-on-light-muted);
+  --color-accent-pink:  var(--color-accent-pink-deep);
+  --color-accent-blue:  var(--color-accent-blue-deep);
+  --color-accent-yellow: var(--color-accent-yellow-deep);
 }
 
 /* 1. Section numerals + title emphasis read --blue-500 outside the scope. (A5) */
@@ -2123,11 +2143,17 @@ body[data-loader-state="loading"] {
   color: var(--accent-blue);
 }
 
-/* 2. The two aria-hidden row marks keep a faded step. (A2)
+/* 2. The row ORDINAL keeps a faded step. (A2)
    Specificity is deliberate and determinate: this is (0,2,0), while the hover
-   lifts below are (0,3,0), so hovering still raises them to ink. */
-.chapter-light .workrow-index,
-.chapter-light .workrow-arrow {
+   lifts below are (0,3,0), so hovering still raises it to ink.
+   .workrow-arrow is deliberately NOT in this rule. On the expandable variant it
+   is the only visible cue that the row opens, inside a <button aria-expanded>,
+   which makes it a state indicator under WCAG 1.4.11 (3:1) — and being
+   aria-hidden does not exempt it, since 1.4.11 is about sighted users. The
+   faded step is 2.62:1 on cream. It therefore falls through to --text-faded,
+   which the scope above remaps to the muted value: 5.23:1. On the dark side it
+   sat at ~7.9:1, which is why this only surfaces on light. */
+.chapter-light .workrow-index {
   color: var(--color-ink-on-light-faded);
 }
 

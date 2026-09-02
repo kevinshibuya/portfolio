@@ -63,6 +63,20 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
     await expect(page.locator('#projects .chapter-exit-veil')).toHaveCount(0)
     await expect(page.locator('#chapter-light .chapter-exit-veil')).toHaveCount(0)
     await expect(page.locator('.chapter-exit-veil + .contact-footer-stage')).toHaveCount(1)
+
+    // The wrapper must stay a plain block. Any of these would create a
+    // containing block or a clip and silently break the position:sticky stage
+    // inside #projects (and .stats-heading-col, and the fixed skip-link chip) —
+    // a failure the scrub suite does NOT catch, because useScroll reads document
+    // scroll whether or not the stage actually pins.
+    const box = await page.evaluate(() => {
+      const el = document.querySelector('#chapter-light') as HTMLElement
+      const cs = getComputedStyle(el)
+      return [cs.overflow, cs.position, cs.transform, cs.filter, cs.contain, cs.perspective].join(' | ')
+    })
+    expect(box, '#chapter-light must not create a containing block or clip').toBe(
+      'visible | static | none | none | none | none',
+    )
   })
 
   test('3 · section surfaces alternate cream and tonal cream', async ({ page }) => {
@@ -87,6 +101,9 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
     // aria-hidden decoration keeps the faded step (exempt from 1.4.3).
     expect(await colorOf(page, '#archive .workrow-index')).toBe('rgba(11, 14, 20, 0.4)')
     expect(await colorOf(page, '#archive .section-index')).toBe('rgb(42, 84, 181)')
+    // The expand glyph is a STATE indicator (WCAG 1.4.11, 3:1), not decoration,
+    // so it takes muted (5.23:1) and never the 2.62:1 faded step.
+    expect(await colorOf(page, '#archive .workrow-arrow')).toBe('rgba(11, 14, 20, 0.62)')
 
     await scrollIntoSection(page, 'stats', 0.2)
     expect(await colorOf(page, '#stats .stats-eyebrow')).toBe('rgb(42, 84, 181)')
@@ -132,13 +149,21 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
         veilHeight: veil ? veil.getBoundingClientRect().height : NaN,
         viewport: window.innerHeight,
         gradient: veil ? getComputedStyle(veil).backgroundImage : 'MISSING',
+        lastChildBg: (() => {
+          const last = document.querySelector('#chapter-light')?.lastElementChild
+          return last ? getComputedStyle(last).backgroundColor : 'MISSING'
+        })(),
       }
     })
 
     expect(Math.abs(geo.veilTop - geo.skillsBottom)).toBeLessThanOrEqual(1)
     expect(Math.abs(geo.veilBottom - geo.stageTop)).toBeLessThanOrEqual(1)
     // Cream at the top stop, ink at the bottom stop — a continuous fade.
-    expect(geo.gradient).toContain('rgb(245, 242, 236)')
+    // The fade must START on whatever the chapter's last section actually paints,
+    // or the seam opens with a tonal step. Skills is .section--sand, so this is
+    // the tonal cream; asserting the RELATIONSHIP means a reorder cannot re-break it.
+    expect(geo.gradient).toContain(geo.lastChildBg)
+    expect(geo.lastChildBg).toBe('rgb(237, 233, 224)')
     expect(geo.gradient).toContain('rgb(11, 14, 20)')
     expect(geo.veilHeight).toBeGreaterThanOrEqual(0.25 * geo.viewport)
   })

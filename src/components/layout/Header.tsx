@@ -65,6 +65,14 @@ export function Header() {
     if (existing) {
       arm(existing);
     } else {
+      // No chapter node in this route's DOM. Clear the flag before waiting:
+      // the IO is disconnected by the cleanup above in the same commit that
+      // unmounts #chapter-light, so it never gets to deliver a final
+      // "not intersecting". Without this reset the nav keeps the previous
+      // route's on-light styling — muted ink links on an ink page — and
+      // theme-color stays cream, on /projects/:slug which is fully dark.
+      // On Home this is a no-op: the IO's first callback sets the real value.
+      setOnLight(false);
       // #chapter-light mounts later (it commits in the same Suspense boundary
       // that gated #projects before). Arm on first appearance, then stop watching.
       mo = new MutationObserver(() => {
