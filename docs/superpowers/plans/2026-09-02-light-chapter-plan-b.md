@@ -269,8 +269,8 @@ Named visual consequences, accepted: `.stats-row-num` and `.skills-num` (real or
 - [x] scope block + eight override groups in `index.css`; faded-token comment updated
 - [x] `WorkRow.tsx` root style + imports; `tsc -b` clean; unit GREEN
 - [x] light-chapter e2e GREEN (6/6); five adjacent specs GREEN
-- [ ] Tab through Projects → Archive: skip-link chip and WorkRow focus rings read on cream (note in commit body)
-- [ ] commit `feat(chapter): scoped on-light token inversion for Archive → Skills`
+- [x] Tab through Projects → Archive: skip-link chip and WorkRow focus rings read on cream (note in commit body)
+- [x] commit `feat(chapter): scoped on-light token inversion for Archive → Skills`
 
 ---
 
@@ -284,9 +284,9 @@ Named visual consequences, accepted: `.stats-row-num` and `.skills-num` (real or
 
 **Boundaries:** codex does not edit files. Findings are evidence, not orders: hand-verify each before acting.
 
-- [ ] build + preview up on 4173; `~/.claude/bin/codex-run.sh plan-b-realsite …` with an explicit Bash timeout
-- [ ] verdicts read; defects (if any) fixed under T5/T6 and re-verified
-- [ ] preview killed; registry line + log path recorded in the next commit body
+- [x] build + preview up on 4173; `~/.claude/bin/codex-run.sh plan-b-realsite …` with an explicit Bash timeout
+- [x] verdicts read; defects (if any) fixed under T5/T6 and re-verified
+- [x] preview killed; registry line + log path recorded in the next commit body
 
 ---
 
