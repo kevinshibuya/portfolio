@@ -11,7 +11,7 @@ async function scrollIntoSection(page: import('@playwright/test').Page, id: stri
   await page.waitForTimeout(200)
 }
 
-test('nav flips to on-light over the cream Selected Work zone and back to dark', async ({ page }) => {
+test('nav flips to on-light over the cream chapter (Projects → Skills) and back to dark', async ({ page }) => {
   await page.goto('/')
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
 
@@ -24,9 +24,21 @@ test('nav flips to on-light over the cream Selected Work zone and back to dark',
   await scrollIntoSection(page, 'projects', 0.4)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
 
-  // Into the dark section below (Archive): nav returns to dark.
+  // Archive is INSIDE the light chapter now (Plan B): the nav stays on-light
+  // all the way from #projects to the bottom of #skills, and theme-color
+  // follows the flip so the mobile browser chrome matches the cream sheet.
   await scrollIntoSection(page, 'archive', 0.3)
+  await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#F5F2EC')
+
+  // Still on-light at the chapter's last section.
+  await scrollIntoSection(page, 'skills', 0.5)
+  await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
+
+  // Past the exit veil into the dark Contact/Footer stage: nav returns to dark.
+  await scrollIntoSection(page, 'contact', 0.3)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(0)
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#0B0E14')
 })
 
 test('nav re-arms on-light after SPA back-nav from a project page', async ({ page }) => {
@@ -46,7 +58,8 @@ test('nav re-arms on-light after SPA back-nav from a project page', async ({ pag
   await page.goBack()
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
 
-  // Re-arm check: scrubbing back into the (freshly-mounted) #projects node
+  // Re-arm check: the observer watches #chapter-light, which remounts with the
+  // lazy chunk; scrubbing back into #projects (still the wrapper's first child)
   // must flip the nav on-light again, not stay stuck dark on a detached observer.
   await scrollIntoSection(page, 'projects', 0.4)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
