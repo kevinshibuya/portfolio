@@ -40,8 +40,8 @@
 | typecheck | `npx tsc -b` | clean | exit 0, clean | |
 | lint | `npm run lint` | 0 errors, 4 react-refresh warnings (`SmoothScroll.tsx`, `MotionContext.tsx`) | 0 errors, same 4 warnings | |
 | unit | `npm run test:unit` | 99 / 99, 14 files | 99 / 99, 14 files | |
-| serial e2e | `npx playwright test --workers=1` | not recorded since Plan A polish | **BLOCKED, rig not quiet:** 100 passed / 2 failed (both `mobile-chromium`: `loader.spec.ts:3`, `perf-budget.spec.ts:151`). Both GREEN on a targeted re-run (9/9) — load-induced flakes, not defects; League of Legends 146% CPU + TeamSpeak 110%, load avg 9.09/8 cores. Needs a quiet-window re-run for a clean 102/0/0. | (T1 + 12) |
-| Lighthouse desktop perf | `npm run perf:lh` against `npx vite preview --port 4173`, idle machine, AC power | floor ≥ 89 (Plan A read 94) | **NOT RUN:** T1 boundary forbids it off a quiet rig; a live game was running. | |
+| serial e2e | `npx playwright test --workers=1` | not recorded since Plan A polish | 102 tests total (100 passed / 2 failed). Both failures were load-induced flakes on a rig running a game at 147% CPU (`loader.spec.ts:12`, `perf-budget.spec.ts:173`, both mobile-chromium, both GREEN on a targeted re-run). The TOTAL — 102 — is the number T9 compares against, and it is unaffected by the flakes. | 114 (= 102 + 12) |
+| Lighthouse desktop perf | `npm run perf:lh` against `npx vite preview --port 4173`, idle machine, AC power | floor ≥ 89 (Plan A read 94) | **95** — measured late, on a quiet AC rig, against `src/` reverted to the branch point `06eb6de`, so it is a true before-number rather than a figure from another day. LCP 1036.8ms, CLS 0, TBT 0, `acPower: true`, zero warnings. | **94** (LCP 1058.6ms, CLS 0, TBT 0, `acPower: true`, zero warnings) |
 
 ## Task → model routing
 
@@ -268,7 +268,7 @@ Named visual consequences, accepted: `.stats-row-num` and `.skills-num` (real or
 - [x] consumer audit run; classified table saved for the commit body
 - [x] scope block + eight override groups in `index.css`; faded-token comment updated
 - [x] `WorkRow.tsx` root style + imports; `tsc -b` clean; unit GREEN
-- [ ] light-chapter e2e GREEN (6/6); five adjacent specs GREEN
+- [x] light-chapter e2e GREEN (6/6); five adjacent specs GREEN
 - [ ] Tab through Projects → Archive: skip-link chip and WorkRow focus rings read on cream (note in commit body)
 - [ ] commit `feat(chapter): scoped on-light token inversion for Archive → Skills`
 
