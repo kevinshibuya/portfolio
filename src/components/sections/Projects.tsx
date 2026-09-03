@@ -43,10 +43,15 @@ export function Projects() {
     setFrontIndex((current) => (current === next ? current : next))
   })
 
+  const overlayRef = useRef<HTMLDivElement>(null)
+  const pillRef = useRef<HTMLAnchorElement>(null)
+
   const [ready, setReady] = useState(false)
   const [webglUnavailable, setWebglUnavailable] = useState(false)
   const handleReady = useCallback(() => setReady(true), [])
   const handleWebglUnavailable = useCallback(() => setWebglUnavailable(true), [])
+
+  const front = cards[frontIndex]
 
   const stageStyle = {
     '--row-tint': accentFor(frontIndex),
@@ -89,6 +94,8 @@ export function Projects() {
                   covers={cards.map((c) => c.art)}
                   progress={scrollYProgress}
                   reducedMotion={prefersReducedMotion}
+                  overlayRef={overlayRef}
+                  pillRef={pillRef}
                   onReady={handleReady}
                   onWebglUnavailable={handleWebglUnavailable}
                 />
@@ -100,9 +107,24 @@ export function Projects() {
                 {t('sections.projects.label')}
               </p>
 
-              <h2 className="scene-title-sr sr-only">{cards[frontIndex]?.title ?? ''}</h2>
+              <h2 className="scene-title-sr sr-only">{front?.title ?? ''}</h2>
 
-              <div className="scene-meta" />
+              {/* Rides the front card's projected body band; the rig writes its
+                  transform and opacity every frame, this only holds content. */}
+              <div className="scene-meta" ref={overlayRef}>
+                <div className="scene-meta-labels">
+                  <p className="scene-meta-name">{front?.title ?? ''}</p>
+                  <p className="scene-meta-subtitle">{front?.subtitle ?? ''}</p>
+                </div>
+                <Link className="scene-meta-pill" ref={pillRef} to={`/projects/${front?.slug ?? ''}`}>
+                  <span className="scene-meta-pill-label">
+                    {t('sections.projects.stack.viewProject')}
+                  </span>
+                  <span className="scene-meta-arrow" aria-hidden="true">
+                    ↗
+                  </span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

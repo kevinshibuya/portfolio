@@ -23,6 +23,9 @@ export interface SelectedWorkSceneProps {
   covers: string[]
   progress: MotionValue<number>
   reducedMotion: boolean
+  /** Positioned every frame from the front card's projected body band. */
+  overlayRef: React.RefObject<HTMLDivElement | null>
+  pillRef: React.RefObject<HTMLAnchorElement | null>
   /** Fires once when the scene's suspended content has mounted. */
   onReady: () => void
   /** Fires once: no WebGL2 at mount, or the context was lost. */
@@ -61,6 +64,8 @@ export function SelectedWorkScene({
   covers,
   progress,
   reducedMotion,
+  overlayRef,
+  pillRef,
   onReady,
   onWebglUnavailable,
 }: SelectedWorkSceneProps) {
@@ -153,6 +158,8 @@ export function SelectedWorkScene({
         progress={progress}
         reducedMotion={reducedMotion}
         sceneRefs={sceneRefs.current}
+        overlayRef={overlayRef}
+        pillRef={pillRef}
       />
       <Suspense fallback={null}>
         <Corridor covers={covers} sceneRefs={sceneRefs.current} />

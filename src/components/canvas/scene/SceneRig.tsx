@@ -4,6 +4,7 @@ import type { MotionValue } from 'framer-motion'
 import type * as THREE from 'three'
 import {
   CARD_COUNT,
+  CARD_W,
   FOV_DEG,
   clamp,
   playheadFor,
@@ -11,15 +12,22 @@ import {
   sceneGeometry,
   cameraPose,
   cardPose,
+  projectPoint,
+  ambientOffset,
+  frontIndexFor,
+  settledness,
   fogRange,
   type SceneGeometry,
 } from '../../../utils/sceneMotion'
+import { CARD_PAD, BAND_TOP_Y, BAND_BOTTOM_Y } from './cardAnatomy'
 import type { SceneRefs } from './sceneRefs'
 
 interface SceneRigProps {
   progress: MotionValue<number>
   reducedMotion: boolean
   sceneRefs: SceneRefs
+  overlayRef: React.RefObject<HTMLDivElement | null>
+  pillRef: React.RefObject<HTMLAnchorElement | null>
 }
 
 /**
@@ -33,12 +41,18 @@ interface SceneRigProps {
  * Lane rule (CLAUDE.md): the R3F loop READS Framer MotionValues; Framer never
  * animates a three object.
  */
-export function SceneRig({ progress, reducedMotion, sceneRefs }: SceneRigProps) {
+export function SceneRig({
+  progress,
+  reducedMotion,
+  sceneRefs,
+  overlayRef,
+  pillRef,
+}: SceneRigProps) {
   const geo = useRef<SceneGeometry | null>(null)
   const geoKey = useRef('')
 
   useFrame((state) => {
-    const { size, camera, scene } = state
+    const { size, camera, scene, clock } = state
 
     // Geometry depends only on the viewport, so recompute it on resize, not
     // per frame — and re-derive the frustum and the fog with it.
@@ -80,6 +94,44 @@ export function SceneRig({ progress, reducedMotion, sceneRefs }: SceneRigProps) 
       const materials = sceneRefs.cardMaterials[i]
       if (materials) for (const m of materials) m.opacity = pose.opacity
     }
+
+    // The DOM overlay rides the front card's white body band. It is placed from
+    // the band's PROJECTED corners rather than tracked by a transform, so it
+    // stays glued to the card through the whole dolly without ever mirroring
+    // the card's yaw (flat text on a yawed plane reads as a mistake).
+    const overlay = overlayRef.current
+    if (!overlay) return
+    const visualIndex = frontIndexFor(seg, CARD_COUNT, reducedMotion)
+    const pose = cardPose(visualIndex, eased, g)
+    const bob = reducedMotion ? 0 : ambientOffset(visualIndex, clock.elapsedTime, 0).y
+    const cardCentreY = pose.y + bob
+
+    const topLeft = projectPoint(
+      pose.x - CARD_W / 2 + CARD_PAD,
+      cardCentreY + BAND_TOP_Y,
+      pose.z,
+      cam,
+      g,
+    )
+    const bottomRight = projectPoint(
+      pose.x + CARD_W / 2 - CARD_PAD,
+      cardCentreY + BAND_BOTTOM_Y,
+      pose.z,
+      cam,
+      g,
+    )
+
+    const settled = settledness(seg, reducedMotion)
+    // Whole pixels: a fractional transform makes 13px text shimmer.
+    overlay.style.transform = `translate3d(${Math.round(topLeft.fx * size.width)}px, ${Math.round(topLeft.fy * size.height)}px, 0)`
+    overlay.style.width = `${Math.round((bottomRight.fx - topLeft.fx) * size.width)}px`
+    overlay.style.height = `${Math.round((bottomRight.fy - topLeft.fy) * size.height)}px`
+    overlay.style.opacity = String(pose.visible ? settled : 0)
+
+    // A parent's pointer-events: none does not block a child set to auto, so
+    // the pill has to be switched off itself while the card is in flight.
+    const pill = pillRef.current
+    if (pill) pill.style.pointerEvents = settled >= 0.5 && pose.visible ? 'auto' : 'none'
   })
 
   return null

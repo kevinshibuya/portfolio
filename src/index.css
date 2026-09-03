@@ -2278,3 +2278,70 @@ body[data-loader-state="loading"] {
   outline: 2px solid var(--text);
   outline-offset: 2px;
 }
+
+/* Front-card overlay — the name, meta and view pill that sit in the card's
+   white body band. The rig writes transform/width/height/opacity every frame
+   from the band's projected corners, so nothing here positions it. */
+.scene-meta {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: top left;
+  pointer-events: none;
+  will-change: transform, opacity;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  opacity: 0; /* the rig raises it once a card is settled */
+}
+.scene-meta-labels { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.scene-meta-name {
+  margin: 0;
+  font-size: clamp(14px, 1.4vw, 16px);
+  font-weight: 700;
+  color: var(--color-ink-on-light);
+  text-transform: lowercase;
+  letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.scene-meta-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-ink-on-light-muted);
+  text-transform: lowercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.scene-meta-pill {
+  pointer-events: auto; /* the rig also gates this on the settle window */
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--color-ink-on-light);
+  color: var(--color-surface-light);
+  font-size: 13px;
+  text-transform: lowercase;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.scene-meta-pill:focus-visible {
+  outline: 2px solid var(--color-ink-on-light);
+  outline-offset: 3px;
+}
+.scene-meta-arrow {
+  color: var(--row-tint); /* raw tricolor on the ink pill — passes AA all three */
+  transition: transform var(--dur-hover-in, 0.2s) var(--ease-house);
+}
+.scene-meta-pill:hover .scene-meta-arrow,
+.scene-meta-pill:focus-visible .scene-meta-arrow { transform: translate(3px, -3px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-meta { will-change: auto; }
+  .scene-meta-arrow { transition: none; }
+}

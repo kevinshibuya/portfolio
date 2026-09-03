@@ -236,10 +236,10 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 
 **Boundaries:** no title, no environment, no ambient beyond reading `ambientOffset` at energy 0 for the band position.
 
-- [ ] **Step 1: overlay markup + CSS; refs passed**
-- [ ] **Step 2: per-frame band projection (rounded px), opacity, pill pointer-events**
-- [ ] **Step 3: `scene-scrub.spec.ts` (three tests); retarget `nav-on-light.spec.ts`**
-- [ ] **Step 4: run the two specs, typecheck, lint; commit `feat(scene): front-card overlay in the body band; scrub and context-loss e2e`**
+- [x] **Step 1: overlay markup + CSS; refs passed**
+- [x] **Step 2: per-frame band projection (rounded px), opacity, pill pointer-events**
+- [x] **Step 3: `scene-scrub.spec.ts` (three tests); retarget `nav-on-light.spec.ts`**
+- [x] **Step 4: run the two specs, typecheck, lint; commit `feat(scene): front-card overlay in the body band; scrub and context-loss e2e`**
 
 ---
 
