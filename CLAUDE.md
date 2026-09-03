@@ -4,6 +4,26 @@
 A complete revamp of a developer portfolio. Built with React 19 + TypeScript + Vite.
 The MVP exists in `src/App.tsx` — the revamp will decompose it into proper components.
 
+## Deployment & Branches (MANDATORY — read before any merge)
+
+**A push or merge to `main` auto-deploys to production at https://kevinshibuya.com.** The deploy is wired through Cloudflare Workers Builds, which is connected to this repository directly — **not** through a GitHub Actions workflow. There is no `.github/workflows` directory, and **its absence is not evidence that nothing ships.** Do not conclude "no CI, so merging is safe": that reasoning caused a real production incident (see below).
+
+- **STANDING RULE (Kevin, 2026-09-03): `main` is FROZEN until the portfolio revamp is complete.** Until Kevin says the revamp is finished, nothing merges into `main` — not a feature, not a fix, not a "sync". Merge everything into `staging` and stop there. Merging into `staging` needs no permission; `main` is not a decision to make in the meantime, no matter how green or how small the change.
+- **Branch flow:** feature branch → PR into **`staging`**. `staging` is the integration branch and deploys nothing. It is expected to run far ahead of `main` — a large `main..staging` count is the NORMAL state here, not drift to be tidied up.
+- **Promoting `staging` → `main` is a PRODUCTION RELEASE, not a branch sync.** It needs an explicit, per-action decision from Kevin *for that release*, and blanket earlier permission to "merge" does not cover it. `bin/block-merge-to-main.sh` enforces the stop; `ALLOW_MAIN_MERGE=1` is the documented override for one authorised command.
+- If a merge's real scope differs from what was asked for (e.g. "merge my feature" would actually promote 153 accumulated commits), **stop and confirm before acting** — do not merely note the discrepancy and proceed.
+
+**Incident, 2026-09-02 → 03.** `staging` was merged to `main` (153 commits) on the stated but incorrect basis that nothing would deploy. Cloudflare built and shipped it, and **production served the unreleased redesign for ~15 hours** (merged 23:37Z, restored ~17:50Z the next day) — it was caught by Kevin, not by any check here. The redesign was reviewed and green, so the damage was disclosure of unreleased work rather than a broken site; a genuinely broken release would have had the same 15-hour window. There is no monitoring on this: after ANY change to `main`, verify production from the outside immediately (step 3 below) instead of assuming the deploy matched intent.
+
+**Recovery that worked, in order:**
+1. `ALLOW_MAIN_MERGE=1 git push --force-with-lease=main:<current> origin <prior-sha>:main` — put `main` back on its exact prior tip.
+2. Cloudflare rebuilt from that push automatically and restored the previous site in ~40 s (fast — but only once someone knew to trigger it). No manual deploy was needed — and none was possible, because `wrangler` was logged out (`Not logged in ... environment is non-interactive`). **Do not assume `wrangler deploy` is available as a recovery path**; check `npx wrangler whoami` first, and ask Kevin to run `! npx wrangler login` if it is needed.
+3. Verify production from the outside, never from the repo. The live HTML is the only proof:
+   `curl -s https://kevinshibuya.com/ | grep -oE 'theme-color" content="[^"]*"'`
+   Pre-redesign site is `#F6F9FC`; the dark redesign is `#0B0E14`. `loader-ks` and `portfolio · 2026` appear only in the redesign.
+
+Nothing was lost in that incident because `staging` retained every commit. Keep it that way: **never roll back by deleting work from `staging`.**
+
 ## Tech Stack
 - **Framework**: React 19 + TypeScript (strict)
 - **Build**: Vite 6 + SWC
