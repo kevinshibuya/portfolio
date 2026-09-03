@@ -8,7 +8,8 @@ The MVP exists in `src/App.tsx` — the revamp will decompose it into proper com
 
 **A push or merge to `main` auto-deploys to production at https://kevinshibuya.com.** The deploy is wired through Cloudflare Workers Builds, which is connected to this repository directly — **not** through a GitHub Actions workflow. There is no `.github/workflows` directory, and **its absence is not evidence that nothing ships.** Do not conclude "no CI, so merging is safe": that reasoning caused a real production incident (see below).
 
-- **Branch flow:** feature branch → PR into **`staging`**. `staging` is the integration branch and deploys nothing.
+- **STANDING RULE (Kevin, 2026-09-03): `main` is FROZEN until the portfolio revamp is complete.** Until Kevin says the revamp is finished, nothing merges into `main` — not a feature, not a fix, not a "sync". Merge everything into `staging` and stop there. Merging into `staging` needs no permission; `main` is not a decision to make in the meantime, no matter how green or how small the change.
+- **Branch flow:** feature branch → PR into **`staging`**. `staging` is the integration branch and deploys nothing. It is expected to run far ahead of `main` — a large `main..staging` count is the NORMAL state here, not drift to be tidied up.
 - **Promoting `staging` → `main` is a PRODUCTION RELEASE, not a branch sync.** It needs an explicit, per-action decision from Kevin *for that release*, and blanket earlier permission to "merge" does not cover it. `bin/block-merge-to-main.sh` enforces the stop; `ALLOW_MAIN_MERGE=1` is the documented override for one authorised command.
 - If a merge's real scope differs from what was asked for (e.g. "merge my feature" would actually promote 153 accumulated commits), **stop and confirm before acting** — do not merely note the discrepancy and proceed.
 
