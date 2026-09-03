@@ -86,6 +86,7 @@ export function Projects() {
                 data-ready={ready ? 'true' : undefined}
               >
                 <SelectedWorkScene
+                  covers={cards.map((c) => c.art)}
                   progress={scrollYProgress}
                   reducedMotion={prefersReducedMotion}
                   onReady={handleReady}

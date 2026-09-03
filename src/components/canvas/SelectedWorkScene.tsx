@@ -19,6 +19,8 @@ export interface SceneCard {
 }
 
 export interface SelectedWorkSceneProps {
+  /** Cover art per card, in corridor order; '' renders the frame alone. */
+  covers: string[]
   progress: MotionValue<number>
   reducedMotion: boolean
   /** Fires once when the scene's suspended content has mounted. */
@@ -56,6 +58,7 @@ function ReadySignal({ onReady }: { onReady: () => void }) {
  * instead, permanently for the session (spec Q9).
  */
 export function SelectedWorkScene({
+  covers,
   progress,
   reducedMotion,
   onReady,
@@ -152,7 +155,7 @@ export function SelectedWorkScene({
         sceneRefs={sceneRefs.current}
       />
       <Suspense fallback={null}>
-        <Corridor sceneRefs={sceneRefs.current} />
+        <Corridor covers={covers} sceneRefs={sceneRefs.current} />
         <ReadySignal onReady={onReady} />
       </Suspense>
     </Canvas>

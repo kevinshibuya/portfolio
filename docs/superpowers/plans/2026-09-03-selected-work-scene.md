@@ -208,9 +208,9 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 
 **Boundaries:** no halo/shadow yet; no overlay.
 
-- [ ] **Step 1: `roundedRect.ts` with remapped UVs**
-- [ ] **Step 2: frame + cover meshes, textures, disposal**
-- [ ] **Step 3: smoke (cover / band / corner pixels); commit `feat(scene): rounded card frames and covers`**
+- [x] **Step 1: `roundedRect.ts` with remapped UVs**
+- [x] **Step 2: frame + cover meshes, textures, disposal**
+- [x] **Step 3: smoke (cover / band / corner pixels); commit `feat(scene): rounded card frames and covers`**
 
 ---
 
