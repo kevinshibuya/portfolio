@@ -63,7 +63,7 @@
 
 - [x] **Step 1: branch off `staging`; `git add` the spec, plan, `docs/adr/`, `CONTEXT.md`; commit the records**
 - [x] **Step 2: install the five packages at exact versions; `npm ls three @react-three/fiber @react-three/postprocessing postprocessing` shows no peer errors**
-- [ ] **Step 3: run the allowlist test (red), extend `allowed` (green); typecheck; commit `chore(deps): three + r3f + postprocessing for the selected-work scene`**
+- [x] **Step 3: run the allowlist test (red), extend `allowed` (green); typecheck; commit `chore(deps): three + r3f + postprocessing for the selected-work scene`**
 
 ---
 
@@ -126,9 +126,9 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 
 **Boundaries:** no components, no CSS; do not touch `stackMotion.ts` or its test yet.
 
-- [ ] **Step 1: constants, `settleFrac`, `playheadFor`, `easedSeg`, `segmentFor`, `frontIndexFor` (red → green)**
-- [ ] **Step 2: `sceneGeometry`, `cameraPose`, `cardPose`, `projectPoint`, `frameRects`, `settledness`, `focusDistance` (red → green, including the four-viewport framing invariants)**
-- [ ] **Step 3: `morphValues`, `ambientOffset`, `velocityEnergy`, `velocityYaw`, `fogRange` (red → green)**
+- [x] **Step 1: constants, `settleFrac`, `playheadFor`, `easedSeg`, `segmentFor`, `frontIndexFor` (red → green)**
+- [x] **Step 2: `sceneGeometry`, `cameraPose`, `cardPose`, `projectPoint`, `frameRects`, `settledness`, `focusDistance` (red → green, including the four-viewport framing invariants)**
+- [x] **Step 3: `morphValues`, `ambientOffset`, `velocityEnergy`, `velocityYaw`, `fogRange` (red → green)**
 - [ ] **Step 4: typecheck, lint; commit `feat(scene): pure motion and framing helpers for the selected-work scene`**
 
 ---
