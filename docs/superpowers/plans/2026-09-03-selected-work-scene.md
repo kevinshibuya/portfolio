@@ -61,8 +61,8 @@
 
 **Boundaries:** no source files, no Vite config.
 
-- [ ] **Step 1: branch off `staging`; `git add` the spec, plan, `docs/adr/`, `CONTEXT.md`; commit the records**
-- [ ] **Step 2: install the five packages at exact versions; `npm ls three @react-three/fiber @react-three/postprocessing postprocessing` shows no peer errors**
+- [x] **Step 1: branch off `staging`; `git add` the spec, plan, `docs/adr/`, `CONTEXT.md`; commit the records**
+- [x] **Step 2: install the five packages at exact versions; `npm ls three @react-three/fiber @react-three/postprocessing postprocessing` shows no peer errors**
 - [ ] **Step 3: run the allowlist test (red), extend `allowed` (green); typecheck; commit `chore(deps): three + r3f + postprocessing for the selected-work scene`**
 
 ---
