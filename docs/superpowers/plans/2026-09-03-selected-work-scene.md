@@ -129,7 +129,7 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 - [x] **Step 1: constants, `settleFrac`, `playheadFor`, `easedSeg`, `segmentFor`, `frontIndexFor` (red → green)**
 - [x] **Step 2: `sceneGeometry`, `cameraPose`, `cardPose`, `projectPoint`, `frameRects`, `settledness`, `focusDistance` (red → green, including the four-viewport framing invariants)**
 - [x] **Step 3: `morphValues`, `ambientOffset`, `velocityEnergy`, `velocityYaw`, `fogRange` (red → green)**
-- [ ] **Step 4: typecheck, lint; commit `feat(scene): pure motion and framing helpers for the selected-work scene`**
+- [x] **Step 4: typecheck, lint; commit `feat(scene): pure motion and framing helpers for the selected-work scene`**
 
 ---
 
@@ -185,12 +185,12 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 
 **Boundaries:** no textures, no rounded corners, no title, no overlay content, no environment, no ambient. Do not edit `FluidWaves.tsx`, `Hero.tsx`, `#chapter-light`, or any other section.
 
-- [ ] **Step 1: `sceneRefs.ts`; `Corridor.tsx` with plain white planes registering into the refs**
-- [ ] **Step 2: `SceneRig.tsx` (camera + card poses + opacity; reduced-motion jump)**
-- [ ] **Step 3: `SelectedWorkScene.tsx` (probe, Canvas `flat`, real-canvas attrs, IO frameloop, RM invalidate-on-scroll, context loss, `ReadySignal`)**
-- [ ] **Step 4: rewrite `Projects.tsx`; delete the six old files**
-- [ ] **Step 5: replace the CSS block; retarget the `.stack-inner` comment**
-- [ ] **Step 6: typecheck, lint, `npx vitest run`, headless smoke (report the pixel checks and the two SR texts in words); commit `feat(scene): r3f scene shell and camera dolly replace the card stack`**
+- [x] **Step 1: `sceneRefs.ts`; `Corridor.tsx` with plain white planes registering into the refs**
+- [x] **Step 2: `SceneRig.tsx` (camera + card poses + opacity; reduced-motion jump)**
+- [x] **Step 3: `SelectedWorkScene.tsx` (probe, Canvas `flat`, real-canvas attrs, IO frameloop, RM invalidate-on-scroll, context loss, `ReadySignal`)**
+- [x] **Step 4: rewrite `Projects.tsx`; delete the six old files**
+- [x] **Step 5: replace the CSS block; retarget the `.stack-inner` comment**
+- [x] **Step 6: typecheck, lint, `npx vitest run`, headless smoke (report the pixel checks and the two SR texts in words); commit `feat(scene): r3f scene shell and camera dolly replace the card stack`**
 
 ---
 

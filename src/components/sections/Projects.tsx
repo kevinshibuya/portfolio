@@ -1,12 +1,11 @@
-import { useRef, useState } from 'react'
-import { useScroll, useTransform, useMotionValueEvent } from 'framer-motion'
+import { useCallback, useRef, useState } from 'react'
+import { useScroll, useMotionValueEvent } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMotion } from '../../context/MotionContext'
-import { GooeyTitle } from '../ui/GooeyTitle'
-import { ProjectCardStack, type StackCardData } from '../ui/ProjectCardStack'
+import { SelectedWorkScene } from '../canvas/SelectedWorkScene'
 import { projects } from '../../data/projects'
-import { segmentFor, settleFrac } from '../../utils/stackMotion'
+import { playheadFor, frontIndexFor } from '../../utils/sceneMotion'
 import { accentFor, accentDeepFor } from '../../utils/palette'
 
 export function Projects() {
@@ -19,11 +18,11 @@ export function Projects() {
     .sort((a, b) => (a.highlightOrder ?? 99) - (b.highlightOrder ?? 99))
   const n = featured.length
 
-  const cards: StackCardData[] = featured.map((p) => ({
+  const cards = featured.map((p) => ({
     slug: p.slug,
     title: p.title[lang],
     subtitle: `${p.year} · ${p.techStack.slice(0, 2).map((s) => s.toLowerCase()).join(' · ')}`,
-    art: p.mockups?.stackCover,
+    art: p.mockups?.stackCover ?? '',
     alt: `${p.title[lang]} preview`,
   }))
 
@@ -33,37 +32,21 @@ export function Projects() {
     offset: ['start start', 'end end'],
   })
 
-  // The ONE scroll-derived visual channel: continuous 0..n-1, plateaus at integers.
-  // EVERY per-frame card/title visual derives from this single MotionValue via pure
-  // functions (cardStyleAt / spanMorph) — no React state in the visual path, so an
-  // identity-state lag can no longer tear card/title rendering at a segment boundary.
-  const segCont = useTransform(scrollYProgress, (p) => {
-    const { index, frac } = segmentFor(p, n)
-    return index + settleFrac(frac)
-  })
-
-  // Non-visual discrete state — flips a handful of times total, never per frame.
+  // Non-visual discrete state — flips a handful of times across the whole
+  // section, never per frame. It feeds ONLY the interactive <Link>, aria, the
+  // SR heading and the row tints; every visual derives from the scroll
+  // MotionValue inside the scene's frame loop, so this can never tear the
+  // camera or the morph by lagging a frame behind (ADR 0010).
   const [frontIndex, setFrontIndex] = useState(0)
-
-  // Why this setState is safe (re-render-kills-entrance lesson): nothing above the
-  // pinned stage runs a whileInView(once) stagger that this could freeze — the
-  // eyebrow is a static element, and every card/title visual derives from the
-  // single MotionValue `segCont`, never from React state. The guard below skips
-  // setState when the index is unchanged, so a full segment scrolls through with
-  // zero re-renders once frontIndex settles; this state feeds ONLY non-visual
-  // attrs (the interactive <Link>, aria, --row-tint/--row-tint-deep, staticTitle),
-  // so its frame-lag can never tear the card/title flight.
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
-    const { index, frac } = segmentFor(p, n)
-    const nextFront = prefersReducedMotion
-      ? Math.min(Math.round(p * (n - 1)), n - 1) // RM: swap at segment midpoint
-      : Math.min(index + (settleFrac(frac) >= 0.5 ? 1 : 0), n - 1) // scrub: at settle-midpoint
-    setFrontIndex((c) => (c === nextFront ? c : nextFront))
+    const next = frontIndexFor(playheadFor(p), n, prefersReducedMotion)
+    setFrontIndex((current) => (current === next ? current : next))
   })
 
-  // Resting title tracks frontIndex: it is the accessible name and the whole RM
-  // render, and must swap with the cards at the settle-midpoint.
-  const staticTitle = cards[frontIndex]?.title ?? ''
+  const [ready, setReady] = useState(false)
+  const [webglUnavailable, setWebglUnavailable] = useState(false)
+  const handleReady = useCallback(() => setReady(true), [])
+  const handleWebglUnavailable = useCallback(() => setWebglUnavailable(true), [])
 
   const stageStyle = {
     '--row-tint': accentFor(frontIndex),
@@ -71,40 +54,58 @@ export function Projects() {
   } as React.CSSProperties & Record<'--row-tint' | '--row-tint-deep', string>
 
   return (
-    <section id="projects" className="section projects-stack-section">
+    <section id="projects" className="section projects-scene-section">
       {/* Keyboard/SR path: visually-hidden-until-focused project index, no scroll-jacking. */}
-      <nav className="stack-skiplinks" aria-label={t('sections.projects.stack.indexLabel')}>
+      <nav className="scene-skiplinks" aria-label={t('sections.projects.stack.indexLabel')}>
         {featured.map((p) => (
-          <Link key={p.id} className="stack-skiplink" to={`/projects/${p.slug}`}>
+          <Link key={p.id} className="scene-skiplink" to={`/projects/${p.slug}`}>
             {p.title[lang]}
           </Link>
         ))}
       </nav>
 
-      <div className="stack-scroll" ref={wrapperRef}>
-        <div className="stack-sticky">
-          <div className="stack-inner" style={stageStyle}>
-            <p className="stack-eyebrow">
-              <span className="stack-eyebrow-num">{t('sections.projects.index')}</span>
-              <span aria-hidden="true"> · </span>
-              {t('sections.projects.label')}
-            </p>
-            <GooeyTitle
-              titles={cards.map((c) => c.title)}
-              seg={segCont}
-              staticTitle={staticTitle}
-              reducedMotion={prefersReducedMotion}
-            />
-            <ProjectCardStack
-              cards={cards}
-              seg={segCont}
-              interactiveIndex={frontIndex}
-              reducedMotion={prefersReducedMotion}
-              viewProjectLabel={t('sections.projects.stack.viewProject')}
-            />
+      {webglUnavailable ? (
+        <div className="scene-fallback">
+          <ul>
+            {cards.map((card) => (
+              <li key={card.slug}>
+                <Link className="scene-fallback-link" to={`/projects/${card.slug}`}>
+                  {card.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="scene-scroll" ref={wrapperRef}>
+          <div className="scene-sticky">
+            <div className="scene-inner" style={stageStyle}>
+              <div
+                className="scene-canvas-wrap"
+                aria-hidden="true"
+                data-ready={ready ? 'true' : undefined}
+              >
+                <SelectedWorkScene
+                  progress={scrollYProgress}
+                  reducedMotion={prefersReducedMotion}
+                  onReady={handleReady}
+                  onWebglUnavailable={handleWebglUnavailable}
+                />
+              </div>
+
+              <p className="scene-eyebrow">
+                <span className="scene-eyebrow-num">{t('sections.projects.index')}</span>
+                <span aria-hidden="true"> · </span>
+                {t('sections.projects.label')}
+              </p>
+
+              <h2 className="scene-title-sr sr-only">{cards[frontIndex]?.title ?? ''}</h2>
+
+              <div className="scene-meta" />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </section>
   )
 }
