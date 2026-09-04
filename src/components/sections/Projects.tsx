@@ -70,16 +70,28 @@ export function Projects() {
       </nav>
 
       {webglUnavailable ? (
+        /* No WebGL2, or the context was lost: the four projects in normal
+           flow, no pin. Permanent for the session (spec Q9). */
         <div className="scene-fallback">
-          <ul>
-            {cards.map((card) => (
-              <li key={card.slug}>
+          {cards.map((card) => (
+            <article className="scene-fallback-card" key={card.slug}>
+              {card.art ? (
+                <span className="scene-fallback-frame">
+                  <img src={card.art} alt={card.alt} width={1024} height={608} loading="lazy" />
+                </span>
+              ) : null}
+              <div className="scene-fallback-body">
+                <div className="scene-fallback-labels">
+                  <p className="scene-fallback-name">{card.title}</p>
+                  <p className="scene-fallback-subtitle">{card.subtitle}</p>
+                </div>
                 <Link className="scene-fallback-link" to={`/projects/${card.slug}`}>
-                  {card.title}
+                  <span>{t('sections.projects.stack.viewProject')}</span>
+                  <span aria-hidden="true">↗</span>
                 </Link>
-              </li>
-            ))}
-          </ul>
+              </div>
+            </article>
+          ))}
         </div>
       ) : (
         <div className="scene-scroll" ref={wrapperRef}>

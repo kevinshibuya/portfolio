@@ -199,6 +199,7 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 
 **Files:**
 - `src/components/canvas/scene/roundedRect.ts` — create: `roundedRectGeometry(w: number, h: number, r: number, segments = 8): THREE.BufferGeometry` — a `ShapeGeometry` from a rounded-rect `THREE.Shape`, with UVs remapped to `[0,1]` across the rect (ShapeGeometry's default UVs are in shape units).
+- `src/components/canvas/scene/cardAnatomy.ts` — create (added in execution): the Shadway card's measurements in world units (`CARD_PAD`, `CARD_RADIUS`, `COVER_*`, `BAND_*`), shared by `Corridor` which builds the meshes and `SceneRig` which projects the same band for the DOM overlay, so the two cannot drift.
 - `src/components/canvas/scene/Corridor.tsx` — modify: frame = rounded rect `CARD_W × CARD_H`, radius `16/620·CARD_W`; cover = rounded rect inset by `12/620·CARD_W` on the top/left/right, aspect `16/9.5`, radius `10/620·CARD_W`, at `z + 0.002`, `MeshBasicMaterial({ map, transparent: true, fog: true, toneMapped: false })`, texture `colorSpace = SRGBColorSpace`, `anisotropy = min(8, gl.capabilities.getMaxAnisotropy())`, loaded via `useLoader(THREE.TextureLoader, url)` (suspends inside the inner Suspense); the white body band is simply the uncovered lower part of the frame. Missing `art` → frame only.
 
 **Interfaces:** consumes `SceneRefs` (registers the cover material alongside the frame material in `cardMaterials[i]`). No new exports beyond `roundedRectGeometry`.
@@ -281,7 +282,8 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 - `src/components/canvas/scene/Corridor.tsx` — modify: per card a halo plane behind and a blob-shadow plane on the floor (`sceneRefs.halos/haloMaterials/shadows/shadowMaterials`).
 - `src/components/canvas/scene/gradients.ts` — create: `radialGradientTexture(size = 256, inner = 1, outer = 0): THREE.CanvasTexture` and `roundedBlobTexture(w = 256, h = 192, blurPx = 40): THREE.CanvasTexture` (a blurred white rounded rect on transparent; alpha = shadow density).
 - `src/components/canvas/scene/SceneRig.tsx` — modify: fog drift, halo alpha, shadow alpha.
-- `src/components/canvas/SelectedWorkScene.tsx` — modify: mount `Environment`; `desktopEffects = matchMedia('(pointer: fine)').matches && innerWidth >= 768` evaluated at mount and on resize crossings.
+- `tests/e2e/scene-effects.spec.ts` — create (added in execution, per the 2026-09-04 ruling): spoofs a hardware renderer string so the composer path stays covered by the suite once it is gated off software rasterisers.
+- `src/components/canvas/SelectedWorkScene.tsx` — modify: mount `Environment`; add the hardware-acceleration gate and the idle warm-up (`SceneWarmup`, `data-warm`); `desktopEffects = matchMedia('(pointer: fine)').matches && innerWidth >= 768` evaluated at mount and on resize crossings.
 
 **Interfaces:** consumes `accentFor(i)`, `accentDeepFor(i)`, `fogRange`, `ambientOffset`, `focusDistance`, `SceneGeometry`.
 
@@ -347,11 +349,11 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 
 **Boundaries:** no scene changes beyond wiring the fallback; do not touch `FluidWaves`.
 
-- [ ] **Step 1: real `.scene-fallback` markup + CSS**
-- [ ] **Step 2: `scene-reduced-motion.spec.ts` (incl. the 0.30 sample); green**
-- [ ] **Step 3: `scene-no-webgl.spec.ts` via `addInitScript`; green**
-- [ ] **Step 4: retarget `contact-waves.spec.ts`; green**
-- [ ] **Step 5: full `npx playwright test` + `npx vitest run` + typecheck + lint (paste the summary lines); commit `test(scene): reduced motion, no-webgl fallback and the live-canvas invariant`**
+- [x] **Step 1: real `.scene-fallback` markup + CSS**
+- [x] **Step 2: `scene-reduced-motion.spec.ts` (incl. the 0.30 sample); green**
+- [x] **Step 3: `scene-no-webgl.spec.ts` via `addInitScript`; green**
+- [x] **Step 4: retarget `contact-waves.spec.ts`; green**
+- [x] **Step 5: full `npx playwright test` + `npx vitest run` + typecheck + lint (paste the summary lines); commit `test(scene): reduced motion, no-webgl fallback and the live-canvas invariant`**
 
 ---
 
@@ -370,9 +372,9 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 
 **Boundaries:** no code changes in this task beyond docs. Do not merge.
 
-- [ ] **Step 1: CLAUDE.md edits (the six points)**
-- [ ] **Step 2: README line; ADR 0009 package list; CONTEXT.md wording**
-- [ ] **Step 3: tick the spec TODO boxes that passed; commit `docs(scene): records for the selected-work scene`**
+- [x] **Step 1: CLAUDE.md edits (the six points)**
+- [x] **Step 2: README line; ADR 0009 package list; CONTEXT.md wording**
+- [x] **Step 3: tick the spec TODO boxes that passed; commit `docs(scene): records for the selected-work scene`**
 - [ ] **Step 4: push; open the PR against `staging` with the manual steps; paste the PR URL**
 
 ---

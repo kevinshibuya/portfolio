@@ -2345,3 +2345,77 @@ body[data-loader-state="loading"] {
   .scene-meta { will-change: auto; }
   .scene-meta-arrow { transition: none; }
 }
+
+/* No-WebGL fallback — the four projects as framed cards in normal flow.
+   Same anatomy as the in-scene card, so losing the scene loses the motion,
+   not the design. No pin, no canvas. */
+.scene-fallback {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 620px;
+  margin: 96px auto 0;
+}
+.scene-fallback-card {
+  background: #FFFFFF;
+  border: 1px solid var(--color-hairline-on-light);
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.scene-fallback-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9.5;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-surface-light-tonal);
+}
+.scene-fallback-frame img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: top;
+  display: block;
+}
+.scene-fallback-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 4px;
+}
+.scene-fallback-labels { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.scene-fallback-name {
+  margin: 0;
+  font-size: clamp(14px, 1.4vw, 16px);
+  font-weight: 700;
+  color: var(--color-ink-on-light);
+  text-transform: lowercase;
+  letter-spacing: -0.01em;
+}
+.scene-fallback-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-ink-on-light-muted);
+  text-transform: lowercase;
+  font-variant-numeric: tabular-nums;
+}
+.scene-fallback-link {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--color-ink-on-light);
+  color: var(--color-surface-light);
+  font-size: 13px;
+  text-transform: lowercase;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.scene-fallback-link:focus-visible {
+  outline: 2px solid var(--color-ink-on-light);
+  outline-offset: 3px;
+}

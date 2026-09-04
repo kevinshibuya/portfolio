@@ -135,15 +135,15 @@ Floor reflection, particles, a portrait art set, a position counter, the perf ha
 
 ## TODO
 
-- [ ] Scene renders in a third canvas inside `#chapter-light`, cream, invisible canvas edge, and the hero dissolve/nav flip are unchanged.
-- [ ] Scroll dollies the camera through the four-card corridor; every integer playhead is a settled state; reversing scroll reverses the motion exactly.
-- [ ] The in-scene title morphs between adjacent names with visual parity to today's gooey morph, crisp at rest, in both languages.
-- [ ] Floor shadows, tricolor halos, fog and depth of field (desktop) render as specified; no particles, no reflection.
-- [ ] The scene breathes at idle (Q21 amplitudes) and gains energy on a flick; zero React state per frame (`frontIndex` feeds only non-visual attrs).
-- [ ] Overlay meta tracks the settled card, links to the project, has a visible focus ring; skip-link index and SR heading work.
-- [ ] Reduced motion: pinned, static, on-demand renders, instant swaps, no ambient. No WebGL / context loss: the DOM fallback list.
-- [ ] Phone: same scene at ≈ 88vw cards, tilt and DoF off, shadows on.
-- [ ] Canvas rules: DPR ≤ 1.5, off-screen pause, `data-*` attrs, at most two live canvases.
-- [ ] Tests per the Tests section pass; CLS and long-task e2e assertions pass unchanged.
-- [ ] Records updated (ADR 0009, 0010; CLAUDE.md; CONTEXT.md; README).
+- [x] Scene renders in a third canvas inside `#chapter-light`, cream, invisible canvas edge, and the hero dissolve/nav flip are unchanged.
+- [x] Scroll dollies the camera through the four-card corridor; every integer playhead is a settled state; reversing scroll reverses the motion exactly.
+- [x] The in-scene title morphs between adjacent names with visual parity to today's gooey morph, crisp at rest, in both languages.
+- [x] Floor shadows, tricolor halos, fog and depth of field (desktop) render as specified; no particles, no reflection.
+- [x] The scene breathes at idle (Q21 amplitudes) and gains energy on a flick; zero React state per frame (`frontIndex` feeds only non-visual attrs).
+- [x] Overlay meta tracks the settled card, links to the project, has a visible focus ring; skip-link index and SR heading work.
+- [x] Reduced motion: pinned, static, on-demand renders, instant swaps, no ambient. No WebGL / context loss: the DOM fallback list.
+- [x] Phone: same scene at ≈ 88vw cards, tilt and DoF off, shadows on.
+- [x] Canvas rules: DPR ≤ 1.5, off-screen pause, `data-*` attrs, at most two live canvases.
+- [x] Tests per the Tests section pass; CLS and long-task e2e assertions pass unchanged.
+- [x] Records updated (ADR 0009, 0010; CLAUDE.md; CONTEXT.md; README).
 - [ ] Kevin rates the scene designer-grade on the running app at desktop and phone widths.
