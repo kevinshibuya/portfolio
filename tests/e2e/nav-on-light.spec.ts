@@ -11,6 +11,21 @@ async function scrollIntoSection(page: import('@playwright/test').Page, id: stri
   await page.waitForTimeout(200)
 }
 
+// Scroll to a fraction of the scene's scrub range (450svh wrapper, 100svh
+// sticky stage). Mirrors the helper in scene-scrub.spec.ts.
+async function scrollToSceneFraction(page: import('@playwright/test').Page, fraction: number): Promise<void> {
+  await page.evaluate((frac) => {
+    const wrapper = document.querySelector('#projects .scene-scroll') as HTMLElement | null
+    if (!wrapper) return
+    const top = wrapper.getBoundingClientRect().top + window.scrollY
+    window.scrollTo({
+      top: top + frac * (wrapper.offsetHeight - window.innerHeight),
+      behavior: 'instant' as ScrollBehavior,
+    })
+  }, fraction)
+  await page.waitForTimeout(160)
+}
+
 test('nav flips to on-light over the cream chapter (Projects → Skills) and back to dark', async ({ page }) => {
   await page.goto('/')
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
@@ -56,8 +71,13 @@ test('nav re-arms on-light after SPA back-nav from a project page', async ({ pag
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
 
   // Follow the front card to its project page (SPA nav, Header stays mounted).
-  const href = await page.locator('#projects .stack-card-link').getAttribute('href')
-  await page.locator('#projects .stack-card-link').click()
+  // The overlay only takes clicks while a card is settled, so land on the
+  // scene's settled fraction first (same mapping as scene-scrub.spec.ts).
+  await scrollToSceneFraction(page, 0.15)
+  // Forced: the overlay rides the breathing card, so its box drifts every
+  // frame and Playwright's actionability loop cannot converge on it.
+  const href = await page.locator('#projects .scene-meta-pill').getAttribute('href')
+  await page.locator('#projects .scene-meta-pill').click({ force: true })
   await expect(page).toHaveURL(new RegExp(href!.replace(/[/]/g, '\\/')))
 
   // On the project page there is no chapter, and the page is fully ink. Both the

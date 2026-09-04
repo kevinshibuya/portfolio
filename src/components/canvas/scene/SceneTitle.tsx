@@ -1,0 +1,178 @@
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { useThree } from '@react-three/fiber'
+import * as THREE from 'three'
+import { drawTitleTexture, antonChWidth } from './titleTexture'
+import type { SceneRefs } from './sceneRefs'
+
+/** Big enough that a mip chain has room to blur into; capped by MAX_CANVAS_PX. */
+const FONT_PX = 300
+/** The retired DOM title wrapped at 18ch; kept so PT still breaks in two. */
+const WRAP_CH = 18
+/** Today's `255 -170` threshold matrix, as a normalised alpha cut. */
+const THRESHOLD = 0.667
+
+const vertexShader = /* glsl */ `
+  out vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+/**
+ * Two coverage masks, each blurred by sampling a mip level, added, then cut at
+ * a hard threshold: that is the gooey bridge. `fwidth` widens the cut by
+ * exactly one screen pixel so the edge is antialiased without going soft.
+ *
+ * three declares neither the fragment output nor `gl_FragColor` under GLSL3,
+ * but it DOES provide `linearToOutputTexel`, so the output is declared here
+ * and the sanctioned colorspace include still applies.
+ */
+const fragmentShader = /* glsl */ `
+  layout(location = 0) out highp vec4 pc_fragColor;
+  #define gl_FragColor pc_fragColor
+
+  uniform sampler2D uTexA;
+  uniform sampler2D uTexB;
+  uniform float uLodA;
+  uniform float uLodB;
+  uniform float uOpacityA;
+  uniform float uOpacityB;
+  uniform vec2 uScaleA;
+  uniform vec2 uScaleB;
+  uniform vec3 uColor;
+  uniform float uThreshold;
+
+  in vec2 vUv;
+
+  void main() {
+    vec2 uvA = (vUv - 0.5) * uScaleA + 0.5;
+    vec2 uvB = (vUv - 0.5) * uScaleB + 0.5;
+    float a = textureLod(uTexA, uvA, uLodA).a * uOpacityA
+            + textureLod(uTexB, uvB, uLodB).a * uOpacityB;
+    float w = fwidth(a) * 0.75;
+    float alpha = smoothstep(uThreshold - w, uThreshold + w, a);
+    if (alpha < 0.02) discard;
+    gl_FragColor = vec4(uColor, alpha);
+    #include <colorspace_fragment>
+  }
+`
+
+interface SceneTitleProps {
+  titles: string[]
+  reducedMotion: boolean
+  sceneRefs: SceneRefs
+}
+
+/**
+ * The monumental in-scene title. It floats camera-relative in the upper third
+ * of the frame and morphs between adjacent project names as the camera travels.
+ *
+ * Textures are generated in an effect rather than through Suspense on purpose:
+ * suspending here would unmount the whole scene for a frame every time the
+ * language changes. Until they resolve the plane simply renders nothing.
+ *
+ * It carries NO fog — the title is the one object in the scene the cream fog
+ * must not touch.
+ */
+export function SceneTitle({ titles, reducedMotion, sceneRefs }: SceneTitleProps) {
+  const groupRef = useRef<THREE.Group>(null)
+  const dpr = useThree((state) => state.viewport.dpr)
+  const invalidate = useThree((state) => state.invalidate)
+
+  const geometry = useMemo(() => new THREE.PlaneGeometry(1, 1), [])
+  const material = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        glslVersion: THREE.GLSL3,
+        vertexShader,
+        fragmentShader,
+        transparent: true,
+        // The depth of field pass reads depth: a title that skipped the depth
+        // buffer would inherit the blur of whatever lies far behind it.
+        depthWrite: true,
+        depthTest: true,
+        uniforms: {
+          uTexA: { value: null },
+          uTexB: { value: null },
+          uLodA: { value: 0 },
+          uLodB: { value: 0 },
+          uOpacityA: { value: 0 },
+          uOpacityB: { value: 0 },
+          uScaleA: { value: new THREE.Vector2(1, 1) },
+          uScaleB: { value: new THREE.Vector2(1, 1) },
+          uColor: { value: new THREE.Color('#0B0E14') },
+          uThreshold: { value: THRESHOLD },
+        },
+      }),
+    [],
+  )
+
+  useLayoutEffect(() => {
+    sceneRefs.title = groupRef.current
+    sceneRefs.titleMaterial = material
+    return () => {
+      sceneRefs.title = null
+      sceneRefs.titleMaterial = null
+    }
+  }, [sceneRefs, material])
+
+  // Redraw on a language switch. `titles` is a fresh array every render, so the
+  // join is what actually decides whether the work needs doing again.
+  const titlesKey = titles.join('\u0000')
+  const latestTitles = useRef(titles)
+  latestTitles.current = titles
+
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const ch = await antonChWidth(FONT_PX)
+      const drawn = await Promise.all(
+        latestTitles.current.map((text) =>
+          drawTitleTexture(text, { dpr, maxLinePx: WRAP_CH * ch, fontPx: FONT_PX }),
+        ),
+      )
+      if (cancelled) {
+        for (const d of drawn) d.texture.dispose()
+        return
+      }
+      for (const old of sceneRefs.titleTextures) old.dispose()
+      sceneRefs.titleTextures = drawn.map((d) => d.texture)
+      sceneRefs.titleMetrics = drawn.map(
+        ({ widthPx, heightPx, lineCount, capPx, emPx, inkTopPx, inkBottomPx }) => ({
+          widthPx,
+          heightPx,
+          lineCount,
+          capPx,
+          emPx,
+          inkTopPx,
+          inkBottomPx,
+        }),
+      )
+      invalidate() // reduced motion renders on demand; the redraw needs a frame
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [titlesKey, dpr, sceneRefs, invalidate])
+
+  useEffect(
+    () => () => {
+      for (const texture of sceneRefs.titleTextures) texture.dispose()
+      sceneRefs.titleTextures = []
+      sceneRefs.titleMetrics = []
+      geometry.dispose()
+      material.dispose()
+    },
+    [geometry, material, sceneRefs],
+  )
+
+  // Reduced motion still shows a title; it just never morphs or floats.
+  void reducedMotion
+
+  return (
+    <group ref={groupRef}>
+      <mesh geometry={geometry} material={material} renderOrder={10} />
+    </group>
+  )
+}
