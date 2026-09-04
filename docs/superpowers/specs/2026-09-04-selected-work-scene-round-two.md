@@ -33,9 +33,9 @@ Emotional target unchanged: confident, controlled, premium. Awake, not restless.
 | Q8 | The title's softness is the texture being minified ~1.6× at rest (rest mip LOD ≈ 0.7) plus the desktop depth-of-field pass; not the halo. Fix: rasterise the title at its displayed size so rest LOD is exactly 0, and render the title **outside the composer** (no grain, no DoF), matching "the one object the fog never touches". |
 | Q9 | Reduced motion: the overture line shows as a static frame at the start and is swapped out instantly at the first settle. Caption and skiplinks are static anyway. |
 | Q10 | Caption composition: name (ink, Jakarta ~600) top-left, subtitle (ink-muted) under it, a bare `↗` on the right in the deep row tint. No "view" word. |
-| Q11 | Phone legibility. Hard rule: **the caption name never renders under 12 px on screen** on any viewport ≥ 320 px wide, so the card is never narrower than 287 px; the card fraction derives from that rule. (Correction after grilling: portrait phones already get 88 vw cards from `sceneGeometry`; the binding case is landscape phones, e.g. 844×390, where the fraction rises from 0.32 to 0.34.) |
+| Q11 | Phone legibility. Hard rule: **the caption name never renders under 12 px on screen** on any viewport ≥ 320 px wide, so the card is never narrower than 287 px; the card fraction derives from that rule. (Correction after grilling: portrait phones already get 88 vw cards from `sceneGeometry`; the rule binds on landscape phones, e.g. 844×390 where the fraction rises from 0.32 to 0.34, and on 320 px portrait, 0.88 → 0.897.) |
 | Q12 | Overture copy: `a few things i've built` / `algumas coisas que construí`. |
-| Q13 | Overture line: monumental (≈ 70 % of the visible width at its rest distance), centred, upright, facing the camera; it carries the ambient breath (bob + velocity lean) like the cards. Off under reduced motion. |
+| Q13 | Overture line: monumental (≈ 70 % of the visible width at its rest distance), horizontally centred and standing on the camera's eye line (the upper third of the frame under the −8° pitch, where the title later stands; the only placement that is a true pass-through), upright, facing the camera; it carries the ambient breath (bob + velocity lean) like the cards. Off under reduced motion. |
 | Q14 | **Section numbering goes site-wide.** No `01 ·`…`05 ·` anywhere. |
 | Q15 | ADR 0011 records the caption decision and `frontIndex` leaving React state. |
 | Q16 | The whole eyebrow line goes from every section (Archive, Work Experience, Skills, Contact, and Stats' unnumbered `selected metrics`). The section title is the only heading. `SectionHeading` loses `index`/`label`. |
@@ -51,7 +51,7 @@ Emotional target unchanged: confident, controlled, premium. Awake, not restless.
 - **Phone framing**: the framing function gains the legibility rule. Name on-screen px = `26 · cardPx / 620 ≥ 12` ⇒ `cardPx ≥ 287`, so on every viewport the card fraction becomes `max(current, 287 / width)` capped at `0.92`; the lateral offset already derives from the fraction and must keep alternating cards inside the frame.
 - **Pointer**: R3F pointer events on the card group (`onPointerOver`/`Out`/`Click`), cursor `pointer` on any hit card. Settled card: lift (toward the camera by ≈ 3 % of card width, scale ≈ 1.02, 0.2 s lerp, additive to tilt and breath), arrow slides ≈ 2 px on screen. Non-settled cards: cursor only.
 - **Click**: settled card → `navigate('/projects/:slug')`. Any other card → smooth scroll to that card's integer playhead (instant under reduced motion). A touch scroll gesture must not count as a tap (down/up distance threshold).
-- **DOM**: `.scene-meta*` markup, its per-frame projection block in `SceneRig`, `.scene-eyebrow*`, `--row-tint`/`--row-tint-deep` on `.scene-inner`, `stageStyle`, and the `projects.index` / `projects.label` / `projects.stack.viewProject` keys are deleted. `h2.scene-title-sr` becomes the static section name. The skip-link `nav` is unchanged and is the a11y contract.
+- **DOM**: `.scene-meta*` markup, its per-frame projection block in `SceneRig`, `.scene-eyebrow*`, `--row-tint`/`--row-tint-deep` on `.scene-inner`, `stageStyle`, and the `projects.index` / `projects.label` keys are deleted. `h2.scene-title-sr` becomes the static section name. The skip-link `nav` is unchanged and is the a11y contract.
 
 ### No scroll-driven React state (Q4, item 4)
 
@@ -71,18 +71,18 @@ Halo mesh, `radialGradientTexture`, `sceneRefs.halos`/`haloMaterials`, the per-f
 
 ### The overture (Q7, Q12, Q13, Q9)
 
-- `.scene-scroll` 450svh → **550svh**; `playheadFor(p) = clamp(p · 4.5 − 1.5, −1.5, 3)`. The overture is `seg ∈ [−1.5, −0.5)`; the card-0 fog surfacing and title resolve still key on `[−0.5, 0)`; cards `[0, 3]` unchanged. The camera is **one continuous ease across the whole 150svh approach** (two spacings back at −1.5, zero slope only at the ends), so it never stops at −0.5.
+- `.scene-scroll` 450svh → **550svh**; `playheadFor(p) = clamp(p · 4.5 − 1.5, −1.5, 3)`. The overture is `seg ∈ [−1.5, −0.5)`; the title resolve still keys on `[−0.5, 0)`; cards `[0, 3]` unchanged. The camera is **one continuous ease across the whole 150svh approach**, zero slope only at the ends, so it never stops at −0.5. Its start depth is DERIVED, not tuned: at `−0.5` the camera is exactly one spacing behind card 0, the frame the shipped scene showed at the top of its approach and the one Kevin pointed at as "the cards in the distance"; that puts the camera ≈ 3.86 spacings back at `−1.5`, beyond the fog's far edge, so card 0 is invisible behind the line at the top and begins to read near `−0.8` while the line fades.
 - The line is a Jakarta text plane (same rasteriser as the caption, one texture, bilingual) standing in the corridor at the point the camera reaches at `seg = −0.5`, facing the camera, ink, **fog-free and composer-free** like the title. At `seg = −1.5` it fills ≈ 70 % of the visible width, centred.
 - Camera: monotonic, one ease, strictly moving at `seg = −0.5` (no stop-and-restart between the overture and the approach).
-- Exit: pass-through. The line grows as the camera nears; its alpha fades over the last `0.15` of the overture so it is fully gone at `seg = −0.5`, the first frame where card 0 reads in the distance. Reversing scroll brings it back exactly.
+- Exit: pass-through. The line grows as the camera nears (it fills the frame near `−1.07` and overflows it after); its alpha fades over the last `0.35` of the overture so the overflow reads as a fly-past rather than a pop, and it is fully gone at `seg = −0.5`, the frame where card 0 stands one spacing away in the fog. Reversing scroll brings it back exactly.
 - Breath: bob + velocity lean at the cards' amplitudes; none under reduced motion, where the line is a static frame for `seg < −0.5` and absent after.
 
 ### Eyebrows, site-wide (Q14, Q16, Q17)
 
 - `SectionHeading` drops `index` and `label` and the `.section-index` element. Callers in Archive, WorkExperience, Skills and Contact stop passing them; Contact's composed `{index} · {label}` span goes; Stats' `.stats-eyebrow` goes.
 - CSS removed: `.section-index` (+ `.section--contact .section-index`, `.chapter-light .section-index`), `.stats-eyebrow`, `.scene-eyebrow*`, `.scene-meta*`.
-- i18n keys removed in `en` and `pt`: `projects.index`, `projects.label`, `projects.stack.viewProject`, `archive.index`, `work.index`, `skills.index`, `contact.index`, `contact.label`, `stats.eyebrow`. `projects.stack.indexLabel` stays (it names the skiplinks). New keys: `projects.overture`, `projects.heading` (the static SR heading).
-- `.contact-num` stays.
+- i18n keys removed in `en` and `pt`: `projects.index`, `projects.label`, `archive.index`, `work.index`, `skills.index`, `contact.index`, `contact.label`, `stats.eyebrow`. `projects.stack.indexLabel` stays (it names the skiplinks). New keys: `projects.overture`, `projects.heading` (the static SR heading).
+- `.contact-num` stays. `projects.stack.viewProject` stays too: the WebGL fallback list still renders it.
 - CLAUDE.md contrast tables: the `.section-index` and `.stats-eyebrow` rows are struck (not recomputed). A new row for the caption on the white card face is added.
 
 ## Lanes
