@@ -33,7 +33,7 @@ Emotional target unchanged: confident, controlled, premium. Awake, not restless.
 | Q8 | The title's softness is the texture being minified ~1.6× at rest (rest mip LOD ≈ 0.7) plus the desktop depth-of-field pass; not the halo. Fix: rasterise the title at its displayed size so rest LOD is exactly 0, and render the title **outside the composer** (no grain, no DoF), matching "the one object the fog never touches". |
 | Q9 | Reduced motion: the overture line shows as a static frame at the start and is swapped out instantly at the first settle. Caption and skiplinks are static anyway. |
 | Q10 | Caption composition: name (ink, Jakarta ~600) top-left, subtitle (ink-muted) under it, a bare `↗` on the right in the deep row tint. No "view" word. |
-| Q11 | Phone legibility: on narrow viewports the card takes ≈ 86 vw so the caption name lands ≈ 13–14 px; the corridor's lateral offsets shrink to match. Hard rule: **the caption name never renders under 12 px on screen**; the card fraction derives from that rule, not the reverse. |
+| Q11 | Phone legibility. Hard rule: **the caption name never renders under 12 px on screen** on any viewport ≥ 320 px wide, so the card is never narrower than 287 px; the card fraction derives from that rule. (Correction after grilling: portrait phones already get 88 vw cards from `sceneGeometry`; the binding case is landscape phones, e.g. 844×390, where the fraction rises from 0.32 to 0.34.) |
 | Q12 | Overture copy: `a few things i've built` / `algumas coisas que construí`. |
 | Q13 | Overture line: monumental (≈ 70 % of the visible width at its rest distance), centred, upright, facing the camera; it carries the ambient breath (bob + velocity lean) like the cards. Off under reduced motion. |
 | Q14 | **Section numbering goes site-wide.** No `01 ·`…`05 ·` anywhere. |
@@ -48,7 +48,7 @@ Emotional target unchanged: confident, controlled, premium. Awake, not restless.
 - Geometry unchanged: `CARD_W`/`CARD_H`/`CARD_RADIUS`, cover plane, and the body band (`BAND_TOP_Y`/`BAND_BOTTOM_Y` in `cardAnatomy.ts`) already exist; the caption paints into the band.
 - **Caption texture**: one transparent 2D-canvas texture per card, sized to the band's projected pixel size at the slot × DPR (DPR ≤ 2), so it is not minified at rest. Jakarta from the same `FontFace` the page loads (wait for `document.fonts`). Sizes in card units (620 px card): name 26 px / 600, subtitle 14 px / 500, arrow 22 px. Colours: name `--color-ink-on-light`, subtitle `--color-ink-on-light-muted`, arrow `accentDeepLargeFor(i)` (white card face; all ≥ 5:1, decorative arrow exempt). Rebuilt on `lang` change and on resize when the projected band size crosses a DPR bucket.
 - **Arrow is its own small plane** in the band (not baked into the text texture) so hover can slide it without re-rasterising.
-- **Phone framing**: the framing function gains the legibility rule. Name on-screen px = `26 · cardPx / 620 ≥ 12` ⇒ `cardPx ≥ 286`, so on narrow viewports (`< 768`) the card fraction becomes `max(current, 286 / width)` capped at `0.92`; lateral corridor offsets scale with the remaining margin so alternating cards never leave the frame.
+- **Phone framing**: the framing function gains the legibility rule. Name on-screen px = `26 · cardPx / 620 ≥ 12` ⇒ `cardPx ≥ 287`, so on every viewport the card fraction becomes `max(current, 287 / width)` capped at `0.92`; the lateral offset already derives from the fraction and must keep alternating cards inside the frame.
 - **Pointer**: R3F pointer events on the card group (`onPointerOver`/`Out`/`Click`), cursor `pointer` on any hit card. Settled card: lift (toward the camera by ≈ 3 % of card width, scale ≈ 1.02, 0.2 s lerp, additive to tilt and breath), arrow slides ≈ 2 px on screen. Non-settled cards: cursor only.
 - **Click**: settled card → `navigate('/projects/:slug')`. Any other card → smooth scroll to that card's integer playhead (instant under reduced motion). A touch scroll gesture must not count as a tap (down/up distance threshold).
 - **DOM**: `.scene-meta*` markup, its per-frame projection block in `SceneRig`, `.scene-eyebrow*`, `--row-tint`/`--row-tint-deep` on `.scene-inner`, `stageStyle`, and the `projects.index` / `projects.label` / `projects.stack.viewProject` keys are deleted. `h2.scene-title-sr` becomes the static section name. The skip-link `nav` is unchanged and is the a11y contract.
@@ -56,8 +56,8 @@ Emotional target unchanged: confident, controlled, premium. Awake, not restless.
 ### No scroll-driven React state (Q4, item 4)
 
 - `frontIndex` is deleted. Nothing in `Projects` or the canvas subtree re-renders on scroll. `featured`/`cards`/`covers`/`titles` are memoised on `lang` so a language switch is the only re-render, and the Corridor registration effect runs once per mount and once per language.
-- The frame loop writes two **imperative, non-visual** attributes on `.scene-canvas-wrap` when they change (not per frame): `data-slot="0|1|2|3"` at settle midpoints and `data-overture="true|false"`. They exist for tests and for nothing else; no React reads them.
-- Corridor also writes `data-registrations="<n>"` on the wrap from its registration effect. The must-fix bug's acceptance test asserts it stays `1` across a full scrub.
+- The frame loop writes two **imperative, non-visual** attributes on the real canvas element (`gl.domElement`, where `data-paused`/`data-warm` already live) when they change (not per frame): `data-slot="0|1|2|3"` at settle midpoints and `data-overture="true|false"`. They exist for tests and for nothing else; no React reads them.
+- Corridor also writes `data-registrations="<n>"` on the canvas from its registration effect. The must-fix bug's acceptance test asserts it stays `1` across a full scrub.
 
 ### The halo (Q2)
 
@@ -71,9 +71,9 @@ Halo mesh, `radialGradientTexture`, `sceneRefs.halos`/`haloMaterials`, the per-f
 
 ### The overture (Q7, Q12, Q13, Q9)
 
-- `.scene-scroll` 450svh → **550svh**; `playheadFor(p) = clamp(p · 4.5 − 1.5, −1.5, 3)`. The overture is `seg ∈ [−1.5, −0.5)`; the existing approach beat `[−0.5, 0)` is unchanged in shape; cards `[0, 3]` unchanged.
+- `.scene-scroll` 450svh → **550svh**; `playheadFor(p) = clamp(p · 4.5 − 1.5, −1.5, 3)`. The overture is `seg ∈ [−1.5, −0.5)`; the card-0 fog surfacing and title resolve still key on `[−0.5, 0)`; cards `[0, 3]` unchanged. The camera is **one continuous ease across the whole 150svh approach** (two spacings back at −1.5, zero slope only at the ends), so it never stops at −0.5.
 - The line is a Jakarta text plane (same rasteriser as the caption, one texture, bilingual) standing in the corridor at the point the camera reaches at `seg = −0.5`, facing the camera, ink, **fog-free and composer-free** like the title. At `seg = −1.5` it fills ≈ 70 % of the visible width, centred.
-- Camera: monotonic and C¹-continuous across `seg = −0.5` (no stop-and-restart between the overture dolly and the eased approach).
+- Camera: monotonic, one ease, strictly moving at `seg = −0.5` (no stop-and-restart between the overture and the approach).
 - Exit: pass-through. The line grows as the camera nears; its alpha fades over the last `0.15` of the overture so it is fully gone at `seg = −0.5`, the first frame where card 0 reads in the distance. Reversing scroll brings it back exactly.
 - Breath: bob + velocity lean at the cards' amplitudes; none under reduced motion, where the line is a static frame for `seg < −0.5` and absent after.
 
