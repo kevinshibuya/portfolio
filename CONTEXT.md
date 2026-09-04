@@ -64,14 +64,24 @@ The four card positions laid along depth, alternating a lateral offset, that the
 _Avoid_: stack, track, rail
 
 **Slot**:
-The settled front position where a card is sharp, in focus and interactive; every integer playhead is a card in the slot.
-(`docs/superpowers/specs/2026-09-03-selected-work-scene-design.md`)
+The settled front position where a card is sharp, in focus and pressable; every integer playhead is a card in the slot.
+(`docs/superpowers/specs/2026-09-03-selected-work-scene-design.md`, `docs/adr/0011-the-card-is-the-object.md`)
 _Avoid_: front, active card, hero position
 
+**Caption**:
+The name, meta line and arrow drawn on a card's body band, in the scene, so the card is one object. The DOM keeps only the skip-link index for keyboard and screen readers.
+(`docs/superpowers/specs/2026-09-04-selected-work-scene-round-two.md`, `docs/adr/0011-the-card-is-the-object.md`)
+_Avoid_: overlay, meta overlay, label, pill
+
 **Approach**:
-The 50svh entry beat before card 1 reaches the slot, during which it surfaces from the fog and the eyebrow and title resolve.
-(`docs/superpowers/specs/2026-09-03-selected-work-scene-design.md`)
+The 150svh entry beat before card 1 reaches the slot: the overture, then the 50svh in which card 1 surfaces from the fog and the title resolves.
+(`docs/superpowers/specs/2026-09-04-selected-work-scene-round-two.md`)
 _Avoid_: intro, lead-in
+
+**Overture**:
+The first 100svh of the approach, where a line in Kevin's voice stands in the corridor and the camera passes through it before the cards show.
+(`docs/superpowers/specs/2026-09-04-selected-work-scene-round-two.md`)
+_Avoid_: intro line, headline, eyebrow
 
 **Playhead**:
 Scroll progress through the scene, which is also the camera's position. Scroll owns sequence and position; time owns the ambient breath.
