@@ -1,5 +1,6 @@
 import type * as THREE from 'three'
 import { CARD_COUNT } from '../../../utils/sceneMotion'
+import type { TitleMetrics } from './titleTexture'
 
 /**
  * The mutable handles the scene's ONE frame loop writes through.
@@ -23,6 +24,10 @@ export interface SceneRefs {
   shadowMaterials: (THREE.MeshBasicMaterial | null)[]
   title: THREE.Group | null
   titleMaterial: THREE.ShaderMaterial | null
+  /** One texture per project title, in corridor order. */
+  titleTextures: THREE.CanvasTexture[]
+  /** Sizes of those textures, so the rig can map each to its natural size. */
+  titleMetrics: TitleMetrics[]
   /** Ambient energy from scroll velocity, 0..1. */
   energy: { value: number }
   /** Pointer tilt actually applied, lerped toward the target each frame. */
@@ -41,6 +46,8 @@ export function createSceneRefs(): SceneRefs {
     shadowMaterials: Array(CARD_COUNT).fill(null),
     title: null,
     titleMaterial: null,
+    titleTextures: [],
+    titleMetrics: [],
     energy: { value: 0 },
     tilt: { pitch: 0, yaw: 0 },
     pointer: { x: 0, y: 0 },

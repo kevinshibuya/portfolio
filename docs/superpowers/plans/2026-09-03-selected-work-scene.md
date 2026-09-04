@@ -266,10 +266,10 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 
 **Boundaries:** no DoF/shadows/halos. The only Anton consumer is this file pair.
 
-- [ ] **Step 1: `titleTexture.ts` (font load, wrap ≤ 2 lines, mipmapped CanvasTexture)**
-- [ ] **Step 2: `SceneTitle.tsx` plane + ShaderMaterial (fwidth AA, discard, depthWrite, colorspace include); language regeneration + disposal**
-- [ ] **Step 3: title pose from the camera, morph uniforms, LOD with `baseLod`, approach resolve, reduced-motion crisp path**
-- [ ] **Step 4: smokes (three fractions, EN/PT cap height, two-line PT title, language switch); `scene-scrub`; commit `feat(scene): in-scene anton title with a mip-lod gooey morph`**
+- [x] **Step 1: `titleTexture.ts` (font load, wrap ≤ 2 lines, mipmapped CanvasTexture)**
+- [x] **Step 2: `SceneTitle.tsx` plane + ShaderMaterial (fwidth AA, discard, depthWrite, colorspace include); language regeneration + disposal**
+- [x] **Step 3: title pose from the camera, morph uniforms, LOD with `baseLod`, approach resolve, reduced-motion crisp path**
+- [x] **Step 4: smokes (three fractions, EN/PT cap height, two-line PT title, language switch); `scene-scrub`; commit `feat(scene): in-scene anton title with a mip-lod gooey morph`**
 
 ---
 

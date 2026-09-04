@@ -92,6 +92,7 @@ export function Projects() {
               >
                 <SelectedWorkScene
                   covers={cards.map((c) => c.art)}
+                  titles={cards.map((c) => c.title)}
                   progress={scrollYProgress}
                   reducedMotion={prefersReducedMotion}
                   overlayRef={overlayRef}

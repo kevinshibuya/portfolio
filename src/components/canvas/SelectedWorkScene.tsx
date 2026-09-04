@@ -6,6 +6,7 @@ import { FOV_DEG, sceneGeometry, fogRange } from '../../utils/sceneMotion'
 import { createSceneRefs } from './scene/sceneRefs'
 import { SceneRig } from './scene/SceneRig'
 import { Corridor } from './scene/Corridor'
+import { SceneTitle } from './scene/SceneTitle'
 
 /** The cream the scene shares with the section, the fog and the floor. */
 const CREAM = '#F5F2EC'
@@ -21,6 +22,8 @@ export interface SceneCard {
 export interface SelectedWorkSceneProps {
   /** Cover art per card, in corridor order; '' renders the frame alone. */
   covers: string[]
+  /** Project names, in corridor order, in the active language. */
+  titles: string[]
   progress: MotionValue<number>
   reducedMotion: boolean
   /** Positioned every frame from the front card's projected body band. */
@@ -62,6 +65,7 @@ function ReadySignal({ onReady }: { onReady: () => void }) {
  */
 export function SelectedWorkScene({
   covers,
+  titles,
   progress,
   reducedMotion,
   overlayRef,
@@ -160,6 +164,13 @@ export function SelectedWorkScene({
         sceneRefs={sceneRefs.current}
         overlayRef={overlayRef}
         pillRef={pillRef}
+      />
+      {/* Outside the Suspense on purpose: SceneTitle must never suspend, or a
+          language switch would blank the whole scene for a frame. */}
+      <SceneTitle
+        titles={titles}
+        reducedMotion={reducedMotion}
+        sceneRefs={sceneRefs.current}
       />
       <Suspense fallback={null}>
         <Corridor covers={covers} sceneRefs={sceneRefs.current} />
