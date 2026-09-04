@@ -375,7 +375,7 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 - [x] **Step 1: CLAUDE.md edits (the six points)**
 - [x] **Step 2: README line; ADR 0009 package list; CONTEXT.md wording**
 - [x] **Step 3: tick the spec TODO boxes that passed; commit `docs(scene): records for the selected-work scene`**
-- [ ] **Step 4: push; open the PR against `staging` with the manual steps; paste the PR URL**
+- [x] **Step 4: push; open the PR against `staging` with the manual steps; paste the PR URL**
 
 ---
 
