@@ -23,6 +23,34 @@ async function openScene(page: Page): Promise<void> {
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
   await page.locator('#projects .scene-scroll').waitFor()
   await page.locator('#projects .scene-canvas-wrap[data-ready="true"]').waitFor()
+  // See the note in perf-budget.spec.ts: the scene compiles and uploads at idle
+  // after the entrance, and only then is the scrub the steady state.
+  await page
+    .locator('#projects canvas[data-canvas="selected-work-scene"][data-warm="true"]')
+    .waitFor({ timeout: 30000 })
+}
+
+/**
+ * The overlay rides the card, which breathes, so its box drifts a pixel or two
+ * every frame. Playwright's actionability loop can hit-test a point the element
+ * has already moved off, and never converges. Assert the hit test ourselves —
+ * which is the regression that actually matters, the canvas covering the pill —
+ * then click without the retry loop.
+ */
+async function clickPill(page: Page): Promise<string> {
+  const pill = page.locator('#projects .scene-meta-pill')
+  await expect(pill).toBeVisible()
+  const href = (await pill.getAttribute('href'))!
+  const hitsPill = await page.evaluate(() => {
+    const el = document.querySelector('#projects .scene-meta-pill')
+    if (!el) return false
+    const box = el.getBoundingClientRect()
+    const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)
+    return !!hit && el.contains(hit)
+  })
+  expect(hitsPill, 'the view pill must not be covered by the canvas').toBe(true)
+  await pill.click({ force: true })
+  return href
 }
 
 test('scrubbing the corridor swaps the front project, and reversing restores it', async ({
@@ -54,12 +82,9 @@ test('the settled card view pill navigates to its project', async ({ page }) => 
   await openScene(page)
   await scrollToFraction(page, 0.15)
 
-  const pill = page.locator('#projects .scene-meta-pill')
-  const href = await pill.getAttribute('href')
+  const href = await clickPill(page)
   expect(href).toMatch(/^\/projects\//)
-
-  await pill.click()
-  await expect(page).toHaveURL(new RegExp(href!.replace(/[/]/g, '\\/')))
+  await expect(page).toHaveURL(new RegExp(href.replace(/[/]/g, '\\/')))
 })
 
 test('losing the webgl context falls back to a plain project list, permanently', async ({

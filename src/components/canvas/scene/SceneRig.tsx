@@ -1,6 +1,6 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import type { MotionValue } from 'framer-motion'
+import { useVelocity, type MotionValue } from 'framer-motion'
 import * as THREE from 'three'
 import {
   CARD_COUNT,
@@ -23,6 +23,8 @@ import {
   frontIndexFor,
   settledness,
   fogRange,
+  velocityEnergy,
+  velocityYaw,
   frameRects,
   type SceneGeometry,
   type Rect,
@@ -35,6 +37,10 @@ const HALF_FOV_TAN = Math.tan((FOV_DEG * DEG) / 2)
 const LOD_GAIN = 2.5
 /** Title float, in CSS px at the title's distance. */
 const FLOAT_PX = 3
+/** Pointer tilt of the settled card, and the title's counter-tilt. */
+const TILT_DEG = 6
+const TILT_TAU = 0.15
+const TITLE_COUNTER_TILT = -0.25
 /** Resting shadow density under a settled card. */
 const SHADOW_ALPHA = 0.28
 /** Ambient bob amplitude, mirrored from sceneMotion so the ratio is exact. */
@@ -79,8 +85,16 @@ export function SceneRig({
   )
   const cameraRef = useRef<THREE.Camera | null>(null)
   const cardRect = useRef<Rect | null>(null)
+  const velocity = useVelocity(progress)
 
-  useFrame((state) => {
+  // The DEV-only handle the smokes read to sample live object state. Stripped
+  // from the production build, which is why those smokes run on the dev server.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    ;(window as unknown as { __scene?: SceneRefs }).__scene = sceneRefs
+  }, [sceneRefs])
+
+  useFrame((state, delta) => {
     const { size, camera, scene, clock } = state
 
     // Geometry depends only on the viewport, so recompute it on resize, not
@@ -113,6 +127,29 @@ export function SceneRig({
     // Reduced motion keeps the pin but jumps between slots: no dolly, no ease.
     const eased = reducedMotion ? clamp(Math.round(seg), 0, CARD_COUNT - 1) : easedSeg(seg)
 
+    // The breath. Scroll owns sequence and position; time owns everything here
+    // (ADR 0010). Under reduced motion none of it runs and energy stays 0.
+    const t = clock.elapsedTime
+    const v = reducedMotion ? 0 : velocity.get()
+    const energy = reducedMotion
+      ? 0
+      : velocityEnergy(sceneRefs.energy.value, v, delta)
+    sceneRefs.energy.value = energy
+    const leanYaw = reducedMotion ? 0 : velocityYaw(energy, v)
+    const settledNow = settledness(seg, reducedMotion)
+    const frontCard = frontIndexFor(seg, CARD_COUNT, reducedMotion)
+
+    // Pointer tilt eases toward its target rather than snapping to the cursor.
+    const tilt = sceneRefs.tilt
+    if (reducedMotion) {
+      tilt.pitch = 0
+      tilt.yaw = 0
+    } else {
+      const k = 1 - Math.exp(-delta / TILT_TAU)
+      tilt.pitch += (sceneRefs.pointer.y * TILT_DEG * DEG - tilt.pitch) * k
+      tilt.yaw += (sceneRefs.pointer.x * -TILT_DEG * DEG - tilt.yaw) * k
+    }
+
     const cam = cameraPose(eased, g)
     camera.position.set(cam.x, cam.y, cam.z)
     camera.rotation.set(cam.pitch, 0, 0)
@@ -122,15 +159,20 @@ export function SceneRig({
       const group = sceneRefs.cards[i]
       if (!group) continue
       const pose = cardPose(i, eased, g)
-      group.position.set(pose.x, pose.y, pose.z)
-      group.rotation.y = pose.yaw
+      const amb = reducedMotion
+        ? { y: 0, yaw: 0, pitch: 0, haloAlpha: 0.35 }
+        : ambientOffset(i, t, energy)
+      const isFront = i === frontCard
+      group.position.set(pose.x, pose.y + amb.y, pose.z)
+      group.rotation.y =
+        pose.yaw + amb.yaw + leanYaw + (isFront ? tilt.yaw * settledNow : 0)
+      group.rotation.x = amb.pitch + (isFront ? tilt.pitch * settledNow : 0)
       group.visible = pose.visible
       const materials = sceneRefs.cardMaterials[i]
       if (materials) for (const m of materials) m.opacity = pose.opacity
 
       // Halo and shadow live and die with their card, so a card passing the
       // lens never leaves its halo flooding the frame behind it.
-      const amb = ambientOffset(i, clock.elapsedTime, sceneRefs.energy.value)
       const halo = sceneRefs.halos[i]
       const haloMaterial = sceneRefs.haloMaterials[i]
       if (halo) halo.visible = pose.visible
@@ -158,7 +200,9 @@ export function SceneRig({
     if (!overlay) return
     const visualIndex = frontIndexFor(seg, CARD_COUNT, reducedMotion)
     const pose = cardPose(visualIndex, eased, g)
-    const bob = reducedMotion ? 0 : ambientOffset(visualIndex, clock.elapsedTime, 0).y
+    // Band placement follows the bob only: the overlay is flat DOM text and
+    // must never inherit the card's yaw, pitch or tilt.
+    const bob = reducedMotion ? 0 : ambientOffset(visualIndex, t, energy).y
     const cardCentreY = pose.y + bob
 
     const topLeft = projectPoint(
@@ -314,6 +358,11 @@ export function SceneRig({
         .addScaledVector(scratch.forward, g.titleDistance)
         .addScaledVector(scratch.up, lift + float)
       title.quaternion.copy(camera.quaternion)
+      // The title parallaxes against the pointer at a quarter of the card's
+      // tilt, which is what gives the frame its sense of depth.
+      const tilt = sceneRefs.tilt
+      title.rotateX(tilt.pitch * TITLE_COUNTER_TILT)
+      title.rotateY(tilt.yaw * TITLE_COUNTER_TILT)
     }
 
     const setSlot = (slot: 'A' | 'B', i: number, blurPx: number, opacity: number): void => {

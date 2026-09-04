@@ -19,8 +19,9 @@
 - Anton only on the in-scene title. Lowercase everywhere. No spaced em-dash in reader-facing strings.
 - Reduced motion: pin kept, on-demand renders, camera jumps to slot positions, no morph, no ambient, no tilt, no DoF, overlay always fully visible (`settledness ≡ 1`).
 - Phone (`aspect < 1`): card ≈ 88 vw, lateral offsets bounded so the card never leaves the frame, tilt and DoF off, shadows on, no grain (ruling: phone grain skipped; the spec allowed either).
-- Depth of field and grain post pass: desktop only (`matchMedia('(pointer: fine)')` and `innerWidth >= 768`). Keep `EffectComposer`'s default multisampling (do NOT pass `multisampling={0}`; the yawed card edges need MSAA).
+- Depth of field and grain post pass: desktop only (`matchMedia('(pointer: fine)')` and `innerWidth >= 768`) **AND hardware-accelerated only** — a software rasteriser (SwiftShader/llvmpipe/softpipe) skips the composer entirely, measured 422 ms/frame median under SwiftShader at 2160×1350 with MSAA×8 (ruling 2026-09-04). Absence of `WEBGL_debug_renderer_info`, or an opaque renderer string, counts as hardware: never gate on absence of evidence. Keep `EffectComposer`'s default multisampling (do NOT pass `multisampling={0}`; the yawed card edges need MSAA). Headless Playwright therefore never renders the composer, so `tests/e2e/scene-effects.spec.ts` spoofs a hardware renderer string to drive the real gate and keep the composer path covered.
 - Dependencies pinned exactly: `three@0.185.1`, `@react-three/fiber@9.7.0`, `@react-three/postprocessing@3.1.1`, `postprocessing@6.39.4`; dev `@types/three@0.185.4`. `@react-three/drei` is NOT added (ruling: per-card blob shadows replace `ContactShadows`, and the camera is R3F's default). They are imported only from files reachable from `src/components/sections/Projects.tsx` (the lazy chunk).
+- The scene warms at idle after the entrance: `compileAsync`, `initTexture` for every cover/title/gradient texture, then exactly ONE off-screen frame via `advance()` while `frameloop` is `never`, then `data-warm="true"` on the real canvas. Without it the first live frame costs 498 ms on an Apple M1 (phone profile), 1217 ms with the composer and 958–1528 ms under SwiftShader, landing exactly as the reader scrolls into Selected Work. It waits `HERO_SETTLE_MS` past `entranceDone` so it never lands inside the loader exit or the hero rise. That single off-screen frame is sanctioned and starts no loop; the live-canvas invariant is untouched.
 - Frame rate is NOT test-verified: Playwright runs headless (SwiftShader), so rAF timing there is meaningless, and the perf harness is deferred to production (spec Q10). The only per-frame cost gates are the e2e long-task assertion (main thread) and Kevin's rating on the rig with DevTools' FPS meter (PR manual step 10). Design the scene for that: one blob-shadow plane per card instead of a shadow render pass, one post pass on desktop only.
 - Plan checkboxes tick immediately after each step lands, never batched. Every commit on the feature branch; no permission needed for commits/pushes/PR creation.
 - Verification per task: `npx tsc -b --noEmit`, `npm run lint`, the named tests, and for rendered surfaces a headless browser smoke against the DEV server (`npm run dev` is already running; smokes that read the DEV-only debug hook must run there, since the Playwright webServer is a production build). A smoke that says "card visible" samples the centre pixel of the expected card rect (`frameRects`) and asserts it is not cream.
@@ -289,7 +290,7 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 - Blob shadow per card: a plane `1.25·CARD_W × 1.25·CARD_H·0.6` lying on the floor (`rotation-x −π/2`, `y = 0.002`, `renderOrder` below the cards), centred under the card's x/z, `MeshBasicMaterial({ map: roundedBlobTexture, color: mix(ink, accentDeepFor(i), 0.25), transparent: true, depthWrite: false, fog: true })`; opacity written per frame `= 0.28 · (1 − 0.4 · ambientBob/amplitude) · pose.opacity` (the shadow lightens as the card rises) and hidden with the card. The title has no shadow by construction. No render pass, no drei.
 - Halo per card: a plane `2.2·CARD_W` square at `z − 0.05` behind the card, `MeshBasicMaterial({ map: radialGradientTexture, color: accentFor(i), transparent: true, depthWrite: false, fog: true })`, `renderOrder` below the cards; opacity per frame `= ambientOffset(i, t, energy).haloAlpha · pose.opacity`, hidden with the card (so a passing card's halo never floods the frame).
 - Fog: `scene.fog.near/far` from `fogRange(g, t)` each frame (and after a resize).
-- Post (desktop only): `<EffectComposer>` (default multisampling) with `DepthOfField` focused at `focusDistance(g)` and `Noise opacity={0.035}` (grain only on desktop; ruling recorded). Prefer world-unit focus props if the installed `postprocessing` `.d.ts` exposes them (`worldFocusDistance`, `worldFocusRange`); otherwise compute the normalised `focusDistance`/`focalLength` from camera near/far, and report which. Focal range ≈ `0.5 · spacing` either side of `D` so the title (0.25 · spacing further) stays crisp; `bokehScale ≈ 2.5`. On phones the composer is not mounted.
+- Post (desktop AND hardware-accelerated only; see Global constraints): `<EffectComposer>` (default multisampling) with `DepthOfField` focused at `focusDistance(g)` and `Noise opacity={0.035}` (grain only on desktop; ruling recorded). Prefer world-unit focus props if the installed `postprocessing` `.d.ts` exposes them (`worldFocusDistance`, `worldFocusRange`); otherwise compute the normalised `focusDistance`/`focalLength` from camera near/far, and report which. Focal range ≈ `0.5 · spacing` either side of `D` so the title (0.25 · spacing further) stays crisp; `bokehScale ≈ 2.5`. On phones the composer is not mounted.
 
 **Acceptance check:** dev-server smokes at 0.15 and 0.43, desktop 1440×900: pixels just below the settled card's bottom edge (frame fraction `card.bottom + 0.02`, centre x) are darker than cream (shadow), the floor under the title band (`title.bottom + 0.02` … actually sample `floorContactY − 0.3` at `x = 0.5`) is `#F5F2EC` ± 2 (nothing but cards cast), a pixel just outside the card's side edge shows the card's tint blended toward cream (halo), the next card's rect centre is lighter than the settled card's (fog), the bottom-centre pixel of the frame is `#F5F2EC` ± 1 on desktop AND on Pixel 5 (colour pipeline consistent with and without the composer); Pixel 5: no composer mounted, shadows present; zero console errors; `scene-scrub` green; `npx playwright test tests/e2e/perf-budget.spec.ts` green.
 
@@ -299,7 +300,7 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 - [x] **Step 2: blob shadows + halos in `Corridor.tsx`; per-frame alpha in the rig**
 - [x] **Step 3: fog drift**
 - [x] **Step 4: `EffectComposer` (DoF + Noise) desktop-gated; verify prop names against the installed `.d.ts`**
-- [ ] **Step 5: smokes (desktop + Pixel 5, the pixel checks above), `scene-scrub`, `perf-budget`; commit `feat(scene): cream floor, tinted blob shadows, halos, fog drift, desktop depth of field`**
+- [x] **Step 5: smokes (desktop + Pixel 5, the pixel checks above), `scene-scrub`, `perf-budget`; commit `feat(scene): cream floor, tinted blob shadows, halos, fog drift, desktop depth of field`**
 
 ---
 
@@ -317,10 +318,10 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 
 **Boundaries:** amplitudes exactly per the Geometry contract; no state per frame; no new libraries.
 
-- [ ] **Step 1: `useVelocity` + energy accumulator + `velocityYaw`**
-- [ ] **Step 2: ambient offsets on cards, halos and shadows; visual index in-loop**
-- [ ] **Step 3: pointer tracking + tilt lerp (front card, settledness-weighted; title counter-tilt)**
-- [ ] **Step 4: DEV hook; smokes (idle drift vs. reduced motion); commit `feat(scene): ambient breath, velocity energy and pointer tilt`**
+- [x] **Step 1: `useVelocity` + energy accumulator + `velocityYaw`**
+- [x] **Step 2: ambient offsets on cards, halos and shadows; visual index in-loop**
+- [x] **Step 3: pointer tracking + tilt lerp (front card, settledness-weighted; title counter-tilt)**
+- [x] **Step 4: DEV hook; smokes (idle drift vs. reduced motion); commit `feat(scene): ambient breath, velocity energy and pointer tilt`**
 
 ---
 
@@ -378,7 +379,8 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 
 ## Risks and rulings
 
-- **Chunk evaluation vs. the long-task budget.** three + R3F + postprocessing add roughly 200 KB gzipped to the Projects chunk, evaluated on idle after LCP. If `perf-budget.spec.ts` goes red on the 300 ms long-task assertion and the long task is the chunk's module evaluation, the implementer reports `blocked:` with the measured duration and does not mark the task done; raising the budget or eager-loading is Kevin's call, not the implementer's.
+- **First draw, not chunk evaluation (measured, ruling 2026-09-04).** The long-task spike at the section is NOT module evaluation: the chunk lands at ~0.35 s and the canvas is mounted and paused seconds earlier. It is the scene's FIRST DRAW — three compiles programs and uploads textures lazily — when the IntersectionObserver flips `frameloop` to `always`. It is real on real hardware (498 ms on an M1 phone profile, 1217 ms with the composer), so the 300 ms budget STAYS and the product warms at idle instead (see Global constraints). Raising the budget, exempting a task, pre-scrolling in the test or eager-loading the chunk would each have hidden a genuine hitch.
+- **The perf budget is load-sensitive, and that is not the same thing.** Isolated, the worst long task is 119 ms with none over budget; with both Playwright projects on SwiftShader concurrently the same run peaks at 396 ms. `perf-budget.spec.ts` carries `retries: 2` for that: contention passes on a retry, a real regression fails every attempt. The 300 ms line itself does not move.
 - **Frame rate is unverified by tests** (headless SwiftShader). The scene is designed to be cheap per frame (no shadow render pass, one post pass on desktop only) and Kevin's rating on the rig, with the DevTools FPS meter, is the gate.
 - **`postprocessing` DoF prop surface.** Task 7 verifies against the installed `.d.ts` and falls back to normalised values.
 - **Mip-LOD blur fidelity.** Task 6 names the sanctioned alternative (pre-blurred variants). Either must pass the visual parity bar; the implementer reports which shipped.

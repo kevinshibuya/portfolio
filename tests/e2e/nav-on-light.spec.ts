@@ -74,8 +74,10 @@ test('nav re-arms on-light after SPA back-nav from a project page', async ({ pag
   // The overlay only takes clicks while a card is settled, so land on the
   // scene's settled fraction first (same mapping as scene-scrub.spec.ts).
   await scrollToSceneFraction(page, 0.15)
+  // Forced: the overlay rides the breathing card, so its box drifts every
+  // frame and Playwright's actionability loop cannot converge on it.
   const href = await page.locator('#projects .scene-meta-pill').getAttribute('href')
-  await page.locator('#projects .scene-meta-pill').click()
+  await page.locator('#projects .scene-meta-pill').click({ force: true })
   await expect(page).toHaveURL(new RegExp(href!.replace(/[/]/g, '\\/')))
 
   // On the project page there is no chapter, and the page is fully ink. Both the
