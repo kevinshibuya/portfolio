@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import {
   CARD_COUNT,
   CARD_W,
+  CARD_H,
   DEG,
   FOV_DEG,
   TITLE_CENTER,
@@ -34,6 +35,10 @@ const HALF_FOV_TAN = Math.tan((FOV_DEG * DEG) / 2)
 const LOD_GAIN = 2.5
 /** Title float, in CSS px at the title's distance. */
 const FLOAT_PX = 3
+/** Resting shadow density under a settled card. */
+const SHADOW_ALPHA = 0.28
+/** Ambient bob amplitude, mirrored from sceneMotion so the ratio is exact. */
+const AMBIENT_Y = 0.01 * CARD_H
 /** Frame fractions the title keeps between its lowest ink and the card top. */
 const TITLE_CLEARANCE = 0.012
 /** The title may grow upward to here, but never off the top of the frame. */
@@ -91,15 +96,18 @@ export function SceneRig({
       perspective.near = next.near
       perspective.far = next.far
       perspective.updateProjectionMatrix()
-      const fog = scene.fog as THREE.Fog | null
-      if (fog) {
-        const { near, far } = fogRange(next, 0)
-        fog.near = near
-        fog.far = far
-      }
     }
     const g = geo.current
     if (!g) return
+
+    // Fog drifts on its own slow clock, so the depth of the scene never sits
+    // perfectly still even when the page does.
+    const fog = scene.fog as THREE.Fog | null
+    if (fog) {
+      const { near, far } = fogRange(g, clock.elapsedTime)
+      fog.near = near
+      fog.far = far
+    }
 
     const seg = playheadFor(progress.get())
     // Reduced motion keeps the pin but jumps between slots: no dolly, no ease.
@@ -119,6 +127,27 @@ export function SceneRig({
       group.visible = pose.visible
       const materials = sceneRefs.cardMaterials[i]
       if (materials) for (const m of materials) m.opacity = pose.opacity
+
+      // Halo and shadow live and die with their card, so a card passing the
+      // lens never leaves its halo flooding the frame behind it.
+      const amb = ambientOffset(i, clock.elapsedTime, sceneRefs.energy.value)
+      const halo = sceneRefs.halos[i]
+      const haloMaterial = sceneRefs.haloMaterials[i]
+      if (halo) halo.visible = pose.visible
+      if (haloMaterial) haloMaterial.opacity = amb.haloAlpha * pose.opacity
+
+      const shadow = sceneRefs.shadows[i]
+      const shadowMaterial = sceneRefs.shadowMaterials[i]
+      if (shadow) {
+        shadow.position.set(pose.x, shadow.position.y, pose.z)
+        shadow.visible = pose.visible
+      }
+      if (shadowMaterial) {
+        // The shadow lightens as the card breathes upward, which is what sells
+        // the hover; amb.y is bounded by AMBIENT_Y so the ratio stays in [-1,1].
+        const rise = AMBIENT_Y === 0 ? 0 : amb.y / AMBIENT_Y
+        shadowMaterial.opacity = SHADOW_ALPHA * (1 - 0.4 * rise) * pose.opacity
+      }
     }
 
     // The DOM overlay rides the front card's white body band. It is placed from

@@ -295,10 +295,10 @@ export function fogRange(g: SceneGeometry, t: number): { near: number; far: numb
 
 **Boundaries:** no ambient card motion, no tilt (Task 8). No particles, no reflection.
 
-- [ ] **Step 1: `gradients.ts`; floor plane**
-- [ ] **Step 2: blob shadows + halos in `Corridor.tsx`; per-frame alpha in the rig**
-- [ ] **Step 3: fog drift**
-- [ ] **Step 4: `EffectComposer` (DoF + Noise) desktop-gated; verify prop names against the installed `.d.ts`**
+- [x] **Step 1: `gradients.ts`; floor plane**
+- [x] **Step 2: blob shadows + halos in `Corridor.tsx`; per-frame alpha in the rig**
+- [x] **Step 3: fog drift**
+- [x] **Step 4: `EffectComposer` (DoF + Noise) desktop-gated; verify prop names against the installed `.d.ts`**
 - [ ] **Step 5: smokes (desktop + Pixel 5, the pixel checks above), `scene-scrub`, `perf-budget`; commit `feat(scene): cream floor, tinted blob shadows, halos, fog drift, desktop depth of field`**
 
 ---

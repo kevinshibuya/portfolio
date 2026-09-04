@@ -7,6 +7,7 @@ import { createSceneRefs } from './scene/sceneRefs'
 import { SceneRig } from './scene/SceneRig'
 import { Corridor } from './scene/Corridor'
 import { SceneTitle } from './scene/SceneTitle'
+import { Environment } from './scene/Environment'
 
 /** The cream the scene shares with the section, the fog and the floor. */
 const CREAM = '#F5F2EC'
@@ -33,6 +34,12 @@ export interface SelectedWorkSceneProps {
   onReady: () => void
   /** Fires once: no WebGL2 at mount, or the context was lost. */
   onWebglUnavailable: () => void
+}
+
+/** Depth of field and grain are desktop-only (spec Q12/Q14). */
+function hasDesktopEffects(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia('(pointer: fine)').matches && window.innerWidth >= 768
 }
 
 /** three r185 has no WebGL1 path, so WebGL2 is the whole test. */
@@ -77,6 +84,7 @@ export function SelectedWorkScene({
   const [supported] = useState(hasWebgl2)
   const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null)
   const [inView, setInView] = useState(false)
+  const [desktopEffects, setDesktopEffects] = useState(hasDesktopEffects)
   const failed = useRef(false)
 
   // The initial frustum and fog: the rig re-derives both from the real canvas
@@ -122,6 +130,18 @@ export function SelectedWorkScene({
     if (inView) delete el.dataset.paused
     else el.dataset.paused = 'true'
   }, [gl, inView, reducedMotion])
+
+  // Only re-render when the gate actually crosses, not on every resize tick.
+  useEffect(() => {
+    const onResize = () => {
+      setDesktopEffects((current) => {
+        const next = hasDesktopEffects()
+        return next === current ? current : next
+      })
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   // Reduced motion renders on demand: scroll and resize are the only things
   // that can change the frame, so they are the only things that ask for one.
@@ -173,6 +193,7 @@ export function SelectedWorkScene({
         sceneRefs={sceneRefs.current}
       />
       <Suspense fallback={null}>
+        <Environment desktopEffects={desktopEffects} />
         <Corridor covers={covers} sceneRefs={sceneRefs.current} />
         <ReadySignal onReady={onReady} />
       </Suspense>
