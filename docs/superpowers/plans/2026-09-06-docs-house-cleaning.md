@@ -57,10 +57,10 @@
 
 **Boundaries:** The live set is fixed by the spec: webgl-pivot, feedback-wave, motion-consistency, loader-ks-explosion, selected-work-light-chapter-design (spec) and light-chapter-plan-b (plan), both scene specs and plans, the morph contract, and the two house-cleaning docs. Anything else in doubt: stop and report `blocked: <file>`.
 
-- [ ] **Step 1:** `mkdir -p docs/superpowers/archive/{specs,plans,retros}`; write the README.
-- [ ] **Step 2:** `git mv` the 18 specs, 17 plans and the retro. Run the four `ls | wc -l` counts.
-- [ ] **Step 3:** Run the link check; repoint each hit; rerun until it prints nothing.
-- [ ] **Step 4:** Tick; commit `chore(docs): archive the records of retired systems`.
+- [x] **Step 1:** `mkdir -p docs/superpowers/archive/{specs,plans,retros}`; write the README.
+- [x] **Step 2:** `git mv` the 18 specs, 17 plans and the retro. Run the four `ls | wc -l` counts.
+- [x] **Step 3:** Run the link check; repoint each hit; rerun until it prints nothing.
+- [x] **Step 4:** Tick; commit `chore(docs): archive the records of retired systems`.
 
 ### Task 3: `docs/contrast.md`
 

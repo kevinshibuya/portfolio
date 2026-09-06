@@ -5,7 +5,7 @@
 **Replaces:** the pinned card stack + SVG gooey title in `src/components/sections/Projects.tsx`,
 `src/components/ui/ProjectCardStack.tsx`, `src/components/ui/GooeyTitle.tsx`, `src/utils/stackMotion.ts`.
 **Superseded in part by:** `2026-09-04-selected-work-scene-round-two.md` (Q6 and Q17 — the card is the object, ADR 0011; the 550svh mapping with the overture; the title on layer 1 after the composer; no halo; no section numbering).
-**Supersedes:** `2026-07-22-selected-work-card-stack-design.md` (mechanics). The light-chapter spec
+**Supersedes:** `docs/superpowers/archive/specs/2026-07-22-selected-work-card-stack-design.md` (mechanics). The light-chapter spec
 (`2026-07-22-selected-work-light-chapter-design.md`, Plan B recolour) stays in force: the section
 still opens the cream chapter.
 
