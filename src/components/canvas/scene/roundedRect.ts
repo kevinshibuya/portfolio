@@ -4,8 +4,8 @@ import * as THREE from 'three'
  * A rounded rectangle centred on the origin, as real geometry.
  *
  * The corners are CUT, not masked: an alpha mask would leave the plane writing
- * depth over its own rounded-off corners, which notches the halo sitting
- * behind the card. Geometry keeps depth honest.
+ * depth over its own rounded-off corners, which notches whatever sits behind
+ * the card at the corners. Geometry keeps depth honest.
  *
  * ShapeGeometry generates UVs in shape units, so a shape that spans −w/2..w/2
  * would sample the texture at negative coordinates. The UVs are remapped to

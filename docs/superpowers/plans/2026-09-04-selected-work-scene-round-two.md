@@ -128,8 +128,8 @@ export function scrollTargetFor(index: number, wrapperTop: number, wrapperHeight
 
 **Boundaries:** Nothing else in the rig. No shadow changes.
 
-- [ ] **Step 1: Delete the halo from Corridor, gradients, sceneRefs, rig, and `haloAlpha`/`HALO_BASE` + their unit tests from sceneMotion; typecheck, lint and unit tests green.**
-- [ ] **Step 2: grep empty; smoke on :5180 (cream outside the card); commit `feat(scene): no halo`.**
+- [x] **Step 1: Delete the halo from Corridor, gradients, sceneRefs, rig, and `haloAlpha`/`HALO_BASE` + their unit tests from sceneMotion; typecheck, lint and unit tests green.**
+- [x] **Step 2: grep empty; smoke on :5180 (cream outside the card); commit `feat(scene): no halo`.**
 
 ---
 

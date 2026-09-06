@@ -160,7 +160,7 @@ export function SceneRig({
       if (!group) continue
       const pose = cardPose(i, eased, g)
       const amb = reducedMotion
-        ? { y: 0, yaw: 0, pitch: 0, haloAlpha: 0.35 }
+        ? { y: 0, yaw: 0, pitch: 0 }
         : ambientOffset(i, t, energy)
       const isFront = i === frontCard
       group.position.set(pose.x, pose.y + amb.y, pose.z)
@@ -171,13 +171,8 @@ export function SceneRig({
       const materials = sceneRefs.cardMaterials[i]
       if (materials) for (const m of materials) m.opacity = pose.opacity
 
-      // Halo and shadow live and die with their card, so a card passing the
-      // lens never leaves its halo flooding the frame behind it.
-      const halo = sceneRefs.halos[i]
-      const haloMaterial = sceneRefs.haloMaterials[i]
-      if (halo) halo.visible = pose.visible
-      if (haloMaterial) haloMaterial.opacity = amb.haloAlpha * pose.opacity
-
+      // The shadow lives and dies with its card, so a card passing the lens
+      // never leaves its shadow pooled on an empty floor.
       const shadow = sceneRefs.shadows[i]
       const shadowMaterial = sceneRefs.shadowMaterials[i]
       if (shadow) {

@@ -449,12 +449,10 @@ export interface AmbientOffset {
   y: number
   yaw: number
   pitch: number
-  haloAlpha: number
 }
 
 const AMBIENT_Y = 0.01 * CARD_H
 const AMBIENT_ROT = 1.5 * DEG
-const HALO_BASE = 0.35
 const VELOCITY_YAW_MAX = 4 * DEG
 
 /**
@@ -463,8 +461,7 @@ const VELOCITY_YAW_MAX = 4 * DEG
  * Three sines on deliberately unrelated periods — bob, yaw and pitch never
  * come back into phase, so the motion reads organic rather than mechanical —
  * and each card gets its own period and phase so the corridor never pulses in
- * unison. `energy` (from scroll velocity) scales the motion amplitudes only;
- * the halo keeps breathing at its own rate whatever the scroll is doing.
+ * unison. `energy` (from scroll velocity) scales the amplitudes.
  */
 export function ambientOffset(i: number, t: number, energy: number): AmbientOffset {
   const T = 4 + 0.75 * i
@@ -475,7 +472,6 @@ export function ambientOffset(i: number, t: number, energy: number): AmbientOffs
     y: AMBIENT_Y * Math.sin(w(T) + phase) * gain,
     yaw: AMBIENT_ROT * Math.sin(w(1.3 * T) + phase + 1) * gain,
     pitch: AMBIENT_ROT * Math.sin(w(0.8 * T) + phase + 2) * gain,
-    haloAlpha: HALO_BASE * (1 + 0.15 * Math.sin(w(T) + phase)),
   }
 }
 

@@ -18,8 +18,6 @@ export interface SceneRefs {
   cards: (THREE.Group | null)[]
   /** Every material on card i — frame and cover share one opacity. */
   cardMaterials: THREE.MeshBasicMaterial[][]
-  halos: (THREE.Mesh | null)[]
-  haloMaterials: (THREE.MeshBasicMaterial | null)[]
   shadows: (THREE.Mesh | null)[]
   shadowMaterials: (THREE.MeshBasicMaterial | null)[]
   title: THREE.Group | null
@@ -40,8 +38,6 @@ export function createSceneRefs(): SceneRefs {
   return {
     cards: Array(CARD_COUNT).fill(null),
     cardMaterials: Array.from({ length: CARD_COUNT }, () => []),
-    halos: Array(CARD_COUNT).fill(null),
-    haloMaterials: Array(CARD_COUNT).fill(null),
     shadows: Array(CARD_COUNT).fill(null),
     shadowMaterials: Array(CARD_COUNT).fill(null),
     title: null,

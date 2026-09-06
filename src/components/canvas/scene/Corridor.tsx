@@ -2,9 +2,9 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { CARD_COUNT, CARD_W, CARD_H } from '../../../utils/sceneMotion'
-import { accentFor, accentDeepLargeFor } from '../../../utils/palette'
+import { accentDeepLargeFor } from '../../../utils/palette'
 import { roundedRectGeometry } from './roundedRect'
-import { radialGradientTexture, roundedBlobTexture } from './gradients'
+import { roundedBlobTexture } from './gradients'
 import {
   CARD_RADIUS,
   COVER_W,
@@ -15,14 +15,12 @@ import {
 } from './cardAnatomy'
 import type { SceneRefs } from './sceneRefs'
 
-/** The halo reaches well past the card; the shadow pools under it. */
-const HALO_SIZE = 2.2 * CARD_W
-const HALO_Z = -0.05
+/** The shadow pools under the card, a little wider than it. */
 const SHADOW_W = 1.25 * CARD_W
 const SHADOW_H = 1.25 * CARD_H * 0.6
 /** Just off the floor, so the two planes never z-fight. */
 const SHADOW_Y = 0.002
-/** Below the cards, so a card always draws over its own halo and shadow. */
+/** Below the cards, so a card always draws over its own shadow. */
 const BACKDROP_ORDER = -1
 
 interface CorridorProps {
@@ -86,20 +84,11 @@ export function Corridor({ covers, sceneRefs }: CorridorProps) {
   const frameMaterials = useRef<(THREE.MeshBasicMaterial | null)[]>([])
   const coverMaterials = useRef<(THREE.MeshBasicMaterial | null)[]>([])
 
-  const halos = useRef<(THREE.Mesh | null)[]>([])
-  const haloMaterials = useRef<(THREE.MeshBasicMaterial | null)[]>([])
   const shadows = useRef<(THREE.Mesh | null)[]>([])
   const shadowMaterials = useRef<(THREE.MeshBasicMaterial | null)[]>([])
 
-  const haloTexture = useMemo(() => radialGradientTexture(), [])
   const blobTexture = useMemo(() => roundedBlobTexture(), [])
-  useEffect(
-    () => () => {
-      haloTexture.dispose()
-      blobTexture.dispose()
-    },
-    [haloTexture, blobTexture],
-  )
+  useEffect(() => () => blobTexture.dispose(), [blobTexture])
 
   // The shadow takes a quarter of the card's deep tint into ink, so each card
   // pools a shadow that belongs to it rather than a neutral grey.
@@ -141,8 +130,6 @@ export function Corridor({ covers, sceneRefs }: CorridorProps) {
       cardMaterials[i] = [frameMaterials.current[i], coverMaterials.current[i]].filter(
         (m): m is THREE.MeshBasicMaterial => !!m,
       )
-      sceneRefs.halos[i] = halos.current[i] ?? null
-      sceneRefs.haloMaterials[i] = haloMaterials.current[i] ?? null
       sceneRefs.shadows[i] = shadows.current[i] ?? null
       sceneRefs.shadowMaterials[i] = shadowMaterials.current[i] ?? null
     }
@@ -150,8 +137,6 @@ export function Corridor({ covers, sceneRefs }: CorridorProps) {
       for (let i = 0; i < CARD_COUNT; i++) {
         cards[i] = null
         cardMaterials[i] = []
-        sceneRefs.halos[i] = null
-        sceneRefs.haloMaterials[i] = null
         sceneRefs.shadows[i] = null
         sceneRefs.shadowMaterials[i] = null
       }
@@ -167,27 +152,6 @@ export function Corridor({ covers, sceneRefs }: CorridorProps) {
             groups.current[i] = g
           }}
         >
-          {/* Tricolor halo, behind the card. */}
-          <mesh
-            position={[0, 0, HALO_Z]}
-            renderOrder={BACKDROP_ORDER}
-            ref={(m) => {
-              halos.current[i] = m
-            }}
-          >
-            <planeGeometry args={[HALO_SIZE, HALO_SIZE]} />
-            <meshBasicMaterial
-              ref={(m) => {
-                haloMaterials.current[i] = m
-              }}
-              map={haloTexture}
-              color={accentFor(i)}
-              transparent
-              depthWrite={false}
-              fog
-            />
-          </mesh>
-
           <mesh geometry={frameGeometry}>
             <meshBasicMaterial
               ref={(m) => {

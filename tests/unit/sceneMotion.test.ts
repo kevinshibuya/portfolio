@@ -573,26 +573,13 @@ describe('ambientOffset', () => {
     expect(a0.y).not.toBeCloseTo(a1.y, 4)
   })
 
-  it('pulses the halo around its resting alpha', () => {
-    for (let i = 0; i < CARD_COUNT; i++) {
-      const T = PERIOD(i)
-      expect(meanOver(T, (t) => ambientOffset(i, t, 0).haloAlpha)).toBeCloseTo(0.35, 3)
-      for (let t = 0; t < 20; t += 0.05) {
-        const { haloAlpha } = ambientOffset(i, t, 0)
-        expect(haloAlpha).toBeGreaterThanOrEqual(0.35 - 0.0525 - 1e-12)
-        expect(haloAlpha).toBeLessThanOrEqual(0.35 + 0.0525 + 1e-12)
-      }
-    }
-  })
-
-  it('doubles the motion amplitudes at full energy, leaving the halo alone', () => {
+  it('doubles the motion amplitudes at full energy', () => {
     for (const t of [0.3, 1.1, 2.7]) {
       const calm = ambientOffset(1, t, 0)
       const lively = ambientOffset(1, t, 1)
       expect(lively.y).toBeCloseTo(calm.y * 2, 10)
       expect(lively.yaw).toBeCloseTo(calm.yaw * 2, 10)
       expect(lively.pitch).toBeCloseTo(calm.pitch * 2, 10)
-      expect(lively.haloAlpha).toBeCloseTo(calm.haloAlpha, 10)
     }
   })
 })

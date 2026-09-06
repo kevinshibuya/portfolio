@@ -1,11 +1,11 @@
 import * as THREE from 'three'
 
 /**
- * The scene's two soft masks, drawn once on a 2D canvas.
+ * The scene's soft shadow mask, drawn once on a 2D canvas.
  *
- * Both are white-on-transparent: the ALPHA carries the shape and the material's
- * colour supplies the tint, so one texture serves all four cards at four
- * different tricolor values.
+ * White-on-transparent: the ALPHA carries the shape and the material's colour
+ * supplies the tint, so one texture serves all four cards at four different
+ * deep-tint values.
  */
 
 function canvas2d(width: number, height: number): CanvasRenderingContext2D {
@@ -23,24 +23,10 @@ function finish(ctx: CanvasRenderingContext2D): THREE.CanvasTexture {
   return texture
 }
 
-/** The tricolor halo behind a card: a soft radial falloff to nothing. */
-export function radialGradientTexture(size = 256, inner = 1, outer = 0): THREE.CanvasTexture {
-  const ctx = canvas2d(size, size)
-  const half = size / 2
-  const gradient = ctx.createRadialGradient(half, half, 0, half, half, half)
-  gradient.addColorStop(0, `rgba(255,255,255,${inner})`)
-  // An eased middle stop keeps the falloff from reading as a hard-edged disc.
-  gradient.addColorStop(0.5, `rgba(255,255,255,${inner * 0.35 + outer * 0.65})`)
-  gradient.addColorStop(1, `rgba(255,255,255,${outer})`)
-  ctx.fillStyle = gradient
-  ctx.fillRect(0, 0, size, size)
-  return finish(ctx)
-}
-
 /**
  * A card's floor shadow: a blurred rounded rectangle whose alpha is the shadow
  * density. Cheaper than a shadow pass by an entire scene render, and it cannot
- * accidentally cast the title or the halos the way a real pass would.
+ * accidentally cast the title the way a real pass would.
  */
 export function roundedBlobTexture(w = 256, h = 192, blurPx = 40): THREE.CanvasTexture {
   const ctx = canvas2d(w, h)
