@@ -1,17 +1,17 @@
 # WebGL shader craft replaced the editorial/press art direction
 
-The portfolio previously pursued an editorial/newsroom look — warm paper tokens, halftone portrait scenes, a goes-to-press wipe. That direction was dropped after the owner rated it 4/10: the `webgl-pivot` design "**Supersedes:** the editorial/press-revamp direction (`design/work-first-press-revamp`, parked unmerged; owner rated it 4/10)" (`docs/superpowers/specs/2026-07-19-webgl-pivot-design.md:7`).
+The portfolio previously pursued an editorial/newsroom look — warm paper tokens, halftone portrait scenes, a goes-to-press wipe. That direction was dropped after the owner rated it 4/10: the `webgl-pivot` design "**Supersedes:** the editorial/press-revamp direction (`design/work-first-press-revamp`, parked unmerged; owner rated it 4/10)" (`docs/superpowers/specs/2026-07-19-webgl-pivot-design.md`).
 
-The replacement is stated plainly: "The editorial/newsroom direction is abandoned. The new target is a modern, designer-grade ("awwwards-grade") portfolio built around advanced WebGL shader craft ... The work leads; biography follows. Done = Kevin rates the shipped page designer-grade" (`:11-14`). The base mood became dark ink sitewide, with colour carried only by a shader tricolor (`:19-21`).
+The replacement is stated plainly: "The editorial/newsroom direction is abandoned. The new target is a modern, designer-grade ("awwwards-grade") portfolio built around advanced WebGL shader craft ... The work leads; biography follows. Done = Kevin rates the shipped page designer-grade". The base mood became dark ink sitewide, with colour carried only by a shader tricolor.
 
 ## Consequences
 
-- Every prior MVP-era visual system was retired at once — light cream/sand theme, bento cards, ink-draw hero entrance, the R3F hero accent (`CLAUDE.md:18`, `CLAUDE.md:42`).
-- Sections converge on one open typographic row primitive: "no cards/containers ... Projects, embeds, and work experience all use this one row primitive" (`:37-40`).
-- The Selected Work card stack is the single sanctioned carve-out from the no-cards rule (`CLAUDE.md:26`).
-- The press-revamp vocabulary in `HANDOFF-press-revamp-plan1-exec.archived.md` and `HANDOFF-press-revamp-plan2.archived.md` is historical. Those files are kept for their gotchas, not their design.
-- `README.md:19` and `CLAUDE.md:13` still list React Three Fiber as the 3D layer. That is stale — the dependency was removed (`CLAUDE.md:42`) and `package.json` carries neither `three` nor `@react-three/*`.
+- Every prior MVP-era visual system was retired at once — light cream/sand theme, bento cards, ink-draw hero entrance, the R3F hero accent (`docs/superpowers/plans/2026-07-19-webgl-pivot.md`).
+- Sections converge on one open typographic row primitive: "no cards/containers ... Projects, embeds, and work experience all use this one row primitive" (`docs/architecture.md#workrow`).
+- Selected Work is the single sanctioned carve-out from the no-cards rule; its framed cards are now the scene's, not a stack (`docs/architecture.md#layout-and-section-flow`, ADR 0009).
+- The press-revamp vocabulary on the branch `design/work-first-press-revamp` is historical. It is kept for the record, not its design.
+- React Three Fiber was removed with this pivot, then returned for the Selected Work scene only (ADR 0009); the hero and backdrop stay raw WebGL.
 
 ## Source
 
-`docs/superpowers/specs/2026-07-19-webgl-pivot-design.md:7`, `:11-14`, `:19-21`, `:37-40`, `CLAUDE.md:18`, `CLAUDE.md:26`, `CLAUDE.md:42`
+`docs/superpowers/specs/2026-07-19-webgl-pivot-design.md`, `docs/superpowers/plans/2026-07-19-webgl-pivot.md`, `docs/architecture.md#palette-and-tokens`

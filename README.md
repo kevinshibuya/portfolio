@@ -1,6 +1,6 @@
 # kevin shibuya — portfolio
 
-> soft blue editorial. lowercase, playful, confident.
+> dark ink + webgl shader craft. lowercase, monumental, confident.
 > a bilingual developer portfolio — built in **en** and **pt** from the first commit.
 
 **🔗 live —** [kevinshibuya.com](https://kevinshibuya.com/)
@@ -27,7 +27,8 @@ Each animation library stays in its own lane — they're never mixed for the sam
 npm install      # node 22+
 npm run dev      # vite dev server
 npm run build    # tsc -b && vite build
-npm run preview  # serve the production build (port 4173)
+npm run preview  # build, then wrangler dev (the Workers runtime)
+                 # npx vite preview --port 4173 for a static preview
 npm run test     # unit (vitest) + e2e (playwright)
 ```
 
@@ -56,4 +57,3 @@ Below-the-fold sections are lazy-loaded and warmed at idle, so the initial JS ch
 
 - **bilingual by design** — all copy is authored in en + pt; switch via the nav toggle or `?lang=en|pt`.
 - **motion is respectful** — every animation honours `prefers-reduced-motion`.
-- the 3D model in the footer is used under **CC-BY**; attribution is in the site footer.

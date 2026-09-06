@@ -178,10 +178,10 @@ Deleted outright: Content Types (its facts moved to `docs/architecture.md#conten
 
 **Boundaries:** ADR reasoning is not rewritten. No ADR is added or renumbered.
 
-- [ ] **Step 1:** ADRs 0001 to 0004; run the citation check on each.
-- [ ] **Step 2:** ADRs 0005 to 0008; run the citation, path and anchor checks.
-- [ ] **Step 3:** README edits; run the README checks.
-- [ ] **Step 4:** Tick; commit `docs: ADR citations and README match the tree`.
+- [x] **Step 1:** ADRs 0001 to 0004; run the citation check on each.
+- [x] **Step 2:** ADRs 0005 to 0008; run the citation, path and anchor checks.
+- [x] **Step 3:** README edits; run the README checks.
+- [x] **Step 4:** Tick; commit `docs: ADR citations and README match the tree`.
 
 ### Task 8: The global flow line
 
