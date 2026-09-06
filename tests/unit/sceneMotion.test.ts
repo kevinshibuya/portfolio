@@ -41,6 +41,7 @@ import {
   CAPTION_NAME_PX,
   CAPTION_MIN_NAME_PX,
   CARD_MIN_PX,
+  CARD_MAX_PX,
   titleBand,
   TITLE_WIDTH_CAP,
   titleWrapAllowancePx,
@@ -302,6 +303,21 @@ describe('sceneGeometry', () => {
     expect(sceneGeometry(600, 400).titleCapPx).toBe(56)
     expect(sceneGeometry(1920, 1080).titleCapPx).toBe(150)
     expect(sceneGeometry(1440, 900).titleCapPx).toBeCloseTo(129.6, 6)
+  })
+
+  it('honours the 620 px design cap in PORTRAIT too, not just landscape', () => {
+    // Regression: the portrait branch was a flat 0.88 of the width, so
+    // CARD_MAX_PX's own contract ("never wider than this, whatever the
+    // viewport") was false past ~705 px. An 820x1180 tablet drew a 722 px card
+    // and 1023x1024 drew 900 px, and dragging a desktop window through square
+    // nearly doubled the card.
+    for (const [w, h] of [[705, 1000], [768, 1024], [820, 1180], [1023, 1024]]) {
+      const g = sceneGeometry(w, h)
+      expect(g.fraction * w, `${w}x${h}`).toBeLessThanOrEqual(CARD_MAX_PX + 1e-9)
+    }
+    // Phones are untouched: 620/390 is far above 0.88, so the cap never binds.
+    expect(sceneGeometry(390, 844).fraction).toBeCloseTo(0.88, 10)
+    expect(sceneGeometry(430, 932).fraction).toBeCloseTo(0.88, 10)
   })
 
   it('never lets the caption name fall under 12 px: the card is at least 287 px wide', () => {

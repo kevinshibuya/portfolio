@@ -329,7 +329,14 @@ export function sceneGeometry(widthPx: number, heightPx: number): SceneGeometry 
   const aspect = widthPx / heightPx
   const sized =
     aspect < 1
-      ? 0.88
+      ? // Portrait is one wide card — but the 620 px design cap still binds,
+        // which it did not before. Without it `CARD_MAX_PX`'s own contract
+        // ("the card never renders wider than this in CSS px, whatever the
+        // viewport") was false for every portrait viewport past ~705 px: an
+        // 820×1180 tablet drew a 722 px card and 1023×1024 drew 900 px, and a
+        // desktop window dragged through square nearly doubled the card. Phones
+        // are untouched — 620/390 is 1.59, far above 0.88.
+        Math.min(0.88, CARD_MAX_PX / widthPx)
       : Math.min(0.46, CARD_MAX_PX / widthPx, 0.5 / (aspect * CARD_H))
   const fraction = Math.min(Math.max(sized, CARD_MIN_PX / widthPx), 0.92)
   const D = CARD_W / (fraction * 2 * HALF_FOV_TAN * aspect)
