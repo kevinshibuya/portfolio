@@ -28,6 +28,8 @@ export interface TitleMetrics {
   /** First and last TEXTURE rows that actually carry glyph coverage. */
   inkTopPx: number
   inkBottomPx: number
+  /** The fit (`capScale`) the texture was rasterised for; the rig holds it. */
+  drawnScale: number
 }
 
 export interface TitleTexture extends TitleMetrics {
@@ -35,12 +37,19 @@ export interface TitleTexture extends TitleMetrics {
 }
 
 export interface DrawTitleOptions {
-  dpr: number
+  /** Longest line, in the same DEVICE px as `fontPx`; wraps to two lines past it. */
   maxLinePx: number
+  /** The em the title is DISPLAYED at, in device px: the texture draws 1:1. */
   fontPx: number
 }
 
+/**
+ * A guard, not a target: at 1440 px and a 1.5 ratio the widest title needs
+ * about 1900 px. If a viewport ever pushes past this the texture is scaled
+ * down (and minified a little at rest) rather than refused.
+ */
 const MAX_CANVAS_PX = 2048
+let warnedCeiling = false
 const MAX_LINES = 2
 const LINE_HEIGHT = 0.95
 /** Transparent margin so clamp-to-edge sampling never smears a glyph outward. */
@@ -53,18 +62,6 @@ function context2d(): CanvasRenderingContext2D {
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('2D canvas context unavailable for the scene title')
   return ctx
-}
-
-/**
- * Width of one "0" in Anton — the CSS `ch` unit, which the retired DOM title
- * used to wrap at 18ch. Awaits the font so the measurement is not taken
- * against the fallback face.
- */
-export async function antonChWidth(fontPx: number): Promise<number> {
-  await document.fonts.load(fontSpec(fontPx), '0')
-  const ctx = context2d()
-  ctx.font = fontSpec(fontPx)
-  return ctx.measureText('0').width
 }
 
 /** Greedy word wrap; the last allowed line takes whatever is left. */
@@ -92,7 +89,7 @@ function wrapLines(
 
 export async function drawTitleTexture(
   text: string,
-  { dpr, maxLinePx, fontPx }: DrawTitleOptions,
+  { maxLinePx, fontPx }: DrawTitleOptions,
 ): Promise<TitleTexture> {
   const lowercase = text.toLowerCase()
   await document.fonts.load(fontSpec(fontPx), lowercase)
@@ -120,7 +117,13 @@ export async function drawTitleTexture(
   const needW = inkWidth + 2 * padX
   const needH = blockH + 2 * padY
 
-  const scale = Math.min(dpr, MAX_CANVAS_PX / needW, MAX_CANVAS_PX / needH)
+  // Device pixels, once: `fontPx` already IS the displayed em in device px,
+  // so the only scaling here is the ceiling guard.
+  const scale = Math.min(1, MAX_CANVAS_PX / needW, MAX_CANVAS_PX / needH)
+  if (scale < 1 && import.meta.env.DEV && !warnedCeiling) {
+    warnedCeiling = true
+    console.warn(`[scene title] texture capped at ${MAX_CANVAS_PX}px; rest LOD is no longer 0`)
+  }
   const canvas = ctx.canvas
   canvas.width = Math.ceil(needW * scale)
   canvas.height = Math.ceil(needH * scale)
@@ -156,6 +159,7 @@ export async function drawTitleTexture(
     emPx: fontPx * scale,
     inkTopPx,
     inkBottomPx,
+    drawnScale: 1,
   }
 }
 

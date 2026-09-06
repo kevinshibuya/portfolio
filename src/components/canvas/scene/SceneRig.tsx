@@ -13,6 +13,8 @@ import {
   ARROW_SLIDE_PX,
   FOV_DEG,
   TITLE_CENTER,
+  TITLE_WIDTH_CAP,
+  titleBand,
   segmentFor,
   settleFrac,
   morphValues,
@@ -49,13 +51,15 @@ const SHADOW_ALPHA = 0.28
 const AMBIENT_Y = 0.01 * CARD_H
 /** Frame fractions the title keeps between its lowest ink and the card top. */
 const TITLE_CLEARANCE = 0.012
-/** The title may grow upward to here, but never off the top of the frame. */
-const TITLE_TOP_LIMIT = 0.02
+/** The fit may drift this much from the drawn one before a redraw is asked for. */
+const TITLE_REDRAW_TOLERANCE = 0.01
 
 interface SceneRigProps {
   progress: MotionValue<number>
   reducedMotion: boolean
   sceneRefs: SceneRefs
+  /** The fixed nav's height in CSS px; the title band starts 16 px under it. */
+  navPx: number
 }
 
 /**
@@ -69,7 +73,7 @@ interface SceneRigProps {
  * Lane rule (CLAUDE.md): the R3F loop READS Framer MotionValues; Framer never
  * animates a three object.
  */
-export function SceneRig({ progress, reducedMotion, sceneRefs }: SceneRigProps) {
+export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRigProps) {
   const geo = useRef<SceneGeometry | null>(null)
   const geoKey = useRef('')
   // Scratch vectors, reused every frame so the loop allocates nothing.
@@ -213,11 +217,11 @@ export function SceneRig({ progress, reducedMotion, sceneRefs }: SceneRigProps) 
       }
     }
 
-    updateTitle(state.clock.elapsedTime)
+    updateTitle(state.clock.elapsedTime, state.viewport.dpr)
   })
 
   /** The title's pose, size and morph — everything camera-relative. */
-  function updateTitle(elapsed: number): void {
+  function updateTitle(elapsed: number, viewportDpr: number): void {
     const g = geo.current
     const title = sceneRefs.title
     const material = sceneRefs.titleMaterial
@@ -304,23 +308,38 @@ export function SceneRig({ progress, reducedMotion, sceneRefs }: SceneRigProps) 
     // titles at the size and place the geometry contract intends, while giving
     // PT's two-line "painel da reconstrução" the headroom it needs. Centring
     // every title on TITLE_CENTER instead would force a scale-down driven by
-    // the tallest one, halving every one-line title to pay for it.
-    let capScale = Math.min(1, (0.9 * visibleW) / planeW)
+    // the tallest one, halving every one-line title to pay for it. The band's
+    // ceiling is the nav: 16 px under it, never behind it.
+    let fit = Math.min(1, (TITLE_WIDTH_CAP * visibleW) / planeW)
     const below = inkBelow[indexA] + (inkBelow[indexB] - inkBelow[indexA]) * blend
     const above = inkAbove[indexA] + (inkAbove[indexB] - inkAbove[indexA]) * blend
     let centreFrac = TITLE_CENTER
     const cardTop = cardRect.current?.top
-    if (cardTop !== undefined) {
-      const bottomTarget = cardTop - TITLE_CLEARANCE
-      const available = bottomTarget - TITLE_TOP_LIMIT
+    const band = cardTop !== undefined
+      ? titleBand(cardTop, navPx, g.heightPx, TITLE_CLEARANCE)
+      : null
+    if (band) {
+      const available = band.bottom - band.top
       // Shrink only if even the whole band cannot hold the tallest title.
       const tallest = Math.max(...inkAbove.map((a, i) => a + inkBelow[i]))
-      const tallestFrac = (capScale * tallest) / visibleH
-      if (tallestFrac > available && tallest > 0) capScale *= available / tallestFrac
-      centreFrac = bottomTarget - (capScale * below) / visibleH
-      // Never let a tall title climb off the top of the frame.
+      const tallestFrac = (fit * tallest) / visibleH
+      if (tallestFrac > available && tallest > 0) fit *= available / tallestFrac
+    }
+    // The textures are rasterised for a fit; hold that exact value while the
+    // computed one stays within tolerance (so the rest LOD is exactly 0), and
+    // ask for one redraw when it moves. The redraw converges in one step: the
+    // natural size is em-independent, so the fit does not depend on the draw.
+    const drawnScale = metrics[0]?.drawnScale ?? 1
+    let capScale = drawnScale
+    if (Math.abs(fit - drawnScale) > TITLE_REDRAW_TOLERANCE) {
+      capScale = fit
+      sceneRefs.titleRedraw?.(fit)
+    }
+    if (band) {
+      centreFrac = band.bottom - (capScale * below) / visibleH
+      // Never let a tall title climb under the nav.
       const top = centreFrac - (capScale * above) / visibleH
-      if (top < TITLE_TOP_LIMIT) centreFrac += TITLE_TOP_LIMIT - top
+      if (top < band.top) centreFrac += band.top - top
     }
     title.scale.set(planeW * capScale, planeH * capScale, 1)
 
@@ -354,11 +373,12 @@ export function SceneRig({ progress, reducedMotion, sceneRefs }: SceneRigProps) 
         planeW / (naturalW[i] || planeW),
         planeH / (naturalH[i] || planeH),
       )
-      // Sample the mip chain to blur. baseLod is the natural minification, so
-      // a crisp title does not alias; blur pushes it further up the chain.
-      const texPxPerCssPx = m ? m.emPx / g.titleCapPx / capScale : 1
-      const baseLod = Math.max(0, Math.log2(texPxPerCssPx))
-      const blurLod = Math.log2(Math.max(blurPx * texPxPerCssPx * LOD_GAIN, 1))
+      // Sample the mip chain to blur. baseLod is the natural minification —
+      // texture px per DEVICE px, exactly 0 at rest because the texture was
+      // drawn at the displayed em — and blur pushes it further up the chain.
+      const texPxPerDevicePx = m ? m.emPx / (g.titleCapPx * viewportDpr * capScale) : 1
+      const baseLod = Math.max(0, Math.log2(texPxPerDevicePx))
+      const blurLod = Math.log2(Math.max(blurPx * viewportDpr * texPxPerDevicePx * LOD_GAIN, 1))
       material.uniforms[`uLod${slot}`].value = Math.max(baseLod, blurLod)
     }
     setSlot('A', indexA, blurA, opacityA)

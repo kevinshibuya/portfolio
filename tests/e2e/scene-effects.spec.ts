@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { inflateSync } from 'node:zlib'
+import sharp from 'sharp'
+import { sceneGeometry, frameRects } from '../../src/utils/sceneMotion'
 
 /**
  * The depth-of-field composer mounts only on hardware-accelerated desktops, so
@@ -89,6 +91,26 @@ test('the scene renders through the composer without shifting the cream', async 
   for (let channel = 0; channel < 3; channel++) {
     expect(Math.abs(pixel[channel] - cream[channel])).toBeLessThanOrEqual(1)
   }
+
+  // The title renders AFTER the composer, on its own layer, so depth of field
+  // never softens it. A strip across the lower half of the title band must
+  // hold real ink and real cream — single pixels land between glyphs, and a
+  // blurred title would never reach the ink floor.
+  const { card } = frameRects(sceneGeometry(box.width, box.height))
+  const stripTop = Math.round((card.top - 0.06) * box.height)
+  const strip = await page.screenshot({
+    clip: { x: box.x, y: box.y + stripTop, width: box.width, height: 8 },
+  })
+  const { data, info } = await sharp(strip).raw().toBuffer({ resolveWithObject: true })
+  let minLum = 255
+  let maxLum = 0
+  for (let i = 0; i < data.length; i += info.channels) {
+    const lum = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]
+    if (lum < minLum) minLum = lum
+    if (lum > maxLum) maxLum = lum
+  }
+  expect(minLum, 'title ink present in the band').toBeLessThan(60)
+  expect(maxLum, 'cream present in the band').toBeGreaterThan(200)
 
   expect(errors).toEqual([])
 })

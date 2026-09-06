@@ -2,6 +2,9 @@ import type * as THREE from 'three'
 import { CARD_COUNT } from '../../../utils/sceneMotion'
 import type { TitleMetrics } from './titleTexture'
 
+/** The title (and the overture) render on this layer; the composer never sees it. */
+export const TITLE_LAYER = 1
+
 /**
  * The mutable handles the scene's ONE frame loop writes through.
  *
@@ -32,6 +35,11 @@ export interface SceneRefs {
   titleTextures: THREE.CanvasTexture[]
   /** Sizes of those textures, so the rig can map each to its natural size. */
   titleMetrics: TitleMetrics[]
+  /**
+   * Asks SceneTitle for one redraw at the fit the rig settled on, so the
+   * textures are rasterised at their displayed em and rest at mip LOD 0.
+   */
+  titleRedraw: ((scale: number) => void) | null
   /** Ambient energy from scroll velocity, 0..1. */
   energy: { value: number }
   /** Pointer tilt actually applied, lerped toward the target each frame. */
@@ -53,6 +61,7 @@ export function createSceneRefs(): SceneRefs {
     titleMaterial: null,
     titleTextures: [],
     titleMetrics: [],
+    titleRedraw: null,
     energy: { value: 0 },
     tilt: { pitch: 0, yaw: 0 },
     pointer: { x: 0, y: 0 },

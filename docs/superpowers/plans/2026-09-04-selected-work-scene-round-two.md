@@ -302,10 +302,10 @@ export function captionScale(cardPx: number): number   // texture px per card un
 
 **Boundaries:** No change to the morph shader. Do not raise the perf budget. No `document` access inside `src/components/canvas/**` (the nav height arrives as a prop).
 
-- [ ] **Step 1: Baseline first: screenshot the settled title at 1440×900 on :5180 into the scratchpad (`title-before.png`). Then device-px texture sizing and the rest-LOD formula; `uLodA === 0` verified via `__scene` on :5180.**
-- [ ] **Step 2: `navPx` ResizeObserver in Projects → prop → rig; `titleBand`, width cap 0.8; PT two-line title verified clear of the nav at 1024×768 and 1440×900 (screenshots to the scratchpad).**
-- [ ] **Step 3: Layer 1 on the title mesh, camera layer ownership, the two-render post pass with autoClear restore; `scene-effects` strip assertion; perf-budget green; Laplacian comparison and rest frame time recorded.**
-- [ ] **Step 4: Typecheck/lint/vitest/e2e green; commit `fix(scene): the title is crisp, below the nav, outside the composer`.**
+- [x] **Step 1: Baseline first: screenshot the settled title at 1440×900 on :5180 into the scratchpad (`title-before.png`). Then device-px texture sizing and the rest-LOD formula; `uLodA === 0` verified via `__scene` on :5180.**
+- [x] **Step 2: `navPx` ResizeObserver in Projects → prop → rig; `titleBand`, width cap 0.8; PT two-line title verified clear of the nav at 1024×768 and 1440×900 (screenshots to the scratchpad).**
+- [x] **Step 3: Layer 1 on the title mesh, camera layer ownership, the two-render post pass with autoClear restore; `scene-effects` strip assertion; perf-budget green; Laplacian comparison and rest frame time recorded.**
+- [x] **Step 4: Typecheck/lint/vitest/e2e green; commit `fix(scene): the title is crisp, below the nav, outside the composer`.**
 
 ---
 

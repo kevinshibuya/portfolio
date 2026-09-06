@@ -35,6 +35,8 @@ export interface SelectedWorkSceneProps {
   onWebglUnavailable: () => void
   /** A press (click or tap) on card i; the Router root decides what it means. */
   onCardClick: (index: number) => void
+  /** The fixed nav's height in CSS px, measured by the section; changes on resize only. */
+  navPx: number
 }
 
 /**
@@ -196,6 +198,7 @@ export function SelectedWorkScene({
   onReady,
   onWebglUnavailable,
   onCardClick,
+  navPx,
 }: SelectedWorkSceneProps) {
   const sceneRefs = useRef(createSceneRefs())
   const titles = useMemo(() => cards.map((c) => c.title), [cards])
@@ -329,6 +332,7 @@ export function SelectedWorkScene({
         progress={progress}
         reducedMotion={reducedMotion}
         sceneRefs={sceneRefs.current}
+        navPx={navPx}
       />
       {/* Outside the Suspense on purpose: SceneTitle must never suspend, or a
           language switch would blank the whole scene for a frame. */}

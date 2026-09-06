@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useScroll } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -7,6 +7,9 @@ import { useLenisContext } from '../layout/SmoothScroll'
 import { SelectedWorkScene, type SceneCard } from '../canvas/SelectedWorkScene'
 import { projects } from '../../data/projects'
 import { playheadFor, frontIndexFor, scrollTargetFor } from '../../utils/sceneMotion'
+
+/** Used until the nav has been measured, and if it is ever missing. */
+const NAV_FALLBACK_PX = 66
 
 const featured = projects
   .filter((p) => p.highlight && (p.highlightOrder ?? 99) <= 4)
@@ -40,6 +43,23 @@ export function Projects() {
     target: wrapperRef,
     offset: ['start start', 'end end'],
   })
+
+  // The nav's height, for the title band's ceiling. Measured here (the scene
+  // may not touch the DOM beyond its canvas) and updated only when the integer
+  // height changes, so it never re-renders the scene on its own.
+  const [navPx, setNavPx] = useState(NAV_FALLBACK_PX)
+  useEffect(() => {
+    const nav = document.querySelector('header.nav')
+    if (!nav) return
+    const measure = () => {
+      const next = Math.round(nav.getBoundingClientRect().height) || NAV_FALLBACK_PX
+      setNavPx((current) => (current === next ? current : next))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(nav)
+    return () => observer.disconnect()
+  }, [])
 
   const [ready, setReady] = useState(false)
   const [webglUnavailable, setWebglUnavailable] = useState(false)
@@ -121,6 +141,7 @@ export function Projects() {
                   onReady={handleReady}
                   onWebglUnavailable={handleWebglUnavailable}
                   onCardClick={handleCardClick}
+                  navPx={navPx}
                 />
               </div>
 
