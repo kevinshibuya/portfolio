@@ -388,6 +388,6 @@ export function captionScale(cardPx: number): number   // texture px per card un
 
 **Boundaries:** Do not merge. Do not run the review. Do not tick spec TODOs until Kevin says GREEN.
 
-- [ ] **Step 1: Typecheck, lint, vitest, full Playwright; record outputs.**
-- [ ] **Step 2: Headless smoke on :5180; record.**
-- [ ] **Step 3: `gh pr edit 7` with the rundown; push; report to Kevin and stop.**
+- [x] **Step 1: Typecheck, lint, vitest, full Playwright; record outputs.**
+- [x] **Step 2: Headless smoke on :5180; record.**
+- [x] **Step 3: `gh pr edit 7` with the rundown; push; report to Kevin and stop.**
