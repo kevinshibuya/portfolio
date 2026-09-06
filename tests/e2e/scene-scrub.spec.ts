@@ -47,6 +47,34 @@ const CANVAS = '#projects canvas[data-canvas="selected-work-scene"]'
 /** Every settled fraction plus the overture and the approach, then back to card 0. */
 const SWEEP = [0, 0.2222, 0.3333, 0.4444, 0.5556, 0.6667, 0.7778, 0.8889, 1, 0.3333]
 
+/**
+ * The suite's blind spot, closed.
+ *
+ * A `ReferenceError` in the scene — an identifier used but never imported —
+ * took the whole title out and every one of the 79 e2e cases still passed: the
+ * title lives inside the canvas, so no DOM assertion sees it, and nothing else
+ * asserted the page stays quiet. The codex visual pass caught it instead. A
+ * scrub with a clean console is the cheap guard against that whole class.
+ */
+test('a full scrub raises no console error and never rejects a promise', async ({ page }) => {
+  const problems: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') problems.push(`console.error: ${message.text()}`)
+  })
+  page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`))
+
+  await openScene(page)
+  for (const fraction of SWEEP) {
+    await scrollToFraction(page, fraction)
+    expect(problems, `after scrolling to ${fraction}`).toEqual([])
+  }
+  // …and through the middle of every transition, where the title morphs.
+  for (const fraction of [0.4, 0.5, 0.62, 0.72, 0.84]) {
+    await scrollToFraction(page, fraction)
+  }
+  expect(problems).toEqual([])
+})
+
 test('scrubbing the corridor swaps the settled slot, and reversing restores it', async ({
   page,
 }) => {

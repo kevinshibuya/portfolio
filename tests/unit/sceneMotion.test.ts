@@ -43,6 +43,7 @@ import {
   CARD_MIN_PX,
   titleBand,
   TITLE_WIDTH_CAP,
+  titleWrapAllowancePx,
   TITLE_WIDTH_CAP_PORTRAIT,
   TITLE_CLEARANCE,
   TITLE_CLEARANCE_PORTRAIT,
@@ -471,6 +472,42 @@ describe('titleBand', () => {
     expect(sceneGeometry(1440, 900).titleClearance).toBe(TITLE_CLEARANCE)
     expect(sceneGeometry(390, 844).titleClearance).toBe(TITLE_CLEARANCE_PORTRAIT)
     expect(TITLE_CLEARANCE_PORTRAIT).toBeGreaterThan(TITLE_CLEARANCE)
+  })
+})
+
+describe('titleWrapAllowancePx', () => {
+  // Regression: a phone reached by resizing DOWN from a desktop width rendered
+  // "painel da reconstrução" on ONE line at fit 0.531 (cap 33 px) where a fresh
+  // load gave two lines at 0.899 (cap 56 px) — the same viewport with two
+  // stable answers. The wrap is measured at an em that scales with the fit, so
+  // the allowance has to scale with it too or the two disagree.
+  it('scales linearly with the drawn fit, so the line count cannot depend on it', () => {
+    const g = sceneGeometry(390, 844)
+    const full = titleWrapAllowancePx(g, 1.5, 1)
+    expect(titleWrapAllowancePx(g, 1.5, 0.5)).toBeCloseTo(full * 0.5, 10)
+    expect(titleWrapAllowancePx(g, 1.5, 0.899)).toBeCloseTo(full * 0.899, 10)
+    // The em the lines are measured at scales the same way, so the ratio the
+    // wrap actually compares is invariant.
+    const ratio = (scale: number) =>
+      titleWrapAllowancePx(g, 1.5, scale) / (g.titleCapPx * 1.5 * scale)
+    expect(ratio(1)).toBeCloseTo(ratio(0.531), 10)
+    expect(ratio(1)).toBeCloseTo(ratio(0.899), 10)
+  })
+
+  it('is the whole frame, NOT the width cap', () => {
+    // Capping here as well makes every desktop title wrap; the shared band
+    // shrink then drags all four down (cap/card 0.167 → 0.131 at 1440). The
+    // width cap governs the RENDERED size, through the rig's fit — not the wrap.
+    const g = sceneGeometry(1440, 900)
+    expect(titleWrapAllowancePx(g, 1.5, 1)).toBeCloseTo(1440 * 1.5, 10)
+    expect(titleWrapAllowancePx(g, 1.5, 1)).toBeGreaterThan(
+      g.titleWidthCap * g.widthPx * 1.5,
+    )
+  })
+
+  it('tracks dpr, so the wrap is identical in CSS px at any device ratio', () => {
+    const g = sceneGeometry(390, 844)
+    expect(titleWrapAllowancePx(g, 2, 1)).toBeCloseTo(2 * titleWrapAllowancePx(g, 1, 1), 10)
   })
 })
 

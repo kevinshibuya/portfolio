@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { sceneGeometry, SEAM_POWER } from '../../../utils/sceneMotion'
+import { sceneGeometry, titleWrapAllowancePx, SEAM_POWER } from '../../../utils/sceneMotion'
 import { drawTitleTexture } from './titleTexture'
 import { TITLE_LAYER, type SceneRefs } from './sceneRefs'
 
@@ -239,7 +239,24 @@ export function SceneTitle({ titles, reducedMotion, sceneRefs }: SceneTitleProps
       const g = sceneGeometry(Math.max(size.width, 1), Math.max(size.height, 1))
       const scale = scaleRef.current
       const fontPx = g.titleCapPx * dpr * scale
-      const maxLinePx = g.titleWidthCap * g.widthPx * dpr
+      // The wrap threshold is the FRAME, and it scales with `scale`. Two things
+      // are load-bearing here:
+      //
+      // `* scale` closes a feedback loop. The lines are measured at
+      // `fontPx = titleCapPx · dpr · scale`, so without it the allowance and the
+      // measurement disagree: the fit decides the wrap and the wrap decides the
+      // fit, and one viewport gets two stable answers depending on how it was
+      // reached. Coming down from a desktop width a phone locked onto the
+      // degenerate one — "painel da reconstrução" on ONE line at fit 0.531
+      // (cap 33 px) where a fresh load gives two lines at 0.899 (cap 56 px).
+      //
+      // The allowance is the whole frame, NOT `titleWidthCap`. The width cap
+      // governs the rendered size (the rig's `fit` enforces it); this decides
+      // only whether a name is too long to stand on one line at all. Capping it
+      // here as well makes every desktop title wrap and, because the band shrink
+      // is shared across all four, shrinks the lot: cap/card 0.167 → 0.131 at
+      // 1440. Wrap when a line would overflow the frame; shrink otherwise.
+      const maxLinePx = titleWrapAllowancePx(g, dpr, scale)
       const drawn = await Promise.all(
         latestTitles.current.map((text) => drawTitleTexture(text, { maxLinePx, fontPx })),
       )

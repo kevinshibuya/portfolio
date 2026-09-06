@@ -70,6 +70,29 @@ export const TITLE_WIDTH_CAP_PORTRAIT = 0.94
  * 0.88 of the width there and dominates the frame, and the phone band has the
  * headroom to spare (267 px available against a ~170 px title at 390×844).
  */
+/**
+ * How wide a single title line may be before it wraps, in TEXTURE px.
+ *
+ * Two properties, both load-bearing and both regression-tested:
+ *
+ * 1. It scales with `scale` (the fit the texture is drawn at), because the
+ *    lines are measured at `titleCapPx · dpr · scale`. If only one side scales,
+ *    the fit decides the wrap and the wrap decides the fit — a loop with two
+ *    stable answers per viewport, reached by different resize histories.
+ * 2. It is the WHOLE frame, not `titleWidthCap` of it. The width cap governs
+ *    the rendered size (the rig's `fit`); this decides only whether a name is
+ *    too long to stand on one line at all. Applying the cap here too makes
+ *    every desktop title wrap, and the shared band shrink then drags all four
+ *    down with it.
+ */
+export function titleWrapAllowancePx(
+  g: Pick<SceneGeometry, 'widthPx'>,
+  dpr: number,
+  scale: number,
+): number {
+  return g.widthPx * dpr * scale
+}
+
 export const TITLE_CLEARANCE = 0.012
 export const TITLE_CLEARANCE_PORTRAIT = 0.045
 
