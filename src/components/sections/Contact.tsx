@@ -18,14 +18,7 @@ function getSocialUrl(platform: string): string {
   return socialLinks.find((l) => l.platform === platform)?.url ?? '#'
 }
 
-interface ContactProps {
-  // Home renders Contact as section 05; project detail reuses the same
-  // component as a closing CTA where "05 · get in touch" is meaningless.
-  // Pass false from any non-home host to drop the eyebrow.
-  showSectionIndex?: boolean
-}
-
-export function Contact({ showSectionIndex = true }: ContactProps = {}) {
+export function Contact() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language === 'pt' ? 'pt' : 'en'
   const cvFile = `cv-${lang}.pdf`
@@ -65,11 +58,6 @@ export function Contact({ showSectionIndex = true }: ContactProps = {}) {
     <section id="contact" className="section section--contact">
       <div className="contact-inner">
         <RevealOnView recipe="stampIn">
-          {showSectionIndex && (
-            <span className="section-index">
-              {t('sections.contact.index')} · {t('sections.contact.label')}
-            </span>
-          )}
           <h2
             className="contact-title section-title"
             dangerouslySetInnerHTML={{ __html: t('sections.contact.title') }}

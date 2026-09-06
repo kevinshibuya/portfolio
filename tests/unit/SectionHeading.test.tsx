@@ -3,18 +3,23 @@ import { describe, it, expect } from 'vitest'
 import { SectionHeading } from '../../src/components/ui/SectionHeading'
 
 describe('SectionHeading', () => {
-  it('renders the section index when provided', () => {
-    render(<SectionHeading index="01 · featured" title="selected <em>work.</em>" />)
-    expect(screen.getByText('01 · featured')).toBeInTheDocument()
+  it('renders the title HTML', () => {
+    const { container } = render(<SectionHeading title="selected <em>work.</em>" />)
+    const title = container.querySelector('h2.section-title')
+    expect(title).not.toBeNull()
+    expect(title?.innerHTML).toBe('selected <em>work.</em>')
   })
 
-  it('omits the index span entirely when index is not passed', () => {
-    const { container } = render(<SectionHeading title="how i <em>work.</em>" />)
+  it('renders the description when given', () => {
+    render(<SectionHeading title="how i <em>work.</em>" description="a short lede" />)
+    expect(screen.getByText('a short lede')).toBeInTheDocument()
+  })
+
+  it('renders no section index ever', () => {
+    const { container } = render(
+      <SectionHeading title="how i <em>work.</em>" description="a short lede" />,
+    )
     expect(container.querySelector('.section-index')).toBeNull()
-  })
-
-  it('joins index and label with a middle dot when both are provided', () => {
-    render(<SectionHeading index="01" label="featured" title="selected <em>work.</em>" />)
-    expect(screen.getByText('01 · featured')).toBeInTheDocument()
+    expect(container.firstElementChild?.firstElementChild?.tagName).toBe('H2')
   })
 })

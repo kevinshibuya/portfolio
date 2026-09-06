@@ -143,8 +143,6 @@ export function Archive() {
     <section id="archive" className="section section--sand">
       <div className="section-inner">
         <SectionHeading
-          index={t('sections.archive.index')}
-          label={t('sections.archive.label')}
           title={t('sections.archive.title')}
           description={t('sections.archive.description')}
         />

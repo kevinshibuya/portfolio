@@ -20,8 +20,6 @@ export function Skills() {
     <section id="skills" className="section section--sand">
       <div className="section-inner">
         <SectionHeading
-          index={t('sections.skills.index')}
-          label={t('sections.skills.label')}
           title={t('sections.skills.title')}
           description={t('sections.skills.description')}
         />

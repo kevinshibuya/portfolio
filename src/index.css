@@ -666,14 +666,6 @@ html[data-loading='true'] {
   margin-bottom: 64px;
   max-width: 720px;
 }
-.section-index {
-  font-size: 11px; font-weight: 600;
-  color: var(--blue-500);
-  text-transform: lowercase;
-  letter-spacing: 0.15em;
-  display: block;
-  margin-bottom: 14px;
-}
 .section-title {
   font-size: clamp(44px, 6vw, 84px);
   font-weight: 400;
@@ -919,7 +911,6 @@ html[data-loading='true'] {
   max-width: none;
 }
 .contact-inner { max-width: 1100px; margin: 0 auto; }
-.section--contact .section-index { color: var(--blue-200); }
 .contact-title {
   font-size: clamp(80px, 14vw, 220px);
   font-weight: 600;
@@ -1136,15 +1127,6 @@ body[data-loader-state="loading"] {
 .stats-heading-col {
   position: sticky;
   top: 120px;
-}
-.stats-eyebrow {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--accent-blue);
-  text-transform: lowercase;
-  letter-spacing: 0.15em;
-  margin-bottom: 14px;
 }
 .stats-rows {
   position: relative;
@@ -2137,8 +2119,7 @@ body[data-loader-state="loading"] {
   --color-accent-yellow: var(--color-accent-yellow-deep);
 }
 
-/* 1. Section numerals + title emphasis read --blue-500 outside the scope. (A5) */
-.chapter-light .section-index,
+/* 1. Title emphasis reads --blue-500 outside the scope. (A5) */
 .chapter-light .section-title em {
   color: var(--accent-blue);
 }

@@ -52,10 +52,10 @@
 
 **Boundaries:** Nothing in `Projects.tsx`, the scene, or `.scene-*` CSS. Do not touch `.contact-num`, the WorkRow index, or the Archive toolbar labels. If an i18n key is read somewhere the grep did not show, stop and report `blocked: <key> still read at <file:line>`.
 
-- [ ] **Step 1: Rewrite `SectionHeading.tsx` and its unit test; run the unit test (green).**
-- [ ] **Step 2: Remove the props at the four callers, the Stats/Contact spans, Contact's `showSectionIndex` prop and its ProjectDetail argument; typecheck and lint clean.**
-- [ ] **Step 3: Delete the CSS rules and the 18 i18n keys (both locales); grep proves no survivors.**
-- [ ] **Step 4: Update `light-chapter.spec.ts`; run it green; smoke on :5180; commit `feat(sections): no section numbering or eyebrow lines`.**
+- [x] **Step 1: Rewrite `SectionHeading.tsx` and its unit test; run the unit test (green).**
+- [x] **Step 2: Remove the props at the four callers, the Stats/Contact spans, Contact's `showSectionIndex` prop and its ProjectDetail argument; typecheck and lint clean.**
+- [x] **Step 3: Delete the CSS rules and the 18 i18n keys (both locales); grep proves no survivors.**
+- [x] **Step 4: Update `light-chapter.spec.ts`; run it green; smoke on :5180; commit `feat(sections): no section numbering or eyebrow lines`.**
 
 ---
 
