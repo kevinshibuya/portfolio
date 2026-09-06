@@ -33,14 +33,17 @@ projects_assets/
 prompt.md
 a.md
 
-# AI session scratch (durable AI docs — CLAUDE.md, docs/superpowers — stay tracked)
-HANDOFF.md
+# AI session scratch. Durable AI docs (CLAUDE.md, docs/) stay tracked; HANDOFF archives are kept locally, ignored.
+HANDOFF*.md
 tmp/
 
 # Playwright artifacts
 test-results/
 playwright-report/
 tests/e2e/_screens/
+
+# perf harness output (the harness lives on perf/hero-harness)
+perf/reports/
 
 # Superpowers brainstorming session artifacts
 .superpowers/

@@ -1,243 +1,97 @@
-# Portfolio — Claude Instructions
+# Portfolio, Claude instructions
 
-## Project
-A complete revamp of a developer portfolio. Built with React 19 + TypeScript + Vite.
-The MVP exists in `src/App.tsx` — the revamp will decompose it into proper components.
+Kevin Shibuya's personal developer portfolio, live at kevinshibuya.com: a bilingual EN/PT React single-page site with per-project detail routes, whose centerpiece is a pinned 3D Selected Work scene between two raw-WebGL shader canvases.
 
-## Deployment & Branches (MANDATORY — read before any merge)
+Stack: React 19, TypeScript strict, Vite 6 with SWC, TailwindCSS v4 through the Vite plugin (configured in CSS `@theme`, no `tailwind.config.js`), Framer Motion v12, GSAP, Lenis smooth scroll, React Three Fiber with `@react-three/postprocessing` for the Selected Work scene only, react-i18next, npm.
 
-**A push or merge to `main` auto-deploys to production at https://kevinshibuya.com.** The deploy is wired through Cloudflare Workers Builds, which is connected to this repository directly — **not** through a GitHub Actions workflow. There is no `.github/workflows` directory, and **its absence is not evidence that nothing ships.** Do not conclude "no CI, so merging is safe": that reasoning caused a real production incident (see below).
+How it works: `docs/architecture.md`. Before editing a surface, read its section; the index at the top of that file maps files to sections.
 
-- **STANDING RULE (Kevin, 2026-09-03): `main` is FROZEN until the portfolio revamp is complete.** Until Kevin says the revamp is finished, nothing merges into `main` — not a feature, not a fix, not a "sync". Merge everything into `staging` and stop there. Merging into `staging` needs no permission; `main` is not a decision to make in the meantime, no matter how green or how small the change.
-- **Branch flow:** feature branch → PR into **`staging`**. `staging` is the integration branch and deploys nothing. It is expected to run far ahead of `main` — a large `main..staging` count is the NORMAL state here, not drift to be tidied up.
-- **Promoting `staging` → `main` is a PRODUCTION RELEASE, not a branch sync.** It needs an explicit, per-action decision from Kevin *for that release*, and blanket earlier permission to "merge" does not cover it. `bin/block-merge-to-main.sh` enforces the stop; `ALLOW_MAIN_MERGE=1` is the documented override for one authorised command.
-- If a merge's real scope differs from what was asked for (e.g. "merge my feature" would actually promote 153 accumulated commits), **stop and confirm before acting** — do not merely note the discrepancy and proceed.
+## Branches and deploy (read before any merge)
 
-**Incident, 2026-09-02 → 03.** `staging` was merged to `main` (153 commits) on the stated but incorrect basis that nothing would deploy. Cloudflare built and shipped it, and **production served the unreleased redesign for ~15 hours** (merged 23:37Z, restored ~17:50Z the next day) — it was caught by Kevin, not by any check here. The redesign was reviewed and green, so the damage was disclosure of unreleased work rather than a broken site; a genuinely broken release would have had the same 15-hour window. There is no monitoring on this: after ANY change to `main`, verify production from the outside immediately (step 3 below) instead of assuming the deploy matched intent.
+**A push or merge to `main` auto-deploys to production at https://kevinshibuya.com.** The deploy is wired through Cloudflare Workers Builds, connected to this repository directly, **not** through a GitHub Actions workflow. There is no `.github/workflows` directory, and **its absence is not evidence that nothing ships.** "No CI, so merging is safe" is the exact reasoning that caused a production incident.
+
+- **STANDING RULE (Kevin, 2026-09-03): `main` is FROZEN until the portfolio revamp is complete.** Until Kevin says the revamp is finished, nothing merges into `main`: not a feature, not a fix, not a "sync". `main` is not a decision to make in the meantime, no matter how green or how small the change.
+- **Branch flow:** feature branch, then PR into **`staging`**. `staging` is the integration branch and deploys nothing. It is expected to run far ahead of `main`; a large `main..staging` count is the NORMAL state here, not drift to be tidied up.
+- **`staging` sits behind `~/.claude/bin/block-merge-to-main.sh` together with `main`.** Merging a PR into it needs Kevin's per-action say-so, and the one authorised command is prefixed `ALLOW_MAIN_MERGE=1`. That token is re-authorised per command, and a say-so for a `staging` merge never carries to `main`. Feature-branch commits, pushes and PR creation need no permission.
+- **Promoting `staging` to `main` is a PRODUCTION RELEASE, not a branch sync.** It needs an explicit, per-action decision from Kevin *for that release*; blanket earlier permission to "merge" does not cover it.
+- **`npm run deploy` (`npm run build && wrangler deploy`) ships production directly, without a merge, a push or a PR.** The merge hook inspects git and `gh pr merge` only, so it never sees this. It is Kevin's command; an agent does not run it, frozen `main` or not.
+- If a merge's real scope differs from what was asked for (say "merge my feature" would actually promote 153 accumulated commits), **stop and confirm before acting.** Noting the discrepancy and proceeding anyway is the failure.
+
+**Incident, 2026-09-02.** `staging` was merged to `main` (153 commits) on the stated but incorrect basis that nothing would deploy; Cloudflare built and shipped it, and production served the unreleased redesign for about 15 hours before Kevin caught it, not any check here. There is no monitoring on this, so after ANY change to `main`, verify production from the outside immediately with step 3 below instead of assuming the deploy matched intent.
 
 **Recovery that worked, in order:**
-1. `ALLOW_MAIN_MERGE=1 git push --force-with-lease=main:<current> origin <prior-sha>:main` — put `main` back on its exact prior tip.
-2. Cloudflare rebuilt from that push automatically and restored the previous site in ~40 s (fast — but only once someone knew to trigger it). No manual deploy was needed — and none was possible, because `wrangler` was logged out (`Not logged in ... environment is non-interactive`). **Do not assume `wrangler deploy` is available as a recovery path**; check `npx wrangler whoami` first, and ask Kevin to run `! npx wrangler login` if it is needed.
+
+1. `ALLOW_MAIN_MERGE=1 git push --force-with-lease=main:<current> origin <prior-sha>:main` puts `main` back on its exact prior tip.
+2. Cloudflare rebuilds from that push automatically; it restored the previous site in about 40 s, but only once someone knew to trigger it. No manual deploy was needed, and none was possible: `wrangler` was logged out (`Not logged in ... environment is non-interactive`). **Do not assume `wrangler deploy` is available as a recovery path.** Check `npx wrangler whoami` first, and ask Kevin to run `! npx wrangler login` if it is needed.
 3. Verify production from the outside, never from the repo. The live HTML is the only proof:
    `curl -s https://kevinshibuya.com/ | grep -oE 'theme-color" content="[^"]*"'`
-   Pre-redesign site is `#F6F9FC`; the dark redesign is `#0B0E14`. `loader-ks` and `portfolio · 2026` appear only in the redesign.
+   The pre-redesign site is `#F6F9FC`; the dark redesign is `#0B0E14`. `loader-ks` and `portfolio · 2026` appear only in the redesign. **While `main` is frozen, `#F6F9FC` is the CORRECT production state**, not a regression: production does not yet serve the site this file describes.
 
 Nothing was lost in that incident because `staging` retained every commit. Keep it that way: **never roll back by deleting work from `staging`.**
 
-## Tech Stack
-- **Framework**: React 19 + TypeScript (strict)
-- **Build**: Vite 6 + SWC
-- **Styling**: TailwindCSS v4 (Vite plugin — no `tailwind.config.js`, configure via CSS `@theme`)
-- **Animation layer 1 — React**: Framer Motion v12
-- **Animation layer 2 — Scroll/Timeline**: GSAP + ScrollTrigger
-- **Animation layer 3 — WebGL/3D**: React Three Fiber (`@react-three/fiber`, `three`, `@react-three/postprocessing` + `postprocessing`; **no** `@react-three/drei`) — used by the Selected Work scene ONLY. The hero and Contact/Footer backdrops stay hand-written raw WebGL (`FluidWaves`).
-- **i18n**: react-i18next (bilingual EN + PT — built in from day one, not retrofitted)
-- **Package manager**: npm
+## Verification
 
-## Design Direction
-Dark ink + WebGL shader craft. Lowercase, monumental, confident — cream text on near-black ink, with a tricolor accent (pink-red, blue, yellow) carried entirely by two raw-shader canvases and rotated per-row tints. The page runs a deliberate tonal arc: dark ink at both ends, a cream **light chapter** through the middle (Selected Work → Skills), and dark again at the Contact/Footer stage. No bento cards, no ink-draw entrance — every prior MVP-era visual system below was retired by the `webgl-pivot` plan (2026-07-19).
+- **Typecheck with `npx tsc -b`** (or `npm run build`, which runs `tsc -b && vite build`). A bare `npx tsc --noEmit` is a no-op in this repo: the root `tsconfig.json` is `"files": []` plus project references, so it exits 0 on code that does not compile.
+- **Kill port 4173 before an e2e run:** `lsof -ti:4173 | xargs -r kill -9` (bare `xargs kill -9` runs with no argument and exits non-zero when the port is free, breaking an `&&` chain). `playwright.config.ts` sets `reuseExistingServer: !process.env.CI`, so a stale preview server survives and the suite tests the previous build.
+- **A runtime error inside a canvas is invisible to DOM assertions.** The canvas keeps its element and its attributes while the frame loop throws. `tests/e2e/scene-scrub.spec.ts` is the only guard that catches it.
+- **A rendered surface also needs a headless browser smoke:** it loads, the root renders, zero console errors. Typecheck and lint alone do not cover a surface.
+- **The set:** `npx tsc -b`, `npm run lint`, `npx vitest run`, `npx playwright test`. A surface change adds the smoke.
 
-- **Colors** (canonical tokens in `src/index.css` `@theme`/`:root`; contrast-audited, do not change a hex without recomputing the AA table):
-  - Base: `--color-bg` / `--bg` `#0B0E14` (page ink), `--color-bg-tonal` / `--bg-tonal` `#131722` (tonal section).
-  - Text: `--color-text` / `--text` `#F5F2EC` (cream, body+display), `--color-text-muted` / `--text-muted` `#C9C4BA` (secondary), `--color-text-faded` / `--text-faded` `#A8A49C` (meta/faded). Hairline borders `rgba(245,242,236,0.13)`.
-  - Tricolor accent (the ONLY color, shared by the shaders and `accentFor()` row tints): `--color-accent-pink` `#E64D66`, `--color-accent-blue` `#4D80E6`, `--color-accent-yellow` `#E6CC4D`. A lighter hover value `#7AA0ED` covers hover states, remapped onto the legacy `--blue-200`/`--blue-300`/`--blue-500` aliases below — no dedicated token of its own.
-  - **On-light set** (the light chapter's system): `--color-surface-light` `#F5F2EC` (cream ground), `--color-surface-light-tonal` `#EDE9E0` (deeper cream, the tonal step), `--color-ink-on-light` `#0B0E14` (primary text), `--color-ink-on-light-muted` `rgba(11,14,20,.62)` (always-visible small text, ≥5.1:1), `--color-ink-on-light-faded` `rgba(11,14,20,.40)` (2.62:1 — **aria-hidden decoration ONLY**, never always-visible text), `--color-hairline-on-light` `rgba(11,14,20,.12)`. Deep tricolor: `--color-accent-pink-deep` `#B22B47`, `--color-accent-blue-deep` `#2A54B5`, `--color-accent-yellow-deep` `#7A6800`.
-  - **The yellow rule.** Deep yellow `#7A6800` measures 4.94:1 on cream and DOES pass small-text AA. It is nonetheless substituted for the ink-muted step in small text because at small sizes it reads dark-olive — an **aesthetic** rule, deliberately kept, not a contrast failure. Large text and decorative marks use the real hex.
-  - **Three palette helpers, three row channels** (`src/utils/palette.ts`): `accentFor(i)` → raw tricolor, on-ink; `accentDeepFor(i)` → on-light small text, yellow slot emits ink-muted; `accentDeepLargeFor(i)` → on-light large text (WCAG large) and decoration, yellow slot emits `#7A6800`. `WorkRow.tsx` sets all three on every row as `--row-tint` / `--row-tint-deep` / `--row-tint-deep-large`.
-  - **Legacy CSS var aliases** (`--cream`, `--sand`, `--mist`, `--ink`, `--bark`, `--dust`, `--blue-*`, `--periwinkle-*`) remain in `:root`, remapped onto the dark system so the whole light-era stylesheet flips without a rewrite — role names kept their vars, so e.g. `--cream` is now dark (page bg) and `--ink` is now light (text). New work reads from the canonical `--color-*`/`--text`/`--bg` names above; the aliases are accepted debt (Plan risk 5), not a pattern to extend. **A rule inside the light chapter must never read an alias**: the chapter's inversion works by re-declaring the canonical tokens, and an alias is invisible to that scope — it would keep resolving to cream and render cream text on cream.
-- **Typography**: Plus Jakarta Sans (variable 200–800, local TTF at `/public/fonts/`), unchanged — used for both display and body, lowercase throughout. `--font-mono` was dropped (dead token). **Anton fence**: Anton (self-hosted, weight 400, latin + latin-ext, `font-display: swap`, preloaded) is used by the Selected Work morphing title and NOTHING else; Jakarta is the site voice.
-- **Shapes**: Open typographic rows, no cards/containers (exception: the selected-work card-stack cards, which are deliberate framed cards — the sanctioned centerpiece). Rounded-full pills/chips/buttons survive where used (filters, tags); no rounded card frames.
-- **Accent usage**: Tricolor is applied via `accentFor(index)` (`src/utils/palette.ts`, `ACCENTS = ['#E64D66','#4D80E6','#E6CC4D']`, index-rotated) as a per-row `--row-tint` CSS var. Per-ROW tints always rotate; a section-level mark may pin a static accent (the nth-child `.skills-dot`), but an individual component never picks a colour for itself. There are no section eyebrows or numerals anywhere (round two, 2026-09-05).
-- **Canvases (three mounted, at most two live)**:
-  - `FluidWaves` (`src/components/canvas/FluidWaves.tsx`) — ONE shared raw-WebGL component, `variant: 'hero' | 'backdrop'`. Hero = full-strength background (seeded scattered wave motion, tricolor paint, smooth — no pixel quantization) with a shader-side organic cream dissolve at the bottom of its band (2D fBm field dragged by the flow coordinate, narrow threshold window + low-freq sweep, hard cream floor — the hero section is `130svh` and melts into the cream Selected Work chapter; tuning knobs `DISSOLVE_NOISE_AMP`/threshold/sweep live at the top of the file). Backdrop = the SAME shader dimmed via CSS (`opacity: 0.22; filter: saturate(0.7)`) behind Contact/Footer, lazy-mounted as the stage nears viewport, no dissolve (`dissolveStrength` 0). Each instance seeds independently. Both variants run a scroll-coupled sim clock: scroll velocity adds a small boost to the shader time rate (~1.5x steady scroll, capped 2x on a flick; 0.15s attack / 0.9s decay, velocity read per-frame in the rAF loop) so the paint stirs while the page moves and settles with follow-through.
-  - `SelectedWorkScene` (`src/components/canvas/SelectedWorkScene.tsx` + `src/components/canvas/scene/*`) — the THIRD canvas, and the only one rendered by React Three Fiber. Lives in the Projects lazy chunk; `data-canvas="selected-work-scene"`. Same shared rules as the other two (DPR ≤ 1.5, IntersectionObserver pause, `data-static` under reduced motion, permanent DOM fallback on context loss) — but the attributes go on the REAL canvas (`gl.domElement`) in `onCreated` and the visibility effects, never as `<Canvas>` props, which R3F forwards to its wrapper div. Pausing is `frameloop` `'always' ↔ 'never'`; reduced motion is `frameloop="demand"` plus `invalidate()` on scroll and resize. It also warms at idle after the entrance (`compileAsync`, `initTexture`, then ONE off-screen frame) and flags `data-warm="true"` — without that the first live frame costs ~0.5–1.2s on real hardware, right as the reader arrives. Depth of field and grain mount on desktop AND hardware-accelerated GPUs only; a software rasteriser skips the composer, so headless Playwright never renders it and `tests/e2e/scene-effects.spec.ts` spoofs a hardware renderer string to keep that path covered. The title and the overture live on layer 1 (`TITLE_LAYER`, `sceneRefs.ts`), which the composer never renders: `TitlePass` in `Environment.tsx` narrows the camera to layer 0 before the composer and, after it, rebuilds depth with a depth-only render and draws layer 1 depth-tested, so depth of field and grain never touch them. Without a composer the camera keeps layer 1 enabled and they render in the main pass.
-  - Both `FluidWaves` variants: `devicePixelRatio` capped at 1.5, `IntersectionObserver` sets `data-paused="true"` off-screen for every canvas (reduced motion included) and halts the rAF loop, `prefers-reduced-motion` also renders one static frame (`data-static="true"`) and never starts the loop, context-loss fallback (hero → gradient div `data-testid="fluid-waves-fallback"`; backdrop → stage ink stands). The rAF loop runs FROM MOUNT (no entrance gate) so paint animates during the loader exit. Hero canvas `data-canvas="fluid-waves"`; backdrop `data-canvas="fluid-waves-backdrop"`.
-- **Hero text contrast (DOCUMENTED AA EXEMPTION, owner-ratified 2026-07-23)**: the hero text (name, role, dark-context nav) renders plain cream DIRECTLY on raw shader paint — no scrim, no text-shadow halo, no shader-side darkening of any kind between the text and the paint (the old `.hero-scrim` and the interim "ink aurora" text-shadows are both retired). This deliberately fails AA over the brightest paint (soft treatments proved unsatisfiable: ~1.8–2.3:1 over worst-case yellow; a worst-pixel 4.5:1 needs a near-opaque halo, rejected aesthetically) — the owner explicitly accepts the tradeoff; do NOT reintroduce a contrast layer. Sole sanctioned exception: an opt-in `@media (prefers-contrast: more)` layer (dense ink halos on name/role + the dark-context nav gets its scrolled-style ink bar full-time) for users whose OS requests more contrast — the default presentation stays untouched. Canonical record: the `.hero-zone` comment block in `src/index.css`.
-- **Hero anatomy**: `min-height:130svh` section (the extra ~30svh is the shader's cream-dissolve band); an absolute `100svh` `.hero-zone` re-anchors the text plane so name/role never fall into the dissolve. Canvas absolute behind → text (no scrim layer — see the AA exemption above). Monumental bottom-left signature name `h1.hero-name` (`kevin` / `shibuya.`, `clamp(64px,12vw,200px)`, weight 650–750, line-height ~0.92, letter-spacing −0.03em, cream), each line a `.hero-line` span inside its own `.hero-line-mask` clip row (overflow released to visible once `.hero-bottom.is-entered`, so the role focus ring and glyph descenders aren't clipped at rest). Cycling role line directly above the name (`.hero-role`, in a `.hero-line-mask.hero-role-line`, click/keyboard cycle, `roles[0]` = canonical title `senior front-end engineer · react/typescript`). No hero meta block (the top-right location/availability was removed).
-- **Light chapter (Projects → Skills on cream)**: one wrapper element `#chapter-light` in `Home.tsx` holds, in order, `#projects`, `#archive`, `#work`, `#stats`, `#skills`. It paints `--color-surface-light` and carries a **scoped re-declaration of nine canonical tokens** (`--bg`, `--bg-tonal`, `--text`, `--text-muted`, `--text-faded`, `--hairline`, `--accent-pink`, `--accent-blue`, `--accent-yellow`), so every descendant rule that already reads a canonical token inverts with zero per-rule edits. The wrapper is a plain block on purpose: **no `overflow`, no `position`** — the `position: sticky` stage inside `#projects` needs the viewport as its scroll container, and any `overflow` on an ancestor silently breaks the pin.
-  - `--text-faded` is remapped to the **muted** value inside the chapter: no alpha between 0.62 and ink is both AA-passing and visually distinct from 0.62, so the faded step survives only on `aria-hidden` decoration (`.workrow-index`, `.workrow-arrow`), applied by hand.
-  - **The one thing the scope cannot reach** is an inline custom property: `--row-tint*` are set on the `.workrow` / `.stack-inner` style attribute, and an inline value beats any ancestor declaration. So every raw-tint consumer in the chapter is overridden explicitly — the `.work-*` panel marks (`.work-mode-dot`, `.work-bullets li::before`, `.work-highlight` border), `.work-highlight-label`, and the WorkRow title hover tint. `.stack-card-arrow` deliberately keeps its raw `--row-tint`: it sits on the card's ink pill, where raw tricolor is correct.
-  - **Tonal rhythm**: Selected Work cream, Archive tonal, Work Experience cream, Stats cream, Skills tonal — inherited from each section's existing `.section--sand` assignment seen through the scope, not composed separately for cream.
-  - **Exit veil** (`.chapter-exit-veil`): 30svh, `--color-surface-light` → `--bg`, `aria-hidden`, pure gradient. It is a **SIBLING placed after `#chapter-light`, never a child** — its gradient ends in `var(--bg)`, which the scope resolves to cream, so nesting it would erase the fade. **No text ever sits in a veil band.**
-  - There is **no CSS entry veil**: the hero's `100svh` `.hero-zone` is inviolable, and the entry ramp is the shader's cream dissolve across the hero's lower 30svh (`src/components/canvas/FluidWaves.tsx`, grep `dissolve`; `src/components/sections/Hero.tsx`, grep `hero-zone`).
-  - `theme-color` follows the nav flip (`#F5F2EC` on-light, `#0B0E14` otherwise). `html`/`body` stay ink so overscroll edges are dark.
-- **Selected Work scene (`src/components/sections/Projects.tsx` + `src/components/canvas/SelectedWorkScene.tsx` + `src/components/canvas/scene/*`, helpers `src/utils/sceneMotion.ts`)**: the page centerpiece — a real 3D environment in the third canvas, replacing the retired card stack and SVG gooey title. Spec `docs/superpowers/specs/2026-09-03-selected-work-scene-design.md`, plan `docs/superpowers/plans/2026-09-03-selected-work-scene.md`; ADR 0009 (third canvas via R3F) and ADR 0010 (scroll is the playhead, time is the breath). Round two (the card is the object): spec `docs/superpowers/specs/2026-09-04-selected-work-scene-round-two.md`, plan `docs/superpowers/plans/2026-09-04-selected-work-scene-round-two.md`, ADR 0011.
-  - **Anatomy**: `section#projects.section.projects-scene-section` — **full-bleed**: it overrides `.section`'s 1440 cap and 80/20 px gutters to `max-width: none; padding-inline: 0`, because the corridor overflows the frame by design (a card mid-approach, the overture past 0.7 of the width) and that overflow has to clip at the VIEWPORT edge, not 80 px inside it. `.scene-fallback` carries its own gutter instead (`width: min(620px, 100% - 40px)`). › `nav.scene-skiplinks` (the keyboard/SR path into a project); `div.scene-scroll` (550svh, the `useScroll` target) › `div.scene-sticky` (100svh, pinned) › `div.scene-inner` › `div.scene-canvas-wrap[aria-hidden][data-ready]` and a STATIC `h2.scene-title-sr.sr-only` naming the section. No eyebrow, no overlay, no DOM element tracks the settled card: the card carries its own caption and is pressable (ADR 0011). The scene reports its state on the REAL canvas element as data attributes written only when they change: `data-slot` (`"0".."3"`, the settled card), `data-overture` (`"true"|"false"`), `data-registrations` (how many times the corridor registered its objects; `"1"` on a production build across a full scrub, `"2"` on the dev server under StrictMode). Nothing in React reads them. `div.scene-fallback` replaces `.scene-scroll` entirely when WebGL2 is missing or the context is lost — four framed cards in normal flow, no pin, permanent for the session.
-  - **Corridor / slot / approach / playhead** (glossary in `CONTEXT.md`): the four featured projects (`highlightOrder ≤ 4`) stand along a corridor in depth, alternating side and yaw; scroll dollies the camera through it. `playheadFor(p) = p·4.5 − 1.5 ∈ [−1.5, 3]`: the leading 150svh is the **approach** — `[−1.5, −0.5)` is the **overture** (one Jakarta line, `sections.projects.overture`, standing on the camera's eye line at `overtureZ`, the point the camera reaches at −0.5; it fills 0.7 of the width at the top, grows as the camera nears, fades over the last 0.35 units and is gone the moment the cards read), `[−0.5, 0)` is the surfacing (card 0 out of the fog, the title out of blur), then one viewport per card. The camera is ONE continuous ease from −1.5 to 0 (`easedSeg`), starting `CORRIDOR_DEPTH` ≈ 3.86 spacings back — derived so that at −0.5 it is exactly one spacing behind card 0. Every integer playhead is a settled state and the whole thing is exactly reversible. Settled card k sits at scroll fraction `(k + 1.5) / 4.5`.
-  - **Zero React state per frame**: ONE `useFrame` in `SceneRig` reads Framer's `scrollYProgress`/`useVelocity` and the clock, and writes every visual through the pure helpers in `sceneMotion.ts`. No React state is driven by scroll at all (ADR 0011): the loop derives the settled index itself (`frontIndexFor`) and writes it to `data-slot`; a language switch is the ONLY thing that re-renders the scene subtree (`cards` is memoised on `lang` in `Projects.tsx`). `useFrame` reads `state.viewport.dpr` for every rasterised text (device pixels, once — never `window.devicePixelRatio`).
-  - **Title**: Anton on a camera-relative plane (NOT parented to the camera — R3F's default camera is outside the scene graph), two coverage-mask textures combined by the **seam morph** (`seamFor`/`seamBlend` in `sceneMotion.ts`, the shader in `SceneTitle.tsx`): a front sweeps the plane in reading order and each column blends the outgoing name into the incoming one by its distance to the front, blurring both toward the seam's centre (a 9-tap binomial over the mip whose texel is ~σ, per-tap masked to the texture) and cutting the sum at 0.5. Inside the 1.2 em seam (`SEAM_WIDTH_EM`, peak blur `SEAM_SIGMA_EM` 0.1 em, weights `(1−t)^0.5`/`t^0.5`) the outgoing strokes swell into blobs and the incoming ones grow out of them: the gooey bridge, one letter at a time. **Two whole names are never summed** — that sum is a slab for any two 6–7 em Anton names, whatever the blur or the cut (contract `docs/superpowers/specs/2026-09-05-title-morph-artifacts-contract.md`). On the settle plateaus `uSeam` is 0 and the whole draw takes a one-tap path at the rest LOD. The approach writes card 0's name in the same way (slot A empty). Every texture is registered on its **last baseline** in the plane (`TitleMetrics.baselinePx`), not centred, so a one-line name and a two-line one share the line the seam rewrites and the extra line unfolds above it. It is the one object the cream fog never touches, and the only Anton consumer on the site. Each texture is rasterised at the em it is DISPLAYED at (`titleCapPx · viewport.dpr · fit`), so the rest mip LOD is exactly 0: the rig holds the fit the textures were drawn for (`TitleMetrics.drawnScale`) while the computed one stays within 1 %, and asks for one redraw through `sceneRefs.titleRedraw` when it moves. The band (`titleBand`) starts 16 px under the measured nav (`navPx`, a `ResizeObserver` in `Projects.tsx`, fallback 66) and is **bottom-anchored**: its lowest ink sits just above the settled card's top edge and grows upward, because the card is nearer than the title and would otherwise clip a two-line title (PT's "painel da reconstrução"); width cap `g.titleWidthCap` — 0.8 of the frame, **0.94 in portrait** — governs the RENDERED size, and only the rig's `fit` enforces it. The WRAP is a separate threshold, `titleWrapAllowancePx`: the whole frame, deliberately NOT the width cap, and scaled by the drawn fit. Both halves are load-bearing. Scaling it means the wrap allowance and the em the lines are measured at move together, so the line count is a pure function of the viewport — without that the fit decides the wrap and the wrap decides the fit, and one viewport gets two stable answers depending on how it was reached (a phone reached by resizing down from a desktop width rendered "painel da reconstrução" on ONE line at cap 33 px where a fresh load gave two lines at 56 px). Applying the width cap here as well closes the loop but onto the wrong branch: every desktop title wraps and the shared band shrink drags all four down, cap/card 0.167 → 0.131 at 1440. The band shrink is clamped so a viewport too short to hold the band at all cannot drive the fit to zero or below. Clearance above the card is `g.titleClearance`: 0.012 of the frame height, **0.045 in portrait**, where the card is 0.88 of the width and the band has the headroom. `titleCapPx` floors at 56, **72 in portrait** — 9 % of a phone's width is 35 px, so the floor is what actually decides the phone title, and 56 read at 0.14 of the card against the desktop’s 0.167; 72 restores that ratio (measured cap 55.6 px on a 343 px card at 390×844). It renders on layer 1 after the composer (see Canvases).
-  - **Card size**: a fraction of the frame WIDTH, capped at `CARD_MAX_PX` 620 px in **both** orientations (portrait is `min(0.88, 620/width)` — the flat 0.88 made the 620 cap false for every portrait viewport past ~705 px, so tablets drew 722–900 px cards), floored at `CARD_MIN_PX` 287 px so the caption name never drops under 12 px.
-  - **Environment**: cream floor, fog and clear colour all `#F5F2EC`, so there is no horizon and the floor reads only through the per-card blurred blob shadows (tinted by `accentDeepLargeFor`, the decorative channel — the deep channel's yellow slot is an `rgba()` string `THREE.Color` cannot take). No halo: nothing glows around a card. Rounded corners are cut by GEOMETRY, never an alpha mask, so depth stays honest at the corners.
-  - **The breath**: cards bob, yaw and pitch on unrelated periods with per-card phase; scroll velocity feeds an energy accumulator that scales those amplitudes and leans the corridor against the direction of travel; the settled card tilts ≤ 6° toward a fine pointer and the title parallaxes a quarter of the way against it; the overture line breathes on a fifth phase. All off under reduced motion, which keeps the pin, shows the overture as a still frame and swaps cards instantly.
-  - **Caption (`src/components/canvas/scene/Caption.tsx`, rasteriser `textTexture.ts`)**: the name (`CAPTION_NAME_PX` 26 of the 620-px card, weight 600, ink `#0B0E14`) and `year · tech · tech` (14, weight 500, `rgba(11,14,20,.62)`) on the left of the white body band, the `↗` (22, `accentDeepLargeFor(i)`) on the right — Jakarta textures on planes INSIDE the card group, `renderOrder` 1 (three's distance sort would put the frame over them), fogging and fading with the card. Drawn at the card's projected width in device px so the caption is 1:1 at rest; names ellipsise on one line. Legibility floor: `sceneGeometry` never lets the card go under `CARD_MIN_PX` 287 px, so the name is ≥ 12 px on every viewport from 320 px (binds on landscape phones and 320 px portrait).
-  - **Pointer (`Corridor.tsx`)**: R3F pointer events on each card group are the ONLY way the pointer reaches a card. Hover writes `sceneRefs.hover` and the cursor on the canvas element; the rig lerps a lift toward the camera (`HOVER_LIFT`, `HOVER_SCALE` 1.02, `HOVER_TAU` 0.2 s) for the settled card only and slides its arrow 2 px up-right. A click with `event.delta > 6` px is a scroll, not a tap. `onCardClick(i)` is decided in `Projects.tsx`, the Router root: the settled card navigates to its project, any other card scrolls into the slot through Lenis (`scrollTargetFor`), instantly under reduced motion. No router, and no DOM beyond `gl.domElement`, inside `src/components/canvas/**`.
+## Standing rules
 
-- **Loader + entrance (the ks. vignette explodes, then the text rises)**: the loader is an inline SVG in `index.html` (pre-bundle first paint) — an ink `#0B0E14` rect masked by static `ks.` glyph-outline windows (paths extracted from Plus Jakarta Sans 700; no font dependency) that reveal the shader; the windows sit in a `<g class="loader-ks">` wrapper that GSAP scales for the exit. Behind it, a dim tricolor CSS-gradient stand-in (subtly drifting) reads as paint pre-React; on mount the stand-in fades to reveal the live (already-looping) hero canvas through the windows. Two bottom-corner cream-on-ink HTML meta labels only — `portfolio · 2026` (BL), `react · typescript · webgl` (BR); the two top corners were removed (hardcoded EN). `main.tsx` orchestrates the exit: after React paints + a ~1.2 s savor dwell (reduced-motion 200 ms, 3 s hard fallback), it contracts the whole `ks.` cutout to 0.96× (0.18 s, house — anticipation) then explodes it to 45× (1.1 s, `power4.in` quintic — accelerating; an inOut's decel tail would play off-screen) about a near-center origin (viewBox 53.65, 50) inside the s glyph's upper-bowl spine — the mark itself is optically centered on "ks" (positioning `translate(34.52 …)`; the trailing dot hangs right and is excluded from centering), so the expansion reads centered and the viewport ends inside a letterform window — ink gone, hero revealed; corner labels drift 12 px outward+down while fading (0.22 s) at launch, and the handoff (`resolveEntrance()`) fires at ~92% of the explosion (wall-clock setTimeout), when the ink has cleared the name region; `finishLoader()` removes the loader at 100%. Reduced motion: 150 ms opacity fade, static shader frame, no explosion. **The hero text then rises in**: once `entranceDone` resolves (at the ~92% handoff), `Hero.tsx` flips `entered` and the role + two name lines rise from `y:110%` out of their `.hero-line-mask` clips (Framer, staggered, house ease); reduced-motion and SPA back-nav (`entranceBypassed`) skip straight to the settled state (no rise). `MotionContext` keeps `entranceDone`/its resolver (the unconsumed curtain gate was deleted in the PR #2 fix wave); `main.tsx` is the sole gate resolver on the normal path.
-- **WorkRow (the section-list primitive for Archive + WorkExperience — `src/components/ui/WorkRow.tsx`)**: open typographic row, no card. (Selected Work no longer uses WorkRow — it is the pinned R3F scene; see the Selected Work bullet.) Anatomy: `.workrow-index` (zero-padded, faded, tabular-nums) · `.workrow-title` (oversized lowercase, `clamp(28px,4.6vw,64px)`, weight 550, cream, tints to `--row-tint` on hover/focus) · `.workrow-meta` (`·`-joined faded spans) · `.workrow-arrow` (`↗` link / `+` rotating 45° expanded). Bottom hairline per row; list owner adds the top hairline. Desktop hover: a pointer-tracking `.workrow-float` preview (Framer Motion `useMotionValue`/`useSpring`, never `setState` above the list). Touch/no-hover: inline `.workrow-thumb`. Expandable variant swaps the row for a real `<button aria-expanded>` with an `AnimatePresence` panel. Visible cream `:focus-visible` ring on every variant. Reused verbatim by Archive and WorkExperience (expandable) — no per-section bespoke row markup. **Inside the light chapter** WorkRow inverts through the token scope only (its `.workrow-*` rules are never edited): the hover title tint reads `--row-tint-deep-large`, `.workrow-index`/`.workrow-arrow` take the faded on-light step (both `aria-hidden`), and the WorkExperience panel's `.work-*` marks read the deep channels.
-- **Animations**: GSAP = one-shot entrance orchestration ONLY (see above); Framer Motion = hover/expand/enter-view states (WorkRow float, expand panels, section stagger-in). Never both on the same animation. Respect `prefers-reduced-motion` everywhere (static hero frame, no float, instant panels). Framer scroll-scrub (`useScroll`/`useTransform` bound to scroll progress) is a sanctioned lane alongside Framer state-driven animation; GSAP remains entrance-only. **The R3F lane**: the scene's frame loop READS Framer MotionValues (`useScroll`, `useVelocity`) and writes three objects itself — Framer never animates a three object, and GSAP never touches the scene.
-- **Layout**: Max-width 1440 containers, 80px side padding on desktop. Hero = full-bleed canvas stage. Archive and WorkExperience converge on the WorkRow row language; Selected Work is the pinned R3F scene stage and Skills is its own `.skills-*` list (no bento grid, no numbered table). Contact + Footer share one `.contact-footer-stage` (canvas z-0, content z-1).
-- **Tonal sections**: on ink, `--bg-tonal` (`#131722`) marks alternate sections and base sections sit on `--bg` (`#0B0E14`). Inside the light chapter the same rhythm runs on cream: `--color-surface-light-tonal` (`#EDE9E0`) for Archive and Skills, `--color-surface-light` (`#F5F2EC`) for Selected Work, Work Experience and Stats.
-- **Nav**: dark-restyled on canonical tokens — brand mark left, links center, EN/PT toggle right; unchanged markup/structure from the split variation, values now read from the dark system instead of the light palette (`.nav-link` rests at `rgba(245,242,236,.85)` near-full cream — `--text-faded` gray read muddy on raw hero paint; hover lifts to full `--text`). No availability pill (dropped pre-plan); meta lives in the hero instead. **`.nav--on-light`** is the cream-chapter variant: links `--color-ink-on-light-muted` lifting to ink on hover, deep-blue underline and brand dot, ink brand tile with cream text, and a scrolled background of `rgba(245,242,236,.85)` over a light hairline. It is toggled by an `IntersectionObserver` on **`#chapter-light`** with `rootMargin: -8% 0px -91% 0px` (the observed element widened to the whole chapter; the band is unchanged — a rootMargin cannot express a chapter), re-armed via a `MutationObserver` for the lazy chunk. `theme-color` swaps with it.
-- **Contact/Footer stage**: `FluidWaves` (`variant="backdrop"`) canvas behind dark-restyled `Contact` + rewritten `Footer` (footer marquee/ink-draw name deleted — see NO list). `footer.location` key added.
-- **Section flow**: Hero → Projects → Archive → WorkExperience (expandable) → Stats → Skills → Contact → Footer. Work-first order (baseline behavior; no reorder needed by this plan).
-- **NO**: a light theme OUTSIDE the sanctioned chapter (the hero, Contact and Footer stay ink; no light variant of the nav beyond `.nav--on-light`), bento cards, numbered-table embed rows, MarqueeDivider ghost-text dividers, ink-draw hero entrance (`HeroNameDrawing`, `glyphPaths`, extracted glyph paths), scramble text (`ScrambleText`/`useScramble`, deleted as dead code), the R3F hero accent (`HeroAccent3D`/`HeroAccentSilhouette`, deleted — R3F is back for the Selected Work scene, but the HERO stays raw WebGL), a FOURTH canvas anywhere on the page, `@react-three/drei` (not installed; per-card blob shadows replace `ContactShadows` and the camera is R3F's default), spinning loaders, spaced em-dashes (` — `) in reader-facing prose — use `·`, the horizontal curtain-split loader (two tear-half panels + LCP tear-halves), the old GSAP paint-bloom cascade (the entrance is now a Framer clipped rise gated on `entranceDone`, see above — that's current, not forbidden), a hero meta block, `LiningWavesBackdrop` (three.js — deleted; `three` is back only for the Selected Work scene, never for a backdrop), the shader pixel-quantization pass (`pixel_filter`/`PIXEL_FILTER`), the six-stain ink-bleed loader exit (stain circles + the feTurbulence roughen filter — replaced by the ks. vignette explosion), **Anton anywhere but the Selected Work title**, **a CSS entry veil on the hero** (the shader dissolve owns it), **the exit veil inside `#chapter-light`**, **a section eyebrow or number anywhere** (`.section-index`, `.stats-eyebrow`, `.scene-eyebrow` are all gone), **a DOM element that tracks the settled card** (`.scene-meta*`, `frontIndex`), **a halo or glow around a card**, and **router access, or DOM access beyond the canvas element itself, inside `src/components/canvas/**`**.
-- **Standing rule**: any palette/token change ships with a recomputed AA contrast audit across every affected text/background pair (the plan's contrast table is the authority for the current hexes) — verified, not hoped. The Plan B table below and `docs/superpowers/plans/2026-09-02-light-chapter-plan-b.md` are the authority for the on-light pairs.
-- **Contact/Footer contrast over the dimmed `FluidWaves` backdrop stage** (webgl-pivot Task 7, ratified): the Contact/Footer stage's `FluidWaves` backdrop canvas composites at `.fluid-waves-canvas--backdrop { opacity: 0.22; filter: saturate(0.7); }` over `--bg` `#0B0E14` — note `0.22`, not the spec's ~0.32; this lower value is what makes the table below pass. Worst case = brightest tricolor `#E6CC4D` under `saturate(0.7)` composited at `0.22` over `#0B0E14` ≈ `rgb(57,56,41)`. Recomputed contrast (post-remedy):
+- **Bilingual from the first commit.** Every reader-facing string exists in both `en` and `pt` as a `{ en, pt }` pair. Two documented exceptions: embed titles are Portuguese only, because the source is editorial, and the loader's two corner labels in `index.html` are English only, because they paint before React and i18n load. Decision: ADR 0001.
+- **Every animation honours `prefers-reduced-motion`.**
+- **One library per animation** (`docs/architecture.md#animation-lanes`). GSAP is one-shot entrance orchestration only. Framer Motion owns state-driven and scroll-scrubbed motion. The R3F frame loop reads Framer MotionValues and writes three objects itself. Never two lanes on one animation.
+- **A palette or token change ships with a recomputed AA audit** across every affected text/background pair, verified, not hoped. The tables are in `docs/contrast.md`, recomputed as a unit.
+- **`·` in reader-facing prose,** never a spaced em-dash. Reader-facing means site copy and i18n strings; date ranges, code comments and quoted wordmarks are exempt.
+- **TypeScript:** strict, no `any`, explicit return types on hooks and utilities.
+- **Components:** functional, with the props interface above the component.
+- **GSAP inside a component:** scope with `gsap.context()` and a ref, and return cleanup from `useEffect`. The loader exit (`src/main.tsx`) is the sanctioned exception: a module-level timeline outside React, and the only GSAP on the site.
+- **Performance:** `will-change` only while an element animates; lazy-load canvas sections behind `Suspense` with a fallback.
+- **Tailwind:** semantic class groupings, and repeated patterns become components.
 
-  | Contact/Footer text | color | size | ratio | AA needed | verdict |
-  |---|---|---|---|---|---|
-  | `.contact-title` | `--text` cream | huge | 8.9:1 | 3.0 (large) | ✅ |
-  | `.contact-title em` | `--blue-300` #7AA0ED | huge | 4.58:1 | 3.0 (large) | ✅ |
-  | `.contact-lede` | rgba(246,249,252,.6) | 18px | 5.19:1 | 4.5 | ✅ |
-  | `.contact-label` | `--text` cream | 20–32px | 8.9:1 | 4.5 | ✅ |
-  | `.contact-icon` | `--blue-200` | 16px | 4.58:1 | 4.5 | ✅ |
-  | `.footer-name` | `--text` cream | huge | 8.9:1 | 3.0 | ✅ |
-  | `.footer-*` meta / `.footer-lang` | `--text-faded` #A8A49C | 11px | 4.79:1 | 4.5 | ✅ |
-  | `.contact-num` | rgba(246,249,252,.4) | 10px | 3.19:1 | — | ✅ decorative exemption (`aria-hidden="true"`, WCAG 1.4.3 note 1 — matches `.workrow-index`, `WorkRow.tsx`) |
-  | `.contact-meta` | rgba(245,242,236,.62) | 13px, hover-revealed | 5.17:1 | 4.5 | ✅ (remedy: alpha `.5`→`.62`) |
+### Spec and plan checkbox discipline
 
-  All always-visible pairs are ≥4.5:1 (or ≥3.0:1 for large text). `.contact-num` is purely ordinal enumeration (`'01'..'04'`) with no semantic role — its accessible name comes from `.contact-label`/`href` — so it is marked `aria-hidden="true"` and exempt from 1.4.3, the same pattern already used by `.workrow-index`; no recolor needed. `.contact-meta` (the real hover-revealed email/@handle/cv-filename text) got its color alpha raised `0.5`→`0.62` (4.95:1→5.17:1) — its `opacity: 0→1` hover-reveal transition is a separate mechanism, untouched by this change.
-- **Light-chapter contrast (Plan B, ratified 2026-09-02)**. Grounds: cream `#F5F2EC` (Selected Work, Work Experience, Stats, and the wrapper), tonal cream `#EDE9E0` (Archive, Skills; also the `.pill` surface), white `#FFFFFF` (card interiors only).
+Checkboxes in `docs/superpowers/specs/` and `docs/superpowers/plans/` are the source of truth for progress, and a stale box silently breaks the next session that resumes the work.
 
-  | # | pair (element → color it resolves to) | ground | ratio | need | verdict |
-  |---|---|---|---|---|---|
-  | 1 | `.section-title`, `.workrow-title`, `.stats-row-value`, `.skills-title`, `.archive-count strong`, dropdown text, search text, `.work-highlight p`, `.pill:hover` text → ink `#0B0E14` | cream / tonal | 17.29 / 15.94 | 4.5 | ✅ |
-  | 2 | `.section-desc`, `.workrow-meta` (+ `·` separators), `.workrow-ornament`, `.workrow-panel`, `.stats-row-num`, `.stats-row-ann`, `.skills-num`, `.skills-item`, `.archive-chip`, dropdown label/caret/options, `.archive-count`, search placeholder, `.work-meta-line`, `.work-location`, `.work-mode-pill`, `.work-bullets li`, `.pill` → muted `rgba(11,14,20,.62)` | cream / tonal | 5.23 / 5.11 | 4.5 | ✅ |
-  | 3 | `.workrow-index` only (`aria-hidden="true"`, pure ordinal) → faded `rgba(11,14,20,.40)` | cream / tonal | 2.62 / 2.59 | exempt (WCAG 1.4.3 note 1, decorative; matches `.contact-num`) | ✅ exempt |
-  | 3b | `.workrow-arrow` → muted `rgba(11,14,20,.62)`. NOT on the faded step: on the expandable row it is the only visible cue that the row opens, inside a `<button aria-expanded>`, so WCAG **1.4.11** (3:1, state indicator) applies and `aria-hidden` does not exempt it | cream / tonal | 5.23 / 5.11 | 3.0 | ✅ |
-  | 4 | `.section-title em`, `.stats-row-link`, `.archive-star`, dropdown `.is-selected` → deep blue `#2A54B5` | cream / tonal | 6.20 / 5.71 | 4.5 | ✅ |
-  | 5 | `.work-highlight-label` (10px uppercase, always visible on the expanded row) → `--row-tint-deep`: `#B22B47` / `#2A54B5` / ink-muted | cream | 5.64 / 6.20 / 5.23 | 4.5 | ✅ |
-  | 6 | WorkRow title hover tint, pink slot → `#B22B47` | cream / tonal | 5.64 / 5.21 | 3.0 (large, ≥28px) | ✅ |
-  | 7 | WorkRow title hover tint, blue slot → `#2A54B5` | cream / tonal | 6.20 / 5.71 | 3.0 | ✅ |
-  | 8 | WorkRow title hover tint, yellow slot → `#7A6800` | cream / tonal | 4.94 / 4.55 | 3.0 | ✅ (also clears 4.5; the small-text substitution is aesthetic) |
-  | 9 | `.btn--ghost` (Archive load-more) text + border → ink; hover → cream on ink | tonal; ink | 15.94; 17.29 | 4.5 | ✅ |
-  | 10 | focus rings: `.workrow-*:focus-visible` outline → ink; `.stats-row-link:focus-visible` → deep blue; `.archive-search:focus` border → deep blue | cream / tonal | 15.94+; 5.71+ | 3.0 (non-text) | ✅ |
-  | 11 | `::selection` inside the chapter → cream text on deep blue | deep blue | 6.20 | 4.5 | ✅ |
-  | 12 | decorative, no text: hairlines `rgba(11,14,20,.12)`; `.skills-dot`; `.skills-item:hover` dashed border; `.work-mode-dot`, `.work-bullets li::before`, `.work-highlight` border-left (all three → `--row-tint-deep-large`, so the yellow slot is olive `#7A6800`, visible, not raw `#E6CC4D` at 1.43); `.work-mode-pill` bg `rgba(11,14,20,.06)`; `.work-highlight` bg `rgba(11,14,20,.04)`; `.pill` bg tonal + hairline border; `.pill:hover` bg `rgba(11,14,20,.06)` + deep-blue border | any | decorative | — | ✅ |
-  | 13 | nav-on-light over tonal cream: link muted on `rgba(245,242,236,.85)`-over-`#EDE9E0` | ≈ cream | ≥ 5.1 | 4.5 | ✅ |
-  | 14 | tonal cream vs cream adjacency (Archive/Skills edges against the cream sections; `.pill` on cream) | — | 1.08 | — | ✅ (a tonal step, same role as `#131722` vs `#0B0E14` on dark) |
-  | 15 | Selected Work caption on the card's white band: name ink `#0B0E14`; subtitle `rgba(11,14,20,.62)` composited on white ≈ `#686A6D`; the `↗` is decorative (`accentDeepLargeFor`) | white `#FFFFFF` | 19.32 / 5.42 | 4.5 | ✅ (rasterised text, not DOM; computed 2026-09-05) |
-## Animation Library Usage Rules
-**NEVER mix these libraries for the same animation. Each has a lane:**
+- **Plan step boxes:** the implementer edits `- [ ]` to `- [x]` immediately after that step's command lands, before starting the next step. Never batch the ticks at the end.
+- **Spec TODO boxes:** the controller ticks one only when its acceptance test passes and review approves.
+- **Before announcing a task complete,** grep its section for a remaining `- [ ]` and either tick it or say why it does not apply.
+- **When dispatching an implementer,** put the per-step ticking instruction in the dispatch prompt; a subagent does not infer it.
+- **Only edit boxes that already exist.** If the work fits none of them, revise the plan or spec first, then proceed.
 
-- **Framer Motion**: Component enter/exit animations, hover states, shared layout transitions, any animation tied to React state. Use `motion.*` components and `AnimatePresence`.
-- **GSAP + ScrollTrigger**: Scroll-pinned sequences, timeline orchestration, text character/word splitting reveals, scroll-progress parallax. Initialize in `useEffect` with proper cleanup. Use `gsap.context()` for scoping.
-- **React Three Fiber**: the Selected Work scene only (the hero is raw WebGL). Three canvases on the page, at most two live at once. Lazy-load R3F components. Keep 3D scenes simple — they should feel atmospheric, not gimmicky.
+## NO
 
-## Skill Invocation Rules (MANDATORY)
+- **A light theme outside the sanctioned chapter.** The hero, Contact and Footer stay ink; the only light nav is `.nav--on-light`.
+- **Cards or bento.** Open typographic rows, except the scene's framed cards. Rounded-full pills, chips and buttons survive where already used, on filters and tags.
+- **A scrim, halo or shader darkening under the hero text.** Adding one looks like an accessibility fix; the missing contrast IS the ratified exemption. The only sanctioned path is the opt-in `@media (prefers-contrast: more)` layer already in `src/index.css`. Decision: ADR 0004.
+- **A fourth canvas** anywhere on the page.
+- **`@react-three/drei`.** Not installed; blob shadows and R3F's default camera replace it.
+- **Anton anywhere but the Selected Work title.** Jakarta is the site voice.
+- **A halo or glow around a card.**
+- **A DOM element that tracks the settled card.** The card carries its own caption. Decision: ADR 0011.
+- **Router access anywhere in `src/components/canvas/`, and any DOM beyond the canvas element inside `src/components/canvas/scene/`.** `FluidWaves.tsx` reads `.hero-zone` layout on purpose, so the dissolve band is never a hardcoded svh ratio.
+- **A section eyebrow or number anywhere.**
+- **A CSS entry veil on the hero.** The shader's cream dissolve owns that ramp.
+- **The exit veil inside `#chapter-light`.** It is a sibling; nested, its `var(--bg)` resolves to cream and the fade disappears.
+- **A legacy alias (`--cream`, `--ink`, and the rest) read inside `#chapter-light`.** The scope re-declares canonical tokens only, so an alias renders cream on cream.
+- **`overflow` or `position` on `#chapter-light`.** Either one silently breaks the scene's sticky pin.
+- **`--color-ink-on-light-faded` (2.62:1) on always-visible text.** It is for `aria-hidden` decoration; always-visible small text takes the muted step.
 
-### For ANY visual UI work — components, sections, layouts, styling:
-ALWAYS invoke `frontend-design:frontend-design` before writing any JSX or CSS.
-This is non-negotiable. If you are about to write a component without this skill, STOP and invoke it first.
+## Where things live
 
-### For ANY new feature, section, or significant change:
-ALWAYS invoke `superpowers:brainstorming` to explore intent and requirements first.
-
-### For multi-step work spanning multiple files:
-ALWAYS invoke `superpowers:writing-plans` to create a plan before touching code.
-
-### Before writing implementation code:
-ALWAYS invoke `superpowers:test-driven-development` for logic/hooks. UI components may skip unit tests but must have clear acceptance criteria defined first.
-
-### Before declaring anything complete:
-ALWAYS invoke `superpowers:verification-before-completion`. Run `npm run build` and `npm run dev` and confirm visually. No success claims without evidence.
-
-### After completing a major feature or section:
-ALWAYS invoke `superpowers:requesting-code-review`.
-
-### When working with any library (Framer Motion, GSAP, R3F, TailwindCSS v4):
-Add "use context7" to the prompt to get current documentation. These libraries change frequently.
-
-## Spec & Plan Checkbox Discipline (MANDATORY)
-
-Specs (`docs/superpowers/specs/*.md`) and plans (`docs/superpowers/plans/*.md`) contain GFM checkboxes (`- [ ]`) that are the source of truth for progress. They MUST be kept in sync with reality. Stale boxes (work done but `- [ ]` still showing) silently break the `feat` skill, the retro, and any future session that resumes this work.
-
-**Rules:**
-
-- **Plan step boxes** (`- [ ] **Step N: ...**` inside a task): the implementer (subagent or controller) MUST edit the box from `- [ ]` to `- [x]` immediately after that step's command/action lands successfully — BEFORE moving to the next step. Do not batch ticks "at the end".
-- **Spec TODO boxes** (`- [ ] <acceptance criterion>` under `## TODO`): the controller MUST edit the box from `- [ ]` to `- [x]` only when that TODO's acceptance test passes AND code review approves. Never tick a spec TODO based on "I think it's done".
-- **Verification before claiming a task complete:** before announcing a plan task as done, grep the task's section for any remaining `- [ ]` and tick them or explain why they're not applicable. A "completed" task with un-ticked steps is a bug.
-- **Subagent dispatches:** when dispatching an implementer subagent, the dispatch prompt MUST include the explicit instruction: "after each step's command lands successfully, Edit the corresponding `- [ ]` to `- [x]` in the plan file before proceeding to the next step." Do not assume the subagent will infer this from CLAUDE.md.
-- **Never invent boxes.** Only edit checkboxes that already exist in the spec/plan. If the work doesn't fit any existing box, the plan or spec needs to be revised first — open an Edit on the doc, then proceed.
-
-## Architecture
-
-```
-src/
-  components/
-    layout/        # Header, Footer, Navigation
-    sections/      # Hero, About, Work, Skills, Contact (full-page sections)
-    ui/            # Reusable atoms: Button, Tag, AnimatedText, Cursor, etc.
-    canvas/        # R3F components (HeroBackground, ParticleField, etc.)
-  hooks/           # useSmoothScroll, useScrollProgress, useReducedMotion, etc.
-  utils/
-    animations.ts  # Shared GSAP configs, Framer Motion variants
-    constants.ts   # Design tokens not covered by Tailwind
-  data/            # Portfolio content (projects, experience, etc.) — typed
-    embeds.csv     # Source of truth for Embeds (already at public/data/embeds.csv)
-  types/           # Shared TypeScript interfaces
-    content.ts     # Project, Embed, WorkExperience types
-```
-
-## Content Types
-
-Two distinct work categories:
-
-**Projects** — fully fledged work with dedicated routes (`/projects/:slug`)
-```typescript
-interface Project {
-  id: string
-  slug: string
-  title: { en: string; pt: string }
-  description: { en: string; pt: string }
-  techStack: string[]
-  year: number
-  liveUrl?: string
-  githubUrl?: string
-  coverImage: string
-  images: string[]
-  featured: boolean
-}
-```
-
-**Embeds** — day-to-day interactives published on GZH (`gauchazh.clicrbs.com.br`), no dedicated page
-Source: `public/data/embeds.csv` — semicolon-delimited, columns:
-`DATA PUBLICAÇÃO` | `EDITORIA/COLUNISTA` | `FORMATO` (always "PROGRAMAÇÃO", ignore) | `ATIVIDADE` | `LINK MATERIA` | `NOME` | _(imagePreview — missing, to be added)_
-
-```typescript
-type EmbedType = 'SIMULADOR' | 'MAPA INTERATIVO' | 'QUIZ' | 'CALCULADORA' | 'INFOGRAFICO' | 'BUSCADOR' | 'GALERIA'
-
-interface Embed {
-  publicationDate: string       // "01/12/2023"
-  editorial: string             // "Esporte", "Saúde", "Porto Alegre", etc.
-  type: EmbedType
-  link: string                  // GZH article URL
-  title: string                 // Display title (Portuguese only — editorial content)
-  imagePreview?: string         // Path to preview image (to be populated)
-}
-```
-
-Embeds are displayed as a filterable/scrollable gallery, NOT individual pages. Filter by `type` and `editorial`. Image preview is optional — show a styled placeholder with type badge if missing.
-
-## Code Standards
-- **TypeScript**: Strict mode. No `any`. Explicit return types on hooks and utilities.
-- **Components**: Functional only. Props interfaces defined above the component.
-- **Tailwind**: Use semantic class groupings. Extract repeated patterns to components, not `@apply`.
-- **GSAP**: Always use `gsap.context()` with a ref for scoping. Always return cleanup from `useEffect`.
-- **R3F**: Wrap in `Suspense` with a fallback. Use `useFrame` sparingly — prefer declarative animations via `@react-spring/three` or Framer Motion 3D when possible.
-- **Performance**: `will-change` only when animating. Lazy-load canvas sections. Measure with Lighthouse before calling anything "done".
-
-## Context7 Trigger Libraries
-Always add "use context7" when working with:
-- TailwindCSS v4 (significantly different from v3 — always check docs)
-- Framer Motion (API changes frequently between major versions)
-- GSAP ScrollTrigger
-- @react-three/fiber or @react-three/drei
-- React 19 (new APIs like `use`, `useActionState`, etc.)
-- react-i18next (translation setup, namespace configuration)
-
-## Existing MVP Notes
-- The custom `useSmoothScroll` hook in `App.tsx` (velocity-based translate3d + skew) is worth preserving — extract to `src/hooks/useSmoothScroll.ts`
-- **Language: Bilingual EN + PT.** Implement an i18n system (recommend `react-i18next` or a simple context-based solution) from the start, not bolted on later. All content must be authored in both languages.
-- `src/utils/animations.ts` contains vanilla JS scroll/fade utils that are superseded by GSAP — can be deleted
-- Unused components in `src/components/` are from an older iteration — evaluate each before reusing
+| What | Where |
+| --- | --- |
+| Rules an agent obeys every turn | `CLAUDE.md` |
+| How each surface works | `docs/architecture.md` |
+| AA contrast tables | `docs/contrast.md` |
+| Glossary and invariants | `CONTEXT.md` |
+| Decisions with their reasoning | `docs/adr/` |
+| Records of live systems | `docs/superpowers/specs/`, `docs/superpowers/plans/` |
+| Records of retired systems | `docs/superpowers/archive/` |
+| The resume note (ignored, never tracked) | `HANDOFF.md` |
+| Tests | `tests/e2e/`, `tests/unit/` |
+| Content types | `src/types/content.ts` |
+| Content data | `src/data/`, including `src/data/embeds.csv` |
+| UI strings, both languages | `src/i18n/locales/` |
+| Stack, getting started, tree | `README.md` |
