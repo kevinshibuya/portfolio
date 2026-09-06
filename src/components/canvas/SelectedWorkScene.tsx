@@ -195,7 +195,6 @@ export function SelectedWorkScene({
   onWebglUnavailable,
 }: SelectedWorkSceneProps) {
   const sceneRefs = useRef(createSceneRefs())
-  const covers = useMemo(() => cards.map((c) => c.art), [cards])
   const titles = useMemo(() => cards.map((c) => c.title), [cards])
   const [{ supported, software }] = useState(probeWebgl)
   const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null)
@@ -337,7 +336,7 @@ export function SelectedWorkScene({
       />
       <Suspense fallback={null}>
         <Environment desktopEffects={desktopEffects} />
-        <Corridor covers={covers} sceneRefs={sceneRefs.current} />
+        <Corridor cards={cards} sceneRefs={sceneRefs.current} />
         <ReadySignal onReady={onReady} />
         <SceneWarmup sceneRefs={sceneRefs.current} />
       </Suspense>

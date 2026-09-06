@@ -20,6 +20,10 @@ export interface SceneRefs {
   cardMaterials: THREE.MeshBasicMaterial[][]
   shadows: (THREE.Mesh | null)[]
   shadowMaterials: (THREE.MeshBasicMaterial | null)[]
+  /** Card i's caption text and arrow materials; they fade with the card. */
+  captionMaterials: THREE.MeshBasicMaterial[][]
+  /** Card i's arrow plane, for the hover slide. */
+  arrows: (THREE.Mesh | null)[]
   title: THREE.Group | null
   titleMaterial: THREE.ShaderMaterial | null
   /** One texture per project title, in corridor order. */
@@ -40,6 +44,8 @@ export function createSceneRefs(): SceneRefs {
     cardMaterials: Array.from({ length: CARD_COUNT }, () => []),
     shadows: Array(CARD_COUNT).fill(null),
     shadowMaterials: Array(CARD_COUNT).fill(null),
+    captionMaterials: Array.from({ length: CARD_COUNT }, () => []),
+    arrows: Array(CARD_COUNT).fill(null),
     title: null,
     titleMaterial: null,
     titleTextures: [],

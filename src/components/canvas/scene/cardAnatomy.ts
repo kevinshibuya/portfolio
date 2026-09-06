@@ -5,8 +5,8 @@ import { CARD_W, CARD_H } from '../../../utils/sceneMotion'
  * lifted into the scene. Every measurement is the design's px value over the
  * 620px card width, so the proportions survive whatever size the card renders.
  *
- * Shared by Corridor (which builds the meshes) and SceneRig (which projects the
- * body band to place the DOM overlay), so the two can never drift apart.
+ * Shared by Corridor (which builds the meshes) and Caption (which sets its
+ * planes in the body band), so the two can never drift apart.
  */
 
 /** 12px of white frame around the cover. */
@@ -19,10 +19,24 @@ export const COVER_W = CARD_W - 2 * CARD_PAD
 export const COVER_H = COVER_W * (9.5 / 16)
 export const COVER_Y = CARD_H / 2 - CARD_PAD - COVER_H / 2
 
-/** The white band under the cover; the DOM overlay rides inside it. */
+/** The white band under the cover; the caption sits inside it. */
 export const BAND_H = CARD_H - 2 * CARD_PAD - COVER_H
 export const BAND_TOP_Y = -CARD_H / 2 + CARD_PAD + BAND_H
 export const BAND_BOTTOM_Y = -CARD_H / 2 + CARD_PAD
 
 /** Cover sits just proud of the frame so the two never z-fight. */
 export const COVER_Z = 0.002
+/** The caption planes sit proud of the frame too, above the cover's step. */
+export const CAPTION_Z = 0.003
+
+/**
+ * The caption, in design px over the 620-px card (the name's 26 px is
+ * CAPTION_NAME_PX in sceneMotion, where the legibility rule reads it): name
+ * and subtitle left-aligned at the frame pad, the arrow right-aligned at it.
+ */
+export const CAPTION_INSET_PX = 12
+export const CAPTION_SUBTITLE_PX = 14
+export const CAPTION_LINE_GAP_PX = 4
+export const CAPTION_ARROW_PX = 22
+/** Space kept between the caption text and the arrow. */
+export const CAPTION_GAP_PX = 12

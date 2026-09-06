@@ -166,6 +166,9 @@ export function SceneRig({ progress, reducedMotion, sceneRefs }: SceneRigProps) 
       group.visible = pose.visible
       const materials = sceneRefs.cardMaterials[i]
       if (materials) for (const m of materials) m.opacity = pose.opacity
+      // The caption belongs to the card: same opacity, same fog, same fate.
+      const captions = sceneRefs.captionMaterials[i]
+      if (captions) for (const m of captions) m.opacity = pose.opacity
 
       // The shadow lives and dies with its card, so a card passing the lens
       // never leaves its shadow pooled on an empty floor.

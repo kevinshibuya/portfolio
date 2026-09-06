@@ -214,10 +214,10 @@ export function captionScale(cardPx: number): number   // texture px per card un
 
 **Boundaries:** No pointer events, no hover. No changes to the title or to `titleTexture.ts` (Task 7 refactors it onto this rasteriser only if trivial; otherwise they stay separate). No DOM text.
 
-- [ ] **Step 1: Write `textTexture.test.ts` (measure + captionScale); run red.**
-- [ ] **Step 2: Implement `textTexture.ts`; unit tests green.**
-- [ ] **Step 3: `Caption.tsx`, cardAnatomy constants, sceneRefs fields, Corridor mount + registration, rig opacity; typecheck/lint clean.**
-- [ ] **Step 4: Smoke on :5180 at both viewports (screenshots to the scratchpad; report cap-height measurement); language switch check; e2e scrub + perf green; commit `feat(scene): caption on the card`.**
+- [x] **Step 1: Write `textTexture.test.ts` (measure + captionScale); run red.**
+- [x] **Step 2: Implement `textTexture.ts`; unit tests green.**
+- [x] **Step 3: `Caption.tsx`, cardAnatomy constants, sceneRefs fields, Corridor mount + registration, rig opacity; typecheck/lint clean.**
+- [x] **Step 4: Smoke on :5180 at both viewports (screenshots to the scratchpad; report cap-height measurement); language switch check; e2e scrub + perf green; commit `feat(scene): caption on the card`.**
 
 ---
 

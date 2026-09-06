@@ -14,6 +14,8 @@ import {
   COVER_RADIUS,
 } from './cardAnatomy'
 import type { SceneRefs } from './sceneRefs'
+import type { SceneCard } from '../SelectedWorkScene'
+import { Caption } from './Caption'
 
 /** The shadow pools under the card, a little wider than it. */
 const SHADOW_W = 1.25 * CARD_W
@@ -24,8 +26,8 @@ const SHADOW_Y = 0.002
 const BACKDROP_ORDER = -1
 
 interface CorridorProps {
-  /** Cover art per card; an empty string renders the frame alone. */
-  covers: string[]
+  /** The featured projects in corridor order; an empty `art` renders the frame alone. */
+  cards: SceneCard[]
   sceneRefs: SceneRefs
 }
 
@@ -104,7 +106,7 @@ function CardCover({ url, geometry, materials }: CardCoverProps) {
  * written by SceneRig's frame loop through the refs registered below, so a card
  * never re-renders while the camera travels.
  */
-export function Corridor({ covers, sceneRefs }: CorridorProps) {
+export function Corridor({ cards, sceneRefs }: CorridorProps) {
   const gl = useThree((state) => state.gl)
   const groups = useRef<(THREE.Group | null)[]>([])
   const frameMaterials = useRef<(THREE.MeshBasicMaterial | null)[]>([])
@@ -197,13 +199,14 @@ export function Corridor({ covers, sceneRefs }: CorridorProps) {
               fog
             />
           </mesh>
-          {covers[i] ? (
+          {cards[i]?.art ? (
             <CardCover
-              url={covers[i]}
+              url={cards[i].art}
               geometry={coverGeometry}
               materials={sceneRefs.cardMaterials[i]}
             />
           ) : null}
+          {cards[i] ? <Caption index={i} card={cards[i]} sceneRefs={sceneRefs} /> : null}
         </group>
       ))}
 
