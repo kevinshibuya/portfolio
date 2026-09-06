@@ -95,9 +95,15 @@ function wrapLines(
 
 export async function drawTitleTexture(
   text: string,
-  { maxLinePx, fontPx }: DrawTitleOptions,
+  { maxLinePx, fontPx: requestedFontPx }: DrawTitleOptions,
 ): Promise<TitleTexture> {
   const lowercase = text.toLowerCase()
+  // A last line of defence at the boundary: a non-positive em makes the font
+  // shorthand unparseable, and `document.fonts.load` REJECTS on it. The rig
+  // clamps its fit, so this should be unreachable — but a rejected draw here
+  // is an unhandled rejection and leaves the title permanently stale, which is
+  // too sharp an edge to leave undefended.
+  const fontPx = Math.max(1, requestedFontPx)
   await document.fonts.load(fontSpec(fontPx), lowercase)
 
   const ctx = context2d()

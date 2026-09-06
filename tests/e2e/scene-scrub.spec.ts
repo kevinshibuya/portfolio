@@ -73,6 +73,19 @@ test('a full scrub raises no console error and never rejects a promise', async (
     await scrollToFraction(page, fraction)
   }
   expect(problems).toEqual([])
+
+  // Short viewports, which nothing else sweeps. Under ~225 CSS px of height the
+  // title band closes: its bottom passes its top, and an unclamped shrink used
+  // to drive a NEGATIVE font size into the rasteriser — `document.fonts.load`
+  // rejects an unparseable shorthand, unhandled, and the title then stayed
+  // stale for the session. Reachable by dragging a window short.
+  for (const height of [400, 260, 220, 180]) {
+    await page.setViewportSize({ width: 1440, height })
+    await page.waitForTimeout(400)
+    await scrollToFraction(page, 0.5)
+    await page.waitForTimeout(400)
+    expect(problems, `at 1440x${height}`).toEqual([])
+  }
 })
 
 test('scrubbing the corridor swaps the settled slot, and reversing restores it', async ({

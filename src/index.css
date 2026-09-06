@@ -2244,7 +2244,13 @@ body[data-loader-state="loading"] {
   position: fixed;
   left: 50%; top: 16px;
   transform: translateX(-50%);
-  z-index: 50;
+  /* ABOVE the nav (z-index 100). Both are fixed in the root stacking context
+     and the pill lands at 16-52px, inside the nav's own band — at z-index 50 it
+     was a smudge behind the scrolled nav's background, colliding with the
+     centre links. ADR 0011 removed the DOM card link, so these skiplinks are
+     now the ONLY keyboard path into a project; they cannot be the thing that
+     hides. */
+  z-index: 120;
   padding: 8px 16px;
   border-radius: 999px;
   border: 1px solid var(--hairline);

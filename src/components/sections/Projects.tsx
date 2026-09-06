@@ -92,7 +92,11 @@ export function Projects() {
 
   return (
     <section id="projects" className="section projects-scene-section">
-      {/* Keyboard/SR path: visually-hidden-until-focused project index, no scroll-jacking. */}
+      {/* Keyboard/SR path: visually-hidden-until-focused project index, no
+          scroll-jacking. Suppressed in the no-WebGL fallback, which puts the
+          same four projects in the flow as real links — rendering both gives
+          keyboard and SR users every project twice. */}
+      {webglUnavailable ? null : (
       <nav className="scene-skiplinks" aria-label={t('sections.projects.stack.indexLabel')}>
         {featured.map((p) => (
           <Link key={p.id} className="scene-skiplink" to={`/projects/${p.slug}`}>
@@ -100,6 +104,7 @@ export function Projects() {
           </Link>
         ))}
       </nav>
+      )}
 
       {webglUnavailable ? (
         /* No WebGL2, or the context was lost: the four projects in normal

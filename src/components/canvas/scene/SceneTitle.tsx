@@ -104,7 +104,12 @@ const fragmentShader = /* glsl */ `
       a = (wOut > 0.0 ? blurred(uTexA, uvA, uTexelA, uSigmaA * t, uBaseLodA) * wOut : 0.0)
         + (wIn > 0.0 ? blurred(uTexB, uvB, uTexelB, uSigmaB * (1.0 - t), uBaseLodB) * wIn : 0.0);
     }
-    float w = fwidth(a) * 0.75;
+    // Floored: fwidth is exactly 0 wherever the coverage is flat across the
+    // quad, which on a settled plateau is most of the plane, and smoothstep is
+    // undefined when its edges are equal (GLSL ES 3.0). Conforming drivers
+    // divide and clamp to the right answer, so this changes no pixel there —
+    // it just stops relying on that.
+    float w = max(fwidth(a) * 0.75, 1e-5);
     float alpha = smoothstep(uThreshold - w, uThreshold + w, a);
     if (alpha < 0.02) discard;
     gl_FragColor = vec4(uColor, alpha);

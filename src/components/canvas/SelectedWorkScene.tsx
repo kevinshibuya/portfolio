@@ -209,8 +209,11 @@ export function SelectedWorkScene({
   const [{ supported, software }] = useState(probeWebgl)
   const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null)
   const [inView, setInView] = useState(false)
+  // Reduced motion mounts no composer: spec 2026-09-03 Q9 is explicit that it
+  // gets "no depth of field", and the grain rides the same pass. Headless can
+  // never catch this — a software rasteriser skips the composer anyway.
   const [desktopEffects, setDesktopEffects] = useState(
-    () => hasDesktopEffects() && !software,
+    () => hasDesktopEffects() && !software && !reducedMotion,
   )
   const failed = useRef(false)
 
@@ -232,8 +235,15 @@ export function SelectedWorkScene({
 
   // Pause off screen. The canvas element IS the wrap's only content and fills
   // it exactly, so observing it observes the wrap.
+  // Visibility is observed under reduced motion TOO. FluidWaves already does
+  // this (its own comment marks it a prior review's fix); the scene was written
+  // later and skipped it, so `data-paused` never appeared on this canvas in the
+  // reduced-motion path — and `contact-waves.spec.ts` counts live canvases with
+  // `canvas:not([data-paused])`, so the at-most-two-live invariant silently
+  // miscounted there. The frameloop stays `demand` under reduced motion; this
+  // only keeps the reported state honest.
   useEffect(() => {
-    if (!gl || reducedMotion) return
+    if (!gl) return
     const el = gl.domElement
     const io = new IntersectionObserver(
       ([entry]) => setInView(entry.isIntersecting),
@@ -241,19 +251,16 @@ export function SelectedWorkScene({
     )
     io.observe(el)
     return () => io.disconnect()
-  }, [gl, reducedMotion])
+  }, [gl])
 
   // Data attributes go on the REAL canvas: R3F forwards <Canvas> props to its
   // wrapper div, where the shared canvas-rule selectors would never find them.
   useEffect(() => {
     if (!gl) return
     const el = gl.domElement
-    if (reducedMotion) {
-      el.dataset.static = 'true'
-      delete el.dataset.paused
-      return
-    }
-    delete el.dataset.static
+    if (reducedMotion) el.dataset.static = 'true'
+    else delete el.dataset.static
+    // Visibility is reported for every canvas, reduced motion included.
     if (inView) delete el.dataset.paused
     else el.dataset.paused = 'true'
   }, [gl, inView, reducedMotion])
@@ -262,13 +269,13 @@ export function SelectedWorkScene({
   useEffect(() => {
     const onResize = () => {
       setDesktopEffects((current) => {
-        const next = hasDesktopEffects() && !software
+        const next = hasDesktopEffects() && !software && !reducedMotion
         return next === current ? current : next
       })
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [software])
+  }, [software, reducedMotion])
 
   // Pointer tilt, in NDC over the canvas. Fine pointers only: a touch drag
   // would otherwise leave the front card stuck at whatever angle it was

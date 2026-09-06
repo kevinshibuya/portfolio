@@ -51,6 +51,12 @@ const TITLE_COUNTER_TILT = -0.25
 const SHADOW_ALPHA = 0.28
 /** Ambient bob amplitude, mirrored from sceneMotion so the ratio is exact. */
 const AMBIENT_Y = 0.01 * CARD_H
+/**
+ * The title never shrinks below this. A viewport short enough to close the band
+ * entirely would otherwise drive the fit to zero or past it; at this floor the
+ * title is tiny but real, and every downstream consumer stays well-defined.
+ */
+const TITLE_MIN_FIT = 0.05
 /** The fit may drift this much from the drawn one before a redraw is asked for. */
 const TITLE_REDRAW_TOLERANCE = 0.01
 
@@ -91,7 +97,14 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
   // from the production build, which is why those smokes run on the dev server.
   useEffect(() => {
     if (!import.meta.env.DEV) return
-    ;(window as unknown as { __scene?: SceneRefs }).__scene = sceneRefs
+    const holder = window as unknown as { __scene?: SceneRefs }
+    holder.__scene = sceneRefs
+    // Released on unmount: without this the handle outlives the scene and pins
+    // `sceneRefs` and every disposed three resource behind it. DEV only — the
+    // whole effect is stripped from the production build.
+    return () => {
+      if (holder.__scene === sceneRefs) delete holder.__scene
+    }
   }, [sceneRefs])
 
   useFrame((state, delta) => {
@@ -360,12 +373,23 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
       ? titleBand(cardTop, navPx, g.heightPx, g.titleClearance)
       : null
     if (band) {
-      const available = band.bottom - band.top
+      // CLAMPED: `band.bottom - band.top` goes NEGATIVE once the viewport is
+      // shorter than ~225 CSS px (the nav ceiling crosses the card's top edge),
+      // and an unclamped shrink then drove a negative fit all the way into the
+      // rasteriser — `document.fonts.load('400 -0.74px Anton')` rejects, and
+      // because the draw is fired as `void draw()` that is an unhandled
+      // rejection. Worse, `scaleRef` had already taken the negative value, so
+      // `titleRedraw`'s equality guard swallowed every retry and the title
+      // stayed dead for the session. Observed at 1440×220; reachable by
+      // dragging a window short or embedding the page in a short frame.
+      const available = Math.max(0, band.bottom - band.top)
       // Shrink only if even the whole band cannot hold the tallest title.
       const tallest = Math.max(...inkAbove.map((a, i) => a + inkBelow[i]))
       const tallestFrac = (fit * tallest) / visibleH
       if (tallestFrac > available && tallest > 0) fit *= available / tallestFrac
     }
+    // Whatever the band did, the title stays a real, drawable size.
+    fit = clamp(fit, TITLE_MIN_FIT, 1)
     // The textures are rasterised for a fit; hold that exact value while the
     // computed one stays within tolerance (so the rest LOD is exactly 0), and
     // ask for one redraw when it moves. The redraw converges in one step: the
@@ -433,7 +457,11 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
 
     // The seam itself, in plane uv: the pair's wider canvas decides the travel
     // and one CSS em at the title's distance sizes the seam.
-    const emWorld = g.titleCapPx * worldPerPx
+    // `capScale` included so the seam is measured in the em the title is
+    // DISPLAYED at — `uSigma` above already uses the drawn em (`m.emPx`), so
+    // without it a phone (capScale ≈ 0.9) got a 1.33-em seam around a 0.1-em
+    // blur and the two constants meant different things.
+    const emWorld = g.titleCapPx * capScale * worldPerPx
     const halfExtent = Math.max(naturalW[indexA], naturalW[indexB]) / (2 * planeW)
     const seam = seamFor(seamFrac, halfExtent, (SEAM_WIDTH_EM * emWorld) / planeW)
     u.uFront.value = seam.front
