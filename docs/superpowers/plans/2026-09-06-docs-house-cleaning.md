@@ -28,19 +28,19 @@
 - `.gitignore`: modify: the `HANDOFF.md` line becomes `HANDOFF*.md`; its comment line becomes `# AI session scratch. Durable AI docs (CLAUDE.md, docs/) stay tracked; HANDOFF archives are kept locally, ignored.` (the current comment carries a spaced em-dash); add `perf/reports/` with the comment `# perf harness output (the harness lives on perf/hero-harness)` after the Playwright block. Nothing else changes.
 - `.git/info/exclude`: modify: delete the two lines `/.claude/RESUME.md` and `HANDOFF*.md`. The `**/.claude/*` lines are harness-owned and stay.
 - `.claude/RESUME.md`: delete (an August near-limit checkpoint, stale).
-- The five tracked `HANDOFF-*.archived.md`: `git rm --cached` only, files stay on disk. Seven exist on disk; two are already untracked, so the glob cannot be passed to git.
+- The five tracked `HANDOFF-*.archived.md`: `git rm --cached` only, files stay on disk. Eight exist on disk (the eighth was archived by the planning session itself); three are already untracked, so the glob cannot be passed to git.
 - `tmp/house-cleaning/`: create (empty for now).
 
-**Acceptance check:** Before Step 3: `git check-ignore -v --no-index HANDOFF-press-revamp-plan2.archived.md` prints `.git/info/exclude:…:HANDOFF*.md` (plain `check-ignore` skips tracked files and prints nothing). After Step 5: `git check-ignore -v HANDOFF-press-revamp-plan2.archived.md perf/reports/x.json` prints two `.gitignore:` lines; `git status --short` shows exactly five `D ` lines and nothing else; `ls HANDOFF-*.archived.md | wc -l` is 7; `test ! -e .claude/RESUME.md`; `grep -c ' — ' .gitignore` is 0.
+**Acceptance check:** Before Step 3: `git check-ignore -v --no-index HANDOFF-press-revamp-plan2.archived.md` prints `.git/info/exclude:…:HANDOFF*.md` (plain `check-ignore` skips tracked files and prints nothing). After Step 5: `git check-ignore -v HANDOFF-press-revamp-plan2.archived.md perf/reports/x.json` prints two `.gitignore:` lines; `git status --short` shows exactly five `D ` lines and nothing else; `ls HANDOFF-*.archived.md | wc -l` is 8; `test ! -e .claude/RESUME.md`; `grep -c ' — ' .gitignore` is 0.
 
 **Boundaries:** Do not touch `perf/reports` contents, `prompt.md`, `.superpowers/`. Do not add `perf/` as a whole to the ignore file: the harness branch tracks `perf/*.mjs` and `perf/baseline.json`.
 
 - [x] **Step 1:** `git fetch origin && git checkout -b docs/house-cleaning origin/staging`; `git branch --show-current` prints `docs/house-cleaning`; `git diff --stat HEAD origin/staging` is empty.
-- [ ] **Step 2:** `git add` the plan and the spec; commit `docs: house-cleaning spec and plan`. `mkdir -p tmp/house-cleaning`.
-- [ ] **Step 3:** Run the "before" probe. Edit `.gitignore` (three lines). `git check-ignore -v perf/reports/x.json` resolves to `.gitignore`.
-- [ ] **Step 4:** Remove the two lines from `.git/info/exclude`; `rm .claude/RESUME.md`.
-- [ ] **Step 5:** `git rm --cached $(git ls-files 'HANDOFF-*.archived.md')`; run the "after" acceptance check.
-- [ ] **Step 6:** Tick this task's boxes; commit `chore(docs): untrack session handoffs, ignore perf reports`.
+- [x] **Step 2:** `git add` the plan and the spec; commit `docs: house-cleaning spec and plan`. `mkdir -p tmp/house-cleaning`.
+- [x] **Step 3:** Run the "before" probe. Edit `.gitignore` (three lines). `git check-ignore -v perf/reports/x.json` resolves to `.gitignore`.
+- [x] **Step 4:** Remove the two lines from `.git/info/exclude`; `rm .claude/RESUME.md`.
+- [x] **Step 5:** `git rm --cached $(git ls-files 'HANDOFF-*.archived.md')`; run the "after" acceptance check.
+- [x] **Step 6:** Tick this task's boxes; commit `chore(docs): untrack session handoffs, ignore perf reports`.
 
 ### Task 2: Archive the retired records
 
