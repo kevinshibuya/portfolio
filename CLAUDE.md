@@ -37,7 +37,7 @@ Nothing was lost in that incident because `staging` retained every commit. Keep 
 
 ## Standing rules
 
-- **Bilingual from the first commit.** Every reader-facing string exists in both `en` and `pt` as a `{ en, pt }` pair. Decision: ADR 0001.
+- **Bilingual from the first commit.** Every reader-facing string exists in both `en` and `pt` as a `{ en, pt }` pair. Two documented exceptions: embed titles are Portuguese only, because the source is editorial, and the loader's two corner labels in `index.html` are English only, because they paint before React and i18n load. Decision: ADR 0001.
 - **Every animation honours `prefers-reduced-motion`.**
 - **One library per animation** (`docs/architecture.md#animation-lanes`). GSAP is one-shot entrance orchestration only. Framer Motion owns state-driven and scroll-scrubbed motion. The R3F frame loop reads Framer MotionValues and writes three objects itself. Never two lanes on one animation.
 - **A palette or token change ships with a recomputed AA audit** across every affected text/background pair, verified, not hoped. The tables are in `docs/contrast.md`, recomputed as a unit.

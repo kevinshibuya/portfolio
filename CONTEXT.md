@@ -133,7 +133,7 @@ The resume note at the repo root, always present, never tracked. Superseded ones
 
 ## Invariants
 
-- Every reader-facing string exists in both `en` and `pt`. (`src/types/content.ts`, ADR 0001)
+- Every reader-facing string exists in both `en` and `pt`, except embed titles (Portuguese only, editorial source) and the loader's two corner labels in `index.html` (English only, painted before i18n loads). (`src/types/content.ts`, `index.html`, ADR 0001)
 - No spaced em-dash (` — `) in reader-facing prose; use `·`. Date ranges, code comments and quoted wordmarks are exempt. (`CLAUDE.md`)
 - Every animation honours `prefers-reduced-motion`. (`CLAUDE.md`)
 - At most two canvases live at once, three mounted (hero, Selected Work scene, backdrop); a fourth is forbidden. Off-screen canvases pause. (ADR 0009, `docs/architecture.md#canvases`)
