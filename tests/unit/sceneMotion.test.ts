@@ -40,6 +40,9 @@ import {
   CARD_MIN_PX,
   titleBand,
   TITLE_WIDTH_CAP,
+  TITLE_WIDTH_CAP_PORTRAIT,
+  TITLE_CLEARANCE,
+  TITLE_CLEARANCE_PORTRAIT,
   scrollTargetFor,
 } from '../../src/utils/sceneMotion'
 
@@ -288,7 +291,11 @@ describe('sceneGeometry', () => {
   it('puts the title a quarter spacing beyond the slot and clamps its cap height', () => {
     const g = sceneGeometry(1440, 900)
     expect(g.titleDistance).toBeCloseTo(g.D + 0.25 * g.spacing, 10)
-    expect(sceneGeometry(393, 851).titleCapPx).toBe(56)
+    // Portrait floors much higher: 9% of a phone's width is 35px, so the
+    // floor is what decides the title there, and 56 read too small
+    // against the card (0.14 of it, against the desktop's 0.167).
+    expect(sceneGeometry(393, 851).titleCapPx).toBe(72)
+    expect(sceneGeometry(600, 400).titleCapPx).toBe(56)
     expect(sceneGeometry(1920, 1080).titleCapPx).toBe(150)
     expect(sceneGeometry(1440, 900).titleCapPx).toBeCloseTo(129.6, 6)
   })
@@ -451,8 +458,16 @@ describe('titleBand', () => {
     expect(band.top).toBeCloseTo(0.0911, 4)
     expect(band.bottom).toBeCloseTo(0.39, 10)
   })
-  it('caps the title at 0.8 of the frame width', () => {
+  it('caps the title at 0.8 of the frame width, 0.94 in portrait', () => {
     expect(TITLE_WIDTH_CAP).toBe(0.8)
+    expect(TITLE_WIDTH_CAP_PORTRAIT).toBe(0.94)
+    expect(sceneGeometry(1440, 900).titleWidthCap).toBe(TITLE_WIDTH_CAP)
+    expect(sceneGeometry(390, 844).titleWidthCap).toBe(TITLE_WIDTH_CAP_PORTRAIT)
+  })
+  it('gives the portrait title far more air above the card', () => {
+    expect(sceneGeometry(1440, 900).titleClearance).toBe(TITLE_CLEARANCE)
+    expect(sceneGeometry(390, 844).titleClearance).toBe(TITLE_CLEARANCE_PORTRAIT)
+    expect(TITLE_CLEARANCE_PORTRAIT).toBeGreaterThan(TITLE_CLEARANCE)
   })
 })
 

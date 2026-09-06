@@ -52,6 +52,26 @@ export const CAPTION_MIN_NAME_PX = 12
 export const CARD_MIN_PX = Math.ceil((CARD_MAX_PX * CAPTION_MIN_NAME_PX) / CAPTION_NAME_PX)
 /** The title never spans more than this fraction of the frame width. */
 export const TITLE_WIDTH_CAP = 0.8
+/**
+ * …except in portrait, where it may run nearly edge to edge.
+ *
+ * On a phone the title is WIDTH-bound, never cap-bound: `titleCapPx` floors at
+ * 56, but the fit that the width cap forces (0.88 at 390 px) cancels any
+ * increase to it exactly. So this is the only knob that makes the phone title
+ * bigger, and at 0.94 the displayed cap lands at ~65 px — a title:card ratio of
+ * 0.19, which is the desktop ratio. The title reads a shade wider than the
+ * 0.88-width card; that is the intent, not an overflow.
+ */
+export const TITLE_WIDTH_CAP_PORTRAIT = 0.94
+
+/**
+ * Air between the title's lowest ink and the settled card's top edge, as a
+ * fraction of the frame height. Portrait gets far more of it: the card is
+ * 0.88 of the width there and dominates the frame, and the phone band has the
+ * headroom to spare (267 px available against a ~170 px title at 390×844).
+ */
+export const TITLE_CLEARANCE = 0.012
+export const TITLE_CLEARANCE_PORTRAIT = 0.045
 
 /** The settled card under a pointer lifts toward the camera and grows a touch. */
 export const HOVER_LIFT = 0.03 * CARD_W
@@ -224,6 +244,10 @@ export interface SceneGeometry {
   camY: number
   titleDistance: number
   titleCapPx: number
+  /** Widest the title may run, as a fraction of the frame width. */
+  titleWidthCap: number
+  /** Air above the settled card's top edge, as a fraction of the frame height. */
+  titleClearance: number
   near: number
   far: number
 }
@@ -292,7 +316,14 @@ export function sceneGeometry(widthPx: number, heightPx: number): SceneGeometry 
     lateral,
     camY,
     titleDistance: D + 0.25 * spacing,
-    titleCapPx: clamp(0.09 * widthPx, 56, 150),
+    // 0.09 of the width, floored — and the portrait floor is much higher.
+    // A phone's 9% is 35 px, so the floor is what actually decides the title
+    // there, and at 56 the title read at 0.14 of the card against the desktop's
+    // 0.167. 72 restores that ratio; the wider width cap above is what makes
+    // the room for it, and the wrap absorbs whatever does not fit on one line.
+    titleCapPx: clamp(0.09 * widthPx, aspect < 1 ? 72 : 56, 150),
+    titleWidthCap: aspect < 1 ? TITLE_WIDTH_CAP_PORTRAIT : TITLE_WIDTH_CAP,
+    titleClearance: aspect < 1 ? TITLE_CLEARANCE_PORTRAIT : TITLE_CLEARANCE,
     near: 0.05,
     far: D + 4 * spacing,
   }

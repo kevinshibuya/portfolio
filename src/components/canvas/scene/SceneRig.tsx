@@ -13,7 +13,6 @@ import {
   ARROW_SLIDE_PX,
   FOV_DEG,
   TITLE_CENTER,
-  TITLE_WIDTH_CAP,
   titleBand,
   CORRIDOR_DEPTH,
   overturePose,
@@ -52,8 +51,6 @@ const TITLE_COUNTER_TILT = -0.25
 const SHADOW_ALPHA = 0.28
 /** Ambient bob amplitude, mirrored from sceneMotion so the ratio is exact. */
 const AMBIENT_Y = 0.01 * CARD_H
-/** Frame fractions the title keeps between its lowest ink and the card top. */
-const TITLE_CLEARANCE = 0.012
 /** The fit may drift this much from the drawn one before a redraw is asked for. */
 const TITLE_REDRAW_TOLERANCE = 0.01
 
@@ -346,13 +343,13 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
     // every title on TITLE_CENTER instead would force a scale-down driven by
     // the tallest one, halving every one-line title to pay for it. The band's
     // ceiling is the nav: 16 px under it, never behind it.
-    let fit = Math.min(1, (TITLE_WIDTH_CAP * visibleW) / planeW)
+    let fit = Math.min(1, (g.titleWidthCap * visibleW) / planeW)
     const below = inkBelow[indexA] + (inkBelow[indexB] - inkBelow[indexA]) * blend
     const above = inkAbove[indexA] + (inkAbove[indexB] - inkAbove[indexA]) * blend
     let centreFrac = TITLE_CENTER
     const cardTop = cardRect.current?.top
     const band = cardTop !== undefined
-      ? titleBand(cardTop, navPx, g.heightPx, TITLE_CLEARANCE)
+      ? titleBand(cardTop, navPx, g.heightPx, g.titleClearance)
       : null
     if (band) {
       const available = band.bottom - band.top

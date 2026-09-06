@@ -2195,6 +2195,15 @@ body[data-loader-state="loading"] {
 .projects-scene-section {
   overflow: visible; /* never clip the sticky descendant */
   background: var(--color-surface-light);
+  /* FULL-BLEED, deliberately: the stage is a viewport, not a column. The
+     corridor overflows the frame by design (a card mid-approach, the overture
+     growing past 0.7 of the width), and that overflow has to clip at the
+     VIEWPORT edge to read as bleed. Under `.section`'s 1440 cap and 80px
+     gutters it clipped 80px inside instead — a hard vertical edge standing on
+     cream. Overrides `.section` and its 20px phone gutter by source order. */
+  max-width: none;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .scene-scroll {
@@ -2253,7 +2262,9 @@ body[data-loader-state="loading"] {
   display: flex;
   flex-direction: column;
   gap: 28px;
-  max-width: 620px;
+  /* The section is full-bleed, so the fallback carries its own gutter — it is
+     ordinary flow content, not stage. */
+  width: min(620px, 100% - 40px);
   margin: 96px auto 0;
 }
 .scene-fallback-card {
