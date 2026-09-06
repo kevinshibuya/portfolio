@@ -42,6 +42,13 @@ test('reduced motion keeps the pin and swaps cards without flight', async ({ pag
   const canvas = page.locator('#projects canvas[data-canvas="selected-work-scene"]')
   await expect(canvas).toHaveAttribute('data-slot', '0')
 
+  // The overture is a still frame at the top and absent once the cards show.
+  await expect(canvas).toHaveAttribute('data-overture', 'false')
+  await scrollToFraction(page, 0)
+  await expect(canvas).toHaveAttribute('data-overture', 'true')
+  await scrollToFraction(page, 0.3333)
+  await expect(canvas).toHaveAttribute('data-overture', 'false')
+
   // Short of the segment midpoint (playhead ≈ 0.48): still card 0.
   await scrollToFraction(page, 0.44)
   await expect(canvas).toHaveAttribute('data-slot', '0')

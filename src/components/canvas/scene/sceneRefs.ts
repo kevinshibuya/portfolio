@@ -31,6 +31,9 @@ export interface SceneRefs {
   hover: { index: number; amount: number }
   title: THREE.Group | null
   titleMaterial: THREE.ShaderMaterial | null
+  /** The overture line's plane and material; the rig places and fades them. */
+  overture: THREE.Mesh | null
+  overtureMaterial: THREE.MeshBasicMaterial | null
   /** One texture per project title, in corridor order. */
   titleTextures: THREE.CanvasTexture[]
   /** Sizes of those textures, so the rig can map each to its natural size. */
@@ -59,6 +62,8 @@ export function createSceneRefs(): SceneRefs {
     hover: { index: -1, amount: 0 },
     title: null,
     titleMaterial: null,
+    overture: null,
+    overtureMaterial: null,
     titleTextures: [],
     titleMetrics: [],
     titleRedraw: null,

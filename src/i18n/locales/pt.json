@@ -32,6 +32,7 @@
   "sections": {
     "projects": {
       "heading": "trabalhos selecionados",
+      "overture": "algumas coisas que construí",
       "stack": {
         "viewProject": "ver",
         "indexLabel": "projetos selecionados"

@@ -335,9 +335,9 @@ export function captionScale(cardPx: number): number   // texture px per card un
 
 **Boundaries:** Do not change the approach camera (Task 2 owns it) or the post pass (Task 7 owns it). No DOM text. No GSAP.
 
-- [ ] **Step 1: i18n keys; e2e overture assertions; run red.**
-- [ ] **Step 2: `Overture.tsx`, sceneRefs, scene mount, rig pose/alpha/breath/reduced-motion and the writer.**
-- [ ] **Step 3: Typecheck/lint/vitest; e2e green; smoke screenshots at 0, 0.1, 0.2, 0.2222 to the scratchpad (crisp at 0 and 0.1; the line is on the eye line, upper third); commit `feat(scene): the overture`.**
+- [x] **Step 1: i18n keys; e2e overture assertions; run red.**
+- [x] **Step 2: `Overture.tsx`, sceneRefs, scene mount, rig pose/alpha/breath/reduced-motion and the writer.**
+- [x] **Step 3: Typecheck/lint/vitest; e2e green; smoke screenshots at 0, 0.1, 0.2, 0.2222 to the scratchpad (crisp at 0 and 0.1; the line is on the eye line, upper third); commit `feat(scene): the overture`.**
 
 ---
 

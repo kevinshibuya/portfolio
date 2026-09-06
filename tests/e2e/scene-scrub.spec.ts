@@ -84,6 +84,28 @@ test('a full scrub never re-registers the corridor (no react state on scroll)', 
   await expect(canvas).toHaveAttribute('data-slot', '0')
 })
 
+test('the overture line stands at the top and is gone once the cards read', async ({
+  page,
+}) => {
+  await openScene(page)
+  const canvas = page.locator(CANVAS)
+
+  await scrollToFraction(page, 0)
+  await expect(canvas).toHaveAttribute('data-overture', 'true')
+  await scrollToFraction(page, 0.1)
+  await expect(canvas).toHaveAttribute('data-overture', 'true')
+  // The approach: the line has flown past and the cards are in the distance.
+  // Just past the −0.5 boundary (0.2222): a one-pixel scroll rounding would
+  // otherwise land a hair inside the overture on some viewports.
+  await scrollToFraction(page, 0.23)
+  await expect(canvas).toHaveAttribute('data-overture', 'false')
+  await scrollToFraction(page, 0.3333)
+  await expect(canvas).toHaveAttribute('data-overture', 'false')
+  // Exactly reversible.
+  await scrollToFraction(page, 0)
+  await expect(canvas).toHaveAttribute('data-overture', 'true')
+})
+
 test('clicking the settled card opens its project', async ({ page }) => {
   await openScene(page)
   await scrollToFraction(page, 0.3333)

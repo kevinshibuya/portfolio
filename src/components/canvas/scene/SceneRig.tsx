@@ -15,6 +15,9 @@ import {
   TITLE_CENTER,
   TITLE_WIDTH_CAP,
   titleBand,
+  CORRIDOR_DEPTH,
+  overturePose,
+  overtureZ,
   segmentFor,
   settleFrac,
   morphValues,
@@ -84,6 +87,7 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
   const cameraRef = useRef<THREE.Camera | null>(null)
   const cardRect = useRef<Rect | null>(null)
   const lastSlot = useRef(-1)
+  const lastOverture = useRef<boolean | null>(null)
   const velocity = useVelocity(progress)
 
   // The DEV-only handle the smokes read to sample live object state. Stripped
@@ -123,8 +127,15 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
     }
 
     const seg = playheadFor(progress.get())
+    const overture = overturePose(seg, reducedMotion)
     // Reduced motion keeps the pin but jumps between slots: no dolly, no ease.
-    const eased = reducedMotion ? clamp(Math.round(seg), 0, CARD_COUNT - 1) : easedSeg(seg)
+    // While the overture stands it shows the overture's start frame (the line
+    // at 0.7 width, card 0 in the fog) instead of a slot.
+    const eased = reducedMotion
+      ? overture.visible
+        ? -CORRIDOR_DEPTH
+        : clamp(Math.round(seg), 0, CARD_COUNT - 1)
+      : easedSeg(seg)
 
     // The breath. Scroll owns sequence and position; time owns everything here
     // (ADR 0010). Under reduced motion none of it runs and energy stays 0.
@@ -218,6 +229,31 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
     }
 
     updateTitle(state.clock.elapsedTime, state.viewport.dpr)
+
+    // The overture line: placed on the camera's eye line where the camera will
+    // be at the start of the approach, so the pass-through is a true one — a
+    // point on the eye line stays on the eye line at every distance. Under the
+    // pitch that is the upper third of the frame, where the title stands later.
+    const line = sceneRefs.overture
+    const lineMaterial = sceneRefs.overtureMaterial
+    if (line && lineMaterial) {
+      const amb = reducedMotion
+        ? { y: 0, yaw: 0, pitch: 0 }
+        : ambientOffset(CARD_COUNT, t, energy) // a fifth phase, not card 0's
+      line.visible = overture.visible && lineMaterial.map !== null
+      lineMaterial.opacity = overture.alpha
+      line.position.set(0, g.camY + amb.y, overtureZ(g))
+      line.rotation.set(cam.pitch + amb.pitch, amb.yaw + leanYaw, 0)
+      // Reduced motion: the overture frame is a still with no title in it.
+      // updateTitle() sets title.visible every frame, so this is the last word.
+      if (reducedMotion && overture.visible && sceneRefs.title) sceneRefs.title.visible = false
+    }
+
+    // Non-visual, test-only. Written when it CHANGES, never per frame.
+    if (overture.visible !== lastOverture.current) {
+      lastOverture.current = overture.visible
+      state.gl.domElement.dataset.overture = String(overture.visible)
+    }
   })
 
   /** The title's pose, size and morph — everything camera-relative. */

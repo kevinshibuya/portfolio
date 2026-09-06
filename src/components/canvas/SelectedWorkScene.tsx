@@ -8,6 +8,7 @@ import { createSceneRefs, type SceneRefs } from './scene/sceneRefs'
 import { SceneRig } from './scene/SceneRig'
 import { Corridor } from './scene/Corridor'
 import { SceneTitle } from './scene/SceneTitle'
+import { Overture } from './scene/Overture'
 import { Environment } from './scene/Environment'
 
 /** The cream the scene shares with the section, the fog and the floor. */
@@ -37,6 +38,8 @@ export interface SelectedWorkSceneProps {
   onCardClick: (index: number) => void
   /** The fixed nav's height in CSS px, measured by the section; changes on resize only. */
   navPx: number
+  /** The overture line, localised. */
+  overture: string
 }
 
 /**
@@ -199,6 +202,7 @@ export function SelectedWorkScene({
   onWebglUnavailable,
   onCardClick,
   navPx,
+  overture,
 }: SelectedWorkSceneProps) {
   const sceneRefs = useRef(createSceneRefs())
   const titles = useMemo(() => cards.map((c) => c.title), [cards])
@@ -341,6 +345,7 @@ export function SelectedWorkScene({
         reducedMotion={reducedMotion}
         sceneRefs={sceneRefs.current}
       />
+      <Overture text={overture} sceneRefs={sceneRefs.current} />
       <Suspense fallback={null}>
         <Environment desktopEffects={desktopEffects} />
         <Corridor cards={cards} sceneRefs={sceneRefs.current} onCardClick={onCardClick} />

@@ -142,6 +142,7 @@ export function Projects() {
                   onWebglUnavailable={handleWebglUnavailable}
                   onCardClick={handleCardClick}
                   navPx={navPx}
+                  overture={t('sections.projects.overture')}
                 />
               </div>
 
