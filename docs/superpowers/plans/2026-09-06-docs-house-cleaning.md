@@ -137,9 +137,9 @@ Deleted outright: Content Types (its facts moved to `docs/architecture.md#conten
 
 **Boundaries:** No new rule that was not in the source or in the spec. The hook is named, never quoted or edited.
 
-- [ ] **Step 1:** Write sections 1 to 3; `wc -l` under 60.
-- [ ] **Step 2:** Write sections 4 to 6; run the full acceptance check.
-- [ ] **Step 3:** Tick; commit `docs: CLAUDE.md is rules only`.
+- [x] **Step 1:** Write sections 1 to 3; `wc -l` under 60.
+- [x] **Step 2:** Write sections 4 to 6; run the full acceptance check.
+- [x] **Step 3:** Tick; commit `docs: CLAUDE.md is rules only`.
 
 ### Task 6: `CONTEXT.md` rewrite
 
