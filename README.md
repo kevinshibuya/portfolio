@@ -48,7 +48,7 @@ src/
   i18n/            # setup + locales/{en,pt}.json
   data/            # typed portfolio content (projects, embeds, social)
   types/           # shared interfaces
-  utils/           # animation presets, constants
+  utils/           # animation presets, palette, scene motion
 ```
 
 Below-the-fold sections are lazy-loaded and warmed at idle, so the initial JS chunk only carries the hero.

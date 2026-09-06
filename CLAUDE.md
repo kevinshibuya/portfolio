@@ -76,6 +76,7 @@ Checkboxes in `docs/superpowers/specs/` and `docs/superpowers/plans/` are the so
 - **The exit veil inside `#chapter-light`.** It is a sibling; nested, its `var(--bg)` resolves to cream and the fade disappears.
 - **A legacy alias (`--cream`, `--ink`, and the rest) read inside `#chapter-light`.** The scope re-declares canonical tokens only, so an alias renders cream on cream.
 - **`overflow` or `position` on `#chapter-light`.** Either one silently breaks the scene's sticky pin.
+- **`--color-ink-on-light-faded` (2.62:1) on always-visible text.** It is for `aria-hidden` decoration; always-visible small text takes the muted step.
 
 ## Where things live
 
@@ -92,4 +93,5 @@ Checkboxes in `docs/superpowers/specs/` and `docs/superpowers/plans/` are the so
 | Tests | `tests/e2e/`, `tests/unit/` |
 | Content types | `src/types/content.ts` |
 | Content data | `src/data/`, including `src/data/embeds.csv` |
+| UI strings, both languages | `src/i18n/locales/` |
 | Stack, getting started, tree | `README.md` |

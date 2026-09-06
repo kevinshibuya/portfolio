@@ -41,7 +41,7 @@ mandatory skill rules name plugins that are not installed. Every session pays to
    on the hero, the exit veil inside `#chapter-light`. Added after the plan review (the mistakes that break
    silently or read as an accessibility fix): a scrim, halo or shader darkening under the hero text
    (ADR 0004); a legacy alias (`--cream`, `--ink`, …) read inside `#chapter-light`; `overflow` or
-   `position` on `#chapter-light`. Fifteen items, reduced to fourteen by the PR review: "spaced em-dashes in prose" was a verbatim duplicate of the standing rule, which states the positive (`·`) and is the better home.
+   `position` on `#chapter-light`. Fifteen items. The PR review then swapped one: "spaced em-dashes in prose" was cut as a verbatim duplicate of the standing rule (which states the positive, `·`), and `--color-ink-on-light-faded` on always-visible text was added, being violable at HEAD and silently AA-failing. Still fifteen.
 5. `staging` stays the integration branch and stays behind the merge hook. The project doc says a
    staging merge needs Kevin's per-action say-so with `ALLOW_MAIN_MERGE=1`. The hook is untouched. The
    global `~/.claude/CLAUDE.md` flow line becomes:
