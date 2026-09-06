@@ -77,12 +77,12 @@ merges and will conflict on `CONTEXT.md`; that is expected). Anything under `.su
 
 ## TODO
 
-- [ ] `CLAUDE.md` is at most 120 lines, names no missing skill or plugin, and every path it cites exists.
-- [ ] `docs/architecture.md` and `docs/contrast.md` exist; the contrast tables have the same row count as before the move.
-- [ ] `CONTEXT.md` has no line-number citation, no perf-harness term, no Ledger, no `@source` invariant.
-- [ ] No tracked file cites a `HANDOFF-*.archived.md`; `git check-ignore` resolves `HANDOFF*.md` and `perf/reports/` to `.gitignore`.
-- [ ] `docs/superpowers/archive/` holds the retired records as git renames, with a README; no live doc links to an old path.
-- [ ] No ADR carries a line-number citation; ADR 0002 no longer claims `three` is absent from `package.json`.
-- [ ] The global `~/.claude/CLAUDE.md` flow line matches decision 5, its review bullet names the integration branch, and both are pushed.
-- [ ] `npx tsc -b`, `npm run lint` and `npx vitest run` pass on the branch, output shown.
-- [ ] PR open against `staging` with the dropped-facts list in its description.
+- [x] `CLAUDE.md` is at most 120 lines, names no missing skill or plugin, and every path it cites exists.
+- [x] `docs/architecture.md` and `docs/contrast.md` exist; the contrast tables have the same row count as before the move.
+- [x] `CONTEXT.md` has no line-number citation, no perf-harness term, no Ledger, no `@source` invariant.
+- [x] No tracked file cites a `HANDOFF-*.archived.md`; `git check-ignore` resolves `HANDOFF*.md` and `perf/reports/` to `.gitignore`.
+- [x] `docs/superpowers/archive/` holds the retired records as git renames, with a README; no live doc links to an old path.
+- [x] No ADR carries a line-number citation; ADR 0002 no longer claims `three` is absent from `package.json`.
+- [x] The global `~/.claude/CLAUDE.md` flow line matches decision 5, its review bullet names the integration branch, and both are pushed.
+- [x] `npx tsc -b`, `npm run lint` and `npx vitest run` pass on the branch, output shown.
+- [x] PR open against `staging` with the dropped-facts list in its description.

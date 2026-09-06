@@ -194,8 +194,8 @@ Deleted outright: Content Types (its facts moved to `docs/architecture.md#conten
 
 **Boundaries:** No other line of the global file. Not the hook. Not `settings.json`.
 
-- [ ] **Step 1:** Edit the two bullets; run the greps.
-- [ ] **Step 2:** Commit and push in `~/.claude`; confirm the log line.
+- [x] **Step 1:** Edit the two bullets; run the greps.
+- [x] **Step 2:** Commit and push in `~/.claude`; confirm the log line.
 
 ### Task 9: Verification, handoff, PR
 
@@ -209,7 +209,7 @@ Deleted outright: Content Types (its facts moved to `docs/architecture.md#conten
 
 **Boundaries:** No merge. The review is Kevin's to trigger, and the merge into `staging` needs his `ALLOW_MAIN_MERGE=1`.
 
-- [ ] **Step 1:** Run the three commands; keep the output.
-- [ ] **Step 2:** Rewrite `HANDOFF.md`.
-- [ ] **Step 3:** Push, open the PR, tick the spec boxes and this task's boxes; commit `docs: house-cleaning spec boxes ticked`; push.
-- [ ] **Step 4:** Post the rundown and stop.
+- [x] **Step 1:** Run the three commands; keep the output.
+- [x] **Step 2:** Rewrite `HANDOFF.md`.
+- [x] **Step 3:** Push, open the PR, tick the spec boxes and this task's boxes; commit `docs: house-cleaning spec boxes ticked`; push.
+- [x] **Step 4:** Post the rundown and stop.
