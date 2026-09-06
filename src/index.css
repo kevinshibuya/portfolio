@@ -62,7 +62,7 @@
   --color-accent-yellow: #E6CC4D;
 
   /* On-light chapter (Plan A). New canonical tokens — NOT the legacy alias set.
-     Contrast-audited in docs/superpowers/plans/2026-07-22-light-chapter-plan-a.md. */
+     Contrast-audited in docs/superpowers/archive/plans/2026-07-22-light-chapter-plan-a.md. */
   --color-surface-light:        #F5F2EC; /* cream page surface */
   --color-surface-light-tonal:  #EDE9E0; /* deeper cream (Plan B tonal role; defined now) */
   --color-ink-on-light:         #0B0E14; /* primary ink text on cream/white */
