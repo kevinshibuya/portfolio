@@ -358,8 +358,8 @@ export function captionScale(cardPx: number): number   // texture px per card un
 
 **Boundaries:** No code. Do not tick any round-two spec TODO here; that happens after Kevin's GREEN (Task 10).
 
-- [ ] **Step 1: CLAUDE.md bullets, NO list, both contrast tables.**
-- [ ] **Step 2: Spec headers/amendments, README grep, delete HANDOFF.md; grep check; commit `docs(scene): round-two records`.**
+- [x] **Step 1: CLAUDE.md bullets, NO list, both contrast tables.**
+- [x] **Step 2: Spec headers/amendments, README grep, delete HANDOFF.md; grep check; commit `docs(scene): round-two records`.**
 
 ---
 

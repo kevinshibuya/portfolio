@@ -4,6 +4,7 @@
 **Branch:** `feat/selected-work-scene` (off `staging`; merges back into `staging`, never `main` — `main` is frozen until the revamp ships)
 **Replaces:** the pinned card stack + SVG gooey title in `src/components/sections/Projects.tsx`,
 `src/components/ui/ProjectCardStack.tsx`, `src/components/ui/GooeyTitle.tsx`, `src/utils/stackMotion.ts`.
+**Superseded in part by:** `2026-09-04-selected-work-scene-round-two.md` (Q6 and Q17 — the card is the object, ADR 0011; the 550svh mapping with the overture; the title on layer 1 after the composer; no halo; no section numbering).
 **Supersedes:** `2026-07-22-selected-work-card-stack-design.md` (mechanics). The light-chapter spec
 (`2026-07-22-selected-work-light-chapter-design.md`, Plan B recolour) stays in force: the section
 still opens the cream chapter.
@@ -146,4 +147,4 @@ Floor reflection, particles, a portrait art set, a position counter, the perf ha
 - [x] Canvas rules: DPR ≤ 1.5, off-screen pause, `data-*` attrs, at most two live canvases.
 - [x] Tests per the Tests section pass; CLS and long-task e2e assertions pass unchanged.
 - [x] Records updated (ADR 0009, 0010; CLAUDE.md; CONTEXT.md; README).
-- [ ] Kevin rates the scene designer-grade on the running app at desktop and phone widths.
+- [x] Kevin rates the scene designer-grade on the running app at desktop and phone widths. (answered by round two: his rating produced the round-two spec, whose manual pass now carries this criterion)

@@ -1,6 +1,6 @@
 # Scroll is the playhead, time is the breath
 
-**Status:** accepted (grilling, 2026-09-03). Supersedes ADR 0005 in part.
+**Status:** accepted (grilling, 2026-09-03). Supersedes ADR 0005 in part. The halo pulse and the `frontIndex` clause are superseded by ADR 0011 (2026-09-04): there is no halo, and no React state is driven by scroll at all.
 
 ADR 0005 made every per-frame visual of Selected Work a pure function of one continuous scroll channel, with zero React state per frame. The 3D scene keeps the second half and relaxes the first: the owner asked that the elements feel alive, moving on their own when the page is still. So every pose is now `scrollPose(playhead) + ambient(time)`. **Scroll owns sequence, position, the camera and the title morph; time owns the breath** — a bob and sway on each card, a halo pulse, a fog drift, a title float, at breathing amplitude (about 1 % of card height, 4–7 s periods). Scroll velocity feeds the same layer as short-lived energy. Both terms are pure functions read inside the frame loop; **no React state drives a frame**, and `frontIndex` still flips only at settle midpoints and feeds only non-visual attributes.
 
