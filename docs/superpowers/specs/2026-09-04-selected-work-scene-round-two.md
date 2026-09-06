@@ -115,13 +115,13 @@ Cover art replacement (Kevin's, later), a light theme, the hero, `perf/`, the si
 
 ## TODO
 
-- [ ] No DOM chrome in the scene: eyebrow and `view` pill gone; no `.scene-meta*`; the skiplinks and a static SR heading are the a11y path.
-- [ ] Every card carries its caption in the scene (name, meta, tinted arrow), crisp at rest, bilingual, and the name is ≥ 12 px on screen on every viewport.
-- [ ] No halo; shadows keep their tint.
-- [ ] `frontIndex` is gone; `data-registrations` stays `1` across a full scrub; no card, shadow or frame blanks at any settle midpoint (Kevin's manual pass).
-- [ ] Hover on the settled card lifts it and slides the arrow; any hit card shows a pointer; click on the settled card navigates; click on another card scrolls it into the slot; tap works the same.
-- [ ] The title is crisp at rest (LOD 0, outside the composer), never sits under the nav, scales down when it must, and fills at most 80 % of the width.
-- [ ] The overture line stands in the corridor, breathes, is passed through, and is gone exactly when the cards first show; reversible; static under reduced motion; wrapper 550svh.
-- [ ] No section eyebrow or number anywhere on the site; Contact's row ordinals remain.
-- [ ] ADR 0011, CONTEXT.md, CLAUDE.md and the 2026-09-03 spec updated; contrast tables amended.
-- [ ] Kevin's manual pass is GREEN; then the three-leg review on PR #7.
+- [x] No DOM chrome in the scene: eyebrow and `view` pill gone; no `.scene-meta*`; the skiplinks and a static SR heading are the a11y path.
+- [x] Every card carries its caption in the scene (name, meta, tinted arrow), crisp at rest, bilingual, and the name is ≥ 12 px on screen on every viewport.
+- [x] No halo; shadows keep their tint.
+- [x] `frontIndex` is gone; `data-registrations` stays `1` across a full scrub; no card, shadow or frame blanks at any settle midpoint (Kevin's manual pass).
+- [x] Hover on the settled card lifts it and slides the arrow; any hit card shows a pointer; click on the settled card navigates; click on another card scrolls it into the slot; tap works the same.
+- [x] The title is crisp at rest (LOD 0, outside the composer), never sits under the nav, scales down when it must, and fills at most 80 % of the width — **amended 2026-09-06**: the rendered cap is 80 % in landscape and **94 % in portrait** (`g.titleWidthCap`, added in `096f05a` because the phone title read at 0.14 of the card against the desktop's 0.167). The WRAP threshold is a separate value, the whole frame (`titleWrapAllowancePx`), and the band shrink is clamped so a viewport too short to hold the band cannot drive the fit to zero.
+- [x] The overture line stands in the corridor, breathes, is passed through, and is gone exactly when the cards first show; reversible; static under reduced motion; wrapper 550svh.
+- [x] No section eyebrow or number anywhere on the site; Contact's row ordinals remain.
+- [x] ADR 0011, CONTEXT.md, CLAUDE.md and the 2026-09-03 spec updated; contrast tables amended.
+- [x] Kevin's manual pass is GREEN; then the three-leg review on PR #7.
