@@ -1,0 +1,98 @@
+import { useEffect, useMemo } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
+import { EffectComposer, DepthOfField, Noise } from '@react-three/postprocessing'
+import * as THREE from 'three'
+import { focusDistance, sceneGeometry } from '../../../utils/sceneMotion'
+import { TITLE_LAYER } from './sceneRefs'
+
+const CREAM = '#F5F2EC'
+/** The composer renders at this priority; the title pass runs after it. */
+const COMPOSER_PRIORITY = 1
+
+/**
+ * The title pass. The composer must never see the title layer (depth of field
+ * would blur it), so the camera is narrowed to layer 0 before the composer
+ * runs and the title is drawn afterwards, depth-tested against the corridor.
+ *
+ * Two renders, not one: the depth on the default framebuffer is stale after
+ * the composer's final full-screen pass, and transparent objects sort back to
+ * front — the title is farther than the settled card, so a single render
+ * would draw the title first and the depth-only card could never cover it.
+ * autoClear is saved and restored by hand: @react-three/postprocessing 3.1.1
+ * restores it around its own render only, and a runtime desktopEffects flip
+ * would otherwise leave R3F's main render never clearing.
+ */
+function TitlePass() {
+  const camera = useThree((state) => state.camera)
+  const depthOnly = useMemo(() => new THREE.MeshBasicMaterial({ colorWrite: false }), [])
+  useEffect(() => () => depthOnly.dispose(), [depthOnly])
+  // On unmount (composer gone) the main pass must see the title again.
+  useEffect(() => () => camera.layers.enableAll(), [camera])
+
+  useFrame(({ camera }) => {
+    camera.layers.set(0)
+  }, 0)
+  useFrame(({ gl, scene, camera }) => {
+    const autoClear = gl.autoClear
+    gl.autoClear = false
+    gl.clearDepth()
+    scene.overrideMaterial = depthOnly
+    camera.layers.set(0)
+    gl.render(scene, camera)
+    scene.overrideMaterial = null
+    camera.layers.set(TITLE_LAYER)
+    gl.render(scene, camera)
+    camera.layers.enableAll()
+    gl.autoClear = autoClear
+  }, COMPOSER_PRIORITY + 1)
+
+  return null
+}
+
+interface EnvironmentProps {
+  /** Depth of field and grain are desktop-only; phones mount no composer. */
+  desktopEffects: boolean
+}
+
+/**
+ * The cream void the corridor stands in.
+ *
+ * The floor is the SAME hex as the fog and the clear colour, so it has no
+ * visible horizon at all — it exists only to catch the cards' blob shadows,
+ * which is the one cue that says the cards are hovering above something.
+ */
+export function Environment({ desktopEffects }: EnvironmentProps) {
+  const size = useThree((state) => state.size)
+  const geometry = useMemo(() => new THREE.PlaneGeometry(60, 60), [])
+  useEffect(() => () => geometry.dispose(), [geometry])
+
+  const g = useMemo(
+    () => sceneGeometry(Math.max(size.width, 1), Math.max(size.height, 1)),
+    [size.width, size.height],
+  )
+
+  return (
+    <>
+      <mesh geometry={geometry} rotation-x={-Math.PI / 2} position={[0, 0, -g.spacing]}>
+        <meshBasicMaterial color={CREAM} fog />
+      </mesh>
+
+      {desktopEffects ? (
+        // Default multisampling is kept deliberately: the yawed card edges need
+        // MSAA, and the composer's own AA is what supplies it once the scene
+        // renders through a render target.
+        <>
+          <EffectComposer renderPriority={COMPOSER_PRIORITY}>
+            <DepthOfField
+              worldFocusDistance={focusDistance(g)}
+              worldFocusRange={0.5 * g.spacing}
+              bokehScale={2.5}
+            />
+            <Noise opacity={0.035} />
+          </EffectComposer>
+          <TitlePass />
+        </>
+      ) : null}
+    </>
+  )
+}

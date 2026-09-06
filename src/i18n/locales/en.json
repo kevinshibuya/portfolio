@@ -20,7 +20,6 @@
   },
   "stats": {
     "heading": "the work, in <em>numbers.</em>",
-    "eyebrow": "selected metrics",
     "receipt": {
       "years": "years shipping interactives, from first commit to today.",
       "interactives": "interactives published across gauchazh.",
@@ -32,16 +31,14 @@
   },
   "sections": {
     "projects": {
-      "index": "01",
-      "label": "selected work",
+      "heading": "selected work",
+      "overture": "a few things i've built",
       "stack": {
         "viewProject": "view",
         "indexLabel": "selected projects"
       }
     },
     "archive": {
-      "index": "02 · everything",
-      "label": "",
       "title": "the <em>archive.</em>",
       "description": "everything i've shipped, searchable.",
       "toolbar": {
@@ -64,8 +61,6 @@
       }
     },
     "work": {
-      "index": "03 · experience",
-      "label": "",
       "title": "work <em>history.</em>",
       "description": "seven years shipping. seen by millions.",
       "award": "★ award",
@@ -75,8 +70,6 @@
       }
     },
     "skills": {
-      "index": "04 · expertise",
-      "label": "",
       "title": "skills &amp; <em>tools.</em>",
       "description": "my stack: fast, without cutting craft.",
       "frontend": "frontend",
@@ -87,8 +80,6 @@
       "leadership": "leadership"
     },
     "contact": {
-      "index": "05",
-      "label": "get in touch",
       "title": "let's <em>build.</em>",
       "subtitle": "got a project or rough idea? let's talk.",
       "links": {

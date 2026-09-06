@@ -100,13 +100,11 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
     expect(await colorOf(page, '#archive .workrow-meta')).toBe('rgba(11, 14, 20, 0.62)')
     // aria-hidden decoration keeps the faded step (exempt from 1.4.3).
     expect(await colorOf(page, '#archive .workrow-index')).toBe('rgba(11, 14, 20, 0.4)')
-    expect(await colorOf(page, '#archive .section-index')).toBe('rgb(42, 84, 181)')
     // The expand glyph is a STATE indicator (WCAG 1.4.11, 3:1), not decoration,
     // so it takes muted (5.23:1) and never the 2.62:1 faded step.
     expect(await colorOf(page, '#archive .workrow-arrow')).toBe('rgba(11, 14, 20, 0.62)')
 
     await scrollIntoSection(page, 'stats', 0.2)
-    expect(await colorOf(page, '#stats .stats-eyebrow')).toBe('rgb(42, 84, 181)')
     expect(await colorOf(page, '#stats .stats-row-value')).toBe('rgb(11, 14, 20)')
 
     await scrollIntoSection(page, 'skills', 0.2)

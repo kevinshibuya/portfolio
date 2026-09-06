@@ -16,7 +16,7 @@
 | styling | **Tailwind CSS v4** (Vite plugin, configured via CSS `@theme` — no `tailwind.config.js`) |
 | react animation | **Framer Motion** — enter/exit, hover, layout |
 | scroll / timeline | **GSAP** + ScrollTrigger, **Lenis** smooth scroll |
-| webgl / 3d | **React Three Fiber** (`@react-three/fiber` + `drei`, `three`) |
+| webgl / 3d | **React Three Fiber** (`@react-three/fiber`, `three`, `@react-three/postprocessing`) for the Selected Work scene; hand-written raw WebGL for the hero and Contact/Footer backdrops. No `drei`. |
 | i18n | **react-i18next** — en + pt |
 
 Each animation library stays in its own lane — they're never mixed for the same effect.
@@ -39,7 +39,7 @@ src/
     layout/        # Header, Footer, SmoothScroll
     sections/      # Hero, Projects, WorkExperience, Skills, Stats, Contact …
     ui/            # reusable atoms (SectionHeading, Stagger, …)
-    canvas/        # React Three Fiber scenes
+    canvas/        # the Selected Work R3F scene + the raw-WebGL FluidWaves
     projectDetail/ # project case-study page parts
   pages/           # Home, ProjectDetail (routed)
   hooks/           # useLenis, useReducedMotion, scroll/entrance hooks

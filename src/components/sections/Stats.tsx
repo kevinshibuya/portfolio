@@ -97,7 +97,6 @@ export function Stats() {
     <section id="stats" className="stats">
       <div className="stats-inner">
         <div className="stats-heading-col">
-          <span className="stats-eyebrow">{t('stats.eyebrow')}</span>
           <h2
             className="section-title"
             dangerouslySetInnerHTML={{ __html: t('stats.heading') }}
