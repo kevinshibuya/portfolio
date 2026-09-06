@@ -110,24 +110,24 @@ These are all load-bearing and were paid for in round two. Breaking one is a red
 
 ## 4. Acceptance criteria
 
-- [ ] At **every** sampled segment fraction from 0.00 to 1.00 in steps of 0.05, on **both** transitions
+- [x] At **every** sampled segment fraction from 0.00 to 1.00 in steps of 0.05, on **both** transitions
       (card 0→1 and 2→3), at 1440×900 and at 390×844, the title reads as letterforms or as blobs derived
       from letterforms. No frame is a slab spanning the title width, and no frame shows ink outside the
       region the two names occupy.
-- [ ] `s = 0.00` and `s = 1.00` are pixel-crisp: the redraw handshake still rests at LOD 0. Prove it with
+- [x] `s = 0.00` and `s = 1.00` are pixel-crisp: the redraw handshake still rests at LOD 0. Prove it with
       the `drawnScale` / `emPx` readout, not by eye.
-- [ ] The transition still bridges. Show the frames; a straight cross-fade does not pass.
-- [ ] PT and EN both pass, including the two-line "painel da reconstrução".
-- [ ] `npx tsc --noEmit` clean.
-- [ ] `npm run lint` — 0 errors, and **still exactly 4 warnings** (`SmoothScroll.tsx`, `MotionContext.tsx`,
+- [x] The transition still bridges. Show the frames; a straight cross-fade does not pass.
+- [x] PT and EN both pass, including the two-line "painel da reconstrução".
+- [x] `npx tsc --noEmit` clean.
+- [x] `npm run lint` — 0 errors, and **still exactly 4 warnings** (`SmoothScroll.tsx`, `MotionContext.tsx`,
       react-refresh only). A fifth warning is a red.
-- [ ] `npx vitest run` — all pass. Add unit coverage in `tests/unit/sceneMotion.test.ts` for whatever
+- [x] `npx vitest run` — all pass. Add unit coverage in `tests/unit/sceneMotion.test.ts` for whatever
       replaces `morphValues` (at minimum: the endpoints, and whatever invariant replaces "the sum is 1.52").
-- [ ] `npx playwright test` — all pass (79 passed / 1 skipped is the current baseline; the skip is
+- [x] `npx playwright test` — all pass (79 passed / 1 skipped is the current baseline; the skip is
       `scene-effects.spec.ts` on mobile).
-- [ ] `perf-budget.spec.ts` still passes at its 300 ms budget without being moved. If your fix samples the
+- [x] `perf-budget.spec.ts` still passes at its 300 ms budget without being moved. If your fix samples the
       texture more than twice per slot, measure the cost and say what it is.
-- [ ] Zero console errors on a full headless scrub.
+- [x] Zero console errors on a full headless scrub.
 
 ## 5. Process
 

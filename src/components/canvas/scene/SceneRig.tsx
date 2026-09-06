@@ -19,7 +19,9 @@ import {
   overtureZ,
   segmentFor,
   settleFrac,
-  morphValues,
+  seamFor,
+  SEAM_WIDTH_EM,
+  SEAM_SIGMA_EM,
   clamp,
   playheadFor,
   easedSeg,
@@ -39,8 +41,6 @@ import {
 import type { SceneRefs } from './sceneRefs'
 
 const HALF_FOV_TAN = Math.tan((FOV_DEG * DEG) / 2)
-/** A mip level approximates a box blur, not a Gaussian; this compensates. */
-const LOD_GAIN = 2.5
 /** Title float, in CSS px at the title's distance. */
 const FLOAT_PX = 3
 /** Pointer tilt of the settled card, and the title's counter-tilt. */
@@ -269,69 +269,77 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
     const visibleH = 2 * g.titleDistance * HALF_FOV_TAN
     const visibleW = visibleH * g.aspect
 
-    // Which two titles are on screen, and how far the morph has crossed.
+    // Which two titles are on screen, and how far the seam has crossed.
     // Everything below is derived from this, so the band moves in step with
     // the morph rather than jumping when the front project flips.
     let indexA: number
     let indexB: number
     let blend: number
-    let blurA: number
-    let blurB: number
-    let opacityA: number
-    let opacityB: number
+    /** Raw segment fraction the seam runs on; the helper settles it. */
+    let seamFrac: number
+    let presentA: number
+    let presentB: number
     if (reducedMotion) {
       indexA = clamp(Math.round(seg), 0, n - 1)
       indexB = indexA
       blend = 0
-      blurA = 0
-      blurB = 0
-      opacityA = 1
-      opacityB = 0
+      seamFrac = 0
+      presentA = 1
+      presentB = 0
     } else if (seg < 0) {
-      // Approach: the title resolves out of blur as card 0 surfaces.
-      const approach = clamp((seg + 0.5) / 0.5, 0, 1)
-      const { incoming } = morphValues(approach)
+      // Approach: card 0's name writes itself in as the card surfaces.
       indexA = 0
       indexB = 0
       blend = 0
-      blurA = incoming.blur
-      blurB = 0
-      opacityA = incoming.opacity
-      opacityB = 0
+      seamFrac = clamp((seg + 0.5) / 0.5, 0, 1)
+      presentA = 0
+      presentB = 1
     } else {
       const { index, frac } = segmentFor(seg, n)
-      const { incoming, outgoing } = morphValues(frac)
       const hasNext = index + 1 < n
       indexA = index
       indexB = hasNext ? index + 1 : index
       blend = hasNext ? settleFrac(frac) : 0
-      blurA = outgoing.blur
-      blurB = incoming.blur
-      opacityA = outgoing.opacity
-      opacityB = hasNext ? incoming.opacity : 0
+      seamFrac = hasNext ? frac : 0
+      presentA = 1
+      presentB = hasNext ? 1 : 0
     }
 
     // Every title renders at the SAME size, so a language switch cannot change
-    // it. The plane is sized to the largest title and each texture is fitted
-    // inside it at natural size by uScale.
+    // it. The plane is sized to the widest title and the tallest stack, and
+    // each texture is fitted inside it at natural size: centred in x, and
+    // REGISTERED ON ITS LAST BASELINE in y. A one-line name and a two-line one
+    // therefore share the line the seam rewrites, and the extra line unfolds
+    // above it instead of the two layouts colliding at different baselines.
     let planeW = 0
-    let planeH = 0
+    let maxAbove = 0
+    let maxBelow = 0
     const naturalW: number[] = []
-    const naturalH: number[] = []
-    const inkBelow: number[] = []
-    const inkAbove: number[] = []
+    /** World units per texture px, per title. */
+    const k: number[] = []
     for (let i = 0; i < n; i++) {
       const m = metrics[i]
-      const texPxToCssPx = m ? g.titleCapPx / m.emPx : 0
-      naturalW.push(m ? m.widthPx * texPxToCssPx * worldPerPx : 1)
-      naturalH.push(m ? m.heightPx * texPxToCssPx * worldPerPx : 1)
+      const scale = m ? (g.titleCapPx / m.emPx) * worldPerPx : 0
+      k.push(scale)
+      naturalW.push(m ? m.widthPx * scale : 1)
       if (naturalW[i] > planeW) planeW = naturalW[i]
-      if (naturalH[i] > planeH) planeH = naturalH[i]
-      // Where this title's glyphs actually reach either side of the plane
-      // centre. The canvas is padded well past the ink, so the padded box is
-      // a poor stand-in for the title band.
-      inkBelow.push(m ? (m.inkBottomPx - m.heightPx / 2) * texPxToCssPx * worldPerPx : 0)
-      inkAbove.push(m ? (m.heightPx / 2 - m.inkTopPx) * texPxToCssPx * worldPerPx : 0)
+      if (m) {
+        maxAbove = Math.max(maxAbove, m.baselinePx * scale)
+        maxBelow = Math.max(maxBelow, (m.heightPx - m.baselinePx) * scale)
+      }
+    }
+    const planeH = Math.max(maxAbove + maxBelow, 1e-6)
+    /** The shared baseline, as a height above the plane centre. */
+    const baseY = planeH / 2 - maxAbove
+    // Where each title's glyphs actually reach either side of the plane
+    // centre. The canvas is padded well past the ink, so the padded box is a
+    // poor stand-in for the title band.
+    const inkAbove: number[] = []
+    const inkBelow: number[] = []
+    for (let i = 0; i < n; i++) {
+      const m = metrics[i]
+      inkAbove.push(m ? baseY + (m.baselinePx - m.inkTopPx) * k[i] : 0)
+      inkBelow.push(m ? (m.inkBottomPx - m.baselinePx) * k[i] - baseY : 0)
     }
 
     // The title band is BOTTOM-ANCHORED. The title plane sits farther from the
@@ -398,24 +406,40 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
       title.rotateY(tilt.yaw * TITLE_COUNTER_TILT)
     }
 
-    const setSlot = (slot: 'A' | 'B', i: number, blurPx: number, opacity: number): void => {
+    const u = material.uniforms
+    const setSlot = (slot: 'A' | 'B', i: number, present: number): void => {
       const m = metrics[i]
-      material.uniforms[`uTex${slot}`].value = textures[i]
-      material.uniforms[`uOpacity${slot}`].value = opacity
-      ;(material.uniforms[`uScale${slot}`].value as THREE.Vector2).set(
-        planeW / (naturalW[i] || planeW),
-        planeH / (naturalH[i] || planeH),
-      )
-      // Sample the mip chain to blur. baseLod is the natural minification —
-      // texture px per DEVICE px, exactly 0 at rest because the texture was
-      // drawn at the displayed em — and blur pushes it further up the chain.
-      const texPxPerDevicePx = m ? m.emPx / (g.titleCapPx * viewportDpr * capScale) : 1
-      const baseLod = Math.max(0, Math.log2(texPxPerDevicePx))
-      const blurLod = Math.log2(Math.max(blurPx * viewportDpr * texPxPerDevicePx * LOD_GAIN, 1))
-      material.uniforms[`uLod${slot}`].value = Math.max(baseLod, blurLod)
+      u[`uTex${slot}`].value = textures[i]
+      u[`uPresent${slot}`].value = present
+      if (!m) return
+      // uv = vUv · scale + offset: x centred, y registered on the baseline.
+      // CanvasTexture flips Y, so texture v runs from the bottom.
+      const sx = planeW / naturalW[i]
+      const sy = planeH / (m.heightPx * k[i])
+      const vBase = (m.heightPx - m.baselinePx) / m.heightPx
+      const pBase = maxBelow / planeH
+      ;(u[`uScale${slot}`].value as THREE.Vector2).set(sx, sy)
+      ;(u[`uOffset${slot}`].value as THREE.Vector2).set(0.5 - 0.5 * sx, vBase - pBase * sy)
+      ;(u[`uTexel${slot}`].value as THREE.Vector2).set(1 / m.widthPx, 1 / m.heightPx)
+      // The rest LOD is the natural minification — texture px per DEVICE px,
+      // exactly 0 at the drawn scale because the texture was drawn at the
+      // displayed em. The seam's blur pushes further up the chain from there.
+      const texPxPerDevicePx = m.emPx / (g.titleCapPx * viewportDpr * capScale)
+      u[`uBaseLod${slot}`].value = Math.max(0, Math.log2(texPxPerDevicePx))
+      u[`uSigma${slot}`].value = SEAM_SIGMA_EM * m.emPx
     }
-    setSlot('A', indexA, blurA, opacityA)
-    setSlot('B', indexB, blurB, opacityB)
+    setSlot('A', indexA, presentA)
+    setSlot('B', indexB, presentB)
+
+    // The seam itself, in plane uv: the pair's wider canvas decides the travel
+    // and one CSS em at the title's distance sizes the seam.
+    const emWorld = g.titleCapPx * worldPerPx
+    const halfExtent = Math.max(naturalW[indexA], naturalW[indexB]) / (2 * planeW)
+    const seam = seamFor(seamFrac, halfExtent, (SEAM_WIDTH_EM * emWorld) / planeW)
+    u.uFront.value = seam.front
+    u.uSeamWidth.value = seam.width
+    u.uSeam.value = seam.travelling ? 1 : 0
+    u.uPlateauT.value = settleFrac(clamp(seamFrac, 0, 1))
   }
 
   return null

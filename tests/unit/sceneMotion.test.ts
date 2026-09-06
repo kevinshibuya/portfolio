@@ -20,12 +20,15 @@ import {
   frameRects,
   settledness,
   focusDistance,
-  morphValues,
+  seamFor,
+  seamBlend,
+  SEAM_WIDTH_EM,
+  SEAM_SIGMA_EM,
+  SEAM_POWER,
   ambientOffset,
   velocityEnergy,
   velocityYaw,
   fogRange,
-  BLUR_CAP,
   APPROACH_DEPTH,
   APPROACH_START,
   OVERTURE_START,
@@ -511,35 +514,80 @@ describe('focusDistance', () => {
   })
 })
 
-describe('morphValues', () => {
-  it('bridges the two titles evenly at the settle midpoint', () => {
-    const m = morphValues(0.5)
-    expect(m.incoming.blur).toBeCloseTo(8, 6)
-    expect(m.outgoing.blur).toBeCloseTo(8, 6)
-    expect(m.incoming.opacity).toBeCloseTo(m.outgoing.opacity, 6)
+describe('seamFor / seamBlend', () => {
+  // A pair of titles whose canvases span 70% of the plane, centred; a 1.2 em
+  // seam on a ~7.4 em plane is about 0.16 of it.
+  const half = 0.35
+  const width = 0.16
+  const xs = Array.from({ length: 29 }, (_, i) => 0.5 - half + (i / 28) * 2 * half)
+
+  it('carries the approved knobs', () => {
+    expect(SEAM_WIDTH_EM).toBe(1.2)
+    expect(SEAM_SIGMA_EM).toBe(0.1)
+    expect(SEAM_POWER).toBe(0.5)
   })
 
-  it('resolves the incoming title crisp and dissolves the outgoing one', () => {
-    const settled = morphValues(1)
-    expect(settled.incoming.blur).toBeCloseTo(0, 6)
-    expect(settled.incoming.opacity).toBeCloseTo(1, 6)
-    expect(settled.outgoing.blur).toBe(BLUR_CAP)
-    expect(settled.outgoing.opacity).toBeCloseTo(0, 6)
+  it('stands entirely left of the ink at f 0 and entirely right of it at f 1', () => {
+    const start = seamFor(0, half, width)
+    const end = seamFor(1, half, width)
+    expect(start.front + width / 2).toBeLessThanOrEqual(0.5 - half + 1e-12)
+    expect(end.front - width / 2).toBeGreaterThanOrEqual(0.5 + half - 1e-12)
+    expect(start.width).toBe(width)
   })
 
-  it('holds the settle plateaus, so a title is crisp at every pin edge', () => {
-    expect(morphValues(0.15).incoming.blur).toBe(BLUR_CAP)
-    expect(morphValues(0.85).incoming.blur).toBeCloseTo(0, 6)
+  it('is not travelling on the plateaus, where every column is 0 or 1', () => {
+    for (const f of [0, 0.05, 0.15]) {
+      const seam = seamFor(f, half, width)
+      expect(seam.travelling).toBe(false)
+      for (const x of xs) expect(seamBlend(x, seam)).toBe(0)
+    }
+    for (const f of [0.85, 0.95, 1]) {
+      const seam = seamFor(f, half, width)
+      expect(seam.travelling).toBe(false)
+      for (const x of xs) expect(seamBlend(x, seam)).toBe(1)
+    }
+    expect(seamFor(0.5, half, width).travelling).toBe(true)
   })
 
-  it('keeps blur inside the cap across the whole segment', () => {
-    for (let f = 0; f <= 1.0001; f += 0.01) {
-      const m = morphValues(f)
-      for (const blur of [m.incoming.blur, m.outgoing.blur]) {
-        expect(blur).toBeGreaterThanOrEqual(0)
-        expect(blur).toBeLessThanOrEqual(BLUR_CAP)
+  it('writes the incoming name in reading order: blend falls with x and rises with f', () => {
+    for (let f = 0; f <= 1.0001; f += 0.05) {
+      const seam = seamFor(f, half, width)
+      let prev = Infinity
+      for (const x of xs) {
+        const t = seamBlend(x, seam)
+        expect(t).toBeGreaterThanOrEqual(0)
+        expect(t).toBeLessThanOrEqual(1)
+        expect(t).toBeLessThanOrEqual(prev + 1e-12)
+        prev = t
       }
     }
+    for (const x of xs) {
+      let prev = -Infinity
+      for (let f = 0; f <= 1.0001; f += 0.01) {
+        const t = seamBlend(x, seamFor(f, half, width))
+        expect(t).toBeGreaterThanOrEqual(prev - 1e-12)
+        prev = t
+      }
+    }
+  })
+
+  it('crosses the centre column exactly at the segment midpoint', () => {
+    expect(seamFor(0.5, half, width).front).toBeCloseTo(0.5, 10)
+    expect(seamBlend(0.5, seamFor(0.5, half, width))).toBeCloseTo(0.5, 10)
+  })
+
+  it('reverses exactly: the mirrored scrub gives the mirrored frame, and no call depends on the last', () => {
+    for (let f = 0; f <= 1.0001; f += 0.05) {
+      for (const x of xs) {
+        const forward = seamBlend(x, seamFor(f, half, width))
+        const back = seamBlend(1 - x, seamFor(1 - f, half, width))
+        expect(forward + back).toBeCloseTo(1, 10)
+      }
+    }
+    const a = seamFor(0.37, half, width)
+    seamFor(0.9, half, width)
+    seamFor(0.1, half, width)
+    expect(seamFor(0.37, half, width)).toEqual(a)
   })
 })
 

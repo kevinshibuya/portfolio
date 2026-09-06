@@ -28,6 +28,12 @@ export interface TitleMetrics {
   /** First and last TEXTURE rows that actually carry glyph coverage. */
   inkTopPx: number
   inkBottomPx: number
+  /**
+   * The LAST line's baseline, in TEXTURE px from the top. The rig registers
+   * every title on this row, so a one-line name and a two-line one share the
+   * line the seam rewrites and the extra line unfolds above it.
+   */
+  baselinePx: number
   /** The fit (`capScale`) the texture was rasterised for; the rig holds it. */
   drawnScale: number
 }
@@ -159,6 +165,7 @@ export async function drawTitleTexture(
     emPx: fontPx * scale,
     inkTopPx,
     inkBottomPx,
+    baselinePx: (padY + capPxUnscaled + (lines.length - 1) * lineHeightPx) * scale,
     drawnScale: 1,
   }
 }

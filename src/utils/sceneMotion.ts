@@ -89,10 +89,19 @@ export const PASS_FADE_END = 0.82
 export const TITLE_CENTER = 0.24
 
 /**
- * Gooey blur cap, carried over from the card-stack title: Anton's large
- * condensed glyphs need this much blur to dissolve fully at the extremes.
+ * The title morph is a SEAM (spec: 2026-09-05-title-morph-artifacts-contract):
+ * a front sweeps the title plane in reading order and each column blends the
+ * two names by its distance to the front. Inside the seam the outgoing
+ * strokes swell into blobs and the incoming ones grow out of them — the gooey
+ * bridge, one letter at a time. Two whole words are never summed: that sum is
+ * a slab for any two 6–7 em Anton names, whatever the blur or the cut.
  */
-export const BLUR_CAP = 180
+/** Seam width, in em of the displayed title. */
+export const SEAM_WIDTH_EM = 1.2
+/** Peak blur inside the seam, in em. */
+export const SEAM_SIGMA_EM = 0.1
+/** Local weight exponent: (1−t)^p and t^p sum past 1 mid-seam, so the seam is a union. */
+export const SEAM_POWER = 0.5
 
 const DEG = Math.PI / 180
 const MAX_SEG = CARD_COUNT - 1
@@ -460,28 +469,39 @@ export function focusDistance(g: SceneGeometry): number {
   return g.D
 }
 
-export interface MorphStyle {
-  blur: number
-  opacity: number
+export interface Seam {
+  /** Front position, in plane uv x. */
+  front: number
+  /** Seam width, in plane uv x. */
+  width: number
+  /** False on the settle plateaus, where the whole draw takes the crisp path. */
+  travelling: boolean
 }
 
-const morphBlur = (x: number): number =>
-  x <= 0 ? BLUR_CAP : clamp(8 / x - 8, 0, BLUR_CAP)
-
 /**
- * The gooey title crossfade, carried over from the card stack: the incoming
- * name sharpens as the outgoing one dissolves, and at the midpoint both sit at
- * 8px of blur so their blobs bridge instead of cross-fading.
- *
- * The raw segment fraction goes through `settleFrac` first, so the morph only
- * runs while the camera is actually travelling and both pin edges read crisp.
+ * The seam for a segment: `halfExtent` is the wider of the two titles' canvas
+ * half-widths in plane uv and `width` the seam width in the same units. At
+ * f 0 the seam stands entirely left of the ink (every column shows the
+ * outgoing name), at f 1 entirely right of it (every column the incoming one).
+ * The raw fraction goes through `settleFrac` first, so both pin edges rest.
+ * Pure and exactly reversible: `blend(x, f) + blend(1 − x, 1 − f) = 1`.
  */
-export function morphValues(frac: number): { incoming: MorphStyle; outgoing: MorphStyle } {
+export function seamFor(frac: number, halfExtent: number, width: number): Seam {
   const f = settleFrac(clamp(frac, 0, 1))
   return {
-    incoming: { blur: morphBlur(f), opacity: Math.pow(f, 0.4) },
-    outgoing: { blur: morphBlur(1 - f), opacity: Math.pow(1 - f, 0.4) },
+    front: 0.5 - halfExtent - width / 2 + f * (2 * halfExtent + width),
+    width,
+    travelling: f > 0 && f < 1,
   }
+}
+
+/**
+ * Local blend at plane column `x`: 1 where the incoming name is already
+ * written, 0 where the outgoing one is still intact, a smoothstep across the
+ * seam. The shader evaluates exactly this per fragment.
+ */
+export function seamBlend(x: number, seam: Seam): number {
+  return smoothstep(clamp((seam.front - x) / seam.width + 0.5, 0, 1))
 }
 
 export interface AmbientOffset {
