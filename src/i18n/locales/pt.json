@@ -31,8 +31,7 @@
   },
   "sections": {
     "projects": {
-      "index": "01",
-      "label": "trabalhos selecionados",
+      "heading": "trabalhos selecionados",
       "stack": {
         "viewProject": "ver",
         "indexLabel": "projetos selecionados"

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { CARD_COUNT, CARD_W, CARD_H } from '../../../utils/sceneMotion'
@@ -32,16 +32,32 @@ interface CorridorProps {
 interface CardCoverProps {
   url: string
   geometry: THREE.BufferGeometry
-  onMaterial: (material: THREE.MeshBasicMaterial | null) => void
+  /** Every material on this card; the cover registers itself here. */
+  materials: THREE.MeshBasicMaterial[]
 }
 
 /**
  * One card's cover image. Split out so `useLoader` — which suspends — is only
  * called for cards that actually have art, without a conditional hook.
  */
-function CardCover({ url, geometry, onMaterial }: CardCoverProps) {
+function CardCover({ url, geometry, materials }: CardCoverProps) {
   const gl = useThree((state) => state.gl)
   const texture = useLoader(THREE.TextureLoader, url)
+
+  // The cover writes its material straight into the card's shared list and
+  // takes it out again on unmount, so a cover remount can never leave a stale
+  // material behind for the rig to drive.
+  const register = useCallback(
+    (material: THREE.MeshBasicMaterial | null) => {
+      if (material && !materials.includes(material)) materials.push(material)
+      return () => {
+        if (!material) return
+        const at = materials.indexOf(material)
+        if (at >= 0) materials.splice(at, 1)
+      }
+    },
+    [materials],
+  )
 
   useLayoutEffect(() => {
     texture.colorSpace = THREE.SRGBColorSpace
@@ -51,18 +67,27 @@ function CardCover({ url, geometry, onMaterial }: CardCoverProps) {
 
   // useLoader caches by url, so the cache entry has to go with the texture —
   // disposing alone would hand a remount a disposed texture from the cache.
-  useEffect(
-    () => () => {
-      texture.dispose()
-      useLoader.clear(THREE.TextureLoader, url)
-    },
-    [texture, url],
-  )
+  // The eviction is deferred a tick and skipped if the effect ran again in
+  // between: StrictMode's development double-invoke would otherwise evict the
+  // texture, so the next re-render of the corridor suspends and the boundary
+  // re-registers everything (a dev-only blink the e2e never sees).
+  const alive = useRef(false)
+  useEffect(() => {
+    alive.current = true
+    return () => {
+      alive.current = false
+      window.setTimeout(() => {
+        if (alive.current) return
+        texture.dispose()
+        useLoader.clear(THREE.TextureLoader, url)
+      }, 0)
+    }
+  }, [texture, url])
 
   return (
     <mesh position={[0, COVER_Y, COVER_Z]} geometry={geometry}>
       <meshBasicMaterial
-        ref={onMaterial}
+        ref={register}
         map={texture}
         transparent
         fog
@@ -80,9 +105,10 @@ function CardCover({ url, geometry, onMaterial }: CardCoverProps) {
  * never re-renders while the camera travels.
  */
 export function Corridor({ covers, sceneRefs }: CorridorProps) {
+  const gl = useThree((state) => state.gl)
   const groups = useRef<(THREE.Group | null)[]>([])
   const frameMaterials = useRef<(THREE.MeshBasicMaterial | null)[]>([])
-  const coverMaterials = useRef<(THREE.MeshBasicMaterial | null)[]>([])
+  const registrations = useRef(0)
 
   const shadows = useRef<(THREE.Mesh | null)[]>([])
   const shadowMaterials = useRef<(THREE.MeshBasicMaterial | null)[]>([])
@@ -122,26 +148,35 @@ export function Corridor({ covers, sceneRefs }: CorridorProps) {
     [frameGeometry, coverGeometry],
   )
 
-  // Frame and cover share one opacity, so the rig gets both materials per card.
+  // Registers the groups, the frame materials and the shadows ONCE, at mount.
+  // Frame and cover share one opacity, so both sit in cardMaterials[i]; the
+  // cover adds and removes itself (see CardCover), so nothing here depends on
+  // the covers and a language switch never re-registers the corridor. The
+  // count on the canvas is what the e2e reads to prove that (ADR 0011).
   useLayoutEffect(() => {
     const { cards, cardMaterials } = sceneRefs
+    const frames: (THREE.MeshBasicMaterial | null)[] = []
     for (let i = 0; i < CARD_COUNT; i++) {
       cards[i] = groups.current[i] ?? null
-      cardMaterials[i] = [frameMaterials.current[i], coverMaterials.current[i]].filter(
-        (m): m is THREE.MeshBasicMaterial => !!m,
-      )
+      const frame = frameMaterials.current[i] ?? null
+      frames[i] = frame
+      if (frame && !cardMaterials[i].includes(frame)) cardMaterials[i].push(frame)
       sceneRefs.shadows[i] = shadows.current[i] ?? null
       sceneRefs.shadowMaterials[i] = shadowMaterials.current[i] ?? null
     }
+    registrations.current += 1
+    gl.domElement.dataset.registrations = String(registrations.current)
     return () => {
       for (let i = 0; i < CARD_COUNT; i++) {
         cards[i] = null
-        cardMaterials[i] = []
+        const frame = frames[i]
+        const at = frame ? cardMaterials[i].indexOf(frame) : -1
+        if (at >= 0) cardMaterials[i].splice(at, 1)
         sceneRefs.shadows[i] = null
         sceneRefs.shadowMaterials[i] = null
       }
     }
-  }, [sceneRefs, covers])
+  }, [sceneRefs, gl])
 
   return (
     <>
@@ -166,9 +201,7 @@ export function Corridor({ covers, sceneRefs }: CorridorProps) {
             <CardCover
               url={covers[i]}
               geometry={coverGeometry}
-              onMaterial={(m) => {
-                coverMaterials.current[i] = m
-              }}
+              materials={sceneRefs.cardMaterials[i]}
             />
           ) : null}
         </group>

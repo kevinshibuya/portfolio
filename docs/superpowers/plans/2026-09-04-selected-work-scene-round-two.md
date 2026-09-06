@@ -170,10 +170,10 @@ export function scrollTargetFor(index: number, wrapperTop: number, wrapperHeight
 
 **Boundaries:** No caption, no pointer events, no title changes. Do not touch the skiplinks' markup or CSS. Do not add any new React state. If a spec relies on the SR heading changing per card, rewrite it to `data-slot`; do not restore per-card DOM text.
 
-- [ ] **Step 1: Rewrite `scene-scrub.spec.ts` and `scene-reduced-motion.spec.ts` around `data-slot`/`data-registrations`; run against the previous commit with a throwaway `data-registrations` counter if you want the red recorded, otherwise confirm red on the absent attributes.**
-- [ ] **Step 2: Projects.tsx: delete frontIndex/overlay/eyebrow/stageStyle, memoise `cards`, static h2, new props; SelectedWorkScene props; rig: delete overlay block, add the slot writer; Corridor: deps + registrations writer.**
-- [ ] **Step 3: CSS and i18n deletions + `projects.heading`; typecheck, vitest green; grep empty.**
-- [ ] **Step 4: `nav-on-light.spec.ts` skiplink navigation; run the three e2e specs green; smoke on :5180; commit `fix(scene): the settled index leaves react state; no dom chrome (ADR 0011)`.**
+- [x] **Step 1: Rewrite `scene-scrub.spec.ts` and `scene-reduced-motion.spec.ts` around `data-slot`/`data-registrations`; run against the previous commit with a throwaway `data-registrations` counter if you want the red recorded, otherwise confirm red on the absent attributes.**
+- [x] **Step 2: Projects.tsx: delete frontIndex/overlay/eyebrow/stageStyle, memoise `cards`, static h2, new props; SelectedWorkScene props; rig: delete overlay block, add the slot writer; Corridor: deps + registrations writer.**
+- [x] **Step 3: CSS and i18n deletions + `projects.heading`; typecheck, vitest green; grep empty.**
+- [x] **Step 4: `nav-on-light.spec.ts` skiplink navigation; run the three e2e specs green; smoke on :5180; commit `fix(scene): the settled index leaves react state; no dom chrome (ADR 0011)`.**
 
 ---
 

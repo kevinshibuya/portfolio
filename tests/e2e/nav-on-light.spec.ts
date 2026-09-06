@@ -70,14 +70,14 @@ test('nav re-arms on-light after SPA back-nav from a project page', async ({ pag
   await scrollIntoSection(page, 'projects', 0.4)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
 
-  // Follow the front card to its project page (SPA nav, Header stays mounted).
-  // The overlay only takes clicks while a card is settled, so land on the
-  // scene's settled fraction first (same mapping as scene-scrub.spec.ts).
+  // Follow the first project to its page (SPA nav, Header stays mounted)
+  // through the keyboard path: the skip-link index is the DOM's only route
+  // into a project; the cards themselves live on the canvas (ADR 0011).
   await scrollToSceneFraction(page, 0.3333)
-  // Forced: the overlay rides the breathing card, so its box drifts every
-  // frame and Playwright's actionability loop cannot converge on it.
-  const href = await page.locator('#projects .scene-meta-pill').getAttribute('href')
-  await page.locator('#projects .scene-meta-pill').click({ force: true })
+  const link = page.locator('#projects .scene-skiplink').first()
+  const href = await link.getAttribute('href')
+  await link.focus()
+  await page.keyboard.press('Enter')
   await expect(page).toHaveURL(new RegExp(href!.replace(/[/]/g, '\\/')))
 
   // On the project page there is no chapter, and the page is fully ink. Both the

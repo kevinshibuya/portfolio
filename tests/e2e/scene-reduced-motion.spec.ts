@@ -38,29 +38,22 @@ test('reduced motion keeps the pin and swaps cards without flight', async ({ pag
   ).toHaveAttribute('data-static', 'true')
   await expect(page.locator('#projects svg filter')).toHaveCount(0)
 
-  // The overlay is always fully visible and always clickable under RM.
-  const pill = page.locator('#projects .scene-meta-pill')
-  await expect(pill).toBeVisible()
-  await expect(page.locator('#projects .scene-meta')).toHaveCSS('opacity', '1')
-  const firstHref = await pill.getAttribute('href')
-  const firstBox = (await pill.boundingBox())!
+  // The settled slot is reported on the canvas itself; there is no DOM overlay.
+  const canvas = page.locator('#projects canvas[data-canvas="selected-work-scene"]')
+  await expect(canvas).toHaveAttribute('data-slot', '0')
 
-  // Short of the segment midpoint (playhead ≈ 0.48): still card 0, nothing moves.
+  // Short of the segment midpoint (playhead ≈ 0.48): still card 0.
   await scrollToFraction(page, 0.44)
-  const sameBox = (await pill.boundingBox())!
-  expect(Math.abs(sameBox.x - firstBox.x)).toBeLessThanOrEqual(1.5)
-  expect(Math.abs(sameBox.y - firstBox.y)).toBeLessThanOrEqual(1.5)
+  await expect(canvas).toHaveAttribute('data-slot', '0')
 
   // Past the midpoint (playhead 0.75): reduced motion has already snapped to
-  // card 1 with no flight, so the pill is still fully usable.
+  // card 1 with no flight.
   await scrollToFraction(page, 0.5)
-  await expect(pill).toBeVisible()
-  await expect(page.locator('#projects .scene-meta')).toHaveCSS('opacity', '1')
-  await expect(pill).toHaveCSS('pointer-events', 'auto')
+  await expect(canvas).toHaveAttribute('data-slot', '1')
 
-  // Next card settled: the project swaps, the overlay does not travel to get there.
+  // Next card settled, then back: scroll is the playhead, exactly reversible.
   await scrollToFraction(page, 0.5556)
-  expect(await pill.getAttribute('href')).not.toBe(firstHref)
-  const swappedBox = (await pill.boundingBox())!
-  expect(Math.abs(swappedBox.y - firstBox.y)).toBeLessThanOrEqual(1.5)
+  await expect(canvas).toHaveAttribute('data-slot', '1')
+  await scrollToFraction(page, 0.3333)
+  await expect(canvas).toHaveAttribute('data-slot', '0')
 })

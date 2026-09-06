@@ -31,8 +31,7 @@
   },
   "sections": {
     "projects": {
-      "index": "01",
-      "label": "selected work",
+      "heading": "selected work",
       "stack": {
         "viewProject": "view",
         "indexLabel": "selected projects"

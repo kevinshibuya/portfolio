@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, invalidate, advance, useThree } from '@react-three/fiber'
 import { useMotionValueEvent, type MotionValue } from 'framer-motion'
 import * as THREE from 'three'
@@ -22,15 +22,13 @@ export interface SceneCard {
 }
 
 export interface SelectedWorkSceneProps {
-  /** Cover art per card, in corridor order; '' renders the frame alone. */
-  covers: string[]
-  /** Project names, in corridor order, in the active language. */
-  titles: string[]
+  /**
+   * The featured projects in corridor order, in the active language. Its
+   * identity changes on a language switch and on nothing else (ADR 0011).
+   */
+  cards: SceneCard[]
   progress: MotionValue<number>
   reducedMotion: boolean
-  /** Positioned every frame from the front card's projected body band. */
-  overlayRef: React.RefObject<HTMLDivElement | null>
-  pillRef: React.RefObject<HTMLAnchorElement | null>
   /** Fires once when the scene's suspended content has mounted. */
   onReady: () => void
   /** Fires once: no WebGL2 at mount, or the context was lost. */
@@ -190,16 +188,15 @@ function ReadySignal({ onReady }: { onReady: () => void }) {
  * instead, permanently for the session (spec Q9).
  */
 export function SelectedWorkScene({
-  covers,
-  titles,
+  cards,
   progress,
   reducedMotion,
-  overlayRef,
-  pillRef,
   onReady,
   onWebglUnavailable,
 }: SelectedWorkSceneProps) {
   const sceneRefs = useRef(createSceneRefs())
+  const covers = useMemo(() => cards.map((c) => c.art), [cards])
+  const titles = useMemo(() => cards.map((c) => c.title), [cards])
   const [{ supported, software }] = useState(probeWebgl)
   const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null)
   const [inView, setInView] = useState(false)
@@ -330,8 +327,6 @@ export function SelectedWorkScene({
         progress={progress}
         reducedMotion={reducedMotion}
         sceneRefs={sceneRefs.current}
-        overlayRef={overlayRef}
-        pillRef={pillRef}
       />
       {/* Outside the Suspense on purpose: SceneTitle must never suspend, or a
           language switch would blank the whole scene for a frame. */}

@@ -32,60 +32,57 @@ async function openScene(page: Page): Promise<void> {
     .waitFor({ timeout: 30000 })
 }
 
-/**
- * The overlay rides the card, which breathes, so its box drifts a pixel or two
- * every frame. Playwright's actionability loop can hit-test a point the element
- * has already moved off, and never converges. Assert the hit test ourselves —
- * which is the regression that actually matters, the canvas covering the pill —
- * then click without the retry loop.
- */
-async function clickPill(page: Page): Promise<string> {
-  const pill = page.locator('#projects .scene-meta-pill')
-  await expect(pill).toBeVisible()
-  const href = (await pill.getAttribute('href'))!
-  const hitsPill = await page.evaluate(() => {
-    const el = document.querySelector('#projects .scene-meta-pill')
-    if (!el) return false
-    const box = el.getBoundingClientRect()
-    const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)
-    return !!hit && el.contains(hit)
-  })
-  expect(hitsPill, 'the view pill must not be covered by the canvas').toBe(true)
-  await pill.click({ force: true })
-  return href
-}
+const CANVAS = '#projects canvas[data-canvas="selected-work-scene"]'
 
-test('scrubbing the corridor swaps the front project, and reversing restores it', async ({
+/** Every settled fraction plus the overture and the approach, then back to card 0. */
+const SWEEP = [0, 0.2222, 0.3333, 0.4444, 0.5556, 0.6667, 0.7778, 0.8889, 1, 0.3333]
+
+test('scrubbing the corridor swaps the settled slot, and reversing restores it', async ({
   page,
 }) => {
   await openScene(page)
+  const canvas = page.locator(CANVAS)
+
+  // The SR heading is static: it names the section, not the front card.
+  const heading = page.locator('#projects .scene-title-sr')
+  await expect(heading).toHaveText(/selected work|trabalhos selecionados/)
 
   await scrollToFraction(page, 0.3333)
-  const firstHref = await page.locator('#projects .scene-meta-pill').getAttribute('href')
-  const firstSubtitle = await page.locator('#projects .scene-meta-subtitle').textContent()
-  const firstTitle = await page.locator('#projects .scene-title-sr').textContent()
-
-  // A settled card shows its overlay at full strength and takes clicks.
-  await expect(page.locator('#projects .scene-meta-pill')).toBeVisible()
-  await expect(page.locator('#projects .scene-meta')).toHaveCSS('opacity', '1')
+  await expect(canvas).toHaveAttribute('data-slot', '0')
 
   await scrollToFraction(page, 0.5556)
-  expect(await page.locator('#projects .scene-meta-pill').getAttribute('href')).not.toBe(firstHref)
-  expect(await page.locator('#projects .scene-meta-subtitle').textContent()).not.toBe(firstSubtitle)
-  expect(await page.locator('#projects .scene-title-sr').textContent()).not.toBe(firstTitle)
+  await expect(canvas).toHaveAttribute('data-slot', '1')
 
   // Scroll is the playhead: going back restores the earlier state exactly.
   await scrollToFraction(page, 0.3333)
-  expect(await page.locator('#projects .scene-meta-pill').getAttribute('href')).toBe(firstHref)
-  expect(await page.locator('#projects .scene-title-sr').textContent()).toBe(firstTitle)
+  await expect(canvas).toHaveAttribute('data-slot', '0')
+  await expect(heading).toHaveText(/selected work|trabalhos selecionados/)
 })
 
-test('the settled card view pill navigates to its project', async ({ page }) => {
+test('a full scrub never re-registers the corridor (no react state on scroll)', async ({
+  page,
+}) => {
+  await openScene(page)
+  const canvas = page.locator(CANVAS)
+  await expect(canvas).toHaveAttribute('data-registrations', '1')
+
+  for (const fraction of SWEEP) await scrollToFraction(page, fraction)
+
+  // Nothing in React re-rendered the scene subtree: the corridor registered
+  // its objects exactly once, at mount (ADR 0011).
+  await expect(canvas).toHaveAttribute('data-registrations', '1')
+  await expect(canvas).toHaveAttribute('data-slot', '0')
+})
+
+test('the project index skip-link navigates to its project', async ({ page }) => {
   await openScene(page)
   await scrollToFraction(page, 0.3333)
 
-  const href = await clickPill(page)
+  const link = page.locator('#projects .scene-skiplink').first()
+  const href = (await link.getAttribute('href'))!
   expect(href).toMatch(/^\/projects\//)
+  await link.focus()
+  await page.keyboard.press('Enter')
   await expect(page).toHaveURL(new RegExp(href.replace(/[/]/g, '\\/')))
 })
 

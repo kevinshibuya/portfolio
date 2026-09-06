@@ -4,7 +4,6 @@ import { useVelocity, type MotionValue } from 'framer-motion'
 import * as THREE from 'three'
 import {
   CARD_COUNT,
-  CARD_W,
   CARD_H,
   DEG,
   FOV_DEG,
@@ -18,7 +17,6 @@ import {
   sceneGeometry,
   cameraPose,
   cardPose,
-  projectPoint,
   ambientOffset,
   frontIndexFor,
   settledness,
@@ -29,7 +27,6 @@ import {
   type SceneGeometry,
   type Rect,
 } from '../../../utils/sceneMotion'
-import { CARD_PAD, BAND_TOP_Y, BAND_BOTTOM_Y } from './cardAnatomy'
 import type { SceneRefs } from './sceneRefs'
 
 const HALF_FOV_TAN = Math.tan((FOV_DEG * DEG) / 2)
@@ -54,8 +51,6 @@ interface SceneRigProps {
   progress: MotionValue<number>
   reducedMotion: boolean
   sceneRefs: SceneRefs
-  overlayRef: React.RefObject<HTMLDivElement | null>
-  pillRef: React.RefObject<HTMLAnchorElement | null>
 }
 
 /**
@@ -69,13 +64,7 @@ interface SceneRigProps {
  * Lane rule (CLAUDE.md): the R3F loop READS Framer MotionValues; Framer never
  * animates a three object.
  */
-export function SceneRig({
-  progress,
-  reducedMotion,
-  sceneRefs,
-  overlayRef,
-  pillRef,
-}: SceneRigProps) {
+export function SceneRig({ progress, reducedMotion, sceneRefs }: SceneRigProps) {
   const geo = useRef<SceneGeometry | null>(null)
   const geoKey = useRef('')
   // Scratch vectors, reused every frame so the loop allocates nothing.
@@ -85,6 +74,7 @@ export function SceneRig({
   )
   const cameraRef = useRef<THREE.Camera | null>(null)
   const cardRect = useRef<Rect | null>(null)
+  const lastSlot = useRef(-1)
   const velocity = useVelocity(progress)
 
   // The DEV-only handle the smokes read to sample live object state. Stripped
@@ -139,6 +129,12 @@ export function SceneRig({
     const settledNow = settledness(seg, reducedMotion)
     const frontCard = frontIndexFor(seg, CARD_COUNT, reducedMotion)
 
+    // Non-visual, test-only. Written when it CHANGES, never per frame.
+    if (frontCard !== lastSlot.current) {
+      lastSlot.current = frontCard
+      state.gl.domElement.dataset.slot = String(frontCard)
+    }
+
     // Pointer tilt eases toward its target rather than snapping to the cursor.
     const tilt = sceneRefs.tilt
     if (reducedMotion) {
@@ -186,46 +182,6 @@ export function SceneRig({
         shadowMaterial.opacity = SHADOW_ALPHA * (1 - 0.4 * rise) * pose.opacity
       }
     }
-
-    // The DOM overlay rides the front card's white body band. It is placed from
-    // the band's PROJECTED corners rather than tracked by a transform, so it
-    // stays glued to the card through the whole dolly without ever mirroring
-    // the card's yaw (flat text on a yawed plane reads as a mistake).
-    const overlay = overlayRef.current
-    if (!overlay) return
-    const visualIndex = frontIndexFor(seg, CARD_COUNT, reducedMotion)
-    const pose = cardPose(visualIndex, eased, g)
-    // Band placement follows the bob only: the overlay is flat DOM text and
-    // must never inherit the card's yaw, pitch or tilt.
-    const bob = reducedMotion ? 0 : ambientOffset(visualIndex, t, energy).y
-    const cardCentreY = pose.y + bob
-
-    const topLeft = projectPoint(
-      pose.x - CARD_W / 2 + CARD_PAD,
-      cardCentreY + BAND_TOP_Y,
-      pose.z,
-      cam,
-      g,
-    )
-    const bottomRight = projectPoint(
-      pose.x + CARD_W / 2 - CARD_PAD,
-      cardCentreY + BAND_BOTTOM_Y,
-      pose.z,
-      cam,
-      g,
-    )
-
-    const settled = settledness(seg, reducedMotion)
-    // Whole pixels: a fractional transform makes 13px text shimmer.
-    overlay.style.transform = `translate3d(${Math.round(topLeft.fx * size.width)}px, ${Math.round(topLeft.fy * size.height)}px, 0)`
-    overlay.style.width = `${Math.round((bottomRight.fx - topLeft.fx) * size.width)}px`
-    overlay.style.height = `${Math.round((bottomRight.fy - topLeft.fy) * size.height)}px`
-    overlay.style.opacity = String(pose.visible ? settled : 0)
-
-    // A parent's pointer-events: none does not block a child set to auto, so
-    // the pill has to be switched off itself while the card is in flight.
-    const pill = pillRef.current
-    if (pill) pill.style.pointerEvents = settled >= 0.5 && pose.visible ? 'auto' : 'none'
 
     updateTitle(state.clock.elapsedTime)
   })
