@@ -28,8 +28,30 @@ export const FOV_DEG = 35
 /** Camera pitch, negative = looking down at the corridor. */
 export const CAM_PITCH_DEG = -8
 
-/** How far behind card 0's slot the camera starts, in corridor spacings. */
+/** Playhead where the scene begins: the overture line stands alone in cream. */
+export const OVERTURE_START = -1.5
+/** First playhead where the cards read in the distance (the overture is gone). */
+export const APPROACH_START = -0.5
+/**
+ * How far behind card 0's slot the camera sits at `APPROACH_START`, in corridor
+ * spacings — the "cards in the distance" frame the first round shipped.
+ */
 export const APPROACH_DEPTH = 1
+/**
+ * Playhead units before `APPROACH_START` over which the overture line fades.
+ * The line fills the frame near seg ≈ −1.07 and is 3–4× the frame width by
+ * −0.65, so the fly-past needs this much window to read as a pass, not a pop.
+ */
+export const OVERTURE_FADE = 0.35
+
+/** The caption name is drawn at this size, in 620-px card units. */
+export const CAPTION_NAME_PX = 26
+/** …and must never render smaller than this on screen. */
+export const CAPTION_MIN_NAME_PX = 12
+/** So the card is never narrower than this many CSS px: ceil(620 · 12 / 26). */
+export const CARD_MIN_PX = Math.ceil((CARD_MAX_PX * CAPTION_MIN_NAME_PX) / CAPTION_NAME_PX)
+/** The title never spans more than this fraction of the frame width. */
+export const TITLE_WIDTH_CAP = 0.8
 
 /** A card holds full opacity until this `rel`, then fades out before the lens. */
 export const PASS_FADE_START = 0.67
@@ -57,6 +79,16 @@ export function smoothstep(t: number): number {
 }
 
 /**
+ * How far behind card 0 the camera starts at `OVERTURE_START`, in spacings.
+ * DERIVED, not tuned: the approach is one continuous ease from −1.5 to 0, and
+ * this depth is whatever makes `easedSeg(APPROACH_START)` land exactly on
+ * `−APPROACH_DEPTH`, so the frame at −0.5 is unchanged from the first round.
+ * ≈ 3.857: the far plane (`D + 4·spacing`) still contains card 0 at the top.
+ */
+export const CORRIDOR_DEPTH =
+  APPROACH_DEPTH / (1 - smoothstep((APPROACH_START - OVERTURE_START) / (0 - OVERTURE_START)))
+
+/**
  * Settle-plateau remap: the transition occupies the middle 70% (0.15–0.85) of a
  * segment, so the scene dwells settled at every card and at both pin edges —
  * entering or leaving the section never lands mid-morph.
@@ -65,30 +97,74 @@ export function settleFrac(frac: number): number {
   return smoothstep(clamp((frac - 0.15) / 0.7, 0, 1))
 }
 
+/** Playhead units the wrapper spans: 1 overture + 0.5 approach + 3 card segments. */
+const PLAYHEAD_SPAN = MAX_SEG - OVERTURE_START
+
 /**
- * Scroll progress (0..1 over the 450svh wrapper) → playhead.
- * `seg = i` means card `i` sits in the slot; `seg = −0.5` is the top of the
- * approach, with the camera one spacing behind card 0 and card 0 in the fog.
+ * Scroll progress (0..1 over the 550svh wrapper) → playhead.
+ * `seg = i` means card `i` sits in the slot; `[−1.5, −0.5)` is the overture,
+ * `[−0.5, 0)` the approach with the camera one spacing behind card 0 at −0.5
+ * and card 0 surfacing from the fog.
  */
 export function playheadFor(progress: number): number {
-  return clamp(progress * 3.5 - 0.5, -0.5, MAX_SEG)
+  return clamp(progress * PLAYHEAD_SPAN + OVERTURE_START, OVERTURE_START, MAX_SEG)
 }
 
 /**
  * Playhead → the camera's eased position along the corridor, in card units.
  *
  * For `seg ≥ 0` each unit segment eases through its middle 70%, so every
- * integer is a plateau. For `seg < 0` the approach has its own ease with zero
- * slope at BOTH ends: the camera neither lurches when the section pins nor
- * overshoots as card 0 settles.
+ * integer is a plateau. For `seg < 0` the overture and the approach share ONE
+ * ease from `OVERTURE_START` to 0, with zero slope at both ends and none in
+ * between: the camera never stops at −0.5 while the line hands over to the
+ * cards, and it neither lurches when the section pins nor overshoots as card
+ * 0 settles.
  */
 export function easedSeg(seg: number): number {
   if (seg < 0) {
-    const a = clamp((seg + 0.5) / 0.5, 0, 1)
-    return -APPROACH_DEPTH * (1 - smoothstep(a))
+    const a = clamp((seg - OVERTURE_START) / (0 - OVERTURE_START), 0, 1)
+    return -CORRIDOR_DEPTH * (1 - smoothstep(a))
   }
   const base = Math.floor(seg)
   return clamp(base + settleFrac(seg - base), 0, MAX_SEG)
+}
+
+export interface OverturePose {
+  alpha: number
+  visible: boolean
+}
+
+/**
+ * The overture line's state at a playhead: solid through the overture, fading
+ * over `OVERTURE_FADE` as the camera flies past, gone from `APPROACH_START` on.
+ * Pure and exactly reversible. Reduced motion steps instead of fading.
+ */
+export function overturePose(seg: number, reducedMotion: boolean): OverturePose {
+  const visible = seg < APPROACH_START
+  if (reducedMotion) return { alpha: visible ? 1 : 0, visible }
+  const fadeStart = APPROACH_START - OVERTURE_FADE
+  const alpha = visible ? 1 - smoothstep(clamp((seg - fadeStart) / OVERTURE_FADE, 0, 1)) : 0
+  return { alpha, visible }
+}
+
+/**
+ * Absolute world z of the overture line, in `cameraPose`'s convention: it
+ * stands exactly where the camera is at `APPROACH_START`, so the camera passes
+ * through it as the cards appear. `g.D − easedSeg(−0.5) · g.spacing`, which is
+ * `g.D + g.spacing` by construction of `CORRIDOR_DEPTH`.
+ */
+export function overtureZ(g: SceneGeometry): number {
+  return g.D - easedSeg(APPROACH_START) * g.spacing
+}
+
+/**
+ * World width of the overture line so that it fills 0.7 of the visible width
+ * at `OVERTURE_START`, when the camera is `(CORRIDOR_DEPTH − 1)` spacings
+ * short of it.
+ */
+export function overtureWidth(g: SceneGeometry): number {
+  const d = (easedSeg(APPROACH_START) - easedSeg(OVERTURE_START)) * g.spacing
+  return 0.7 * (2 * d * HALF_FOV_TAN * g.aspect)
 }
 
 export interface Segment {
@@ -180,13 +256,18 @@ const HALF_FOV_TAN = Math.tan((FOV_DEG * DEG) / 2)
  * fight for the desktop fraction: a hard 0.46 (the card never dominates), the
  * 620px design cap, and half the frame HEIGHT (so a short wide window doesn't
  * push the card into the title band). Phones skip all three: one 88vw card.
+ * Under all of it sits the legibility floor: the card is never narrower than
+ * `CARD_MIN_PX`, so the caption name on it never drops under 12 px — this
+ * binds on landscape phones and on 320 px portrait, and a 0.92 ceiling keeps
+ * the floored card inside the frame.
  */
 export function sceneGeometry(widthPx: number, heightPx: number): SceneGeometry {
   const aspect = widthPx / heightPx
-  const fraction =
+  const sized =
     aspect < 1
       ? 0.88
       : Math.min(0.46, CARD_MAX_PX / widthPx, 0.5 / (aspect * CARD_H))
+  const fraction = Math.min(Math.max(sized, CARD_MIN_PX / widthPx), 0.92)
   const D = CARD_W / (fraction * 2 * HALF_FOV_TAN * aspect)
   const spacing = 1.15 * D
   // The second term keeps an 88vw card inside the frame once it is offset.
@@ -294,6 +375,34 @@ export function frameRects(g: SceneGeometry): {
     },
     floorContactY: contact.fy,
   }
+}
+
+/**
+ * The band the title may occupy, as frame fractions from the top: it starts
+ * 16 px under the nav and ends a clearance above the settled card's top edge.
+ * The rig scales the title down to fit `bottom − top`.
+ */
+export function titleBand(
+  cardTopFrac: number,
+  navPx: number,
+  visibleH: number,
+  clearance: number,
+): { top: number; bottom: number } {
+  return { top: (navPx + 16) / visibleH, bottom: cardTopFrac - clearance }
+}
+
+/**
+ * The document `scrollY` at which `playheadFor` returns exactly `index`, for a
+ * wrapper starting at `wrapperTop` whose scrub range is `height − viewport`.
+ */
+export function scrollTargetFor(
+  index: number,
+  wrapperTop: number,
+  wrapperHeight: number,
+  viewportHeight: number,
+): number {
+  const progress = (index - OVERTURE_START) / PLAYHEAD_SPAN
+  return wrapperTop + progress * (wrapperHeight - viewportHeight)
 }
 
 /**

@@ -11,8 +11,8 @@ async function scrollIntoSection(page: import('@playwright/test').Page, id: stri
   await page.waitForTimeout(200)
 }
 
-// Scroll to a fraction of the scene's scrub range (450svh wrapper, 100svh
-// sticky stage). Mirrors the helper in scene-scrub.spec.ts.
+// Scroll to a fraction of the scene's scrub range (550svh wrapper, 100svh
+// sticky stage; settled card k at (k + 1.5) / 4.5). Mirrors scene-scrub.spec.ts.
 async function scrollToSceneFraction(page: import('@playwright/test').Page, fraction: number): Promise<void> {
   await page.evaluate((frac) => {
     const wrapper = document.querySelector('#projects .scene-scroll') as HTMLElement | null
@@ -73,7 +73,7 @@ test('nav re-arms on-light after SPA back-nav from a project page', async ({ pag
   // Follow the front card to its project page (SPA nav, Header stays mounted).
   // The overlay only takes clicks while a card is settled, so land on the
   // scene's settled fraction first (same mapping as scene-scrub.spec.ts).
-  await scrollToSceneFraction(page, 0.15)
+  await scrollToSceneFraction(page, 0.3333)
   // Forced: the overlay rides the breathing card, so its box drifts every
   // frame and Playwright's actionability loop cannot converge on it.
   const href = await page.locator('#projects .scene-meta-pill').getAttribute('href')

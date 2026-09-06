@@ -27,6 +27,20 @@ import {
   fogRange,
   BLUR_CAP,
   APPROACH_DEPTH,
+  APPROACH_START,
+  OVERTURE_START,
+  OVERTURE_FADE,
+  CORRIDOR_DEPTH,
+  FOV_DEG,
+  overturePose,
+  overtureZ,
+  overtureWidth,
+  CAPTION_NAME_PX,
+  CAPTION_MIN_NAME_PX,
+  CARD_MIN_PX,
+  titleBand,
+  TITLE_WIDTH_CAP,
+  scrollTargetFor,
 } from '../../src/utils/sceneMotion'
 
 /** The four viewports the geometry contract was worked against. */
@@ -78,16 +92,20 @@ describe('settleFrac', () => {
 })
 
 describe('playheadFor', () => {
-  it('maps the scroll range onto the approach plus one unit per card', () => {
-    expect(playheadFor(0)).toBeCloseTo(-0.5, 10)
+  it('maps the scroll range onto the overture, the approach and one unit per card', () => {
+    expect(playheadFor(0)).toBeCloseTo(OVERTURE_START, 10)
+    expect(playheadFor(0)).toBeCloseTo(-1.5, 10)
     expect(playheadFor(1)).toBeCloseTo(3, 10)
   })
-  it('reaches card 0 once the 50svh approach is spent', () => {
-    // the approach is 0.5 of 3.5 playhead units => p = 0.5/3.5
-    expect(playheadFor(0.5 / 3.5)).toBeCloseTo(0, 10)
+  it('reaches the approach after 100svh and card 0 after 150svh of the 550svh wrapper', () => {
+    // 1 of 4.5 playhead units => p = 1/4.5 (0.2222); 1.5 of 4.5 => p = 0.3333
+    expect(playheadFor(1 / 4.5)).toBeCloseTo(APPROACH_START, 10)
+    expect(playheadFor(0.2222)).toBeCloseTo(-0.5, 3)
+    expect(playheadFor(1.5 / 4.5)).toBeCloseTo(0, 10)
+    expect(playheadFor(0.3333)).toBeCloseTo(0, 3)
   })
   it('clamps outside the scroll range', () => {
-    expect(playheadFor(-1)).toBe(-0.5)
+    expect(playheadFor(-1)).toBe(-1.5)
     expect(playheadFor(2)).toBe(3)
   })
 })
@@ -96,12 +114,18 @@ describe('easedSeg', () => {
   it('is the identity at every settled integer playhead', () => {
     for (const seg of [0, 1, 2, 3]) expect(easedSeg(seg)).toBeCloseTo(seg, 10)
   })
-  it('starts one spacing behind card 0 at the top of the approach', () => {
-    expect(easedSeg(-0.5)).toBeCloseTo(-1, 10)
+  it('starts the corridor depth back at the overture and exactly one spacing back at the approach', () => {
+    expect(easedSeg(OVERTURE_START)).toBeCloseTo(-CORRIDOR_DEPTH, 10)
+    expect(easedSeg(APPROACH_START)).toBeCloseTo(-APPROACH_DEPTH, 9)
+    expect(easedSeg(-0.5)).toBeCloseTo(-1, 9)
+  })
+  it('derives the corridor depth rather than tuning it', () => {
+    expect(CORRIDOR_DEPTH).toBeCloseTo(APPROACH_DEPTH / (1 - smoothstep(2 / 3)), 12)
+    expect(CORRIDOR_DEPTH).toBeCloseTo(3.857, 2)
   })
   it('is non-decreasing across the whole playhead range', () => {
     let prev = -Infinity
-    for (let seg = -0.5; seg <= 3.0001; seg += 0.01) {
+    for (let seg = -1.5; seg <= 3.0001; seg += 0.01) {
       const v = easedSeg(seg)
       expect(v).toBeGreaterThanOrEqual(prev - 1e-12)
       prev = v
@@ -113,12 +137,63 @@ describe('easedSeg', () => {
       expect(easedSeg(k + 0.15)).toBeCloseTo(k, 10)
     }
   })
-  it('enters and settles with near-zero slope at both ends of the approach', () => {
+  it('is one continuous ease from the overture to card 0: still at both ends, moving at the approach', () => {
     const h = 0.001
-    const slopeAtStart = (easedSeg(-0.5 + h) - easedSeg(-0.5)) / h
+    const slopeAtStart = (easedSeg(-1.5 + h) - easedSeg(-1.5)) / h
     const slopeAtSettle = (easedSeg(0) - easedSeg(-h)) / h
-    expect(slopeAtStart).toBeLessThan(0.05)
-    expect(slopeAtSettle).toBeLessThan(0.05)
+    const slopeAtApproach = (easedSeg(-0.5 + h) - easedSeg(-0.5 - h)) / (2 * h)
+    expect(Math.abs(slopeAtStart)).toBeLessThan(0.02)
+    expect(Math.abs(slopeAtSettle)).toBeLessThan(0.02)
+    expect(slopeAtApproach).toBeGreaterThan(0.5)
+  })
+})
+
+describe('overturePose', () => {
+  it('holds the line solid until the fade window opens', () => {
+    expect(overturePose(-1.5, false)).toEqual({ alpha: 1, visible: true })
+    expect(overturePose(-0.85, false).alpha).toBeCloseTo(1, 10)
+    expect(overturePose(-0.85, false).visible).toBe(true)
+    expect(APPROACH_START - OVERTURE_FADE).toBeCloseTo(-0.85, 10)
+  })
+  it('is gone at the approach and stays gone', () => {
+    expect(overturePose(-0.5, false)).toEqual({ alpha: 0, visible: false })
+    expect(overturePose(0, false)).toEqual({ alpha: 0, visible: false })
+    expect(overturePose(2.4, false)).toEqual({ alpha: 0, visible: false })
+  })
+  it('fades monotonically across the window', () => {
+    let prev = Infinity
+    for (let seg = -0.85; seg <= -0.5 + 1e-9; seg += 0.005) {
+      const { alpha, visible } = overturePose(seg, false)
+      expect(alpha).toBeLessThanOrEqual(prev + 1e-12)
+      expect(alpha).toBeGreaterThanOrEqual(0)
+      expect(visible).toBe(seg < -0.5)
+      prev = alpha
+    }
+    expect(overturePose(-0.675, false).alpha).toBeCloseTo(0.5, 6)
+  })
+  it('is a step under reduced motion', () => {
+    expect(overturePose(-1.5, true)).toEqual({ alpha: 1, visible: true })
+    expect(overturePose(-0.6, true)).toEqual({ alpha: 1, visible: true })
+    expect(overturePose(-0.5, true)).toEqual({ alpha: 0, visible: false })
+    expect(overturePose(1, true)).toEqual({ alpha: 0, visible: false })
+  })
+})
+
+describe('overture placement', () => {
+  it('stands where the camera is at the start of the approach', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      expect(overtureZ(g), name).toBeCloseTo(g.D + g.spacing, 9)
+      expect(overtureZ(g), name).toBeCloseTo(cameraPose(easedSeg(APPROACH_START), g).z, 9)
+    }
+  })
+  it('fills 0.7 of the visible width at the top of the overture', () => {
+    const g = sceneGeometry(1440, 900)
+    const halfFovTan = Math.tan((FOV_DEG * Math.PI) / 360)
+    const d = (easedSeg(APPROACH_START) - easedSeg(OVERTURE_START)) * g.spacing
+    expect(d).toBeCloseTo((CORRIDOR_DEPTH - 1) * g.spacing, 9)
+    const visibleWidth = 2 * d * halfFovTan * g.aspect
+    expect(overtureWidth(g) / visibleWidth).toBeCloseTo(0.7, 9)
   })
 })
 
@@ -216,6 +291,28 @@ describe('sceneGeometry', () => {
     expect(sceneGeometry(393, 851).titleCapPx).toBe(56)
     expect(sceneGeometry(1920, 1080).titleCapPx).toBe(150)
     expect(sceneGeometry(1440, 900).titleCapPx).toBeCloseTo(129.6, 6)
+  })
+
+  it('never lets the caption name fall under 12 px: the card is at least 287 px wide', () => {
+    expect(CARD_MIN_PX).toBe(Math.ceil((620 * CAPTION_MIN_NAME_PX) / CAPTION_NAME_PX))
+    expect(CARD_MIN_PX).toBe(287)
+    const sizes: Array<[number, number]> = [
+      [320, 568], [390, 844], [844, 390], [1024, 768], [1440, 900],
+    ]
+    for (const [a, b] of sizes) {
+      for (const [w, h] of [[a, b], [b, a]] as Array<[number, number]>) {
+        const g = sceneGeometry(w, h)
+        const name = `${w}x${h}`
+        expect(g.fraction * g.widthPx, name).toBeGreaterThanOrEqual(CARD_MIN_PX - 1e-9)
+        expect(g.fraction, name).toBeLessThanOrEqual(0.92)
+        // The offset card must stay inside the frame at the slot.
+        expect(g.lateral + CARD_W / 2, name).toBeLessThanOrEqual(CARD_W / (2 * g.fraction) + 1e-9)
+      }
+    }
+    // The rule binds on a landscape phone and on 320 px portrait, nowhere else here.
+    expect(sceneGeometry(844, 390).fraction).toBeCloseTo(287 / 844, 10)
+    expect(sceneGeometry(320, 568).fraction).toBeCloseTo(287 / 320, 10)
+    expect(sceneGeometry(390, 844).fraction).toBeCloseTo(0.88, 10)
   })
 
   it('keeps the whole corridor inside the far plane', () => {
@@ -344,6 +441,35 @@ describe('frameRects (settled card 0 under the title)', () => {
   it('centres the title band on the upper-third mark', () => {
     const { title } = frameRects(sceneGeometry(1440, 900))
     expect((title.top + title.bottom) / 2).toBeCloseTo(0.24, 10)
+  })
+})
+
+describe('titleBand', () => {
+  it('starts 16 px under the nav and stops a clearance above the card', () => {
+    const band = titleBand(0.42, 66, 900, 0.03)
+    expect(band.top).toBeCloseTo(82 / 900, 10)
+    expect(band.top).toBeCloseTo(0.0911, 4)
+    expect(band.bottom).toBeCloseTo(0.39, 10)
+  })
+  it('caps the title at 0.8 of the frame width', () => {
+    expect(TITLE_WIDTH_CAP).toBe(0.8)
+  })
+})
+
+describe('scrollTargetFor', () => {
+  it('round-trips through playheadFor to exactly the settled card', () => {
+    const wrapperTop = 1234
+    const wrapperHeight = 5.5 * 900
+    const viewportHeight = 900
+    for (let index = 0; index < CARD_COUNT; index++) {
+      const target = scrollTargetFor(index, wrapperTop, wrapperHeight, viewportHeight)
+      const progress = (target - wrapperTop) / (wrapperHeight - viewportHeight)
+      expect(playheadFor(progress)).toBeCloseTo(index, 9)
+    }
+    expect(scrollTargetFor(0, wrapperTop, wrapperHeight, viewportHeight)).toBeCloseTo(
+      wrapperTop + (1.5 / 4.5) * (wrapperHeight - viewportHeight),
+      9,
+    )
   })
 })
 

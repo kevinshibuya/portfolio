@@ -1,9 +1,11 @@
 import { test, expect, type Page } from '@playwright/test'
 
 /**
- * Scroll to a fraction of the scene's scrub range. The wrapper is 450svh over a
- * 100svh sticky stage, so useScroll's 0..1 spans (wrapperHeight - viewport):
- * fraction 0.15 lands card 0 settled, 0.43 lands card 1 settled.
+ * Scroll to a fraction of the scene's scrub range. The wrapper is 550svh over a
+ * 100svh sticky stage, so useScroll's 0..1 spans (wrapperHeight - viewport) and
+ * playhead = p · 4.5 − 1.5: the overture runs to 0.2222, the approach to
+ * 0.3333, and settled card k sits at (k + 1.5) / 4.5 — 0.3333 lands card 0,
+ * 0.5556 lands card 1.
  */
 async function scrollToFraction(page: Page, fraction: number): Promise<void> {
   await page.evaluate((frac) => {
@@ -58,7 +60,7 @@ test('scrubbing the corridor swaps the front project, and reversing restores it'
 }) => {
   await openScene(page)
 
-  await scrollToFraction(page, 0.15)
+  await scrollToFraction(page, 0.3333)
   const firstHref = await page.locator('#projects .scene-meta-pill').getAttribute('href')
   const firstSubtitle = await page.locator('#projects .scene-meta-subtitle').textContent()
   const firstTitle = await page.locator('#projects .scene-title-sr').textContent()
@@ -67,20 +69,20 @@ test('scrubbing the corridor swaps the front project, and reversing restores it'
   await expect(page.locator('#projects .scene-meta-pill')).toBeVisible()
   await expect(page.locator('#projects .scene-meta')).toHaveCSS('opacity', '1')
 
-  await scrollToFraction(page, 0.43)
+  await scrollToFraction(page, 0.5556)
   expect(await page.locator('#projects .scene-meta-pill').getAttribute('href')).not.toBe(firstHref)
   expect(await page.locator('#projects .scene-meta-subtitle').textContent()).not.toBe(firstSubtitle)
   expect(await page.locator('#projects .scene-title-sr').textContent()).not.toBe(firstTitle)
 
   // Scroll is the playhead: going back restores the earlier state exactly.
-  await scrollToFraction(page, 0.15)
+  await scrollToFraction(page, 0.3333)
   expect(await page.locator('#projects .scene-meta-pill').getAttribute('href')).toBe(firstHref)
   expect(await page.locator('#projects .scene-title-sr').textContent()).toBe(firstTitle)
 })
 
 test('the settled card view pill navigates to its project', async ({ page }) => {
   await openScene(page)
-  await scrollToFraction(page, 0.15)
+  await scrollToFraction(page, 0.3333)
 
   const href = await clickPill(page)
   expect(href).toMatch(/^\/projects\//)
@@ -91,7 +93,7 @@ test('losing the webgl context falls back to a plain project list, permanently',
   page,
 }) => {
   await openScene(page)
-  await scrollToFraction(page, 0.15)
+  await scrollToFraction(page, 0.3333)
 
   await page.evaluate(() => {
     const canvas = document.querySelector(

@@ -2,6 +2,9 @@ import { test, expect, type Page } from '@playwright/test'
 
 test.use({ contextOptions: { reducedMotion: 'reduce' } })
 
+// Fractions of the 550svh scrub range: playhead = p · 4.5 − 1.5, so settled
+// card k is at (k + 1.5) / 4.5 (0.3333 → card 0, 0.5556 → card 1) and the
+// midpoint between them, where reduced motion snaps to the next card, is 0.4444.
 async function scrollToFraction(page: Page, fraction: number): Promise<void> {
   await page.evaluate((frac) => {
     const wrapper = document.querySelector('#projects .scene-scroll') as HTMLElement | null
@@ -21,7 +24,7 @@ test('reduced motion keeps the pin and swaps cards without flight', async ({ pag
   await page.locator('#projects .scene-scroll').waitFor()
   await page.locator('#projects .scene-canvas-wrap[data-ready="true"]').waitFor()
 
-  await scrollToFraction(page, 0.15)
+  await scrollToFraction(page, 0.3333)
 
   // The section still pins.
   const stickyTop = await page.evaluate(
@@ -42,20 +45,21 @@ test('reduced motion keeps the pin and swaps cards without flight', async ({ pag
   const firstHref = await pill.getAttribute('href')
   const firstBox = (await pill.boundingBox())!
 
-  // Same segment: nothing moves.
-  await scrollToFraction(page, 0.18)
+  // Short of the segment midpoint (playhead ≈ 0.48): still card 0, nothing moves.
+  await scrollToFraction(page, 0.44)
   const sameBox = (await pill.boundingBox())!
   expect(Math.abs(sameBox.x - firstBox.x)).toBeLessThanOrEqual(1.5)
   expect(Math.abs(sameBox.y - firstBox.y)).toBeLessThanOrEqual(1.5)
 
-  // Mid-segment: under RM there is no flight, so the pill stays usable.
-  await scrollToFraction(page, 0.3)
+  // Past the midpoint (playhead 0.75): reduced motion has already snapped to
+  // card 1 with no flight, so the pill is still fully usable.
+  await scrollToFraction(page, 0.5)
   await expect(pill).toBeVisible()
   await expect(page.locator('#projects .scene-meta')).toHaveCSS('opacity', '1')
   await expect(pill).toHaveCSS('pointer-events', 'auto')
 
-  // Next card: the project swaps, the overlay does not travel to get there.
-  await scrollToFraction(page, 0.43)
+  // Next card settled: the project swaps, the overlay does not travel to get there.
+  await scrollToFraction(page, 0.5556)
   expect(await pill.getAttribute('href')).not.toBe(firstHref)
   const swappedBox = (await pill.boundingBox())!
   expect(Math.abs(swappedBox.y - firstBox.y)).toBeLessThanOrEqual(1.5)

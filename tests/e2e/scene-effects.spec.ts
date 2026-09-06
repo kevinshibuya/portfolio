@@ -68,7 +68,7 @@ test('the scene renders through the composer without shifting the cream', async 
     if (!wrapper) return
     const top = wrapper.getBoundingClientRect().top + window.scrollY
     window.scrollTo({
-      top: top + 0.15 * (wrapper.offsetHeight - window.innerHeight),
+      top: top + 0.3333 * (wrapper.offsetHeight - window.innerHeight), // card 0 settled: (0 + 1.5) / 4.5
       behavior: 'instant' as ScrollBehavior,
     })
   })

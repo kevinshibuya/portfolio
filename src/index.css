@@ -2199,7 +2199,8 @@ body[data-loader-state="loading"] {
 
 .scene-scroll {
   position: relative;
-  height: 450svh; /* COUPLED to Projects.tsx: a 50svh approach + n×100svh at n=4.
+  height: 550svh; /* COUPLED to Projects.tsx: a 150svh approach (100svh overture
+                     + 50svh surfacing) + n×100svh at n=4.
                      If the top-4 curation ever changes size, update this and
                      sceneMotion's CARD_COUNT / playheadFor TOGETHER. */
   margin-top: 96px;

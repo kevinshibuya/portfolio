@@ -103,9 +103,9 @@ export function scrollTargetFor(index: number, wrapperTop: number, wrapperHeight
 
 **Boundaries:** No visual code; only `sceneMotion.ts`, its tests, the CSS height/comment and the e2e fractions. No Corridor, Environment, Projects, SceneRig changes.
 
-- [ ] **Step 1: Write the new/updated unit tests; run, confirm red.**
-- [ ] **Step 2: Implement the mapping, `easedSeg`, `overturePose`, `overtureZ`, `overtureWidth`, legibility rule, `titleBand`, `scrollTargetFor`; unit tests, typecheck and lint green.**
-- [ ] **Step 3: CSS 550svh + comment; update the three e2e specs' fractions and comments; run those three specs green; commit `feat(scene): 550svh mapping, overture and title-band helpers, caption legibility rule`.**
+- [x] **Step 1: Write the new/updated unit tests; run, confirm red.**
+- [x] **Step 2: Implement the mapping, `easedSeg`, `overturePose`, `overtureZ`, `overtureWidth`, legibility rule, `titleBand`, `scrollTargetFor`; unit tests, typecheck and lint green.**
+- [x] **Step 3: CSS 550svh + comment; update the three e2e specs' fractions and comments; run those three specs green; commit `feat(scene): 550svh mapping, overture and title-band helpers, caption legibility rule`.**
 
 ---
 
