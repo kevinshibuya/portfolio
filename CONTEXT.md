@@ -9,7 +9,7 @@ Every entry below cites the file it was read from. Nothing here was inferred.
 ### Content
 
 **Project**:
-A piece of work with its own detail route at `/projects/:slug`, carrying an editorial digest (`pitch`, `whatShipped`, `trick`) that every detail page renders.
+A piece of work with its own detail route at `/projects/:slug`, carrying an editorial digest (`pitch`, plus the optional `whatShipped` and `trick`) that the detail page renders when present.
 (`src/types/content.ts`, `docs/architecture.md#content-model`)
 _Avoid_: case study, portfolio piece, work item
 
@@ -23,7 +23,7 @@ The flattened, date-sorted union of everything the Archive section lists, tagged
 (`src/types/content.ts`, `src/data/archive.ts`)
 
 **highlightOrder**:
-The manual rank across projects. The top four (`highlightOrder <= 4`) are the ones the Selected Work scene carries in its corridor.
+The manual rank across projects. The Selected Work scene carries the projects matching `p.highlight && (p.highlightOrder ?? 99) <= 4`; both predicates count.
 (`src/types/content.ts`, `src/data/projects.ts`, `docs/architecture.md#content-model`)
 _Avoid_: priority, featured rank
 
@@ -56,7 +56,7 @@ _Avoid_: stage (kept only in legacy CSS class names), card stack, featured work,
 **Scene**:
 The Selected Work 3D environment as a whole: fog, floor, corridor, camera and title, rendered in the section's own canvas.
 (`src/components/canvas/scene/Environment.tsx`, `docs/architecture.md#selected-work-scene`)
-_Avoid_: stage, canvas (the canvas is the element the scene renders into)
+_Avoid_: stage, canvas (the canvas is the element the scene renders into). The Contact/Footer stage keeps the word; the avoid is scoped to the scene.
 
 **Corridor**:
 The four card positions laid along depth, alternating a lateral offset, that the camera travels past.
@@ -74,7 +74,7 @@ The name, meta line and arrow drawn on a card's body band, in the scene, so the 
 _Avoid_: overlay, meta overlay, label, pill
 
 **Approach**:
-The 150svh entry beat before card 1 reaches the slot: the overture, then the 50svh in which card 1 surfaces from the fog and the title resolves.
+The 150svh entry beat before card 0 reaches the slot: the overture, then the 50svh in which card 0 surfaces from the fog and the title resolves. Cards are zero-indexed, matching `data-slot`.
 (`src/utils/sceneMotion.ts`, `docs/architecture.md#selected-work-scene`)
 _Avoid_: intro, lead-in
 
@@ -141,8 +141,8 @@ The resume note at the repo root, always present, never tracked. Superseded ones
 - Any palette or token change ships with a recomputed AA contrast audit across every affected text/background pair. (`CLAUDE.md`, `docs/contrast.md`)
 - The hero text carries a documented, owner-ratified AA exemption; no contrast layer may be reintroduced behind it. (`src/index.css`, ADR 0004, `docs/architecture.md#hero`)
 - Spec and plan checkboxes are kept in sync with reality; boxes are never invented, only ticked. (`CLAUDE.md`)
-- `npm run preview` is `wrangler dev`, not a static preview. Lighthouse and ad-hoc preview work use `npx vite preview --port 4173`. (`package.json`, ADR 0008)
+- `npm run preview` is `npm run build && wrangler dev`, not a static preview; it rebuilds first. Lighthouse and ad-hoc preview work use `npx vite preview --port 4173`. (`package.json`, ADR 0008)
 - The JSON-LD in `index.html` mirrors `src/data/projects.ts`, with contiguous positions; a test asserts it. (`tests/unit/seo/jsonld-projects.test.ts`)
 - Job titles in work experience are historical facts and are not rewritten; only descriptions sync. (`src/data/workExperience.ts`)
 - The CV at `~/keki/cv-rebuild` is canonical for personal facts, and `cv-pt.html` is the only current one. (Kevin's rule, outside the repo)
-- Production ships from `main` on push through Cloudflare; `main` is frozen and `npm run deploy` is owner-only. (`package.json`, `CLAUDE.md`)
+- Production ships from `main` on push through Cloudflare; `main` is frozen. `npm run deploy` ships production directly without a merge and is owner-only. (`package.json`, `CLAUDE.md`)

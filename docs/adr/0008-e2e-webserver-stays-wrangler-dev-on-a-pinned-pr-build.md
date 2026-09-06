@@ -12,8 +12,8 @@ Two things were settled. First, `wrangler dev` stays as the web server — that 
 
 `package.json` pins a URL where a semver belongs, so a fresh `npm ci` depends on pkg.pr.new staying up. The revert condition is recorded: go back to a plain `wrangler@^4.x` in the first release that contains #15252, which is neither 4.124.0 nor 4.125.0.
 
-Because `npm run preview` is wrangler rather than a static server, Lighthouse and ad-hoc preview work use `npx vite preview --port 4173` instead (`CLAUDE.md`, `CONTEXT.md`).
+Because `npm run preview` is wrangler rather than a static server, Lighthouse and ad-hoc preview work use `npx vite preview --port 4173` instead (`CONTEXT.md`).
 
 ## Source
 
-`package.json`, `playwright.config.ts`, `CLAUDE.md`
+`package.json`, `playwright.config.ts`, `CONTEXT.md`

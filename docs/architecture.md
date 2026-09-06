@@ -4,6 +4,24 @@ How each surface of the site works today. One section per surface, present tense
 
 Read the section for the surface you are about to touch. The rules you obey every turn are in `CLAUDE.md`; the reasoning behind a choice is in `docs/adr/`.
 
+## Index
+
+| Surface | Main files | Section |
+| --- | --- | --- |
+| Tokens and palette | `src/index.css`, `src/utils/palette.ts` | [Palette and tokens](#palette-and-tokens) |
+| Type | `index.html`, `src/index.css` | [Typography](#typography) |
+| Canvases | `src/components/canvas/FluidWaves.tsx`, `src/components/canvas/SelectedWorkScene.tsx` | [Canvases](#canvases) |
+| Loader, entrance | `index.html`, `src/main.tsx`, `src/context/MotionContext.tsx` | [Loader and entrance](#loader-and-entrance) |
+| Hero | `src/components/sections/Hero.tsx` | [Hero](#hero) |
+| Nav | `src/components/layout/Header.tsx` | [Nav](#nav) |
+| Light chapter | `src/pages/Home.tsx`, `src/index.css` | [Light chapter](#light-chapter) |
+| Selected Work | `src/components/sections/Projects.tsx`, `src/components/canvas/scene/`, `src/utils/sceneMotion.ts` | [Selected Work scene](#selected-work-scene) |
+| Archive, Work Experience rows | `src/components/ui/WorkRow.tsx` | [WorkRow](#workrow) |
+| Contact, Footer | `src/components/sections/Contact.tsx`, `src/components/layout/Footer.tsx` | [Contact and Footer stage](#contact-and-footer-stage) |
+| Animation | any | [Animation lanes](#animation-lanes) |
+| Sections, tonal rhythm | `src/pages/Home.tsx`, `src/index.css` | [Layout and section flow](#layout-and-section-flow) |
+| Content, data | `src/types/content.ts`, `src/data/` | [Content model](#content-model) |
+
 Direction: dark ink plus WebGL shader craft. Lowercase, monumental, confident. Cream text on near-black ink, with a tricolor accent carried entirely by two raw-shader canvases and rotated per-row tints. The page runs a tonal arc: dark ink at both ends, a cream light chapter through the middle (Selected Work to Skills), dark again at the Contact/Footer stage.
 
 ## Palette and tokens
@@ -29,7 +47,7 @@ Accent is applied per row through `accentFor(index)` (`ACCENTS = ['#E64D66','#4D
 
 ## Typography
 
-Plus Jakarta Sans, variable 200 to 800, local TTF under `/public/fonts/`. It is both the display and the body face, lowercase throughout. There is no `--font-mono`.
+Plus Jakarta Sans, variable 200 to 800, self-hosted WOFF2 under `/public/fonts/` (WOFF2 replaced the TTF source; see the `@font-face` block in `index.html`). It is both the display and the body face, lowercase throughout. There is no `--font-mono`.
 
 **The Anton fence.** Anton (self-hosted, weight 400, latin and latin-ext, `font-display: swap`, preloaded) is used by the Selected Work morphing title and by nothing else. Jakarta is the site voice.
 
@@ -40,7 +58,7 @@ Three canvases are mounted; at most two run at once.
 - **`FluidWaves`** (`src/components/canvas/FluidWaves.tsx`) is one shared raw-WebGL component with `variant: 'hero' | 'backdrop'`. The hero variant is the full-strength background: seeded scattered wave motion, tricolor paint, smooth, with no pixel quantization. The backdrop variant is the same shader dimmed in CSS (`opacity: 0.22; filter: saturate(0.7)`) behind Contact/Footer, lazy-mounted as the stage nears the viewport, with `dissolveStrength` 0. Each instance seeds independently.
 - **`SelectedWorkScene`** (`src/components/canvas/SelectedWorkScene.tsx` plus `src/components/canvas/scene/`) is the third canvas and the only one rendered by React Three Fiber. It lives in the Projects lazy chunk. Decision: ADR 0009.
 
-**The hero dissolve.** The hero variant runs a shader-side organic cream dissolve at the bottom of its band: a 2D fBm field dragged by the flow coordinate, a narrow threshold window plus a low-frequency sweep, and a hard cream floor. The hero section is `130svh` and melts into the cream Selected Work chapter. Tuning knobs `DISSOLVE_NOISE_AMP`, threshold and sweep sit at the top of the file.
+**The hero dissolve.** The hero variant runs a shader-side organic cream dissolve at the bottom of its band: a 2D fBm field dragged by the flow coordinate, a narrow threshold window plus a low-frequency sweep, and a hard cream floor. The hero section is `130svh` and melts into the cream Selected Work chapter. `DISSOLVE_NOISE_AMP` and `CREAM_FLOOR` are top-of-file constants; the threshold window and the low-frequency sweep are inline literals inside the shader source further down.
 
 **The scroll-coupled clock.** Both `FluidWaves` variants run a scroll-coupled sim clock: scroll velocity adds a small boost to the shader time rate, about 1.5x on steady scroll and capped at 2x on a flick, with a 0.15 s attack and 0.9 s decay, velocity read per-frame inside the rAF loop. Paint stirs while the page moves and settles with follow-through.
 
@@ -62,13 +80,13 @@ Two bottom-corner cream-on-ink HTML meta labels stand in the loader: `portfolio 
 
 Corner labels drift 12 px outward and down while fading over 0.22 s at launch. `resolveEntrance()` fires at about 92 % of the explosion on a wall-clock `setTimeout`, once the ink has cleared the name region; `finishLoader()` removes the loader at 100 %. Under reduced motion the loader is a 150 ms opacity fade over a static shader frame, with no explosion.
 
-**Then the hero text rises.** Once `entranceDone` resolves at the 92 % handoff, `src/components/sections/Hero.tsx` flips `entered` and the role line plus the two name lines rise from `y:110%` out of their `.hero-line-mask` clips, staggered on the house ease in Framer. Reduced motion and SPA back-navigation (`entranceBypassed`) go straight to the settled state with no rise. `MotionContext` holds `entranceDone` and its resolver; `main.tsx` is the sole gate resolver on the normal path.
+**Then the hero text rises.** Once `entranceDone` resolves at the 92 % handoff, `src/components/sections/Hero.tsx` flips `entered` and the role line plus the two name lines rise from `y:125%` out of their `.hero-line-mask` clips, staggered on the house ease in Framer. Reduced motion and SPA back-navigation (`entranceBypassed`) go straight to the settled state with no rise. `MotionContext` holds `entranceDone` and its resolver; `main.tsx` is the sole gate resolver on the normal path.
 
 ## Hero
 
 `src/components/sections/Hero.tsx`. A `min-height:130svh` section, where the extra roughly 30svh is the shader's cream-dissolve band, holding an absolute `100svh` `.hero-zone` that re-anchors the text plane so the name and role never fall into the dissolve. The canvas sits absolute behind the text. There is no scrim layer.
 
-Anatomy: a monumental bottom-left signature name `h1.hero-name` reading `kevin` / `shibuya.` at `clamp(64px,12vw,200px)`, weight 650 to 750, line-height about 0.92, letter-spacing −0.03em, cream. Each line is a `.hero-line` span inside its own `.hero-line-mask` clip row; overflow is released to visible once `.hero-bottom.is-entered`, so the role focus ring and glyph descenders are not clipped at rest. A cycling role line sits directly above the name (`.hero-role`, inside a `.hero-line-mask.hero-role-line`, cycled by click or keyboard), where `roles[0]` is the canonical title `senior front-end engineer · react/typescript`.
+Anatomy: a monumental bottom-left signature name `h1.hero-name` reading `kevin` / `shibuya.` at `clamp(64px,12vw,200px)`, weight 700, line-height about 0.92, letter-spacing −0.03em, cream. Each line is a `.hero-line` span inside its own `.hero-line-mask` clip row; overflow is released to visible once `.hero-bottom.is-entered`, so the role focus ring and glyph descenders are not clipped at rest. A cycling role line sits directly above the name (`.hero-role`, inside a `.hero-line-mask.hero-role-line`, cycled by click or keyboard), where `roles[0]` is the canonical title `senior front-end engineer · react/typescript`.
 
 **Hero text contrast is a documented AA exemption, owner-ratified.** The hero text (name, role, dark-context nav) renders plain cream directly on raw shader paint: no scrim, no text-shadow halo, no shader-side darkening of any kind between the text and the paint. This deliberately fails AA over the brightest paint. Soft treatments proved unsatisfiable at roughly 1.8 to 2.3:1 over worst-case yellow, and a worst-pixel 4.5:1 needs a near-opaque halo, which was rejected aesthetically. Keep it as it is: the owner accepts the tradeoff.
 
@@ -76,7 +94,7 @@ The sole sanctioned exception is an opt-in `@media (prefers-contrast: more)` lay
 
 ## Nav
 
-Dark-restyled on the canonical tokens: brand mark left, links center, EN/PT toggle right. `.nav-link` rests at `rgba(245,242,236,.85)`, near-full cream, because the `--text-faded` gray read muddy on raw hero paint; hover lifts to full `--text`. There is no availability pill; that meta lives in the hero.
+Dark-restyled on the canonical tokens: brand mark left, links center, EN/PT toggle right. `.nav-link` rests at `rgba(245,242,236,.85)`, near-full cream, because the `--text-faded` gray read muddy on raw hero paint; hover lifts to full `--text`. There is no availability pill, and no hero meta block either; `location` lives in the footer.
 
 **`.nav--on-light`** is the cream-chapter variant: links at `--color-ink-on-light-muted` lifting to ink on hover, a deep-blue underline and brand dot, an ink brand tile with cream text, and a scrolled background of `rgba(245,242,236,.85)` over a light hairline.
 
@@ -84,19 +102,19 @@ It is toggled by an `IntersectionObserver` on `#chapter-light` with `rootMargin:
 
 ## Light chapter
 
-One wrapper element `#chapter-light` in `src/pages/Home.tsx` holds, in order, `#projects`, `#archive`, `#work`, `#stats` and `#skills`. It paints `--color-surface-light` and carries a scoped re-declaration of nine canonical tokens (`--bg`, `--bg-tonal`, `--text`, `--text-muted`, `--text-faded`, `--hairline`, `--accent-pink`, `--accent-blue`, `--accent-yellow`), so every descendant rule that already reads a canonical token inverts with zero per-rule edits.
+One wrapper element `#chapter-light` in `src/pages/Home.tsx` holds, in order, `#projects`, `#archive`, `#work`, `#stats` and `#skills`. It paints `--color-surface-light` and carries a scoped re-declaration of the canonical tokens: the nine shorthands (`--bg`, `--bg-tonal`, `--text`, `--text-muted`, `--text-faded`, `--hairline`, `--accent-pink`, `--accent-blue`, `--accent-yellow`) **and eight `--color-*` mirrors**, seventeen declarations in all. Add a token to the chapter and you set both halves, or the inversion is partial. So every descendant rule that already reads a canonical token inverts with zero per-rule edits.
 
 **The wrapper is a plain block on purpose: it carries no `overflow` and no `position`.** The `position: sticky` stage inside `#projects` needs the viewport as its scroll container, and either property on an ancestor silently breaks the pin.
 
-`--text-faded` is remapped to the muted value inside the chapter. No alpha between 0.62 and ink is both AA-passing and visually distinct from 0.62, so the faded step survives only on `aria-hidden` decoration (`.workrow-index`, `.workrow-arrow`), applied by hand.
+`--text-faded` is remapped to the muted value inside the chapter. No alpha between 0.62 and ink is both AA-passing and visually distinct from 0.62, so the faded step survives only on `.workrow-index`, applied by hand. **`.workrow-arrow` is deliberately excluded from that rule**: on the expandable row it is the only visible cue that the row opens, inside a `<button aria-expanded>`, which makes it a WCAG 1.4.11 state indicator that `aria-hidden` does not exempt. It falls through to `--text-faded`, which the scope remaps to muted (5.23:1). See `docs/contrast.md` row 3b.
 
 **A rule inside the light chapter reads a canonical token, never a legacy alias.** The inversion works by re-declaring the canonical tokens, and an alias is invisible to that scope: it keeps resolving to cream and renders cream text on cream.
 
-**The one thing the scope cannot reach is an inline custom property.** `--row-tint*` are set on the `.workrow` and `.stack-inner` style attribute, and an inline value beats any ancestor declaration. So every raw-tint consumer in the chapter is overridden explicitly: the `.work-*` panel marks (`.work-mode-dot`, `.work-bullets li::before`, the `.work-highlight` border), `.work-highlight-label`, and the WorkRow title hover tint. `.stack-card-arrow` deliberately keeps its raw `--row-tint`, because it sits on the card's ink pill where raw tricolor is correct.
+**The one thing the scope cannot reach is an inline custom property.** `--row-tint*` are set on the `.workrow` style attribute (`src/components/ui/WorkRow.tsx`), and an inline value beats any ancestor declaration. So every raw-tint consumer in the chapter is overridden explicitly: the `.work-*` panel marks (`.work-mode-dot`, `.work-bullets li::before`, the `.work-highlight` border), `.work-highlight-label`, and the WorkRow title hover tint.
 
-**Tonal rhythm:** Selected Work cream, Archive tonal, Work Experience cream, Stats cream, Skills tonal. Each is inherited from that section's existing `.section--sand` assignment seen through the scope, not composed separately for cream.
+**Tonal rhythm:** Selected Work cream, Archive tonal, Work Experience cream, Stats cream, Skills tonal. Archive and Skills carry `.section--sand` and inherit the tonal step through the scope. Stats is not a `.section` at all: it is `.stats`, painted `var(--bg)`, which the scope resolves to cream. Nothing here is composed separately for cream.
 
-**Exit veil** (`.chapter-exit-veil`): 30svh, `--color-surface-light` to `--bg`, `aria-hidden`, a pure gradient. It is a sibling placed after `#chapter-light`, never a child: its gradient ends in `var(--bg)`, which the scope resolves to cream, so nesting it would erase the fade. No text ever sits in a veil band.
+**Exit veil** (`.chapter-exit-veil`): 30svh, `--color-surface-light-tonal` to `--bg`, `aria-hidden`, a pure gradient. The first stop must equal the background of the chapter's LAST child, and Skills carries `.section--sand`; starting it on plain cream puts a 1.08:1 hard edge at the one seam whose purpose is not having one. `tests/e2e/light-chapter.spec.ts` asserts the two agree. It is a sibling placed after `#chapter-light`, never a child: its gradient ends in `var(--bg)`, which the scope resolves to cream, so nesting it would erase the fade. No text ever sits in a veil band.
 
 **There is no CSS entry veil.** The hero's `100svh` `.hero-zone` is inviolable, and the entry ramp is the shader's cream dissolve across the hero's lower 30svh (grep `dissolve` in `src/components/canvas/FluidWaves.tsx`, `hero-zone` in `src/components/sections/Hero.tsx`).
 
@@ -108,7 +126,7 @@ The page centerpiece: a real 3D environment in the third canvas. Code in `src/co
 
 ### Anatomy
 
-`section#projects.section.projects-scene-section` is **full-bleed**: it overrides `.section`'s 1440 cap and 80/20 px gutters to `max-width: none; padding-inline: 0`, because the corridor overflows the frame by design (a card mid-approach, the overture past 0.7 of the width) and that overflow has to clip at the viewport edge, not 80 px inside it. `.scene-fallback` carries its own gutter instead, `width: min(620px, 100% - 40px)`.
+`section#projects.section.projects-scene-section` is **full-bleed**: it overrides `.section`'s 1440 cap and 80/20 px gutters to `max-width: none` with zero side padding (written as `padding-left`/`padding-right` longhands), because the corridor overflows the frame by design (a card mid-approach, the overture past 0.7 of the width) and that overflow has to clip at the viewport edge, not 80 px inside it. `.scene-fallback` carries its own gutter instead, `width: min(620px, 100% - 40px)`.
 
 Inside: `nav.scene-skiplinks` (the keyboard and screen-reader path into a project), then `div.scene-scroll` (550svh, the `useScroll` target), then `div.scene-sticky` (100svh, pinned), then `div.scene-inner`, holding `div.scene-canvas-wrap[aria-hidden][data-ready]` and a static `h2.scene-title-sr.sr-only` naming the section.
 
@@ -170,7 +188,7 @@ All of it is off under reduced motion, which keeps the pin, shows the overture a
 
 ### Caption
 
-`src/components/canvas/scene/Caption.tsx`, rasteriser `src/components/canvas/scene/textTexture.ts`. On the left of the white body band: the name (`CAPTION_NAME_PX` 26 of the 620 px card, weight 600, ink `#0B0E14`) and `year · tech · tech` (14, weight 500, `rgba(11,14,20,.62)`). On the right, the `↗` (22, `accentDeepLargeFor(i)`).
+`src/components/canvas/scene/Caption.tsx`, rasteriser `src/components/canvas/scene/textTexture.ts`. On the left of the white body band: the name (`CAPTION_NAME_PX` 26 of the 620 px card, weight 600, ink `#0B0E14`) and `year · tech · tech` (14, `rgba(11,14,20,.62)`). On the right, the `↗` (22, `accentDeepLargeFor(i)`).
 
 They are Jakarta textures on planes inside the card group at `renderOrder` 1, because three's distance sort would otherwise put the frame over them. They fog and fade with the card, and are drawn at the card's projected width in device px so the caption is 1:1 at rest. Names ellipsise on one line.
 
@@ -205,7 +223,7 @@ On desktop hover, a pointer-tracking `.workrow-float` preview runs on Framer's `
 
 Archive and Work Experience reuse it verbatim, Work Experience in the expandable variant. Neither has bespoke row markup.
 
-**Inside the light chapter** WorkRow inverts through the token scope alone; its `.workrow-*` rules are never edited. The hover title tint reads `--row-tint-deep-large`, `.workrow-index` and `.workrow-arrow` take the faded on-light step (both `aria-hidden`), and the Work Experience panel's `.work-*` marks read the deep channels.
+**Inside the light chapter** WorkRow inverts through the token scope alone; its `.workrow-*` rules are never edited. The hover title tint reads `--row-tint-deep-large`, `.workrow-index` takes the faded on-light step, and the Work Experience panel's `.work-*` marks read the deep channels. `.workrow-arrow` stays on the muted step: it is the expandable row's only open/closed cue, so WCAG 1.4.11 applies (`docs/contrast.md` row 3b).
 
 ## Contact and Footer stage
 
@@ -239,12 +257,14 @@ Shapes are open typographic rows, no cards or containers. The one exception is t
 
 Two distinct work categories. The TypeScript shapes live in `src/types/content.ts`; this section covers how they are used on the page.
 
-**Projects** are fully fledged work with dedicated routes at `/projects/:slug`. Title and description are `{ en, pt }` pairs. `highlightOrder ≤ 4` selects the four projects the Selected Work scene stands in its corridor.
+**Projects** are fully fledged work with dedicated routes at `/projects/:slug`. Title and description are `{ en, pt }` pairs. The scene's corridor takes the projects matching `p.highlight && (p.highlightOrder ?? 99) <= 4`, sorted by `highlightOrder` (`src/components/sections/Projects.tsx`). Both predicates count: a project with `highlight: false` and a low order silently leaves the corridor.
 
 **Embeds** are day-to-day interactives published on GZH (`gauchazh.clicrbs.com.br`) with no dedicated page. The source of truth is `src/data/embeds.csv`, semicolon-delimited, with the columns `DATA PUBLICAÇÃO`, `EDITORIA/COLUNISTA`, `FORMATO`, `ATIVIDADE`, `LINK MATERIA`, `NOME`. `FORMATO` is always `PROGRAMAÇÃO` and is ignored.
 
-An embed's `title` is Portuguese only, because it is editorial content. `imagePreview` is optional; where it is missing, a styled placeholder with a type badge stands in.
+An embed's `title` is Portuguese only, because it is editorial content.
 
-Embeds render as a filterable, scrollable gallery, never as individual pages. The filters are `type` and `editorial`.
+**Embeds have no surface of their own.** `src/data/archive.ts` flattens them into archive items alongside projects, tagged `kind: 'editorial'`, and Archive renders them as paginated `WorkRow` rows. There is no gallery component and no embed page.
 
-**Archive items** are the rows Archive lists through `WorkRow`, from `src/data/archive.ts`.
+**Archive items** are that flattened, date-sorted union, tagged by `kind`: featured, editorial, personal, oss or freelance. Archive filters on `kind`, `type`, `editorial` and `year`, plus a debounced search and a sort (`src/components/sections/Archive.tsx`); `type` and `editorial` are disabled unless `kind` is `all` or `editorial`.
+
+A row with no preview image falls back to a type-keyed CSS gradient (`typeGradients` in `src/data/embeds.ts`, carried onto the item as `gradient`), not to a badge. The `imagePreview` field on `Embed` is declared but currently has no consumer.
