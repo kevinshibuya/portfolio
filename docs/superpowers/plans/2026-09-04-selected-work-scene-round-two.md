@@ -248,10 +248,10 @@ export function captionScale(cardPx: number): number   // texture px per card un
 
 **Boundaries:** No router imports inside `src/components/canvas/**`. No new React state in the scene. Do not touch the title.
 
-- [ ] **Step 1: Add the two click e2e tests; run red.**
-- [ ] **Step 2: sceneRefs.hover, Corridor pointer handlers with the delta threshold, cursor toggling, `onCardClick` plumbing, `handleCardClick` in Projects.**
-- [ ] **Step 3: Rig lift/scale/arrow slide with reduced-motion off; typecheck/lint/vitest green.**
-- [ ] **Step 4: e2e green; smoke on :5180 (cursor + hover amount); commit `feat(scene): the card is pressable`.**
+- [x] **Step 1: Add the two click e2e tests; run red.**
+- [x] **Step 2: sceneRefs.hover, Corridor pointer handlers with the delta threshold, cursor toggling, `onCardClick` plumbing, `handleCardClick` in Projects.**
+- [x] **Step 3: Rig lift/scale/arrow slide with reduced-motion off; typecheck/lint/vitest green.**
+- [x] **Step 4: e2e green; smoke on :5180 (cursor + hover amount); commit `feat(scene): the card is pressable`.**
 
 ---
 

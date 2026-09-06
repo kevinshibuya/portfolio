@@ -1,4 +1,14 @@
 import { test, expect, type Page } from '@playwright/test'
+import {
+  CARD_H,
+  CARD_W,
+  CARD_Y,
+  sceneGeometry,
+  frameRects,
+  cameraPose,
+  cardPose,
+  projectPoint,
+} from '../../src/utils/sceneMotion'
 
 /**
  * Scroll to a fraction of the scene's scrub range. The wrapper is 550svh over a
@@ -72,6 +82,43 @@ test('a full scrub never re-registers the corridor (no react state on scroll)', 
   // its objects exactly once, at mount (ADR 0011).
   await expect(canvas).toHaveAttribute('data-registrations', '1')
   await expect(canvas).toHaveAttribute('data-slot', '0')
+})
+
+test('clicking the settled card opens its project', async ({ page }) => {
+  await openScene(page)
+  await scrollToFraction(page, 0.3333)
+  const href = (await page.locator('#projects .scene-skiplink').first().getAttribute('href'))!
+
+  // The settled card's projected rect, from the same geometry the scene uses.
+  const { width, height } = page.viewportSize()!
+  const { card } = frameRects(sceneGeometry(width, height))
+  await page.mouse.click(((card.left + card.right) / 2) * width, ((card.top + card.bottom) / 2) * height)
+  await expect(page).toHaveURL(new RegExp(href.replace(/[/]/g, '\\/')))
+})
+
+test('clicking a distant card scrolls it into the slot', async ({ page }) => {
+  await openScene(page)
+  await scrollToFraction(page, 0.3333)
+  const canvas = page.locator(CANVAS)
+  await expect(canvas).toHaveAttribute('data-slot', '0')
+
+  // A point on card 1 (one spacing down the corridor) that card 0 cannot
+  // cover on either project: to the right of its centre and just under its
+  // top edge. Card 0 is offset the other way, and sits lower in the frame.
+  const { width, height } = page.viewportSize()!
+  const g = sceneGeometry(width, height)
+  const cam = cameraPose(0, g)
+  const pose = cardPose(1, 0, g)
+  const top = projectPoint(pose.x, CARD_Y + CARD_H / 2, pose.z, cam, g)
+  const bottom = projectPoint(pose.x, CARD_Y - CARD_H / 2, pose.z, cam, g)
+  const right = projectPoint(pose.x + CARD_W / 2, CARD_Y + CARD_H / 2, pose.z, cam, g)
+  const x = (top.fx + 0.6 * (right.fx - top.fx)) * width
+  const y = (top.fy + 0.1 * (bottom.fy - top.fy)) * height
+  await page.mouse.click(x, y)
+
+  // Smooth scroll through Lenis (1.2 s), then the slot reports card 1.
+  await expect(canvas).toHaveAttribute('data-slot', '1', { timeout: 4000 })
+  await expect(page).toHaveURL(/\/$/)
 })
 
 test('the project index skip-link navigates to its project', async ({ page }) => {

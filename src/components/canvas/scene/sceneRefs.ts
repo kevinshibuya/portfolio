@@ -22,8 +22,10 @@ export interface SceneRefs {
   shadowMaterials: (THREE.MeshBasicMaterial | null)[]
   /** Card i's caption text and arrow materials; they fade with the card. */
   captionMaterials: THREE.MeshBasicMaterial[][]
-  /** Card i's arrow plane, for the hover slide. */
-  arrows: (THREE.Mesh | null)[]
+  /** Card i's arrow wrapper, offset by the rig for the hover slide. */
+  arrows: (THREE.Object3D | null)[]
+  /** Which card the pointer is over (−1 none) and the lerped 0..1 lift. */
+  hover: { index: number; amount: number }
   title: THREE.Group | null
   titleMaterial: THREE.ShaderMaterial | null
   /** One texture per project title, in corridor order. */
@@ -46,6 +48,7 @@ export function createSceneRefs(): SceneRefs {
     shadowMaterials: Array(CARD_COUNT).fill(null),
     captionMaterials: Array.from({ length: CARD_COUNT }, () => []),
     arrows: Array(CARD_COUNT).fill(null),
+    hover: { index: -1, amount: 0 },
     title: null,
     titleMaterial: null,
     titleTextures: [],

@@ -73,6 +73,7 @@ export function Caption({ index, card, sceneRefs }: CaptionProps) {
 
   const textRef = useRef<THREE.Mesh>(null)
   const arrowRef = useRef<THREE.Mesh>(null)
+  const arrowSlideRef = useRef<THREE.Group>(null)
   const geometry = useMemo(() => new THREE.PlaneGeometry(1, 1), [])
   const textMaterial = useMemo(captionMaterial, [])
   const arrowMaterial = useMemo(captionMaterial, [])
@@ -90,7 +91,7 @@ export function Caption({ index, card, sceneRefs }: CaptionProps) {
 
   useLayoutEffect(() => {
     sceneRefs.captionMaterials[index] = [textMaterial, arrowMaterial]
-    sceneRefs.arrows[index] = arrowRef.current
+    sceneRefs.arrows[index] = arrowSlideRef.current
     return () => {
       sceneRefs.captionMaterials[index] = []
       sceneRefs.arrows[index] = null
@@ -206,10 +207,14 @@ export function Caption({ index, card, sceneRefs }: CaptionProps) {
   // view depth, and with the camera pitched down the caption's centre (lower on
   // the card) reads as FARTHER than the frame's, so the frame would paint over
   // it. The caption always draws after its card.
+  // The arrow sits in its own group: the rig offsets the GROUP for the hover
+  // slide, so the mesh keeps the base position the draw gave it.
   return (
     <>
       <mesh ref={textRef} geometry={geometry} material={textMaterial} renderOrder={CAPTION_ORDER} />
-      <mesh ref={arrowRef} geometry={geometry} material={arrowMaterial} renderOrder={CAPTION_ORDER} />
+      <group ref={arrowSlideRef}>
+        <mesh ref={arrowRef} geometry={geometry} material={arrowMaterial} renderOrder={CAPTION_ORDER} />
+      </group>
     </>
   )
 }

@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useScroll } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMotion } from '../../context/MotionContext'
+import { useLenisContext } from '../layout/SmoothScroll'
 import { SelectedWorkScene, type SceneCard } from '../canvas/SelectedWorkScene'
 import { projects } from '../../data/projects'
+import { playheadFor, frontIndexFor, scrollTargetFor } from '../../utils/sceneMotion'
 
 const featured = projects
   .filter((p) => p.highlight && (p.highlightOrder ?? 99) <= 4)
@@ -43,6 +45,30 @@ export function Projects() {
   const [webglUnavailable, setWebglUnavailable] = useState(false)
   const handleReady = useCallback(() => setReady(true), [])
   const handleWebglUnavailable = useCallback(() => setWebglUnavailable(true), [])
+
+  // A press on a card: the settled card opens its project; any other card is
+  // scrolled into the slot. This lives here, in the Router root, because the
+  // R3F Canvas is a separate React root that router context never crosses.
+  // Scrolling goes THROUGH Lenis, which owns page scrolling; it is null under
+  // reduced motion, which is exactly the instant case.
+  const navigate = useNavigate()
+  const lenis = useLenisContext()
+  const cardClick = useRef((index: number): void => void index)
+  cardClick.current = (index) => {
+    const seg = playheadFor(scrollYProgress.get())
+    if (index === frontIndexFor(seg, cards.length, prefersReducedMotion)) {
+      navigate(`/projects/${cards[index].slug}`)
+      return
+    }
+    const wrapper = wrapperRef.current
+    if (!wrapper) return
+    const wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY
+    const target = scrollTargetFor(index, wrapperTop, wrapper.offsetHeight, window.innerHeight)
+    if (lenis) lenis.scrollTo(target, { duration: 1.2 })
+    else window.scrollTo({ top: target, behavior: 'instant' })
+  }
+  // Stable identity: the scene subtree must only ever re-render on `cards`.
+  const handleCardClick = useCallback((index: number) => cardClick.current(index), [])
 
   return (
     <section id="projects" className="section projects-scene-section">
@@ -94,6 +120,7 @@ export function Projects() {
                   reducedMotion={prefersReducedMotion}
                   onReady={handleReady}
                   onWebglUnavailable={handleWebglUnavailable}
+                  onCardClick={handleCardClick}
                 />
               </div>
 

@@ -4,8 +4,13 @@ import { useVelocity, type MotionValue } from 'framer-motion'
 import * as THREE from 'three'
 import {
   CARD_COUNT,
+  CARD_W,
   CARD_H,
   DEG,
+  HOVER_LIFT,
+  HOVER_SCALE,
+  HOVER_TAU,
+  ARROW_SLIDE_PX,
   FOV_DEG,
   TITLE_CENTER,
   segmentFor,
@@ -151,6 +156,21 @@ export function SceneRig({ progress, reducedMotion, sceneRefs }: SceneRigProps) 
     camera.rotation.set(cam.pitch, 0, 0)
     cameraRef.current = camera
 
+    // The hover lift eases toward 1 only while the pointer is over the card
+    // that is actually settled in the slot; reduced motion never lifts.
+    const hover = sceneRefs.hover
+    if (reducedMotion) {
+      hover.amount = 0
+    } else {
+      const target = hover.index === frontCard && settledNow > 0.5 ? 1 : 0
+      hover.amount += (target - hover.amount) * (1 - Math.exp(-delta / HOVER_TAU))
+      if (Math.abs(hover.amount - target) < 1e-4) hover.amount = target
+    }
+    // "Toward the camera" is the camera's backward axis, which only pitches.
+    const liftY = -Math.sin(cam.pitch) * HOVER_LIFT
+    const liftZ = Math.cos(cam.pitch) * HOVER_LIFT
+    const worldPerCardPx = CARD_W / (g.fraction * g.widthPx)
+
     for (let i = 0; i < CARD_COUNT; i++) {
       const group = sceneRefs.cards[i]
       if (!group) continue
@@ -159,11 +179,18 @@ export function SceneRig({ progress, reducedMotion, sceneRefs }: SceneRigProps) 
         ? { y: 0, yaw: 0, pitch: 0 }
         : ambientOffset(i, t, energy)
       const isFront = i === frontCard
-      group.position.set(pose.x, pose.y + amb.y, pose.z)
+      const lift = isFront ? hover.amount : 0
+      group.position.set(pose.x, pose.y + amb.y + lift * liftY, pose.z + lift * liftZ)
       group.rotation.y =
         pose.yaw + amb.yaw + leanYaw + (isFront ? tilt.yaw * settledNow : 0)
       group.rotation.x = amb.pitch + (isFront ? tilt.pitch * settledNow : 0)
+      group.scale.setScalar(1 + lift * (HOVER_SCALE - 1))
       group.visible = pose.visible
+      const arrow = sceneRefs.arrows[i]
+      if (arrow) {
+        const slide = lift * ARROW_SLIDE_PX * worldPerCardPx
+        arrow.position.set(slide, slide, 0)
+      }
       const materials = sceneRefs.cardMaterials[i]
       if (materials) for (const m of materials) m.opacity = pose.opacity
       // The caption belongs to the card: same opacity, same fog, same fate.

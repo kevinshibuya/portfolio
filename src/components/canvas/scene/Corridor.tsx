@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
-import { useLoader, useThree } from '@react-three/fiber'
+import { useLoader, useThree, type ThreeEvent } from '@react-three/fiber'
 import * as THREE from 'three'
 import { CARD_COUNT, CARD_W, CARD_H } from '../../../utils/sceneMotion'
 import { accentDeepLargeFor } from '../../../utils/palette'
@@ -29,7 +29,16 @@ interface CorridorProps {
   /** The featured projects in corridor order; an empty `art` renders the frame alone. */
   cards: SceneCard[]
   sceneRefs: SceneRefs
+  /** A press on card i. Navigation and scrolling happen in the Router root. */
+  onCardClick: (index: number) => void
 }
+
+/**
+ * R3F fills `event.delta` (px between pointerdown and click) on every hit
+ * click but only filters MISSES by it (@react-three/fiber 9.7.0), so a scroll
+ * gesture that ends on a card has to be ignored here.
+ */
+const TAP_MAX_DELTA_PX = 6
 
 interface CardCoverProps {
   url: string
@@ -106,8 +115,29 @@ function CardCover({ url, geometry, materials }: CardCoverProps) {
  * written by SceneRig's frame loop through the refs registered below, so a card
  * never re-renders while the camera travels.
  */
-export function Corridor({ cards, sceneRefs }: CorridorProps) {
+export function Corridor({ cards, sceneRefs, onCardClick }: CorridorProps) {
   const gl = useThree((state) => state.gl)
+
+  // The pointer reaches a card ONLY through these (plan, lanes). Hover is a
+  // ref the rig lerps, never state; the cursor is the one DOM write, on the
+  // canvas element itself. stopPropagation keeps a press on the settled card
+  // from also reaching the card standing behind it.
+  const onPointerOver = (i: number) => (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation()
+    sceneRefs.hover.index = i
+    gl.domElement.style.cursor = 'pointer'
+  }
+  const onPointerOut = (i: number) => (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation()
+    if (sceneRefs.hover.index !== i) return
+    sceneRefs.hover.index = -1
+    gl.domElement.style.cursor = ''
+  }
+  const onClick = (i: number) => (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation()
+    if (event.delta > TAP_MAX_DELTA_PX) return
+    onCardClick(i)
+  }
   const groups = useRef<(THREE.Group | null)[]>([])
   const frameMaterials = useRef<(THREE.MeshBasicMaterial | null)[]>([])
   const registrations = useRef(0)
@@ -188,6 +218,9 @@ export function Corridor({ cards, sceneRefs }: CorridorProps) {
           ref={(g) => {
             groups.current[i] = g
           }}
+          onPointerOver={onPointerOver(i)}
+          onPointerOut={onPointerOut(i)}
+          onClick={onClick(i)}
         >
           <mesh geometry={frameGeometry}>
             <meshBasicMaterial

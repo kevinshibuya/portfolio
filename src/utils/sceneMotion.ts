@@ -53,6 +53,14 @@ export const CARD_MIN_PX = Math.ceil((CARD_MAX_PX * CAPTION_MIN_NAME_PX) / CAPTI
 /** The title never spans more than this fraction of the frame width. */
 export const TITLE_WIDTH_CAP = 0.8
 
+/** The settled card under a pointer lifts toward the camera and grows a touch. */
+export const HOVER_LIFT = 0.03 * CARD_W
+export const HOVER_SCALE = 1.02
+/** Seconds for the lift to ease in and out. */
+export const HOVER_TAU = 0.2
+/** The caption arrow nudges up-right by this many CSS px, like .workrow-arrow. */
+export const ARROW_SLIDE_PX = 2
+
 /** A card holds full opacity until this `rel`, then fades out before the lens. */
 export const PASS_FADE_START = 0.67
 export const PASS_FADE_END = 0.82

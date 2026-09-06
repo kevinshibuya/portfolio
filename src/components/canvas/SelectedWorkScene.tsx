@@ -33,6 +33,8 @@ export interface SelectedWorkSceneProps {
   onReady: () => void
   /** Fires once: no WebGL2 at mount, or the context was lost. */
   onWebglUnavailable: () => void
+  /** A press (click or tap) on card i; the Router root decides what it means. */
+  onCardClick: (index: number) => void
 }
 
 /**
@@ -193,6 +195,7 @@ export function SelectedWorkScene({
   reducedMotion,
   onReady,
   onWebglUnavailable,
+  onCardClick,
 }: SelectedWorkSceneProps) {
   const sceneRefs = useRef(createSceneRefs())
   const titles = useMemo(() => cards.map((c) => c.title), [cards])
@@ -336,7 +339,7 @@ export function SelectedWorkScene({
       />
       <Suspense fallback={null}>
         <Environment desktopEffects={desktopEffects} />
-        <Corridor cards={cards} sceneRefs={sceneRefs.current} />
+        <Corridor cards={cards} sceneRefs={sceneRefs.current} onCardClick={onCardClick} />
         <ReadySignal onReady={onReady} />
         <SceneWarmup sceneRefs={sceneRefs.current} />
       </Suspense>
