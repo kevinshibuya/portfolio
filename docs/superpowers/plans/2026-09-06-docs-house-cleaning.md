@@ -107,11 +107,11 @@ Rules:
 
 **Boundaries:** Do not consult the code to add facts the source does not carry; this task moves and restructures, the PR review checks against code. Do not edit `CLAUDE.md`.
 
-- [ ] **Step 1:** `git show origin/staging:CLAUDE.md > tmp/house-cleaning/claude-staging.md`; read the source blocks once.
-- [ ] **Step 2:** Write headings 1 to 7 (palette through light chapter); run the path check.
-- [ ] **Step 3:** Write heading 8 (the scene) with its sub-headings; run the constants check.
-- [ ] **Step 4:** Write headings 9 to 13; write `dropped-facts.md`; run the full acceptance check.
-- [ ] **Step 5:** Tick; commit `docs: architecture.md holds how each surface works`.
+- [x] **Step 1:** `git show origin/staging:CLAUDE.md > tmp/house-cleaning/claude-staging.md`; read the source blocks once.
+- [x] **Step 2:** Write headings 1 to 7 (palette through light chapter); run the path check.
+- [x] **Step 3:** Write heading 8 (the scene) with its sub-headings; run the constants check.
+- [x] **Step 4:** Write headings 9 to 13; write `dropped-facts.md`; run the full acceptance check.
+- [x] **Step 5:** Tick; commit `docs: architecture.md holds how each surface works`.
 
 ### Task 5: `CLAUDE.md` rewrite
 
