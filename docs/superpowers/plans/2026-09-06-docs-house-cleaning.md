@@ -76,8 +76,8 @@
 
 **Boundaries:** No recomputation of any ratio. No edits to `CLAUDE.md` yet.
 
-- [ ] **Step 1:** Write the file from the two blocks; run the row-count check.
-- [ ] **Step 2:** Tick; commit `docs: the AA contrast tables get their own file`.
+- [x] **Step 1:** Write the file from the two blocks; run the row-count check.
+- [x] **Step 2:** Tick; commit `docs: the AA contrast tables get their own file`.
 
 ### Task 4: `docs/architecture.md`
 
