@@ -162,9 +162,9 @@ Deleted outright: Content Types (its facts moved to `docs/architecture.md#conten
 
 **Boundaries:** No implementation detail enters a definition. No new invariant. Terms are not renamed.
 
-- [ ] **Step 1:** Rewrite the opening, Content and Surface with new citations; run the citation check.
-- [ ] **Step 2:** Delete Measurement, rewrite Records, rewrite Invariants, delete the two trailing sections; run the full check.
-- [ ] **Step 3:** Tick; commit `docs: CONTEXT.md is a glossary again`.
+- [x] **Step 1:** Rewrite the opening, Content and Surface with new citations; run the citation check.
+- [x] **Step 2:** Delete Measurement, rewrite Records, rewrite Invariants, delete the two trailing sections; run the full check.
+- [x] **Step 3:** Tick; commit `docs: CONTEXT.md is a glossary again`.
 
 ### Task 7: ADR citations and README
 
