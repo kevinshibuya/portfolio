@@ -202,10 +202,10 @@ Note for the verification: `eslint.config.js` scopes every rule block to `**/*.{
 
 **Boundaries:** No edits beyond conflict resolution and the lockfile regeneration in this task. Do not run `npm run perf` or any harness script; the harness measures on Kevin's rig only (ADR 0006).
 
-- [ ] Branch from `origin/perf/hero-harness`, `git merge staging`, confirm exactly three conflicts
-- [ ] Resolve the three as listed; `npm install`; `git add -A && git commit` (merge commit, message `Merge staging into perf/hero-harness per issue #9`)
-- [ ] `git cherry-pick <records commit from Task 1>` so the spec and plan exist on this branch; if PR A has already landed in `staging` the cherry-pick is empty, skip it
-- [ ] `npx tsc -b && npm run lint && npx vitest run` green
+- [x] Branch from `origin/perf/hero-harness`, `git merge staging`, confirm exactly three conflicts
+- [x] Resolve the three as listed; `npm install`; `git add -A && git commit` (merge commit, message `Merge staging into perf/hero-harness per issue #9`)
+- [x] `git cherry-pick <records commit from Task 1>` so the spec and plan exist on this branch; if PR A has already landed in `staging` the cherry-pick is empty, skip it · skipped: PR A landed, both files arrived with the merge
+- [x] `npx tsc -b && npm run lint && npx vitest run` green
 
 ### Task 7a: the harness lands dormant
 
