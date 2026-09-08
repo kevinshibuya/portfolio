@@ -86,6 +86,24 @@ test('a full scrub raises no console error and never rejects a promise', async (
     await page.waitForTimeout(400)
     expect(problems, `at 1440x${height}`).toEqual([])
   }
+
+  // Near-square, both sides of the crossover. The card formula and the camera
+  // height meet here, and a throw inside the frame loop is invisible to every
+  // DOM assertion in this suite — the canvas keeps its element and attributes
+  // while the loop dies. `visited` is the guard against a loop that silently
+  // runs zero times.
+  const visited: string[] = []
+  for (const [width, height] of [
+    [960, 950], [960, 970], [820, 821], [820, 819],
+  ]) {
+    await page.setViewportSize({ width, height })
+    await page.waitForTimeout(400)
+    await scrollToFraction(page, 0.5)
+    await page.waitForTimeout(400)
+    expect(problems, `at ${width}x${height}`).toEqual([])
+    visited.push(`${width}x${height}`)
+  }
+  expect(visited).toEqual(['960x950', '960x970', '820x821', '820x819'])
 })
 
 test('scrubbing the corridor swaps the settled slot, and reversing restores it', async ({
