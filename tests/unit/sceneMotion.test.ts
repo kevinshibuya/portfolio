@@ -549,6 +549,14 @@ describe('frameRects (settled card 0 under the title)', () => {
       expect(card.right, `${name} card ordering`).toBeGreaterThan(card.left)
       expect(card.bottom, `${name} card ordering`).toBeGreaterThan(card.top)
     }
+    // Near-square, both sides. The band decides how high the camera sits here,
+    // and too high pushes the card's blob shadow out through the bottom edge.
+    // A local list on purpose: VIEWPORTS feeds six other tests.
+    for (const [w, h] of [[820, 821], [960, 950]] as Array<[number, number]>) {
+      const { card, floorContactY } = frameRects(sceneGeometry(w, h))
+      expect(card.bottom, `${w}x${h} card bottom`).toBeLessThanOrEqual(0.95)
+      expect(floorContactY, `${w}x${h} floor contact`).toBeLessThanOrEqual(1)
+    }
   })
 
   it('centres the title band on the upper-third mark', () => {
