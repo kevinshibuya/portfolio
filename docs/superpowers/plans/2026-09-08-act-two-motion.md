@@ -208,10 +208,10 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 **Boundaries:** No change under `src/` except the DEV-only `__sceneCamera` line in the existing `__scene` effect; nothing inside `useFrame`. Do not edit `tests/unit/sceneMotion.test.ts`.
 
-- [ ] `git switch feat/act-two-motion && git pull --ff-only` ; confirm `git log --oneline -1` is the Task 0 fix-pass commit
-- [ ] Write `tests/unit/sceneMotion.actOne.test.ts`; `npx vitest run tests/unit/sceneMotion.actOne.test.ts` → 6 snapshots written
-- [ ] Add `__sceneCamera` to the DEV effect in `SceneRig.tsx`; `npx tsc -b` clean
-- [ ] Write `scripts/scene-title-identity.mjs`; start `npm run dev`; run the script to the `before.json` path; inspect the file has 6×6 samples with non-null `camera`
+- [x] `git switch feat/act-two-motion && git pull --ff-only` ; confirm `git log --oneline -1` is the Task 0 fix-pass commit
+- [x] Write `tests/unit/sceneMotion.actOne.test.ts`; `npx vitest run tests/unit/sceneMotion.actOne.test.ts` → 6 snapshots written
+- [x] Add `__sceneCamera` to the DEV effect in `SceneRig.tsx`; `npx tsc -b` clean
+- [x] Write `scripts/scene-title-identity.mjs`; start `npm run dev`; run the script to the `before.json` path; inspect the file has 6×6 samples with non-null `camera`
 - [ ] `git add tests/unit/sceneMotion.actOne.test.ts tests/unit/__snapshots__ scripts/scene-title-identity.mjs docs/superpowers/plans/evidence src/components/canvas/scene/SceneRig.tsx && git commit -m "test(scene): act-one pose snapshot and title-identity baseline"`
 
 ### Task 2: the frieze stub · constants, extent type, provisional extent

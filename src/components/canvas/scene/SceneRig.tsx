@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useVelocity, type MotionValue } from 'framer-motion'
 import * as THREE from 'three'
@@ -97,13 +97,20 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
   // from the production build, which is why those smokes run on the dev server.
   useEffect(() => {
     if (!import.meta.env.DEV) return
-    const holder = window as unknown as { __scene?: SceneRefs }
+    const holder = window as unknown as {
+      __scene?: SceneRefs
+      __sceneCamera?: RefObject<THREE.Camera | null>
+    }
     holder.__scene = sceneRefs
+    // The ref object, not the camera: `.current` is then always the live one,
+    // and the identity dump can read the pose without a second frame.
+    holder.__sceneCamera = cameraRef
     // Released on unmount: without this the handle outlives the scene and pins
     // `sceneRefs` and every disposed three resource behind it. DEV only — the
     // whole effect is stripped from the production build.
     return () => {
       if (holder.__scene === sceneRefs) delete holder.__scene
+      if (holder.__sceneCamera === cameraRef) delete holder.__sceneCamera
     }
   }, [sceneRefs])
 
