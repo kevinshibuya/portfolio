@@ -15,7 +15,7 @@ Read the section for the surface you are about to touch. The rules you obey ever
 | Hero | `src/components/sections/Hero.tsx` | [Hero](#hero) |
 | Nav | `src/components/layout/Header.tsx` | [Nav](#nav) |
 | Light chapter | `src/pages/Home.tsx`, `src/index.css` | [Light chapter](#light-chapter) |
-| Selected Work | `src/components/sections/Projects.tsx`, `src/components/canvas/scene/`, `src/utils/sceneMotion.ts` | [Selected Work scene](#selected-work-scene) |
+| Selected Work | `src/components/sections/Projects.tsx`, `src/components/canvas/scene/`, `src/utils/sceneMotion.ts`, `src/utils/friezeLayout.ts` | [Selected Work scene](#selected-work-scene) |
 | Archive, Work Experience rows | `src/components/ui/WorkRow.tsx` | [WorkRow](#workrow) |
 | Contact, Footer | `src/components/sections/Contact.tsx`, `src/components/layout/Footer.tsx` | [Contact and Footer stage](#contact-and-footer-stage) |
 | Animation | any | [Animation lanes](#animation-lanes) |
@@ -129,17 +129,60 @@ The page centerpiece: a real 3D environment in the third canvas. Code in `src/co
 
 `section#projects.section.projects-scene-section` is **full-bleed**: it overrides `.section`'s 1440 cap and 80/20 px gutters to `max-width: none` with zero side padding (written as `padding-left`/`padding-right` longhands), because the corridor overflows the frame by design (a card mid-approach, the overture past 0.7 of the width) and that overflow has to clip at the viewport edge, not 80 px inside it. `.scene-fallback` carries its own gutter instead, `width: min(620px, 100% - 40px)`.
 
-Inside: `nav.scene-skiplinks` (the keyboard and screen-reader path into a project), then `div.scene-scroll` (550svh, the `useScroll` target), then `div.scene-sticky` (100svh, pinned), then `div.scene-inner`, holding `div.scene-canvas-wrap[aria-hidden][data-ready]` and a static `h2.scene-title-sr.sr-only` naming the section.
+Inside: `nav.scene-skiplinks` (the keyboard and screen-reader path into a project), then `div.scene-scroll` (the `useScroll` target), then `div.scene-sticky` (100svh, pinned), then `div.scene-inner`, holding `div.scene-canvas-wrap[aria-hidden][data-ready]` and a static `h2.scene-title-sr.sr-only` naming the section.
+
+`.scene-scroll`'s height is an **inline style**, `sceneWrapperSvh(columns)` computed in `Projects.tsx` from the frieze's own extent, and the same number is published as `data-svh` for the e2e helper. The CSS carries `position` and `margin-top` only. At today's 26 columns that is 1350svh.
 
 No eyebrow, no overlay, and no DOM element tracks the settled card: the card carries its own caption and is pressable.
 
 ### Corridor and playhead
 
-The four featured projects (`highlightOrder ≤ 4`) stand along a corridor in depth, alternating side and yaw; scroll dollies the camera through it.
+The four featured projects (`highlightOrder ≤ 4`) stand along a corridor in depth, alternating side and yaw; scroll dollies the camera through it. Past them the playhead runs on into act two, the archive frieze.
 
-`playheadFor(p) = p·4.5 − 1.5`, ranging over `[−1.5, 3]`. The leading 150svh is the **approach**. `[−1.5, −0.5)` is the **overture**: one Jakarta line, `sections.projects.overture`, standing on the camera's eye line at `overtureZ`, the point the camera reaches at −0.5. It fills 0.7 of the width at the top, grows as the camera nears, fades over the last 0.35 units and is gone the moment the cards read. `[−0.5, 0)` is the surfacing, card 0 coming out of the fog and the title out of blur. Then one viewport per card.
+The playhead is **piecewise**, `playheadFor(progress, columns)`:
 
-The camera is one continuous ease from −1.5 to 0 (`easedSeg`), starting `CORRIDOR_DEPTH` (about 3.86 spacings) back, derived so that at −0.5 it sits exactly one spacing behind card 0. Every integer playhead is a settled state and the whole thing is exactly reversible. Settled card k sits at scroll fraction `(k + 1.5) / 4.5`.
+- **Act one, `[−1.5, 3]`, in CARD units**, one unit per 100svh over the first 450svh of scrub. The leading 150svh is the **approach**. `[−1.5, −0.5)` is the **overture**: one Jakarta line, `sections.projects.overture`, standing on the camera's eye line at `overtureZ`, the point the camera reaches at −0.5. It fills 0.7 of the width at the top, grows as the camera nears, fades over the last 0.35 units and is gone the moment the cards read. `[−0.5, 0)` is the surfacing, card 0 coming out of the fog and the title out of blur. Then one viewport per card.
+- **Act two, `[3, 4]`, NORMALISED** over its own svh budget, so `actTwoProgress(playhead)` needs no extent and every act-one pose is literally the old function on `actOneSeg(playhead) = min(playhead, 3)`.
+
+`columns = 0` means no frieze and reproduces the original single-piece function exactly. Both `playheadFor` and `scrollTargetFor` return early on `columns ≤ 0`, so an overscrolled `progress > 1` · Lenis, or an iOS rubber-band · can never divide by a zero act-two budget.
+
+The camera is one continuous ease from −1.5 to 0 (`easedSeg`), starting `CORRIDOR_DEPTH` (about 3.86 spacings) back, derived so that at −0.5 it sits exactly one spacing behind card 0. Every integer playhead is a settled state and the whole thing is exactly reversible. Settled card k sits at scrub `(k + 1.5) · 100` svh · which is **no longer a fixed fraction of the wrapper**, because the wrapper's height now follows the frieze.
+
+### Act two
+
+Past card four the same playhead reads the archive as a wall. The geometry is derived in `src/utils/sceneMotion.ts`; the grid it is derived against comes from `src/utils/friezeLayout.ts`, which `sceneMotion` imports and never the reverse.
+
+**The frieze frame.** `friezeFrame(frieze, g)` stands the wall centred on the corridor axis (`centreX = 0`), facing the camera, one spacing beyond card four · exactly where a fifth card would be · with its bottom edge at `HOVER`, so the embedded cards share the corridor cards' floor gap. A cell is half a scene card (`FRIEZE_CELL_W = CARD_W / 2`, `FRIEZE_CELL_H = CARD_H / 2`), so a 2×2 case study spans exactly one card with no inset, at `FRIEZE_ROWS = 8` rows in both orientations.
+
+**The beats and their scroll.** `actTwoSvh(columns) = 100 + 50 + 25·columns`, and `sceneWrapperSvh(columns) = 550 + actTwoSvh(columns)`. `actTwoBeats(columns)` turns that into the two boundaries in `u`:
+
+- **Release**, `u ∈ [0, uR]`: position and pitch smoothstep from card four's settled slot to the volume shot, with zero velocity at both ends, so the settle plateau hands over without a lurch. Yaw is 0 · the wall is centred on the corridor axis, so act one's heading already faces it. `volumeDistance` fits both axes at `VOLUME_FILL = 0.9`, so the whole frieze enters the frame on any aspect.
+- **Approach**, `u ∈ [uR, uA]`: the camera moves in to the reading distance while the **eye leads the body** · the look target's x runs the same path at 1.5×, which is where the yaw lives; it is 0 at both ends of the beat.
+- **Dolly**, `u ∈ [uA, 1]`: lateral travel across `dollyRange`, on `dollyEase`, a trapezoid velocity profile that ramps over one column's share at each end and runs at constant speed between. The exit slows to rest inside the last column with no extra scroll, and the curve is C1 throughout.
+
+**The reading distance and its floor.** `dollyDistance = min(dHeight, dLegible)`, where `dLegible` keeps a cell at or above `FRIEZE_CELL_MIN_PX = ceil(CARD_MIN_PX / 2) = 144` CSS px · half of the card floor, because a cell is half a card, so an embedded 2×2 case study is never narrower than `CARD_MIN_PX` and its caption never drops under 12px. That legibility term binds on most viewports.
+
+`DOLLY_HEIGHT_FILL = 0.82` is a **floor on the wall's vertical fill, not a ceiling**: `min()` picks the nearer distance and a nearer camera fills MORE frame, so nothing in the expression caps the fill. It measures 0.925 at 1440×900 and 0.978 at 393×851. Asserting `fill ≤ 1` would be vacuous; the real invariants are `friezeHeightFill ≥ DOLLY_HEIGHT_FILL` and `actTwoTopClearFrac` at its per-viewport value.
+
+**The dolly camera is bottom-anchored.** `dollyY` lands the wall's bottom edge on the frame's bottom edge, so every spare pixel of frame height sits ABOVE the wall rather than being split between top and bottom. `actTwoTopClearFrac = 1 − friezeHeightFill` is that air · 0.0751 at 1440×900, 0.0218 at 393×851, roughly double what a wall-centred camera would leave · and it is exported so pipeline 2 can inset the top row's cell ink under the title band.
+
+**The title reads over the wall's top row, and that is settled.** Clearing act one's title band would need a fill of 0.679, i.e. a 106px cell, which breaks the 144px floor; and there is no row to trade away, because `maxRowsInFrame(g)` is exactly 8 at both fixtures and `FRIEZE_ROWS = 8` sits on that bound with no slack. Eight rows, the cell floor and a reserved title band are mutually infeasible. The camera work buys the largest clearance the constraint set allows and stops there. **No scrim, halo or darkening is added to make the overlap read** · that is the site's standing NO, and the fix belongs to the wall's own typography. ADR 0012.
+
+**The reading cursor and the year titles.** The cursor is the SCROLL's column budget, not the camera's position: `dollyCursor(u, frieze) = columns · p`, linear in the dolly's progress. `blockAt` returns the block under it, so across the dolly every year is named exactly once, newest first · **including a one-column block that the camera's clamped range never reaches**, which is exactly what a camera-driven title would silently skip. The two therefore disagree by up to one column's share at each end of the dolly, where the camera ramps and the cursor does not, and coincide through the middle. That lag is accepted and bounded.
+
+`actTwoTitle` morphs inside a window around each block boundary, with half-widths `min(0.5, neighbour / 2)` columns so the windows never overlap even around a one-column block and every boundary still has one. It runs through `seamFor`'s `settleFrac`, so every window rests at both ends, and the release window's plateau is what holds card four's name for the first 15% of the release.
+
+**Card four dissolves across the release.** `actTwoCardFade` is 1 at `u = 0` and exactly 0 from `uR` on, and the mesh leaves the render once it reaches 0. Without it the card would still sit in its settled slot · the act-one segment is clamped at 3 · with the camera closing to the reading distance and the card between the lens and the wall. It is therefore not hoverable or pressable in act two, and cannot intercept a pointer meant for a wall cell.
+
+**Stills.** Under reduced motion act two resolves to ONE discrete `ActTwoStill` descriptor · the volume shot before the dolly, then one still per block at the block's centre column clamped to the dolly range · and camera, fog, focus, title distance, title index and the card fade all derive from that single `u`. The ambient time term is 0 in act two under reduced motion, unconditionally. Four channels each reading the live `u` is how a still acquires a drift that renders on demand and so is never seen in a test run.
+
+**Fog, far plane, focus and the title distance.** `fogRangeAt` generalises `fogRange` to any distance; `actTwoFogRange` walks the fog from act one's exact values at `u = 0` out to the wall across the release. `sceneFar(frieze, g) = max(g.far, volumeDistance + 2·spacing)` is applied with the frustum on the geometry/frieze key, never per frame · act one's image does not depend on the far plane. `actTwoFocusDistance` walks the DoF focus from the slot to the wall on the same ease, written every frame to `sceneRefs.focus.distance` and read by `Environment` through a `DepthOfFieldEffect` ref. `actTwoTitleDistance(dWall, g) = min(g.titleDistance, 0.8·dWall)` keeps the title plane in front of the wall; the switch is invisible because the title's pixel size is distance-invariant by construction.
+
+**The title plane's envelope is act one's alone.** `planeW`, `maxAbove`, `maxBelow` and `tallest` reduce over `i < CARD_COUNT` only, and act-two textures are fitted INTO that envelope. This is structural, not a data argument: `titleTexture.ts` grows `canvas.height` with the line count, so a single act-two string wrapping to one more line than the tallest act-one title would otherwise move `planeH` and `baseY` and resize act one · on data, not on code. `SceneTitle`'s two-phase draw (act one at the frame-wide allowance, then act two wrapped to the widest act-one ink width) complements it by keeping act-two strings from needing that fit-down on today's copy, but it bounds width and not height, so neither mechanism covers the other.
+
+**Scroll seams.** Pipeline 1 exports COLUMN targets only: `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns)` · a number, never an item id · plus `playheadForColumn`, `playheadForBlock` and `volumeShotPlayhead` (what the `#archive` nav link lands on), and `data-svh` on the wrapper. The item lookup belongs to pipeline 2's `src/utils/friezeTargets.ts`, whose `playheadForItem(itemId, layout, extent)` imports both modules and composes `playheadForColumn(cell.col + cell.span / 2, extent)`. Pipeline 3 calls `playheadForItem` for stream focus and the wall click, and feeds the number to `scrollTargetFor`. `sceneMotion.ts` stays pure and ignorant of the content model, which is the whole reason the split exists.
+
+**Bounds pipeline 2 must respect:** `maxRowsInFrame(g)` (the tallest frieze that still fits at the reading distance, 8 at both fixtures) and `actTwoTopClearFrac(frieze, g)` (the air over the top row, which the top row's ink must be inset by).
 
 ### Frame loop
 
@@ -209,10 +252,13 @@ R3F pointer events on each card group in `src/components/canvas/scene/Corridor.t
 
 `div.scene-fallback` replaces `.scene-scroll` entirely when WebGL2 is missing or the context is lost: four framed cards in normal flow, no pin, permanent for the session.
 
+`.scene-scroll` also carries `data-svh`, the wrapper's height in svh from `sceneWrapperSvh(columns)`. The e2e helper derives one playhead unit from it as `offsetHeight / (svh / 100)` · 100svh, not one · so the specs scroll by playhead and never by a fraction of a wrapper whose height depends on the data.
+
 The scene reports its state on the real canvas element as data attributes, written only when they change, and nothing in React reads them:
 
 - `data-canvas="selected-work-scene"`
-- `data-slot`, `"0"` to `"3"`, the settled card
+- `data-slot`, `"0"` to `"3"`, the settled card. Through act two it holds `"3"`: the act-one segment is clamped at 3, so it names the last act-one slot and NOT a card under the pointer
+- `data-act`, `"1"` or `"2"`. Act two begins STRICTLY after playhead 3, so at 3 exactly · card four settled, `u = 0` · it still reads `"1"`
 - `data-overture`, `"true"` or `"false"`
 - `data-registrations`, how many times the corridor registered its objects: `"1"` on a production build across a full scrub, `"2"` on the dev server under StrictMode
 

@@ -405,8 +405,8 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 **Boundaries:** `CONTEXT.md` already carries the act-two terms from the spec commit; do not edit it. No ADR.
 
-- [ ] Edit the index row, Anatomy, Corridor and playhead, Fallback and data attributes
-- [ ] Write the "Act two" subsection
+- [x] Edit the index row, Anatomy, Corridor and playhead, Fallback and data attributes
+- [x] Write the "Act two" subsection
 - [ ] `git add docs/architecture.md && git commit -m "docs(architecture): act two of the Selected Work scene"`
 
 ### Task 10: the verification set and the PR
