@@ -1,20 +1,8 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test'
 
-/**
- * The harness's e2e specs land dormant.
- *
- * Layer 1's assertions and the pixel goldens were recorded against the August
- * site (base `e66becd`) and no longer describe what this tree renders, so they
- * fail deterministically here. Re-baselining is a campaign decision under ADR
- * 0006 and 0007 · on the rig, on measured evidence · not a merge chore, so
- * these skip by default instead of landing red. Issue #11 tracks it.
- */
 const HARNESS = process.env.PERF_HARNESS === '1'
 const DORMANT =
-  'dormant until re-baselined against the current site, issue #11; run with PERF_HARNESS=1'
-
-// Skips the whole file, and precedes the hooks below so `beforeAll` never runs.
-test.skip(!HARNESS, DORMANT)
+  'stage-arrival needs a scene freeze hook and a stage golden, issue #11; run with PERF_HARNESS=1'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PIXEL GATE — the sole arbiter of "zero visual change" for the hero perf
@@ -391,6 +379,7 @@ test.describe('pixel gate', () => {
     // Moment 5 — the Selected Work stage, first card segment. Guards the
     // downstream page against hero work that leaks into shared layout/paint.
     test(`stage-arrival-t2 · ${tag}`, async ({ page }, testInfo) => {
+      test.skip(!HARNESS, DORMANT)
       await loadFrozen(page, testInfo, seed, 2)
       await scrollToStageArrival(page)
       await shoot(page, `stage-arrival-t2-${tag}.png`)

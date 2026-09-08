@@ -2,18 +2,9 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { test, expect, type Page } from '@playwright/test'
 
-/**
- * The harness's e2e specs land dormant.
- *
- * Layer 1's assertions and the pixel goldens were recorded against the August
- * site (base `e66becd`) and no longer describe what this tree renders, so they
- * fail deterministically here. Re-baselining is a campaign decision under ADR
- * 0006 and 0007 · on the rig, on measured evidence · not a merge chore, so
- * these skip by default instead of landing red. Issue #11 tracks it.
- */
 const HARNESS = process.env.PERF_HARNESS === '1'
 const DORMANT =
-  'dormant until re-baselined against the current site, issue #11; run with PERF_HARNESS=1'
+  'dormant for a structural reason, not a stale number · issue #11; run with PERF_HARNESS=1'
 
 // These two assertions measure wall-clock work, so they are sensitive to what
 // else is on the CPU. Measured 2026-09-04 on the scene build: isolated, the
@@ -158,39 +149,8 @@ const settle = async (page: Page, query = ''): Promise<void> => {
   await page.waitForSelector('[data-canvas="fluid-waves"]')
 }
 
+// Behavioural: exact per-frame GL contracts, no baselined number. Run by default.
 test.describe('harness Layer 1', () => {
-  test.skip(!HARNESS, DORMANT)
-
-  test('canvas backing stores match the capped-DPR contract exactly', async ({ page }) => {
-    await settle(page, 'perf-seed=0.5&perf-role=0')
-    // Scroll to the Contact/Footer stage so the lazy-mounted backdrop canvas is
-    // present too, then measure every mounted canvas in one pass.
-    await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' as ScrollBehavior }))
-    await page.waitForSelector('[data-canvas="fluid-waves-backdrop"]')
-    await page.waitForTimeout(300) // let any resize() settle before sampling
-
-    const measured = await page.evaluate((cap: number) => {
-      const dpr = Math.min(window.devicePixelRatio || 1, cap)
-      return [...document.querySelectorAll('canvas[data-canvas]')].map((el) => {
-        const c = el as HTMLCanvasElement
-        return {
-          id: c.dataset.canvas ?? '(unnamed)',
-          width: c.width,
-          height: c.height,
-          expectedWidth: Math.max(1, Math.round(c.clientWidth * dpr)),
-          expectedHeight: Math.max(1, Math.round(c.clientHeight * dpr)),
-        }
-      })
-    }, DPR_CAP)
-
-    // Both canvases must exist — a zero-length list would make every assertion
-    // below vacuously true.
-    expect(measured.map((m) => m.id).sort()).toEqual(['fluid-waves', 'fluid-waves-backdrop'])
-    for (const m of measured) {
-      expect(m.width, `${m.id} backing store width`).toBe(m.expectedWidth)
-      expect(m.height, `${m.id} backing store height`).toBe(m.expectedHeight)
-    }
-  })
 
   test('hero GL work is exactly one draw + one uniform upload per frame, from one loop', async ({ page }) => {
     await settle(page, 'perf-seed=0.5&perf-counters&perf-role=0')
@@ -268,6 +228,43 @@ test.describe('harness Layer 1', () => {
     // is the ceiling plus the stability window above.
     expect(after.frames, 'at most three startup draws under reduced motion').toBeLessThanOrEqual(3)
     expect(after.frames, 'at least one static frame is drawn').toBeGreaterThanOrEqual(1)
+  })
+
+})
+
+// Dormant: a golden-less structural gap and a measured ceiling. Issue #11.
+test.describe('harness Layer 1 · dormant', () => {
+  test.skip(!HARNESS, DORMANT)
+
+  test('canvas backing stores match the capped-DPR contract exactly', async ({ page }) => {
+    await settle(page, 'perf-seed=0.5&perf-role=0')
+    // Scroll to the Contact/Footer stage so the lazy-mounted backdrop canvas is
+    // present too, then measure every mounted canvas in one pass.
+    await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' as ScrollBehavior }))
+    await page.waitForSelector('[data-canvas="fluid-waves-backdrop"]')
+    await page.waitForTimeout(300) // let any resize() settle before sampling
+
+    const measured = await page.evaluate((cap: number) => {
+      const dpr = Math.min(window.devicePixelRatio || 1, cap)
+      return [...document.querySelectorAll('canvas[data-canvas]')].map((el) => {
+        const c = el as HTMLCanvasElement
+        return {
+          id: c.dataset.canvas ?? '(unnamed)',
+          width: c.width,
+          height: c.height,
+          expectedWidth: Math.max(1, Math.round(c.clientWidth * dpr)),
+          expectedHeight: Math.max(1, Math.round(c.clientHeight * dpr)),
+        }
+      })
+    }, DPR_CAP)
+
+    // Both canvases must exist — a zero-length list would make every assertion
+    // below vacuously true.
+    expect(measured.map((m) => m.id).sort()).toEqual(['fluid-waves', 'fluid-waves-backdrop'])
+    for (const m of measured) {
+      expect(m.width, `${m.id} backing store width`).toBe(m.expectedWidth)
+      expect(m.height, `${m.id} backing store height`).toBe(m.expectedHeight)
+    }
   })
 
   test('every emitted chunk is within its recorded byte ceiling', async ({ request }) => {
