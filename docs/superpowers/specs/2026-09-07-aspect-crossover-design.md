@@ -87,9 +87,9 @@ One plan, two PRs into `staging`, Opus executes. PR A carries item 1 on its own 
 - [x] The scene e2e scrub also runs at a near-square viewport with zero console errors.
 - [x] `docs/architecture.md#card-size` describes the unified formula and the crossover band; `CONTEXT.md` carries **Frame-fit rule** and **Crossover band**.
 - [x] PR A open against `staging` with the manual-pass steps in its description.
-- [ ] `perf/hero-harness` merged with `staging` per issue #9; `npx tsc -b`, `npm run lint`, `npx vitest run` green on the merged tree.
-- [ ] The five named tests skip unless `PERF_HARNESS=1`; the rest of the harness runs in the default suite, which is green with the skips visible; a follow-up issue for the five exists and carries the measured failure set.
-- [ ] `CONTEXT.md` carries the Measurement group and the rig-relative invariant again.
-- [ ] `docs/architecture.md` has a harness section and index row; ADRs 0006 and 0007 carry no branch note and cite backticked paths.
-- [ ] `CLAUDE.md` has the GitHub-issues row and is at most 120 lines.
-- [ ] PR B open against `staging` with `Closes #9` in its description.
+- [x] `perf/hero-harness` merged with `staging` per issue #9; `npx tsc -b`, `npm run lint`, `npx vitest run` green on the merged tree.
+- [x] The five named tests skip unless `PERF_HARNESS=1`; the rest of the harness runs in the default suite, which is green with the skips visible; a follow-up issue for the five exists and carries the measured failure set.
+- [x] `CONTEXT.md` carries the Measurement group and the rig-relative invariant again.
+- [x] `docs/architecture.md` has a harness section and index row; ADRs 0006 and 0007 carry no branch note and cite backticked paths.
+- [x] `CLAUDE.md` has the GitHub-issues row and is at most 120 lines.
+- [x] PR B open against `staging` with `Closes #9` in its description.
