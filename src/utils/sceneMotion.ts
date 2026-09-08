@@ -316,21 +316,34 @@ const HALF_FOV_TAN = Math.tan((FOV_DEG * DEG) / 2)
  * phone values, and the aspect where they have fully reached their desktop
  * ones. Between them `crossover` blends by `smoothstep`.
  *
- * A tuning knob Kevin adjusts by eye, not a derived number, with two hard
- * limits. No real device may sit inside the band: every portrait phone and
- * tablet is at or under 0.85 (iPad Pro portrait 0.75, the foldables 0.81 to
- * 0.83) and every landscape tablet at or over 1.25 · except the Z Fold 6 inner
- * screen in landscape at 1.232, which the original 1.25 end wrongly included.
- * And the band cannot be arbitrarily narrow: the continuity sweep bounds
- * |ΔcamY| ≤ 0.02 and |ΔtitleCapPx| ≤ 1 px per 0.005 aspect step imply a
- * bandwidth floor of 0.106 and 0.120 respectively, so the title floor binds;
- * 0.20 keeps the 2x headroom those bounds were set with.
+ * A tuning knob Kevin adjusts by eye, not a derived number, inside three
+ * limits. No real device may sit inside the band: portrait phones and tablets
+ * are at or under 0.85 (iPad Pro portrait 0.75), and landscape tablets at or
+ * over 1.05 · which now includes the whole foldable class, 1.205 to 1.235 in
+ * landscape, that the original 1.25 end wrongly swallowed. The band cannot be
+ * arbitrarily narrow: the continuity sweep bounds |ΔcamY| ≤ 0.02 and
+ * |ΔtitleCapPx| ≤ 1 px per 0.005 aspect step imply a bandwidth floor of 0.106
+ * and 0.120, the title floor binding; at the 0.20 shipped here the margins are
+ * 1.9x and 1.67x, not the 2x the original 0.40-wide band had. And
+ * `CROSSOVER_END` must exceed 1, which with a 0.20 band makes 1.05 the only
+ * value available · a constrained choice, not a tuned one.
  *
  * Ends at 1.05, not 1.25, because at 1.25 the near-square card sat too low ·
  * bottom 0.939 of the frame at 820x821 with its blob shadow clipped, floor
- * contact at 1.029. At 1.05 it lands at 0.846 with contact at 0.937, within
- * 0.03 of the landscape-tablet picture, which is right: the card is the same
+ * contact 1.029. At 1.05 it is 0.846 and 0.937, within 0.033 of the
+ * landscape-tablet picture, which is the target: the card is the same
  * half-frame height in both.
+ *
+ * Two consequences worth knowing. `titleCapPx` blends on the same `t`, so any
+ * viewport NARROWER than 800 px inside the band changes title size · up to
+ * 8.8 px, and 66.9 to 58.5 px on a 600x600 window. No real device is affected;
+ * every one of them is outside the band. And the band cannot fix the whole
+ * defect: below aspect 0.85 everything sits at `t = 0`, so an 820-wide window
+ * still puts the shadow out of frame from aspect 0.945 down to 0.70 (worst
+ * 1.045 at 820x920). Narrowing the band strictly shrinks that set · it removes
+ * about 27k integer window sizes and adds none · but it cannot empty it.
+ * Issue #13 supersedes this knob by keying the blend on the card's height
+ * share instead of aspect, which does reach them.
  */
 export const CROSSOVER_START = 0.85
 export const CROSSOVER_END = 1.05
