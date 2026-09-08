@@ -13,47 +13,51 @@
 - One animation lane per animation; SceneRig reads MotionValues and writes three objects. No React state per frame or scroll tick.
 - Plus Jakarta Sans for cells; Anton stays on the Selected Work title. Bilingual strings from the first implementation commit; Embed titles remain Portuguese-only.
 - Cream `#F5F2EC`; professional ink `#0B0E14`; freelance pink `#B22B47`; personal blue `#2A54B5`; meta ink-muted `rgba(11,14,20,.62)`. Hover title uses `accentDeepLargeFor(index)`.
-- `FRIEZE_ROWS_LANDSCAPE = 8`; coverage texture long side ≤4096 pixels; renderer DPR ≤1.5, applied once. `sceneMotion.ts` imports `friezeLayout.ts`, never the reverse.
+- `FRIEZE_ROWS = 8`; coverage texture long side ≤4096 pixels; renderer DPR ≤1.5, applied once. `sceneMotion.ts` imports `friezeLayout.ts`, never the reverse.
 - `TAP_MAX_DELTA_PX = 6`; reduced motion uses stills and demand rendering. Rasterisation waits for `entranceDone` and the existing scene warm-up window.
 - Keep `src/data/embeds.ts` and `src/data/embeds.csv` unchanged. Preserve Project ranking and all nine routes.
-- Implementers tick each existing step immediately after its command succeeds, before the next step. Each implementation commit includes this plan's corresponding ticks. A controller alone ticks a spec TODO after acceptance and review approval.
+- Implementers tick each existing step immediately after its command succeeds, before the next step. Each implementation commit includes this plan's corresponding completed ticks. For every commit step below: commit with that step still unchecked, then tick it immediately, stage only this plan and run `git commit --amend --no-edit` before the next step. Do not recursively record the amend. Implementation commits carry the actual executor's `Co-Authored-By` and, for Claude sessions, actual `Claude-Session` trailers; never fabricate a session ID. A controller alone ticks a spec TODO after acceptance and review approval.
 - This planning delivery is one commit containing this file only, on `feat/act-two-wall`; no implementation, push, merge or deployment. Implementation commits described below are future work.
 
 ## Assumptions
 
 1. Preserve existing archive IDs; break date ties by Project-first order, then source order.
-2. Use 12 portrait rows, quantising the crossover blend to even row counts.
-3. Use cells 0.6 × 0.44 world units and a 270 CSS-pixels-per-world-unit reading target.
+2. **Overturned:** `FRIEZE_ROWS = 8` in both orientations; respect Motion's `maxRowsInFrame(g)`.
+3. **Overturned:** `FRIEZE_CELL_W = CARD_W / 2`, `FRIEZE_CELL_H = CARD_H / 2`; use Motion's 144 CSS px cell floor, not an independent reading target.
 4. Pack spans by first-fit column-major occupancy, with Projects first within each year.
-5. Use RGBA coverage canvases and a nearest-filtered per-slot colour DataTexture.
+5. Use one RGBA8 role-coverage mask per block (R title, G meta, B serial) and a nearest-filtered per-slot colour DataTexture, both without mipmaps.
 6. Hover changes title colour immediately through uniforms, including under reduced motion.
 7. Draw Jakarta titles at 0.06 world units and meta/serial at 0.04, with fixed-width digit advances.
-8. Keep current textures visible during cancellable, incremental language and resize redraws.
-9. Reuse card geometry at width 1.08, with the frame 0.01 world units ahead of the frieze.
+8. Keep current textures visible during cancellable, incremental language and resize redraws; failures settle to a blank cream wall.
+9. **Overturned:** The embedded card exactly fills 2×2 cells, without a 1.08 inset or blob shadow. Keep its frame 0.01 world units ahead of the frieze; use explicit draw order and depth-write control for its layers.
 10. Use stackCover, then desktopBento, then desktop for Project covers.
-11. Share cover textures by reference counting across corridor and frieze consumers.
+11. Share cover textures through one reference-counted cache that is their sole owner; consumers never dispose them.
 12. Open external links synchronously in the trusted click callback with noopener.
 13. Keep JSON-LD unchanged because origin changes neither routes, names, years nor positions.
 14. Keep the frieze in the scene's fog and composer; reconcile their reading-distance settings with Motion.
-15. Adapt the retiring Archive consumer to the new fields until Access removes it.
+15. **Overturned:** Wall deletes Archive, its dropdown/CSS/toolbar strings and rewrites the four old-surface e2e specs; Access adds stream assertions afterwards.
 16. Treat 22 columns as an illustrative motion fixture; use actual packed columns for production.
-17. Allow partial-height reading views; reserve complete-frieze framing for the volume shot.
-18. Treat origin labels as bilingual pairs: freelance/freelance and personal/pessoal.
+17. **Overturned:** Use eight rows and Motion's framing bound; there is no vertical focus travel to rescue hidden rows.
+18. Keep bilingual freelance/freelance and personal/pessoal pairs, sourced from shared locale keys `sections.archive.origin.freelance` and `.personal`.
+19. Resolve the spec's contradictory “single-channel” wording as one RGBA8 texture with independent scalar coverage channels for title, meta and serial. This is required by fix 5; no per-line rectangle lookup.
 
 ## Spec conflicts
 
-1. **Illustrative column count:** 171 pieces with nine 2×2 spans occupy 198 unit slots, already more than 22×8. Year boundaries require 26 landscape columns: 2 + 7 + 16 + 1. Use the specified dynamic budget: 150 + 25×26 = 800svh for act two and 1350svh for the wrapper. Preserve `sceneWrapperSvh(22) = 1250` as a synthetic Motion acceptance test. Twelve rows produce 19 columns and 1175svh wrapper height.
-2. **Continuous blend versus integer packing:** fractional rows cannot hold discrete 2×2 spans. Quantise the smoothstep blend to 12, 10, 8; transitions occur only inside the existing crossover band. Swap layout, extent and texture generation together after the 150ms resize debounce; camera geometry uses that same committed extent.
-3. **Deletion ownership:** deleting archive fields/exports breaks `Archive.tsx` before Access deletes it. Wall makes the minimum consumer migration in Task 2; Access still owns deletion, replacement stream, toolbar strings/CSS and old-surface e2e rewrites. No compatibility exports or old fields survive in the shared archive model. The intermediate toolbar is temporary, not an accepted final surface.
+1. **Illustrative column count:** 171 pieces with nine 2×2 spans occupy 198 unit slots, already more than 22×8. Year boundaries require 26 landscape columns: 2 + 7 + 16 + 1. Use the specified dynamic budget: 150 + 25×26 = 800svh for act two and 1350svh for the wrapper. Preserve `sceneWrapperSvh(22) = 1250` as a synthetic Motion acceptance test. Both orientations use these same 26 columns.
+2. **Resolved by amended decision 15:** eight rows in both orientations. Delete the portrait-row constant, quantised blend and row helper; resize changes raster density and camera geometry, not packing rows.
+3. **Resolved by amended Deletions/pipelines table:** Task 2 deletes the old Archive surface and its Home mount/import/preload; Task 9 rewrites its four e2e specs. The integration PR must be green before Access adds the stream.
 4. **Card caption versus cell copy:** retain card anatomy and its caption technique, but use the frieze's origin-only subtitle and serial in act two. The corridor retains its existing year/technology subtitle. Two-line titles are an upper bound; a card's existing single-line ellipsis satisfies it.
-5. **Framing:** at the adopted reading scale, twelve rows occupy 1425.6 CSS px before perspective, so a phone cannot show all rows while retaining the 12px card-caption floor. Use a complete volume shot followed by partial-height reading views. Motion/Access must make off-frame pieces reachable by their shared focus target; do not claim all rows are simultaneously legible. If review requires full-height legibility, revise this cross-pipeline contract before execution.
-6. **Unspecified placement export:** the spec names pose/progress functions but no wall-transform export or pose return type. Task 1 reconciles the actual Motion plan; this plan does not invent a second wall placement or assert an export already exists.
+5. **Resolved by amended decision 15:** the phone no longer receives twelve rows. Use eight and validate against `maxRowsInFrame(g)` at the specified phone and desktop reading poses; preserve short-height regression cases and report any viewport whose bound is below eight rather than inventing vertical camera travel.
+6. **Placement dependency:** the spec names pose/progress functions but no wall-transform export or pose return type. Task 1 reconciles the actual Motion plan; this plan does not invent a second wall placement or assert an export already exists.
+
+7. **Verified review-premise exceptions:** current `src/types/content.ts` exports `resolveTitle`, not `n`; retain it consistently, matching Access. Current `sceneMotion.ts` and the sibling Motion plan use `CARD_W = 1`, `CARD_H = 448 / 620`, hence half-card cells are 0.5 × 0.3612903. At the 144 px cell floor density is 288 CSS px/world, not the requested 240 (which would require CARD_W = 1.2). Do not change act-one geometry to force that number. Recompute from merged constants in Task 1.
+8. **Role-mask wording:** the amended spec asks both separate role channels and “single-channel” masks. Assumption 19 follows the explicit role-channel fix with one RGBA8 mask per block and no mipmaps.
 
 The user-specified plan location overrides writing-plans' generic `docs/plans/` location. Self-interview answers are adopted without Kevin present as explicitly requested; they are reviewable assumptions, not owner approval. Planning from the integration fork is authorised; implementation must incorporate reviewed Motion work before changing shared files.
 
 ## Self-interview
 
-The design tree is data → packing → framing/rasterisation → resource lifetime → interaction → integration. Each round adopts its recommendations before opening dependent questions.
+The design tree is data → packing → framing/rasterisation → resource lifetime → interaction → integration. The original questions are retained for traceability; the overturned answers below follow the reviewed spec.
 
 ### Round 1 · data and packing
 
@@ -65,13 +69,13 @@ The design tree is data → packing → framing/rasterisation → resource lifet
 
 ❓ **Q2** - **Portrait rows**: Ten, twelve or sixteen? Fractional packing or discrete layouts?
 
-➡️ Adopt assumption 2. Twelve makes portrait taller and shorter without sixteen-row texture height. Motion computes `t = smoothstep(clamp((aspect - CROSSOVER_START)/(CROSSOVER_END - CROSSOVER_START), 0, 1))`; the pure layout helper accepts t and returns `2 * Math.round((12 - 4*t)/2)`. It imports no motion constants.
+➡️ Assumption 2 is overturned: eight rows in both orientations, no quantisation or `friezeRows()`. Test Motion framing with `maxRowsInFrame(g)`; there is no vertical travel.
 
 ---
 
 ❓ **Q3** - **Cell dimensions and reading size**: Match a full card per cell, use compact typography, or shrink captions below their floor?
 
-➡️ Adopt assumption 3. At 270 CSS px/world unit a cell is 162×118.8 CSS px; a 1.08-world-unit card is 291.6px wide and its 26/620 caption is 12.23px. Pass this target to Motion as a framing requirement; test actual perspective projection at the reading target, including the lowest visible caption.
+➡️ Assumption 3 is overturned: exact half-card cells and Motion’s 144 px cell floor. With the verified CARD_W=1, the dolly floor is 288 CSS px/world, giving title 17.28 px, meta/serial 11.52 px and card caption 288×26/620 = 12.08 px. These are floor calculations, not browser measurements; assert actual projection including the lowest caption.
 
 ---
 
@@ -83,7 +87,7 @@ The design tree is data → packing → framing/rasterisation → resource lifet
 
 ❓ **Q5** - **Colour lookup and memory**: Uniform arrays, per-piece materials, or a DataTexture?
 
-➡️ Adopt assumption 5. One small RGBA8 DataTexture per block, sized block columns × rows, stores title RGB and an occupied flag; repeat the Project's data across all four slots. CPU occupancy stores the corresponding cell index. Coverage remains one white-on-transparent CanvasTexture per block; shader chooses the text role by the same cell-local line rectangles the rasteriser uses. Keep meta and serial muted. No per-piece material, text canvas or shader recompilation on hover.
+➡️ Adopt assumptions 5 and 19. One RGBA8 DataTexture per block, block columns × rows, stores title RGB and occupied alpha; repeat Project entries across four slots. Store sRGB bytes with `THREE.SRGBColorSpace` and verified sRGB decoding to linear shader values; use nearest min/mag filtering, `generateMipmaps=false`, `unpackAlignment=1`. The separate mask stores title coverage in R, meta in G, serial in B, A=1 to avoid premultiplication loss; `NoColorSpace`, linear min/mag filtering, no mipmaps, unpack alignment 1. Build channels with reusable block-sized scratch storage, never per-cell canvases. Shader uses lookup RGB for title, fixed linear muted ink for meta/serial, and occupied alpha for valid cells; hover changes title only. No per-line rectangles are encoded in the lookup.
 
 ---
 
@@ -95,19 +99,19 @@ The design tree is data → packing → framing/rasterisation → resource lifet
 
 ❓ **Q7** - **Text and serial**: DOM text, proportional digits, or measured canvas layout?
 
-➡️ Adopt assumption 7. At reading scale titles are 16.2 CSS px/24.3 renderer-device px, meta and serial 10.8/16.2. Weight 600 title, 500 meta/serial, line-height 1.2; inset 0.03 world units. Wrap at word boundaries to at most two lines; remove whole trailing words for ellipsis, and use an ellipsis alone for an overlong indivisible token. Keep meta on one line with whole-word ellipsis. Draw serial digits separately at the maximum measured digit advance; do not assume Canvas2D supports font-feature settings. Display unpadded serials. Reserve the serial's own line below meta, or below title when meta is absent. Year count sits in the first column's top inset, without adding extent rows, and is excluded from pointer selection.
+➡️ Adopt assumption 7. At the verified dolly floor titles are 17.28 CSS px/25.92 renderer-device px, meta and serial 11.52/17.28 at renderer DPR 1.5. Weight 600 title, 500 meta/serial, line-height 1.2; inset 0.03 world units. Wrap at word boundaries to at most two lines; remove whole trailing words for ellipsis, and use an ellipsis alone for an overlong indivisible token. Keep meta on one line with whole-word ellipsis. Draw serial digits separately at the maximum measured digit advance; do not assume Canvas2D supports font-feature settings. Display unpadded serials. Reserve the serial's own line below meta, or below title when meta is absent. Year count sits in the first column's top inset, without adding extent rows, and is excluded from pointer selection.
 
 ---
 
 ❓ **Q8** - **Redraw scheduling**: Four synchronous canvases on every switch, a new worker dependency, or bounded incremental jobs?
 
-➡️ Adopt assumption 8. Await Jakarta, then draw at most four cells per idle slice with a timer fallback. Allocate/upload one replacement block at a time; cancel obsolete generations on language, debounced size, unmount or context loss. After all replacements are uploaded, atomically switch their uniforms/meshes and release old resources. Keep old text until the switch; no language-switch Suspense boundary. Catch failures and route them through the existing unavailable callback, never an unhandled rejection. Record actual longest tasks; incremental drawing cannot promise a hitch-free GPU upload.
+➡️ Adopt assumption 8. Await Jakarta, then draw at most four cells per idle slice with a timer fallback. Allocate/upload one replacement block at a time; cancel obsolete generations on language, debounced size, unmount or context loss. After all replacements are uploaded, atomically switch their uniforms/meshes and release old resources. Keep old text until the switch; no language-switch Suspense boundary. Catch failures, dispose partial generations, clear wall cards/text and settle to a blank cream wall with `data-frieze="failed"`; never call the permanent WebGL-unavailable callback or block `data-warm`. Record actual longest tasks; incremental drawing cannot promise a hitch-free GPU upload.
 
 ---
 
 ❓ **Q9** - **Embedded card placement**: Flatten covers, clone the corridor controller, or reuse its object anatomy?
 
-➡️ Adopt assumption 9. Centre the card in its 1.2×0.88 footprint, preserving CARD_H/CARD_W; retain COVER_Z and CAPTION_Z relative to its frame. Reuse the blob mask behind/below the card inside the footprint, at local z=0.004 with depthWrite false; block plane is z=0, card frame z=0.01. Keep the frieze card still. Reserve a small strip below it for serial coverage in the block mask; its caption owns title/subtitle, avoiding duplicated text. Reuse anatomy, not the four-slot SceneRefs indexing.
+➡️ Assumption 9 is overturned. Exact 2×2 CARD_W×CARD_H footprint, no inset and no blob shadow (amended decision 4). Preserve COVER_Z/CAPTION_Z relative to the frame at local z=0.01. Reserve serial space inside the existing caption band rather than outside the full card. For volume-shot depth precision choose ordered layers: wall, frame, cover, caption; wall-card cover and caption have `depthWrite=false`, `depthTest=false` and increasing `renderOrder` so quantised frame depth cannot reject them. Apply these overrides only to wall cards and verify the ordered overlap through the composer. Reuse anatomy, not the four-slot SceneRefs indexing.
 
 ---
 
@@ -119,7 +123,7 @@ The design tree is data → packing → framing/rasterisation → resource lifet
 
 ❓ **Q11** - **Shared resources**: Let each CardCover dispose its cache entry, duplicate GPU textures, or share ownership?
 
-➡️ Adopt assumption 11. Extract a URL-keyed acquire/release cache from the current CardCover path, with a deferred final release cancelled by a new acquisition for StrictMode. Clear `useLoader` cache only when its final consumer leaves. Share rounded geometry/blob resources with equally explicit lifetimes. Test remount and overlapping consumers.
+➡️ Adopt assumption 11. Extract a URL-keyed acquire/release cache from the current CardCover path, with a deferred final release cancelled by a new acquisition for StrictMode. The cache alone disposes textures and clears `useLoader` entries after final release; remove Corridor’s current consumer cleanup that calls `texture.dispose()` and `useLoader.clear`. Set `dispose={null}` on every shared-resource subtree to prevent R3F automatic disposal, and explicitly release private resources. Keep corridor blob ownership separate: wall cards have no blob. Test remount, overlapping consumers, and unmount one while the other still renders.
 
 ### Round 3 · interaction and integration
 
@@ -143,7 +147,7 @@ The design tree is data → packing → framing/rasterisation → resource lifet
 
 ❓ **Q15** - **Intermediate Archive consumer**: Keep obsolete shared fields, retire Access early, or migrate the current consumer minimally?
 
-➡️ Adopt assumption 15. Locally derive filter options from origin/type/editorial/year; use caseStudy presence for inward links and Project lookup for legacy preview/rank presentation. Remove kind and byFeatured references, preserving toolbar behaviour where meaningful until Access deletes it. Legacy e2e expectations tied to removed classification belong to Access's rewrite; report those transitional failures explicitly, never skip or weaken tests.
+➡️ Assumption 15 is overturned: Task 2 deletes Archive and its dropdown, CSS and toolbar strings, including Home’s lazy import, preload and mount. Task 9 rewrites light-chapter, section-enters, reduced-motion and nav-on-light before review; no transitional failures are handed to Access.
 
 ---
 
@@ -155,13 +159,13 @@ The design tree is data → packing → framing/rasterisation → resource lifet
 
 ❓ **Q17** - **Phone reachability**: Violate caption size, remove phone act two, or use partial-height reading views?
 
-➡️ Adopt assumption 17 and Spec conflict 5. Task 1 records how Motion's target lookup and Access focus expose each cell, including vertical reachability; Wall supplies row and span rather than discarding them.
+➡️ Assumption 17 is overturned by amended decision 15 and resolved Spec conflict 5. Eight rows, validated framing bounds, horizontal item targets only.
 
 ---
 
 ❓ **Q18** - **Origin copy**: Show internal enum text in both languages or provide bilingual labels?
 
-➡️ Adopt assumption 18. Keep the enum stable and define bilingual presentation pairs. Professional Project subtitle is empty; editorial meta remains lowercased `type · editorial · dd.mm.yyyy`. Date formatting does not mutate stored display dates or CSV.
+➡️ Adopt assumption 18. Keep the enum stable and read the bilingual presentation pairs from `sections.archive.origin.freelance` / `.personal` in both locales, shared with the stream (PT personal is `pessoal`). Professional Project subtitle is empty; editorial meta remains lowercased `type · editorial · dd.mm.yyyy`. Date formatting does not mutate stored display dates or CSV.
 
 ## Shared interfaces and texture arithmetic
 
@@ -175,10 +179,12 @@ export interface Cell {
   row: number   // zero-based from the top
   span: 1 | 2
 }
-export interface FriezeBlock {
+export interface FriezeBlockExtent {
   year: number
   startCol: number
   columns: number
+}
+export interface FriezeBlock extends FriezeBlockExtent {
   count: number // pieces, not occupied slots
 }
 export interface FriezeLayout {
@@ -189,19 +195,24 @@ export interface FriezeLayout {
 export interface FriezeExtent {
   columns: number
   rows: number
-  blocks: { year: number; startCol: number; columns: number; count: number }[]
+  blocks: readonly FriezeBlockExtent[]
+}
+export interface PackedFriezeExtent extends FriezeExtent {
+  blocks: readonly FriezeBlock[]
   width: number
   height: number
 }
 ```
 
-Public utilities: `friezeLayout(items: readonly ArchiveItem[], rows: number): FriezeLayout`, `friezeExtent(layout: FriezeLayout, rows: number): FriezeExtent`, `friezeRows(crossoverBlend: number): number`. Constants: `FRIEZE_CELL_W = 0.6`, `FRIEZE_CELL_H = 0.44`, `FRIEZE_ROWS_LANDSCAPE = 8`, `FRIEZE_ROWS_PORTRAIT = 12`. Extent width is columns×W, height rows×H, including the empty layout's configured height. Data exports `yearBlocks(items: readonly ArchiveItem[]): { year: number; count: number; items: ArchiveItem[] }[]` from `src/data/archive.ts`.
+Public utilities: `friezeLayout(items: readonly ArchiveItem[], rows: number): FriezeLayout`, `friezeExtent(layout: FriezeLayout, rows: number): PackedFriezeExtent`. Preserve Motion's base `FriezeExtent` and `FriezeBlockExtent` exactly; the returned superset adds block counts and width/height. Constants: `FRIEZE_CELL_W = CARD_W / 2`, `FRIEZE_CELL_H = CARD_H / 2`, `FRIEZE_ROWS = 8`. Keep geometry constants dependency-free (Motion imports layout, never the reverse); the stub’s literal half-card expressions must be asserted equal to CARD_W/H halves in tests. Extent width is columns×W, height rows×H, including the empty layout's configured height. Data exports `yearBlocks(items: readonly ArchiveItem[]): { year: number; count: number; items: ArchiveItem[] }[]` from `src/data/archive.ts`.
 
-Coordinates are local top-left (+x right, −y down, +z towards viewer); mesh centres convert from those coordinates. Motion alone supplies the group's world transform. Consumers import `actTwoProgress`, `actTwoPose`, `blockAt`, `scrollTargetFor`, `actTwoSvh`, `sceneWrapperSvh`, `ACT_TWO_RELEASE_SVH`, `ACT_TWO_APPROACH_SVH`, `ACT_TWO_SVH_PER_COLUMN`, `CROSSOVER_START`, `CROSSOVER_END`, `clamp`, `smoothstep`, and `sceneGeometry` from `src/utils/sceneMotion.ts` (using relative paths). Fixed signatures from the spec are `actTwoProgress(playhead)` and `actTwoPose(u, frieze, geometry)`, with a FriezeExtent argument and camera position/yaw/pitch result. The actual typed return and `scrollTargetFor` overload/placement accessor are reconciled in Task 1, not fabricated here.
+New pure `src/utils/friezeTargets.ts` imports layout types and Motion’s `playheadForColumn`. Export `cellFor(itemId: string, layout: FriezeLayout): Cell | null` and `playheadForItem(itemId: string, layout: FriezeLayout, extent: FriezeExtent): number | null`; unknown IDs return null, otherwise use `playheadForColumn(cell.col + cell.span / 2, extent)`. Task 8 composes the result with numeric `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns)`. Pipeline 3 consumes this item seam for focus and Motion’s `volumeShotPlayhead(columns)` for the nav link; neither invents an item overload or duplicates beat math.
 
-Raster density is the maximum projected pixels/world unit required by Motion's reading poses × `state.viewport.dpr`. Scale both dimensions together by `min(1, 4096/neededWidth, 4096/neededHeight)` before rounding; clamp rounded dimensions to 4096. Insets count inside the plane, not outside its extent. At the 270 CSS px/world target and renderer DPR 1.5, density is 405 texels/world. Landscape block dimensions are approximately 486×1426, 1701×1426, 3888×1426, 243×1426. The 118-piece 2024 block consumes 16 columns because three Projects add nine occupied slots; its long side reaches the cap above 426.67 texels/world (284.44 CSS px/world at DPR 1.5). The cap reduces raster detail, not world typography size; record actual scale and check readable glyphs in browser screenshots.
+Coordinates are local top-left (+x right, −y down, +z towards viewer); mesh centres convert from those coordinates. Motion alone supplies the group's world transform. Consumers import `actTwoProgress`, `actTwoPose`, `blockAt`, `scrollTargetFor`, `actTwoSvh`, `sceneWrapperSvh`, `ACT_TWO_RELEASE_SVH`, `ACT_TWO_APPROACH_SVH`, `ACT_TWO_SVH_PER_COLUMN`, `CROSSOVER_START`, `CROSSOVER_END`, `clamp`, `smoothstep`, and `sceneGeometry` from `src/utils/sceneMotion.ts` (using relative paths). Fixed signatures from the spec are `actTwoProgress(playhead)` and `actTwoPose(u, frieze, geometry)`, with a FriezeExtent argument and camera position/yaw/pitch result. Task 1 verifies the actual pose/placement exports. Targets use the fixed numeric seams above; no deferred item overload.
 
-Four landscape RGBA8 masks total about 34.4MiB base, 45.8MiB GPU with mipmaps, plus 34.4MiB CPU canvases. Portrait blocks at 405 texels/world total about 37.7MiB base, 50.2MiB GPU plus 37.7MiB CPU. Physical DPR 2 and 3 both use renderer DPR 1.5, so both have those same costs at the same CSS viewport. Double-buffered redraw peaks are about 160.4MiB landscape / 175.8MiB portrait including CPU and GPU masks; these exclude covers, captions, render targets and driver overhead. The colour lookup is below 1KiB per layout. Release canvas backing stores and textures after replacement/unmount; measure whole-scene deltas on the rig in Access, never infer performance from these estimates.
+Raster density is the maximum projected pixels/world unit required by Motion’s reading poses × `state.viewport.dpr`, applied once. Scale both dimensions by `min(1, 4096/neededWidth, 4096/neededHeight)` and cap rounded dimensions at 4096. At the verified 288 CSS px/world floor and DPR 1.5, density is 432 texels/world; eight-row block masks are approximately 432×1249, 1512×1249, 3456×1249, 216×1249. The 16-column block reaches 4096 at 512 texels/world. The cap reduces raster detail, not world typography size; assert actual font quality in screenshots.
+
+Four RGBA8 masks total about 26.76 MiB GPU with no mipmaps in either orientation at that floor. Release canvas backing stores immediately after upload (retain data/recipe for explicit context-loss regeneration); steady CPU canvas storage is zero. During redraw, old and new masks require at most 53.52 MiB GPU; conservatively budget two largest-block CPU stores for channel assembly/upload, about 32.93 MiB, giving an 86.45 MiB mask-only peak. The four RGBA8 lookup textures total 26×8×4 = 832 bytes per generation, no mipmaps. DPR 2/3 both cap at renderer DPR 1.5; larger projected densities require recalculation. Exclude covers, captions, render targets and driver overhead; measure whole-scene deltas in Access. Test upload-before-canvas-release and dispose obsolete textures on swap/unmount.
 
 ## Implementation tasks
 
@@ -214,7 +225,7 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Interfaces:** Consumes Motion's plan at `docs/superpowers/plans/2026-09-08-act-two-motion.md`; produces a verified handoff for FriezeExtent and the imports listed above.
 
-**Work:** Before code, read Motion's plan when present and compare its imports/signatures with actual merged source. Record the exact wall transform accessor, pose return type, row-selection owner, reading scale, focus-to-row strategy, fog/DoF ownership and warm-up hooks. Reconcile 26/19 columns, preserving the synthetic 22-column fixture. Incorporate Motion through the controller's local branch workflow; no network is needed. The planning fork itself is not proof of implementation dependency availability.
+**Work:** Before code, read Motion's plan when present and compare its imports/signatures with actual merged source. Record the exact wall transform accessor, pose return type, fixed eight-row bound, derived reading scale, horizontal item-target strategy, fog/DoF ownership and warm-up hooks. Verify 26 columns in both orientations, preserving the synthetic 22-column fixture. Incorporate Motion through the controller's local branch workflow; no network is needed. The planning fork itself is not proof of implementation dependency availability.
 
 **Acceptance check:** `test -f docs/superpowers/plans/2026-09-08-act-two-motion.md` initially fails in this worktree; execution requires it and reviewed Motion source. `rg -n 'actTwoPose|actTwoProgress|scrollTargetFor|FriezeExtent' src/utils/sceneMotion.ts docs/superpowers/plans/2026-09-08-act-two-motion.md` must show compatible seams.
 
@@ -225,69 +236,77 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 - [ ] Run `git diff --check`; expected: no whitespace errors; review the recorded seam against both plans.
 - [ ] Run `git add docs/superpowers/plans/2026-09-08-act-two-wall.md` and `git commit -m 'docs: reconcile wall and motion contracts'`; expected: only the reviewed plan update committed.
 
-### Task 2: Migrate archive data and its current consumer
+### Task 2: Migrate archive data and delete the old Archive surface
 
 **Files:**
 - `src/types/content.ts` — modify: exact spec Origin/ArchiveItem shape and optional Project.origin.
 - `src/data/archive.ts` — modify: sorting, serial derivation and yearBlocks; remove retired exports.
 - `src/data/projects.ts` — modify: hotmart-bunde origin only.
-- `src/components/sections/Archive.tsx` — modify: minimum temporary field/export migration from Spec conflict 3.
+- `src/components/sections/Archive.tsx` — delete.
+- `src/components/ui/ArchiveDropdown.tsx` — delete.
+- `src/pages/Home.tsx` — remove Archive lazy import, preload and mount.
+- `src/index.css` — delete `.archive-*` rules.
+- `src/i18n/locales/en.json`, `src/i18n/locales/pt.json` — delete archive toolbar/sort/obsolete description strings; add shared origin keys, preserving archive title for Access.
 - `tests/unit/data/archive.test.ts` — rewrite: new data acceptance.
 
 **Interfaces:** Consumes Project and Embed; produces `archive: ArchiveItem[]`, `yearBlocks`, preserved `resolveTitle`. ArchiveItem includes origin, optional caseStudy, year and serial; retains id/title/type/editorial/date/sortDate/href/internal exactly as specified.
 
-**Work:** Test total 171, nine caseStudy slugs, 162 external pieces, serials 171…1, default professional and freelance hotmart-bunde, years 3/42/118/8 and Project-first ties including a 31 December Embed. Preserve source order for ties, immutable input and duplicate href pieces. Remove ArchiveKind/oss/kind and archive-only highlight/highlightOrder/gradient, byFeatured, archiveTypes, archiveEditorials, archiveKinds, archiveYears. Keep ranking fields on Project. Migrate the current consumer without reintroducing shared compatibility fields.
+**Work:** Test total 171, nine caseStudy slugs, 162 external pieces, serials 171…1, default professional and freelance hotmart-bunde, years 3/42/118/8 and Project-first ties including a 31 December Embed. Preserve source order for ties, immutable input and duplicate href pieces. Remove ArchiveKind/oss/kind and archive-only highlight/highlightOrder/gradient, byFeatured, archiveTypes, archiveEditorials, archiveKinds, archiveYears. Keep ranking fields on Project. Delete the retired surface and its Home references; keep WorkRow for Work Experience and Access. Verified current export is `resolveTitle`, so preserve it and tell Access its cited name is already correct (review fix 9’s `n` premise does not hold).
 
 **Acceptance check:** `npx vitest run tests/unit/data/archive.test.ts tests/unit/seo/jsonld-projects.test.ts`; new tests initially fail on missing origin/serial/yearBlocks. JSON-LD remains green without editing index.html.
 
-**Boundaries:** No CSV/parser, route, Project content/rank, stylesheet, locale or Access deletion edits.
+**Boundaries:** No CSV/parser, route or Project content/rank changes beyond origin. Access owns the future stream and WorkRow refactor.
 
 - [ ] Run `apply_patch` to replace archive assertions and tie fixtures; expected: exact counts and serial contract represented.
 - [ ] Run the acceptance command; expected: new archive assertions fail, unchanged JSON-LD passes.
 - [ ] Run `apply_patch` for types/data; expected: exact spec shape and hotmart-bunde origin, no obsolete archive exports.
-- [ ] Run `apply_patch` for the retiring consumer; expected: no references to removed fields/exports and no extra shared compatibility model.
+- [ ] Run `apply_patch` for Archive/dropdown deletion, Home cleanup, CSS and locales; expected: no dangling imports, retired toolbar or removed-field references.
 - [ ] Run the acceptance command and `npx tsc -b`; expected: data tests and typecheck pass.
 - [ ] Run `git diff --check`, stage only this task's Files and plan ticks, then `git commit -m 'feat: derive archive origins serials and year blocks'`; expected: bounded data migration commit.
 
 ### Task 3: Implement pure packing and extent
 
 **Files:**
-- `src/utils/friezeLayout.ts` — create: constants, interfaces, packing, extent and blend-to-rows helper.
-- `src/utils/sceneMotion.ts` — modify: consume layout constants/helper using its own crossover constants, replacing any provisional extent source from Motion.
+- `src/utils/friezeLayout.ts` — complete Motion’s stub: preserve base types, add packing and extent superset, remove provisional helper.
+- `src/utils/sceneMotion.ts` — consume fixed FRIEZE_ROWS name without changing act-one geometry.
+- `src/components/sections/Projects.tsx` — replace `provisionalFriezeExtent` with real layout/extent.
+- `tests/unit/friezeLayout.provisional.test.ts` — replace provisional imports/assertions with the real packing contract.
 - `tests/unit/friezeLayout.test.ts` — create: packing and extent acceptance.
+- `tests/unit/friezeExtent.types.ts` — create: compile-only base/superset assignability fixtures.
+- `tests/tsconfig.frieze-types.json` — create: extend `../tsconfig.app.json`, include `unit/friezeExtent.types.ts` so type assertions actually run (the app config includes only src).
 - `tests/unit/sceneMotion.test.ts` — modify: crossover integration assertions only.
 
-**Interfaces:** Produces all shared interfaces above. Consumes yearBlocks and ArchiveItem; Motion supplies the normalised crossover blend.
+**Interfaces:** Produces all shared interfaces above. Consumes yearBlocks and ArchiveItem; Motion supplies maxRowsInFrame; rows stay eight.
 
-**Work:** Implement the first-fit algorithm described in Q4. Test exact coverage, unique IDs, no occupied-slot overlap, head-of-year spans, column-major Embed order, top/bottom bounds, no year crossing, block widths and prefix startCol, summed columns, correct physical width/height. Use full data and small hand-computed examples, odd row counts, all-Project, all-Embed, empty, duplicate-ID and invalid-row cases. Test deterministic reverse calls and frozen inputs. Sweep aspect across and outside 0.85–1.05 via Motion: only 12/10/8, monotonic row change, no change outside the band; packing accepts any integer rows ≥2.
+**Work:** Implement the first-fit algorithm described in Q4. Test exact coverage, unique IDs, no occupied-slot overlap, head-of-year spans, column-major Embed order, top/bottom bounds, no year crossing, block widths and prefix startCol, summed columns, correct physical width/height. Use full data and small hand-computed examples, odd row counts, all-Project, all-Embed, empty, duplicate-ID and invalid-row cases. Test deterministic reverse calls and frozen inputs. Sweep aspect across and outside 0.85–1.05: production rows stay eight; assert maxRowsInFrame at specified desktop/phone poses and report short-height limits. Packing still accepts integer rows ≥2. Add compile-time assignments proving a base fixture needs no counts/dimensions and `const motionExtent: FriezeExtent = friezeExtent(layout, 8)` is valid; pass both to Motion consumers in `friezeExtent.types.ts` and run `npx tsc -p tests/tsconfig.frieze-types.json --noEmit` (plain Vitest does not check types). Assert cell constants equal CARD_W/H halves without a reverse import.
 
-**Acceptance check:** `npx vitest run tests/unit/friezeLayout.test.ts tests/unit/sceneMotion.test.ts`; new imports initially fail. Full data must produce landscape widths [2,7,16,1] and portrait [2,5,11,1].
+**Acceptance check:** `npx vitest run tests/unit/friezeLayout.test.ts tests/unit/sceneMotion.test.ts`; new imports initially fail. Full data must produce widths [2,7,16,1], four blocks and 26 columns in both orientations. Run `npx tsc -p tests/tsconfig.frieze-types.json --noEmit` and `npx vitest run tests/unit/friezeLayout.provisional.test.ts` too; `rg provisionalFriezeExtent src tests` must return no matches.
 
 **Boundaries:** Layout imports no sceneMotion, React, DOM or three. Keep existing act-one pose assertions intact.
 
 - [ ] Run `apply_patch` to add hand-computed packing tests; expected: all acceptance properties represented.
 - [ ] Run the acceptance command; expected: missing layout exports fail.
 - [ ] Run `apply_patch` to implement layout/constants/extent; expected: pure explicit-return utilities.
-- [ ] Run `apply_patch` to connect Motion's blend and add the aspect sweep; expected: dependency flows from motion to layout only.
+- [ ] Run `apply_patch` to replace the provisional caller/test and add the fixed-row aspect sweep; expected: dependency flows from motion to layout only.
 - [ ] Run the acceptance command and `npx tsc -b`; expected: new cases and act-one fixtures pass.
 - [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: pack archive into year-block frieze'`; expected: pure layout commit.
 
 ### Task 4: Define cell text and bounded coverage rasterisation
 
 **Files:**
-- `src/components/canvas/scene/friezeText.ts` — create: bilingual presentation, text-role rectangles and measured wrapping.
+- `src/components/canvas/scene/friezeText.ts` — create: locale-backed presentation, channel roles and measured wrapping.
 - `src/components/canvas/scene/friezeTexture.ts` — create: sizing, incremental coverage jobs and disposal.
 - `src/components/canvas/scene/textTexture.ts` — modify: export shared 150ms resize debounce alongside font loading.
 - `src/components/canvas/scene/Caption.tsx` — modify: consume shared debounce constant.
 - `tests/unit/friezeTexture.test.ts` — create: formatting, cap, scheduling and lifecycle tests.
 
-**Interfaces:** Produces `cellText(piece: ArchiveItem, lang: 'en' | 'pt'): { title: string; meta: string; serial: string }`; `FriezeTexture` carries CanvasTexture, pixel dimensions and effective texels/world. Raster jobs consume layout, data, lang and measured density; return a cancellable Promise of block masks.
+**Interfaces:** Export `CELL_TITLE_WORLD = 0.06` from `friezeText.ts` for Access’s legibility test. Produces `cellText(piece: ArchiveItem, lang: 'en' | 'pt'): { title: string; meta: string; serial: string }`; `FriezeTexture` carries CanvasTexture, pixel dimensions and effective texels/world. Raster jobs consume layout, data, lang and measured density; return a cancellable Promise of block masks.
 
-**Work:** Use Q7 text layout and white alpha coverage from titleTexture's technique. Keep role rectangles available to shader and hit testing. For Projects leave the card body blank in the block mask and draw only its serial strip. Test lowercase accented Portuguese, exact dotted dates, missing professional meta, two languages, long unbroken words, two-line limits and fixed serial advances. Test DPR once and the 4096 cap on each dimension, especially 2024 at above-target scale. Fake idle/timer/font readiness to assert cancellation, four-cell slices, no initial draw before warm-up permission, and release of abandoned canvases/textures.
+**Work:** Use Q7 text layout and Q5’s independent role-coverage channels. Rectangles may guide CPU layout, never shader role selection; the RGBA8 lookup has no room for per-line rectangles. For Projects leave the card body blank in the block mask and draw only its serial strip. Test lowercase accented Portuguese, exact dotted dates, missing professional meta, two languages, long unbroken words, two-line limits and fixed serial advances. Test DPR once and the 4096 cap on each dimension, especially 2024 at above-target scale. Fake idle/timer/font readiness to assert cancellation, four-cell slices, no initial draw before warm-up permission, and release of abandoned canvases/textures.
 
 **Acceptance check:** `npx vitest run tests/unit/friezeTexture.test.ts tests/unit/textTexture.test.ts`; new import/tests initially fail. Existing caption metrics must remain unchanged.
 
-**Boundaries:** No browser-only font-quality claims from jsdom stubs, no per-cell canvas, no colour baked into coverage, no first-paint rasterisation.
+**Boundaries:** No browser-only font-quality claims from jsdom stubs, no per-cell canvas, no presentation colour baked into coverage, no first-paint rasterisation.
 
 - [ ] Run `apply_patch` to add formatting, sizing and cancellation tests; expected: required contracts covered.
 - [ ] Run the acceptance command; expected: new tests fail on missing utilities.
@@ -310,7 +329,7 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Work:** Four meshes for typography/ground, plus nine card objects in Task 6. Use a slot occupancy table for UV→cell, not 171 raycast meshes. Convert CanvasTexture's vertical orientation explicitly. Half-open UV bounds reject 1 and outside values; covered 2×2 slots resolve to one cell. Blank padding and year counts are noninteractive. Use the nearest DataTexture and per-block hovered-cell uniform; Q14 controls colour conversion/fog. Forward callbacks only on identity changes. Clear hover/cursor on pointerleave, act transition, rebuild, unmount or context loss. Re-evaluate intersection as the camera moves under a stationary pointer using the existing R3F event manager from SceneRig, without React state. Reject drags above six pixels and inactive/unready blocks.
 
-**Acceptance check:** `npx vitest run tests/unit/friezeHit.test.ts tests/unit/friezeMaterial.test.ts`; initially missing implementation. Test corner orientation, all four Project slots, holes, neighbouring blocks, all three origins and all three hover rotation values without redraw.
+**Acceptance check:** `npx vitest run tests/unit/friezeHit.test.ts tests/unit/friezeMaterial.test.ts`; initially missing implementation. Test corner orientation, all four Project slots, holes, neighbouring blocks, all three origins and all three hover rotation values without redraw. Deterministically assert exactly four data blocks, four role masks and four ground/text meshes (embedded card meshes counted separately). Assert channel isolation and lookup colour-space/filter/mipmap/unpack settings.
 
 **Boundaries:** No router, per-frame material allocation, per-piece raycaster or change to corridor interaction semantics. Only canvas cursor is written here.
 
@@ -325,7 +344,7 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Files:**
 - `src/components/canvas/scene/CardObject.tsx` — create: shared frame, cover and caption object.
-- `src/components/canvas/scene/cardResources.ts` — create: shared cover/geometry/blob ownership.
+- `src/components/canvas/scene/cardResources.ts` — create: sole shared cover/geometry ownership; corridor-only blob lifetime.
 - `src/components/canvas/scene/Corridor.tsx` — modify: use shared object while keeping registration contract.
 - `src/components/canvas/scene/Caption.tsx` — modify: explicit handles and optional title-colour override for frieze use.
 - `src/components/canvas/scene/Frieze.tsx` — modify: Project object placement and serial strips.
@@ -333,7 +352,7 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Interfaces:** CardObject consumes SceneCard, anatomy geometry, title colour and local material handles; optional caption presentation selects corridor or frieze copy. No hard-coded nine-slot additions to SceneRefs.cards.
 
-**Work:** Preserve existing 620×448 proportions and all relative cover/caption depth offsets. Embed at Q9 placement, with a local blob shadow and no ambient motion. All nine covers use Q10 fallback. Disable raycast on embedded card children so the block occupancy remains the interaction source. For card title hover update material colour using a white coverage caption in frieze mode; corridor coloured captions keep their current path. Reference-count shared cover resources; mounting/unmounting a wall card cannot dispose a corridor cover. Validate proper two-line maximum via the card's one-line path and origin subtitle; serial stays on the block's reserved strip.
+**Work:** Preserve existing 620×448 proportions and all relative cover/caption depth offsets. Embed at Q9’s exact 2×2 placement with no blob shadow or ambient motion; ordered cover/caption layers disable depth writes and depth testing only in wall mode. All nine covers use Q10 fallback. Disable raycast on embedded card children so the block occupancy remains the interaction source. For card title hover update material colour using a white coverage caption in frieze mode; corridor coloured captions keep their current path. One reference-counted cache solely owns shared covers/geometries; consumers never dispose them and shared subtrees set `dispose={null}`. Replace Corridor’s existing loader-texture disposal. Mount both consumers, unmount either, and assert the survivor still renders its cover before final release disposes exactly once. Validate proper two-line maximum via the card's one-line path and origin subtitle; serial stays on the block's reserved strip.
 
 **Acceptance check:** `npx vitest run tests/unit/cardResources.test.ts tests/unit/textTexture.test.ts`; new shared ownership test initially fails. Browser registration preservation is tested in Task 9.
 
@@ -356,17 +375,17 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 - `src/components/canvas/scene/Frieze.tsx` — modify: generation swaps and disposal integration.
 - `tests/unit/friezeTexture.test.ts` — extend: warm-up ordering and generation race tests.
 
-**Interfaces:** Consumes the exact Motion signatures recorded in Task 1; produces a shared current layout/extent and frieze-ready signal. `data-warm='true'` means frieze masks and lookup textures are uploaded as well as existing scene resources.
+**Interfaces:** Consumes the exact Motion signatures recorded in Task 1; produces a shared current layout/extent and frieze-ready signal. `data-warm='true'` means existing resources plus either uploaded frieze textures or a settled cream-wall failure; `data-frieze` reports `pending`, `ready` or `failed` on the canvas.
 
-**Work:** Register a frieze preparation function before SceneWarmup runs. After entranceDone → existing 1500ms hero settle → idle, await preparation, include every shader-uniform texture in initTexture, compile visible frieze materials even when act one is current, then run the existing single offscreen warm-up frame. Never mark warm on failed preparation. A reader arriving early may see the existing scene while the frieze finishes, but may not click undrawn cells. After a debounced resize commit matching layout, extent, wrapper height and camera inputs together. Language-only redraw keeps extent unchanged. Use Motion's reduced-motion stills; frieze hover and async uploads invalidate demand frames. Resource failures invoke the host fallback callback. Keep the lazy chunk/Suspense boundary stable.
+**Work:** Register a frieze preparation function before SceneWarmup runs. After entranceDone → existing 1500ms hero settle → idle, await preparation, include every shader-uniform texture in initTexture, compile visible frieze materials even when act one is current, then run the existing single offscreen warm-up frame. Failed preparation must settle and allow warm-up to complete using the blank cream wall. A reader arriving early may see the existing scene while the frieze finishes, but may not click undrawn cells. After a debounced resize commit matching layout, extent, wrapper height and camera inputs together. Language-only redraw keeps extent unchanged. Use Motion's reduced-motion stills; frieze hover and async uploads invalidate demand frames. Raster failures never invoke the permanent WebGL-unavailable callback: it would kill act one for the session. Catch rejection, mark `data-frieze="failed"`, disable wall hits, clear partial resources and still reach `data-warm=true`. Genuine WebGL/context failure retains the existing fallback path. Keep the lazy chunk/Suspense boundary stable.
 
-**Acceptance check:** `npx vitest run tests/unit/friezeTexture.test.ts tests/unit/sceneMotion.test.ts`; extend with a delayed generation and ensure warm cannot precede upload. Runtime smoke in Task 9 supplies the GPU evidence.
+**Acceptance check:** `npx vitest run tests/unit/friezeTexture.test.ts tests/unit/sceneMotion.test.ts`; extend with a delayed generation and ensure successful warm cannot precede upload; injected raster failure reaches warm with failed status, cream pixels, no clickable cells, no unavailable callback and act one still rendering. Runtime smoke in Task 9 supplies the GPU evidence.
 
 **Boundaries:** No second camera controller, per-frame React setState, added canvas, extra offscreen loop or compile work during entrance.
 
 - [ ] Run `apply_patch` for delayed preparation, stale generation and failed preparation assertions; expected: readiness cannot race rasterisation.
 - [ ] Run the acceptance command; expected: new readiness assertions fail before wiring.
-- [ ] Run `apply_patch` for host/refs warm-up wiring; expected: all block and lookup textures explicitly uploaded before data-warm.
+- [ ] Run `apply_patch` for host/refs warm-up wiring; expected: successful block/lookup textures uploaded before data-warm; failed preparation settles without blocking it.
 - [ ] Run `apply_patch` for Motion placement, active gate, composer focus and atomic resize wiring; expected: one committed extent drives renderer and camera.
 - [ ] Run the acceptance command and `npx tsc -b`; expected: lifecycle and act-one checks pass.
 - [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: warm and integrate the act-two frieze'`; expected: scene integration commit.
@@ -376,25 +395,28 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 **Files:**
 - `src/components/sections/Projects.tsx` — modify: memoised archive/card data, callback decisions and shared target wiring.
 - `src/components/canvas/SelectedWorkScene.tsx` — modify: forward final callback props only.
+- `src/utils/friezeTargets.ts` — create: pure cell and item-playhead seam.
+- `tests/unit/friezeTargets.test.ts` — create: span-centre, unknown-ID and Motion-composition tests.
 - `tests/unit/friezeActions.test.tsx` — create: component-level navigation and hover callback tests.
 
-**Interfaces:** Canvas exports onCellClick/onCellHover; Projects resolves IDs against archive, passes hover through a MotionValue, and uses the reconciled `scrollTargetFor` overload shared with Access.
+**Interfaces:** Canvas exports onCellClick/onCellHover; Projects resolves IDs against archive, passes hover through a MotionValue, and uses `cellFor`/`playheadForItem` from `friezeTargets.ts`, composing known playheads with Motion’s numeric `scrollTargetFor`. Access consumes these exports for focus and `volumeShotPlayhead` for nav.
 
-**Work:** Keep stable callback identities with refs to current handlers as onCardClick already does. Project caseStudy.slug navigates to `/projects/:slug`; an Embed uses synchronous window.open with noopener. Unknown IDs do nothing. Access will attach stream focus to the same target resolver; do not implement stream markup here. Test route choice, untouched href (including fragments), synchronous open before any pending Promise, one open per click, unknown ID and hover clearing. Do not add a two-click focus-then-open interaction.
+**Work:** Pipeline 1 fades card four with `actTwoCardFade` across release; after release wall cells own the pointer and the invisible corridor card cannot intercept it. Assert a click through its former bounds reaches the wall. Keep stable callback identities with refs to current handlers as onCardClick already does. Project caseStudy.slug navigates to `/projects/:slug`; an Embed uses synchronous window.open with noopener. Unknown IDs do nothing. Access will attach stream focus to the same target resolver; do not implement stream markup here. Test route choice, untouched href (including fragments), synchronous open before any pending Promise, one open per click, unknown ID and hover clearing. Do not add a two-click focus-then-open interaction.
 
-**Acceptance check:** `npx vitest run tests/unit/friezeActions.test.tsx`; initially no cell callbacks. Mock the canvas boundary, not the Projects decision itself.
+**Acceptance check:** `npx vitest run tests/unit/friezeActions.test.tsx tests/unit/friezeTargets.test.ts`; initially no cell callbacks. Mock the canvas boundary, not the Projects decision itself.
 
 **Boundaries:** Existing corridor onCardClick behaviour survives. No router inside canvas, external prefetch, deferred popup or stream ownership change.
 
 - [ ] Run `apply_patch` for Projects callback tests; expected: case-study/external/unknown paths represented.
 - [ ] Run the acceptance command; expected: missing callbacks fail.
-- [ ] Run `apply_patch` for stable handlers, MotionValue hover and final host props; expected: trusted click stack reaches routing/open directly.
+- [ ] Run `apply_patch` for pure target utilities, stable handlers, MotionValue hover and final host props; expected: trusted click stack reaches routing/open directly.
 - [ ] Run the acceptance command and `npx tsc -b`; expected: callback and type contracts pass.
 - [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: route frieze cell clicks through projects'`; expected: callback integration commit.
 
 ### Task 9: Verify the rendered surface and regressions
 
 **Files:**
+- `tests/e2e/light-chapter.spec.ts`, `tests/e2e/section-enters.spec.ts`, `tests/e2e/reduced-motion.spec.ts`, `tests/e2e/nav-on-light.spec.ts` — rewrite old Archive assertions against retained chapter/Work Experience surfaces.
 - `tests/e2e/frieze-click.spec.ts` — create: real editorial popup, Project navigation and drag rejection.
 - `tests/e2e/frieze-surface.spec.ts` — create: headless root/console smoke, text presence, hover and redraw evidence.
 - `tests/e2e/scene-scrub.spec.ts` — modify only as needed to retain Motion's extended sweep with actual packed extent.
@@ -403,18 +425,18 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Interfaces:** Tests consume real layout/extent and reconciled yaw-aware Motion poses, the actual canvas bounding box, data-act and data-registrations. Do not use the existing pitch-only projectPoint for a yawed wall.
 
-**Work:** Arm popup/context page listeners before a real mouse click at a projected editorial cell centre, intercept that exact external URL locally with route.fulfill, assert URL/href and null opener; separately click a Project cover and assert route. Exercise 6px accepted and >6px rejected drags. Do not invoke handlers through page.evaluate. Readiness waits include data-warm. Verify root has rendered children, the surface loads, zero console errors/pageerrors/unhandled rejections, noncream glyph pixels, cream blank pixels and hover tint change. Test EN→PT→EN and resize generation stability, portrait twelve rows, crossover, DPR2/3 capped backing stores and reduced-motion demand updates. Retain every existing short-height and near-square scene-scrub viewport, forward/reverse act-two sweeps, data-act transitions and registrations='1'. Keep actual camera projection legibility evidence for Motion/Access; screenshots from real font rasterisation complement unit metrics.
+**Work:** Rewrite light-chapter’s children to projects/work/stats/skills and transfer WorkRow colour/hover checks to Work Experience; preserve veil/chapter assertions. Test entrances and reduced-motion headings on retained sections, and nav-on-light throughout Projects/Work/Skills and out into Contact. Do not leave tests waiting for the not-yet-added stream. Arm popup/context page listeners before a real mouse click at a projected editorial cell centre, intercept that exact external URL locally with route.fulfill, assert URL/href and null opener; separately click a Project cover and assert route. Exercise 6px accepted and >6px rejected drags. Do not invoke handlers through page.evaluate. Readiness waits include data-warm. Verify root has rendered children, the surface loads, zero console errors/pageerrors/unhandled rejections, noncream glyph pixels, cream blank pixels and hover tint change. Test EN→PT→EN and resize generation stability, eight rows in both orientations, crossover, DPR2/3 capped backing stores and reduced-motion demand updates. Retain every existing short-height and near-square scene-scrub viewport, forward/reverse act-two sweeps, data-act transitions and registrations='1'. Keep actual camera projection legibility evidence for Motion/Access; screenshots from real font rasterisation complement unit metrics. Assert rendered title origin/hover colours and unchanged muted meta/serial against expected output-space colours with documented antialias/composer tolerance; use interior coverage pixels. Test ordered cover/caption overlap at the farthest volume shot and both projection extremes, including composer, with no z-fighting or missing layers. Exercise shared-cover consumer unmount while the other remains visibly textured, and injected raster failure with a warm cream wall and functioning act one.
 
-**Acceptance check:** Before implementation the new popup and surface assertions fail because no frieze is drawn. Run `lsof -ti:4173 | xargs -r kill -9` before **every** Playwright invocation. Targeted command: `npx playwright test tests/e2e/frieze-click.spec.ts tests/e2e/frieze-surface.spec.ts tests/e2e/scene-scrub.spec.ts tests/e2e/scene-effects.spec.ts`. Use existing desktop/mobile projects and workers=1.
+**Acceptance check:** Before implementation the new popup and surface assertions fail because no frieze is drawn. Run `lsof -ti:4173 | xargs -r kill -9` before **every** Playwright invocation. Targeted command: `npx playwright test --workers=1 tests/e2e/light-chapter.spec.ts tests/e2e/section-enters.spec.ts tests/e2e/reduced-motion.spec.ts tests/e2e/nav-on-light.spec.ts tests/e2e/frieze-click.spec.ts tests/e2e/frieze-surface.spec.ts tests/e2e/scene-scrub.spec.ts tests/e2e/scene-effects.spec.ts`. Use existing desktop/mobile projects and `--workers=1`.
 
 **Boundaries:** No fake click success, deleted regression assertions, relaxed console checks, changed snapshots to conceal unrelated regressions or claimed performance measurements from SwiftShader.
 
 - [ ] Run `apply_patch` for yaw-aware coordinate helpers and real click tests; expected: tests select archive IDs via layout and click canvas coordinates.
-- [ ] Run `apply_patch` for root/console, glyph, hover, language and resize smokes; expected: browser assertions include rendered pixels, not only canvas existence.
+- [ ] Run `apply_patch` for the four old-Archive rewrites plus root/console, glyph, hover, language and resize smokes; expected: browser assertions include rendered pixels, not only canvas existence.
 - [ ] Run `apply_patch` for actual-extent scrub and composer coverage; expected: act-one assertions and Motion's act-two attributes retained.
 - [ ] Run `npx tsc -b`, `npm run lint`, then `npx vitest run`; expected: all exit 0, including JSON-LD and bundle dependencies.
 - [ ] Run the port-kill command, then the targeted Playwright command; expected: desktop/mobile wall click and all scene regressions pass, smoke reports zero errors.
-- [ ] Run the port-kill command, then `npx playwright test`; expected: full-suite result recorded. Any remaining old-toolbar classification expectations are explicitly handed to Access under Spec conflict 3; all other failures must be fixed in the owning task before Wall review. Final integration requires the entire suite green after Access's rewrites.
+- [ ] Run the port-kill command, then `npx playwright test --workers=1`; expected: full-suite result recorded. Rewrite all four old-Archive specs in this pipeline; the entire suite must be green on the integration branch before Wall review. Access adds stream-specific assertions later.
 - [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'test: verify frieze clicks and rendered scene'`; expected: tests committed with truthful verification results in this plan.
 
 ### Task 10: Document the frieze and close the review handoff
@@ -425,7 +447,7 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Interfaces:** Produces current implementation documentation and measured-size/resource evidence for Access's contrast/performance audit.
 
-**Work:** Document layout/extent, integer crossover, data serial/origin rules, one-mask-per-block shader, nine shared card objects, warm-up, memory accounting, callback ownership and lifecycle. Describe the temporary Archive migration honestly until Access replaces it. Record actual minimum projected title/meta/caption sizes, mask dimensions, cap scale and compositor screenshots. Access owns recomputing docs/contrast.md as a unit and recording rig performance; pass ink 17.29:1, pink 5.64:1, blue 6.20:1, yellow 4.94:1 and muted 5.23:1 on cream as existing reference values requiring audit confirmation. Flag the spec's explicit yellow hover use at small wall sizes as overriding the older aesthetic substitution; no token changes here. No manual Kevin pass or review approval is implied by automation.
+**Work:** Document layout/extent, fixed eight rows, data serial/origin rules, one-mask-per-block shader, nine shared card objects, warm-up, memory accounting, callback ownership and lifecycle. Document Archive deletion and the target/locales seam Access will consume; note that resolveTitle already exists. Record the sibling plans’ stale portrait/deletion/card-four assumptions as superseded by the amended spec, without editing those plans here. Record actual minimum projected title/meta/caption sizes, mask dimensions, cap scale and compositor screenshots. Access owns recomputing docs/contrast.md as a unit and recording rig performance; pass ink 17.29:1, pink 5.64:1, blue 6.20:1, yellow 4.94:1 and muted 5.23:1 on cream as existing reference values requiring audit confirmation. Flag the spec's explicit yellow hover use at small wall sizes as overriding the older aesthetic substitution; no token changes here. No manual Kevin pass or review approval is implied by automation.
 
 **Acceptance check:** `git diff --check` and `rg -n 'Frieze|frieze|yearBlocks|origin|serial' docs/architecture.md`; before documentation, architecture still describes obsolete shared kind fields.
 
@@ -444,7 +466,7 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Interfaces:** Consumes the spec's single plan review wave (Opus reviewer, Fable reviewer, codex-review), consolidated fixes and controller approval. Produces only the approved Plan 2 record.
 
-**Work:** This is an administrative gate, listed last for ownership clarity but performed immediately after plan review, before implementation Task 1. The controller records review evidence and ticks `Plan 2 · Wall written, reviewed, assumptions listed.` only after every required review approves the fixed plan. The planner does not tick it in this delivery. Implementation completion, PR reviews, merges, contrast audit and Kevin's manual pass have separate boxes and remain untouched.
+**Work:** This is an administrative gate, listed after implementation tasks for ownership clarity but performed immediately after plan review, before implementation Task 1. The controller records review evidence and ticks `Plan 2 · Wall written, reviewed, assumptions listed.` only after every required review approves the fixed plan. The planner does not tick it in this delivery. Implementation completion, PR reviews, merges, contrast audit and Kevin's manual pass have separate boxes and remain untouched.
 
 **Acceptance check:** `rg -n 'Plan [123] ·' docs/superpowers/specs/2026-09-08-archive-act-two-design.md` must show Plan 2 unchecked before approval; after controller action only that box changes.
 
@@ -455,13 +477,25 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 - [ ] Run `git diff --check` and `git diff -- docs/superpowers/specs/2026-09-08-archive-act-two-design.md`; expected: one authorised checkbox change.
 - [ ] Stage these two Files and run `git commit -m 'docs: record wall plan review approval'`; expected: controller-owned approval commit, separate from this planning delivery.
 
+### Task 12: Final verification and implementation PR
+
+**Files:** This plan’s verification/handoff record only; fixes return to their owning tasks.
+
+**Work:** This is future implementation work, not part of the plan-only fix delivery. Confirm Tasks 1–10 are complete and reviewed Motion is integrated. Run `npx tsc -b`, `npm run lint`, `npx vitest run`, kill port 4173, then `npx playwright test --workers=1`; retain exact results. Inspect commit trailers: actual executor coauthor and actual Claude session where applicable. Push `git push -u origin feat/act-two-wall`; write a concrete PR body to a temporary file and run `gh pr create --base feat/act-two --head feat/act-two-wall --title 'feat: render the act-two archive wall' --body-file <path>`. Include verification, size/memory evidence, remaining documented conflicts and the Motion/Access seam handoff. Request Kevin’s desktop/phone manual pass: four-card release/dissolve, wall pointer ownership, volume/approach/dolly, text colours, all nine card routes, editorial popup, language, reduced motion and raster-failure survival. Automation does not mark his pass complete. Stop for Kevin’s three-leg PR review; no merge or deployment.
+
+**Acceptance check:** PR targets `feat/act-two`, tests are green, evidence and manual checklist are reviewable; report the PR URL without claiming Kevin’s approval.
+
+- [ ] Run the full verification set and record results; expected: green integration branch.
+- [ ] Check trailers and commit the final evidence with `git commit -m 'docs: record wall implementation verification'`; apply the global tick-and-amend protocol.
+- [ ] Push and create the PR against `feat/act-two`; expected: PR URL and Kevin’s manual pass pending. Tick locally after success, amend the evidence commit and push the amend with `--force-with-lease` before handing off, checking that the remote has not advanced.
+
 ## Acceptance map
 
 | Binding acceptance | Concrete check | Owner/task |
 | --- | --- | --- |
 | Each piece once; 2×2 spans; no overlaps | `tests/unit/friezeLayout.test.ts`: occupied-slot set and IDs | Wall 3 |
-| Block width/column sum/world extent | Same suite: prefix columns, 26/19 data fixtures, width/height | Wall 3 |
-| Rows change only through crossover | `tests/unit/sceneMotion.test.ts`: aspect sweep using imported layout helper | Wall 3 |
+| Block width/column sum/world extent | Same suite: prefix columns, 26-column data fixture in both orientations, width/height | Wall 3 |
+| Eight rows and framing bound | `tests/unit/sceneMotion.test.ts`: fixed-row aspect sweep and maxRowsInFrame | Wall 3 |
 | 171…1 serial; default origin; freelance Project; year counts | `tests/unit/data/archive.test.ts`: exact data plus synthetic defaults/ties | Wall 2 |
 | Nine routes/JSON-LD stay consistent | `tests/unit/seo/jsonld-projects.test.ts` unchanged | Wall 2/9 |
 | Text/meta/serial, language, 4096 cap | `tests/unit/friezeTexture.test.ts` plus real-font `frieze-surface.spec.ts` | Wall 4/9 |
@@ -472,6 +506,7 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 | Cream/fog/composer integrity | `tests/e2e/scene-effects.spec.ts` act-two extension | Wall 7/9 |
 | Reduced-motion stills and hover invalidate | Motion fixtures + `frieze-surface.spec.ts` | Motion + Wall 7/9 |
 | Contrast at minimum drawn size; performance on rig | Size/memory handoff from Task 10; final audited table/report | Access |
-| Stream/focus/no-WebGL/nav; legacy deletions | Access implementation and full integration suite | Access |
+| Legacy deletions and four e2e rewrites | No dangling Archive imports; full integration suite green | Wall 2/9 |
+| Stream/focus/no-WebGL/nav | Access consumes friezeTargets and volumeShotPlayhead | Access |
 
-Plan self-review: every Wall acceptance has a named task and check; camera placement remains a named dependency, not a second implementation. All assumptions are adopted recommendations subject to the requested review wave. No implementation step or spec TODO has been completed by writing this plan.
+Plan self-review: every Wall acceptance has a named task and check; camera placement remains a named dependency, not a second implementation. Assumptions 2, 3, 9, 15 and 17 are overturned; the reviewed resolutions and code-backed exceptions above govern execution. No implementation step or spec TODO has been completed by writing this plan.
