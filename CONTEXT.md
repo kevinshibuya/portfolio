@@ -69,7 +69,7 @@ The settled card never exceeds half the frame height, on either side of square; 
 _Avoid_: dominance cap, 0.46, desktop cap
 
 **Crossover band**:
-The aspect range, 0.85 to 1.25 by default, across which camera height and the title floor blend from their phone values to their desktop values.
+The aspect range, 0.85 to 1.05 by default, across which camera height and the title floor blend from their phone values to their desktop values.
 (`src/utils/sceneMotion.ts`, `docs/architecture.md#card-size`)
 _Avoid_: regime, breakpoint, portrait mode
 

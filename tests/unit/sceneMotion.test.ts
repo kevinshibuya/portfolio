@@ -338,8 +338,9 @@ describe('sceneGeometry', () => {
 
   // Nothing the frame shows may step as aspect crosses square. The bounds are
   // about double the smooth formula's steepest slope over one 0.005 step
-  // (measured 2026-09-07: card 3.4 px, D 0.10, camY 0.0053, lateral 0.0033,
-  // titleCapPx 0.30). `titleWidthCap` and `titleClearance` are deliberately
+  // (measured 2026-09-08 at band 0.85 to 1.05: card 3.4 px, D 0.10, camY
+  // 0.0106, lateral 0.0033, titleCapPx 0.600 · so 1.9x and 1.67x of the
+  // bounds, not the 2x the original 0.40-wide band had). `titleWidthCap` and `titleClearance` are deliberately
   // absent: they step by design (spec decision 3).
   describe.each([390, 600, 820, 960, 1280])('continuity at %i px wide', (w) => {
     const swept = sweepAspect(w)
@@ -549,6 +550,25 @@ describe('frameRects (settled card 0 under the title)', () => {
       expect(card.right, `${name} card ordering`).toBeGreaterThan(card.left)
       expect(card.bottom, `${name} card ordering`).toBeGreaterThan(card.top)
     }
+    // Near-square, both sides. The band decides how high the camera sits here,
+    // and too high pushes the card's blob shadow out through the bottom edge.
+    // A local list on purpose: VIEWPORTS feeds six other tests.
+    for (const [w, h] of [[820, 821], [960, 950]] as Array<[number, number]>) {
+      const { card, floorContactY } = frameRects(sceneGeometry(w, h))
+      expect(card.bottom, `${w}x${h} card bottom`).toBeLessThanOrEqual(0.95)
+      expect(floorContactY, `${w}x${h} floor contact`).toBeLessThanOrEqual(1)
+    }
+    // …and the picture the band was actually tuned to. Containment alone does
+    // NOT lock it: at CROSSOVER_END 1.15 both fixtures above stay green while
+    // 820x821 goes back to contact 0.998, the shadow on the bottom edge. The
+    // ratified target is that near-square sits where a landscape tablet sits,
+    // because the card is the same half-frame height in both.
+    const nearSquareTop = frameRects(sceneGeometry(820, 821)).card.top
+    const landscapeTop = frameRects(sceneGeometry(1180, 820)).card.top
+    expect(
+      Math.abs(nearSquareTop - landscapeTop),
+      'near-square card sits where the landscape one does',
+    ).toBeLessThanOrEqual(0.05)
   })
 
   it('centres the title band on the upper-third mark', () => {
