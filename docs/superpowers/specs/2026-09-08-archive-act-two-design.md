@@ -73,8 +73,10 @@ Act one is untouched: overture, approach, four card slots, playhead clamped at `
 | --- | --- | --- | --- |
 | Release | 100 svh | Pulls back and up from the card-four slot, yaws to face the corridor's end; the whole frieze enters frame and holds; card four dissolves across the beat so nothing stands between the camera and the wall afterwards | Card four's name morphs to `all work` |
 | Approach | 50 svh | Moves in until the newest year block is legible (cell title at or above the legibility floor) | Holds `all work` |
-| Dolly | 25 svh per column | Lateral travel along the frieze, newest to oldest, constant speed per column, an ambient breath on time only | Morphs to the year string at each block boundary |
+| Dolly | 25 svh per column | Lateral travel along the frieze, newest to oldest, constant speed per column, an ambient breath on time only; the camera is bottom-anchored so the wall's bottom edge sits on the frame's bottom edge | Morphs to the year string at each block boundary; the title overprints the wall's top row (see below) |
 | Exit | none added | Slows to rest at the last column; the pin releases into the next section | Holds the last year |
+
+**The title overprints the top row during the dolly** (plan review, 2026-09-08). At the 144 px cell floor the wall fills about 0.92 of the frame height at 1440×900 and 0.98 on a phone, and eight rows is exactly what fits, so no camera placement clears the title band (which reaches 0.32 of the frame from the top). The year title therefore reads over the top row's ink, as type over type. Pipeline 1 exports `actTwoTopClearFrac` for pipeline 2 to know the clearance; the only lever for more air is the row count (six rows would clear the band at roughly 35 columns and 1025 svh), which is Kevin's to pull after the manual pass, not a pipeline's.
 
 Seams pipeline 1 exports and the others consume:
 
@@ -183,9 +185,9 @@ Absent by decision: eyebrows, description lines, stat strips, search, dropdowns,
 ## TODO
 
 - [ ] Section titles renamed in both locales, italic and periods removed (decision 16), on this branch.
-- [ ] Plan 1 · Motion written, reviewed, assumptions listed.
-- [ ] Plan 2 · Wall written, reviewed, assumptions listed.
-- [ ] Plan 3 · Access written, reviewed, assumptions listed.
+- [x] Plan 1 · Motion written, reviewed, assumptions listed.
+- [x] Plan 2 · Wall written, reviewed, assumptions listed.
+- [x] Plan 3 · Access written, reviewed, assumptions listed.
 - [ ] `feat/act-two-motion` merged into `feat/act-two`.
 - [ ] `feat/act-two-wall` merged into `feat/act-two`.
 - [ ] `feat/act-two-access` merged into `feat/act-two`.
