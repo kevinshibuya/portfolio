@@ -97,3 +97,25 @@ describe('provisionalFriezeExtent', () => {
     expect(expected).toBe(extent.columns)
   })
 })
+
+/**
+ * `sceneMotion.test.ts` hardcodes this same extent as `SHIPPED_FRIEZE` and
+ * derives the whole act-two budget from it. Nothing else ties that fixture to
+ * the real archive, so adding one item would move `sceneWrapperSvh` on the
+ * running site while every unit test stayed green against a stale copy. This is
+ * the link: if the data moves, this fails and the fixture gets updated with it.
+ */
+describe('the shipped extent is the one the pose fixtures assume', () => {
+  it('matches what today\'s archive produces', () => {
+    expect(provisionalFriezeExtent(archive, FRIEZE_ROWS)).toEqual({
+      columns: 26,
+      rows: 8,
+      blocks: [
+        { year: 2026, startCol: 0, columns: 2 },
+        { year: 2025, startCol: 2, columns: 7 },
+        { year: 2024, startCol: 9, columns: 16 },
+        { year: 2023, startCol: 25, columns: 1 },
+      ],
+    })
+  })
+})

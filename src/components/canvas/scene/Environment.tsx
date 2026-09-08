@@ -78,11 +78,27 @@ export function Environment({ desktopEffects, sceneRefs }: EnvironmentProps) {
   // Focus follows the scene: the slot through act one, walking out to the wall
   // across act two's release. Written through `sceneRefs` rather than a prop so
   // it costs zero React renders (ADR 0010), and only when it actually moves.
-  useFrame(() => {
+  //
+  // Priority note: this shares priority 0 with SceneRig, and equal priorities
+  // run in subscription order. Environment mounts inside `Suspense` after the
+  // rig, so it reads the value the rig wrote this frame. Kept explicit because
+  // a mount-order change would silently cost a frame of lag.
+  useFrame(({ camera }) => {
     const effect = dofRef.current
     if (!effect) return
     if (effect.cocMaterial.worldFocusDistance !== sceneRefs.focus.distance) {
       effect.cocMaterial.worldFocusDistance = sceneRefs.focus.distance
+    }
+    // The CoC pass reconstructs view depth from the depth buffer with its OWN
+    // copy of the camera's near/far, taken once when the effect was built. The
+    // rig then widens `far` past act one's for the volume shot, so without this
+    // the pass linearises against a frustum the depth buffer was never drawn
+    // with and blurs the wrong distance in BOTH acts.
+    // `adoptCameraSettings` is the alias the shipped typings expose; it
+    // delegates straight to `copyCameraSettings`, the same way this file
+    // already reaches focus through the typed `worldFocusDistance` alias.
+    if (effect.cocMaterial.uniforms.cameraFar.value !== camera.far) {
+      effect.cocMaterial.adoptCameraSettings(camera)
     }
   }, COMPOSER_PRIORITY - 1)
 

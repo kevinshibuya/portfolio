@@ -82,11 +82,23 @@ test('reduced motion renders act two as stills, and a still does not drift', asy
   // in SceneRig, so it is stripped from that build. Exposing it in production
   // would be a source change, which this task's boundary forbids.
   //
-  // The property itself IS proven, and more strictly than an e2e could: the
-  // unit suite asserts every act-two channel is `===`-identical across twenty
-  // samples inside each of the five still intervals. What these two stops add
-  // is the production-visible half — the same still interval, sampled twice,
-  // staying in act two with no console error.
+  // What the unit suite proves is NOT the same property, and the gap matters:
+  // it shows `sceneMotion`'s act-two functions are pure in `u` given a still
+  // descriptor, across twenty samples in each of the five intervals. The
+  // assertion this replaces would have shown that SceneRig feeds them the
+  // DESCRIPTOR's `u` and not the live one. Swap `uAct` back in at any of the
+  // rig's four still reads and every test in this branch stays green while a
+  // reduced-motion reader gets exactly the drift Assumption 10 forbids. That
+  // wiring is correct by inspection today and unproven by any test.
+  //
+  // The cheap proof, for whoever next touches this file: write the still index
+  // imperatively onto `gl.domElement` the way `data-slot` and `data-act`
+  // already are — no DEV guard, so it survives the preview build — and assert
+  // it is identical at two `u` inside one interval. That is a source change,
+  // which this task's boundary forbids.
+  //
+  // What these two stops add is the production-visible half: the same still
+  // interval, sampled twice, staying in act two with no console error.
   const { approach } = await beats(page)
   for (const u of [approach + 0.02, approach + 0.04]) {
     await scrollToActTwo(page, u, SETTLE)

@@ -314,8 +314,15 @@ export function SceneRig({
       const fade =
         inActTwo && i === CARD_COUNT - 1 ? actTwoCardFade(uAct, frieze) : inActTwo ? 0 : 1
       const opacity = pose.opacity * fade
-      // Out of the render once it is gone, so an invisible corridor card can
-      // never intercept a pointer meant for a wall cell.
+      // Out of the render once it is gone. Do not read more into `visible` than
+      // that: three's raycaster tests `layers` and never `visible` (measured on
+      // r185 — a hidden group still returns its children's hits), so this flag
+      // is not by itself what keeps the pointer off a faded card. Measured on
+      // the preview build at both projects: past the fade nothing hovers and
+      // nothing navigates, and a hover parked on the card clears itself as the
+      // card goes. Whatever provides that is not this line. When the wall lands
+      // behind these cards, verify a cell BEHIND card four still takes its own
+      // hover and click rather than assuming this covers it.
       const visible = pose.visible && opacity > 0
       const amb = reducedMotion
         ? { y: 0, yaw: 0, pitch: 0 }
@@ -486,6 +493,8 @@ export function SceneRig({
     const naturalW: number[] = []
     /** World units per texture px, per title. */
     const k: number[] = []
+    /** Per title: how far act two's fit-down shrank it below its natural scale. */
+    const titleFit: number[] = []
     // THE PLANE'S ENVELOPE IS ACT ONE'S ALONE, and that is structural, not a
     // data argument. `titleTexture.ts` grows `canvas.height` with the line
     // count, so a single act-two string wrapping to one more line than the
@@ -500,6 +509,7 @@ export function SceneRig({
       const m = metrics[i]
       const scale = m ? (g.titleCapPx / m.emPx) * worldPerPx : 0
       k.push(scale)
+      titleFit.push(1)
       naturalW.push(m ? m.widthPx * scale : 1)
       if (i >= CARD_COUNT) continue
       if (naturalW[i] > planeW) planeW = naturalW[i]
@@ -520,6 +530,12 @@ export function SceneRig({
       if (fitIn < 1) {
         k[i] *= fitIn
         naturalW[i] = m.widthPx * k[i]
+        // The rest LOD below is derived from the NATURAL scale. A fitted-down
+        // title draws its glyphs smaller, so more texture pixels land on each
+        // device pixel and the LOD has to rise with it, or the title shimmers.
+        // Inert while the two-phase draw keeps every act-two string inside the
+        // envelope; the day one does not, this is what keeps it clean.
+        titleFit[i] = fitIn
       }
     }
     /** The shared baseline, as a height above the plane centre. */
@@ -632,7 +648,7 @@ export function SceneRig({
       // The rest LOD is the natural minification — texture px per DEVICE px,
       // exactly 0 at the drawn scale because the texture was drawn at the
       // displayed em. The seam's blur pushes further up the chain from there.
-      const texPxPerDevicePx = m.emPx / (g.titleCapPx * viewportDpr * capScale)
+      const texPxPerDevicePx = m.emPx / (g.titleCapPx * viewportDpr * capScale * titleFit[i])
       u[`uBaseLod${slot}`].value = Math.max(0, Math.log2(texPxPerDevicePx))
       u[`uSigma${slot}`].value = SEAM_SIGMA_EM * m.emPx
     }
