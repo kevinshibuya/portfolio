@@ -28,7 +28,7 @@ Numbers in brackets are the grilling questions.
 9. **Empty origin buckets are invisible** (Q24). Nothing renders for an origin with zero pieces; when the first personal piece lands it appears with its accent and nothing else changes.
 10. **The title object carries act two** (Q30, Q43). The morphing title, which today shows the crossed project's name, morphs to "all work" at the release beat and then to each year string as the camera crosses that block. The `Anton` fence ("the Selected Work title") covers this object; ADR 0012 records the reading.
 11. **Hover lifts, click opens** (Q15 revised, Q39). Pointer over a cell lifts its text to the row tint and shows a pointer cursor. Click opens the piece through the same callback path the settled card uses: case studies to `/projects/:slug`, editorial pieces to GZH in a new tab. No inversion on the wall. Taps on touch use the scene's existing delta threshold.
-12. **Act two's scroll budget is seven viewports at today's column count** (Q40). Release 100 svh, approach 50 svh, dolly 25 svh per frieze column. The wrapper height becomes a function of the data, replacing the `550svh` literal.
+12. **Act two's scroll budget is 25 svh per frieze column plus 150 svh of release and approach** (Q40). The grilling estimated seven viewports at 22 columns; first-fit packing of today's data at 8 rows gives 26 columns, so act two is about eight viewports. The per-column rule is the contract, not the total. The wrapper height becomes a function of the data, replacing the `550svh` literal.
 13. **Reduced motion is stills** (Q41). The volume shot as a still, then one still per year block, cut between them, title changes without the morph. Same contract as act one.
 14. **The DOM stream is the accessible twin** (Q32, Q42). The flat, year-grouped stream drafted on the design canvas lives inside the scene section's DOM. It is visually hidden but focusable when the scene runs; focus on a stream item moves the camera to that piece. It is the visible archive when WebGL is unavailable. One data source feeds the wall and the stream.
 15. **Phones run act two** (Q33). The crossover band already blends camera height and title floor; the frieze's row count changes with aspect so portrait gets a taller, shorter frieze. Postprocessing stays desktop-only as today.
@@ -130,7 +130,7 @@ Owned by pipeline 3. The accessible twin, inside the scene section's DOM.
 Unit (`tests/unit/`):
 
 - `friezeLayout`: every item has exactly one cell; case-study cells span 2×2 and never overlap; a block's width equals its column count; `columns` equals the sum of block widths; row count changes with aspect only through the crossover band.
-- `sceneMotion` act two: act-one poses unchanged at every existing fixture; camera x is monotonic across the dolly; beat boundaries land at the svh constants; `blockAt` returns each year exactly once in order; `sceneWrapperSvh(22) = 550 + 700`.
+- `sceneMotion` act two: act-one poses unchanged at every existing fixture; camera x is monotonic across the dolly; beat boundaries land at the svh constants; `blockAt` returns each year exactly once in order; `sceneWrapperSvh(c) = 550 + 150 + 25·c` for the packed column count `c` (26 today at 8 rows).
 - Archive data: `serial` is 171 at the newest, 1 at the oldest, contiguous; origin defaults to professional; `hotmart-bunde` is freelance; year block counts sum to the total.
 
 E2E (`tests/e2e/`):
