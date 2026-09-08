@@ -20,7 +20,7 @@ Numbers in brackets are the grilling questions.
 1. **Purpose is proof of volume, read by skimming** (Q2). Every piece is present; the reader mode is skim, not search. No search field, no dropdowns, no pagination, no sort.
 2. **The archive is act two of the Selected Work scene** (Q27). Same canvas, same fog, floor and camera language, one longer pin.
 3. **The spatial figure is a frieze** (Q28, Q36). One wall, year blocks side by side, newest on the left, each block's width proportional to its count, pieces stacked a fixed number of rows high. The first beat frames the whole frieze in one shot; that shot is the volume claim.
-4. **A piece is typography on the wall; a case study is a card** (Q29, Q37). Cells carry title, one meta line and a serial, ink on cream, no slab, border or bar. The nine case studies are embedded in the frieze at their year, each spanning 2×2 cells, using the scene's card object with mockup and caption.
+4. **A piece is typography on the wall; a case study is a card** (Q29, Q37). Cells carry title, one meta line and a serial, ink on cream, no slab, border or bar. The nine case studies are embedded in the frieze at their year, each spanning 2×2 cells, using the scene's card object with mockup and caption but no blob shadow: on a vertical wall it reads as the banned halo.
 5. **Origin is the only classification the reader sees** (Q11, Q20, Q31). Every piece has an origin: `professional`, `freelance` or `personal`. There is no toggle. Freelance and personal pieces set their title in a fixed deep accent (freelance pink, personal blue); professional pieces are ink. Counts live on the year blocks, never in a title (Q8, Q13).
 6. **Content types stay separate; the archive unifies them** (Q20). `Project` and `Embed` remain distinct in the data (TypeScript versus CSV, inward versus outward links). The archive item drops `kind` and gains `origin` plus whether it has a case study. `oss` is deleted from the type.
 7. **Serial numbers count down from the total** (Q22). The newest piece is 171. The first number a reader meets is the count.
@@ -31,7 +31,7 @@ Numbers in brackets are the grilling questions.
 12. **Act two's scroll budget is 25 svh per frieze column plus 150 svh of release and approach** (Q40). The grilling estimated seven viewports at 22 columns; first-fit packing of today's data at 8 rows gives 26 columns, so act two is about eight viewports. The per-column rule is the contract, not the total. The wrapper height becomes a function of the data, replacing the `550svh` literal.
 13. **Reduced motion is stills** (Q41). The volume shot as a still, then one still per year block, cut between them, title changes without the morph. Same contract as act one.
 14. **The DOM stream is the accessible twin** (Q32, Q42). The flat, year-grouped stream drafted on the design canvas lives inside the scene section's DOM. It is visually hidden but focusable when the scene runs; focus on a stream item moves the camera to that piece. It is the visible archive when WebGL is unavailable. One data source feeds the wall and the stream.
-15. **Phones run act two** (Q33). The crossover band already blends camera height and title floor; the frieze's row count changes with aspect so portrait gets a taller, shorter frieze. Postprocessing stays desktop-only as today.
+15. **Phones run act two, with the same 8 rows** (Q33, revised in plan review). The row count is bounded by what fits in frame at the legibility floor (`maxRowsInFrame`, 8 on a 393×851 phone as on desktop), because the act-two camera has no vertical travel and a taller frieze would leave rows off frame forever. Portrait sees fewer columns at a time, not more rows. Postprocessing stays desktop-only as today.
 16. **Section names lose the template** (Q21). Plain nouns, no italic word, no trailing period, no tagline, in both languages: `all work` / `todos os trabalhos`, `experience` / `experiência`, `stack` / `stack`, `numbers` / `números`, `contact` / `contato`. `selected work` stays. The overture line stays. Titles change in one commit on this branch; taglines die with each section's own pipeline.
 17. **Light chapter boundary is unchanged** (Q7). Act two is inside the chapter; the exit veil and the ink Contact stage are untouched.
 
@@ -71,7 +71,7 @@ Act one is untouched: overture, approach, four card slots, playhead clamped at `
 
 | Beat | Scroll length | Camera | Title |
 | --- | --- | --- | --- |
-| Release | 100 svh | Pulls back and up from the card-four slot, yaws to face the corridor's end; the whole frieze enters frame and holds | Card four's name morphs to `all work` |
+| Release | 100 svh | Pulls back and up from the card-four slot, yaws to face the corridor's end; the whole frieze enters frame and holds; card four dissolves across the beat so nothing stands between the camera and the wall afterwards | Card four's name morphs to `all work` |
 | Approach | 50 svh | Moves in until the newest year block is legible (cell title at or above the legibility floor) | Holds `all work` |
 | Dolly | 25 svh per column | Lateral travel along the frieze, newest to oldest, constant speed per column, an ambient breath on time only | Morphs to the year string at each block boundary |
 | Exit | none added | Slows to rest at the last column; the pin releases into the next section | Holds the last year |
@@ -81,7 +81,8 @@ Seams pipeline 1 exports and the others consume:
 - `ACT_TWO_RELEASE_SVH = 100`, `ACT_TWO_APPROACH_SVH = 50`, `ACT_TWO_SVH_PER_COLUMN = 25`.
 - `actTwoSvh(columns)` and `sceneWrapperSvh(columns)`; the wrapper's inline height is set from the data, and the `550svh` literal and its comment in `src/index.css` go.
 - `actTwoProgress(playhead)` in `[0, 1]`, and `actTwoPose(u, frieze, geometry)` returning camera position, yaw and pitch. `frieze` is the extent object from pipeline 2.
-- `blockAt(u, frieze)` for the title string and for reduced-motion stills; `scrollTargetFor(itemId)` extended so a stream item's focus and a wall click can drive the camera.
+- `blockAt(u, frieze)` for the title string and for reduced-motion stills; `actTwoCardFade(u)` for card four's dissolve; `data-svh` on `.scene-scroll` carrying `sceneWrapperSvh(columns)`.
+- Column-based targets: `playheadForColumn(col, frieze)`, `volumeShotPlayhead(columns)` and the numeric `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns)`. The item lookup is not pipeline 1's: pipeline 2 exports `playheadForItem(itemId, layout, extent)` from `src/utils/friezeTargets.ts` (a pure module that imports both `friezeLayout.ts` and `sceneMotion.ts`), and pipeline 3 builds stream focus and the nav link on those two.
 - The playhead's unit and `PLAYHEAD_SPAN` may change; `CARD_COUNT` stays 4 and every act-one pose is asserted unchanged by the existing unit tests.
 
 ## The frieze
@@ -90,9 +91,9 @@ Owned by pipeline 2. Layout is a pure module, `src/utils/friezeLayout.ts`, unit-
 
 Layout:
 
-- `FRIEZE_ROWS_LANDSCAPE = 8`. Portrait row count is chosen by pipeline 2 inside the crossover-band contract and recorded in the plan; the blend follows `CROSSOVER_START` and `CROSSOVER_END`.
+- `FRIEZE_ROWS = 8` in both orientations (decision 15); `maxRowsInFrame(g)` from pipeline 1 is the bound any future change must respect.
 - `friezeLayout(items, rows) → { columns, blocks: YearBlock[], cells: Cell[] }`. A `Cell` is `{ itemId, block, col, row, span: 1 | 2 }`. Case studies span 2×2 and sit at the head of their year block; cells fill column-major, newest first, left to right. A block's width is its column count; the frieze's world width is `columns × FRIEZE_CELL_W`, its height `rows × FRIEZE_CELL_H`.
-- `FRIEZE_CELL_W` and `FRIEZE_CELL_H` are exported from `friezeLayout.ts` in world units; `sceneMotion.ts` imports them, never the reverse.
+- `FRIEZE_CELL_W = CARD_W / 2` and `FRIEZE_CELL_H = CARD_H / 2`, in world units, so a 2×2 span is exactly one scene card with no inset and the cell's legibility floor is `ceil(CARD_MIN_PX / 2) = 144` CSS px. Pipeline 1 creates `friezeLayout.ts` with these constants and the base extent type `{ columns, rows, blocks: readonly { year, startCol, columns }[] }`; pipeline 2 completes the module and may only extend that type (`count`, `width`, `height`), never replace it. `sceneMotion.ts` imports from `friezeLayout.ts`, never the reverse.
 
 Cell contract (what is drawn):
 
@@ -103,34 +104,36 @@ Cell contract (what is drawn):
 Text rendering:
 
 - Not one canvas per cell. The existing caption path (one 2D canvas, one texture and two meshes per card, no instancing) does not scale to 171. Pipeline 2 rasterises **one alpha-coverage texture per year block** (the title's own technique, `titleTexture.ts`) at the resolution the approach beat needs, capped at 4096 px on the long side, and colours it in a shader from a per-cell colour lookup (origin tint, hover tint). One mesh per block; hover hit-testing is UV to cell, not a raycast over 171 meshes.
+- The mask encodes text role in its channels (title, meta, serial) so the shader colours each role from the per-cell lookup; the lookup texture's colour space is stated and asserted; masks are single-channel with no mipmaps. A failed rasterisation degrades to a blank cream wall with `data-frieze="failed"` and never marks WebGL unavailable.
 - Redraw on language switch (case-study titles are bilingual) and on the resize debounce the captions already use. Rasterisation runs in the scene warm-up window behind `entranceDone`, never on first paint.
 - Plus Jakarta Sans throughout. Anton stays on the title object only.
 
 Interaction:
 
 - `onCellClick(itemId)` and `onCellHover(itemId | null)` are callback props out of the canvas tree, decided in `Projects.tsx` like `onCardClick`. Case studies navigate; editorial pieces open `href` in a new tab with `noopener`. Hover state is a MotionValue or uniform, never React state (ADR 0010).
-- Focus from the stream (pipeline 3) calls the same camera target the click path uses.
+- Focus from the stream (pipeline 3) calls the same camera target the click path uses, through `playheadForItem`.
+- Origin words are locale strings (`freelance` / `freelance`, `personal` / `pessoal`), read by the wall and the stream from the same keys.
 
 ## The stream
 
 Owned by pipeline 3. The accessible twin, inside the scene section's DOM.
 
 - Structure: the design-canvas draft. Year groups with a year label and count; a big row (the `WorkRow` at the archive size) for case studies with an inward arrow; a dense two-line row for editorial pieces with type, editorial, date and an outward arrow; serial on every row. Origin word on a case-study row only when not professional.
-- When the scene runs: visually hidden, focusable, in document order after the canvas. Focusing a row moves the camera to that piece through `scrollTargetFor(itemId)`; the row stays the link. This extends ADR 0011's skip links, which the stream absorbs (the nine case studies are its first entries by year).
+- When the scene runs: visually hidden, focusable, mounted outside the sticky pin (a sibling of `.scene-scroll`, where the skip links live today), because a sticky element forms a stacking context and a fixed pill inside it can paint under the nav. Its first focusable is a bilingual skip-past link to the next section. Focusing a row moves the camera through `playheadForItem` only when the row's year block differs from the one in frame; the row stays the link. This extends ADR 0011's skip links, which the stream absorbs (the nine case studies are its first entries by year).
 - When WebGL is unavailable or lost: the stream is the visible archive, below the existing four-article fallback, styled for the light chapter. No toolbar.
 - `id="archive"` sits on the stream's container so the nav link keeps working; with the scene running, the nav link scrolls to the release beat.
 - Reduced motion: the wall still renders as stills (decision 13); the stream is unchanged.
 
 ## Deletions
 
-`src/components/sections/Archive.tsx`, `src/components/ui/ArchiveDropdown.tsx`, the `.archive-*` rules in `src/index.css`, the toolbar strings in both locales, `tests/unit/data/archive.test.ts` in its current form (rewritten for the new item shape), the `#archive` expectations in `tests/e2e/light-chapter.spec.ts`, `section-enters.spec.ts`, `reduced-motion.spec.ts`, `nav-on-light.spec.ts` and `perf-budget.spec.ts` (rewritten, not dropped: the section still exists as the stream). `WorkRow`'s preview float and `ornament` lose their only consumer and go.
+`src/components/sections/Archive.tsx`, `src/components/ui/ArchiveDropdown.tsx`, the `.archive-*` rules in `src/index.css`, the toolbar strings in both locales, `tests/unit/data/archive.test.ts` in its current form (rewritten for the new item shape), the `#archive` expectations in `tests/e2e/light-chapter.spec.ts`, `section-enters.spec.ts`, `reduced-motion.spec.ts` and `nav-on-light.spec.ts` (rewritten, not dropped: the section returns as the stream in pipeline 3). Pipeline 2 performs these deletions and rewrites so its PR is green on the integration branch; pipeline 3 adds the stream's own assertions afterwards. `WorkRow`'s preview float and `ornament` lose their only consumer and go.
 
 ## Acceptance
 
 Unit (`tests/unit/`):
 
 - `friezeLayout`: every item has exactly one cell; case-study cells span 2×2 and never overlap; a block's width equals its column count; `columns` equals the sum of block widths; row count changes with aspect only through the crossover band.
-- `sceneMotion` act two: act-one poses unchanged at every existing fixture; camera x is monotonic across the dolly; beat boundaries land at the svh constants; `blockAt` returns each year exactly once in order; `sceneWrapperSvh(c) = 550 + 150 + 25·c` for the packed column count `c` (26 today at 8 rows).
+- `sceneMotion` act two: act-one poses unchanged at every existing fixture; camera x is monotonic across the dolly; beat boundaries land at the svh constants; `blockAt` returns each year exactly once in order; `sceneWrapperSvh(c) = 550 + 150 + 25·c` for the packed column count `c`, so `sceneWrapperSvh(26) = 1350` today; card four is fully faded by the end of the release.
 - Archive data: `serial` is 171 at the newest, 1 at the oldest, contiguous; origin defaults to professional; `hotmart-bunde` is freelance; year block counts sum to the total.
 
 E2E (`tests/e2e/`):
@@ -155,8 +158,8 @@ Three plans, three implementations, one integration branch, one landing.
 | Pipeline | Owns | Branch | Forks from |
 | --- | --- | --- | --- |
 | 1 · Motion | Act-two playhead, camera poses, wrapper height from data, title strings, `data-act`, reduced-motion stills, unit tests | `feat/act-two-motion` | `feat/act-two` |
-| 2 · Wall | Content model change, `friezeLayout`, block textures and shader, cells and embedded cards, hover and click callbacks, `Projects.tsx` click decisions, e2e for click | `feat/act-two-wall` | `feat/act-two-motion` |
-| 3 · Access | The stream, focus-to-camera, no-WebGL state, nav link, phones, contrast table, performance measurement, deletions of the old section and tests, docs | `feat/act-two-access` | `feat/act-two-wall` |
+| 2 · Wall | Content model change, `friezeLayout` completion and `friezeTargets`, block textures and shader, cells and embedded cards, hover and click callbacks, `Projects.tsx` click decisions, e2e for click, deletion of the old Archive section and the rewrite of the e2e specs that pinned it | `feat/act-two-wall` | `feat/act-two-motion` |
+| 3 · Access | The stream with its skip-past link, focus-to-camera, no-WebGL state, nav link, phones, contrast table, performance measurement, docs | `feat/act-two-access` | `feat/act-two-wall` |
 
 - `feat/act-two` is created from `staging` and receives the three PRs in order. A PR merges only after the one before it is reviewed, merged and closed; the next branch rebases onto the new base before its review. The final PR is `feat/act-two` into `staging`, which needs Kevin's per-action say-so.
 - Each plan gets one review wave before task 1 (`reviewer` on Opus, `reviewer` on Fable, `codex-review`), consolidated into one fix pass. Each PR gets the three-leg review when Kevin says go.
