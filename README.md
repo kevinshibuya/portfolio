@@ -1,6 +1,6 @@
 # kevin shibuya — portfolio
 
-> soft blue editorial. lowercase, playful, confident.
+> dark ink + webgl shader craft. lowercase, monumental, confident.
 > a bilingual developer portfolio — built in **en** and **pt** from the first commit.
 
 **🔗 live —** [kevinshibuya.com](https://kevinshibuya.com/)
@@ -16,7 +16,7 @@
 | styling | **Tailwind CSS v4** (Vite plugin, configured via CSS `@theme` — no `tailwind.config.js`) |
 | react animation | **Framer Motion** — enter/exit, hover, layout |
 | scroll / timeline | **GSAP** + ScrollTrigger, **Lenis** smooth scroll |
-| webgl / 3d | **React Three Fiber** (`@react-three/fiber` + `drei`, `three`) |
+| webgl / 3d | **React Three Fiber** (`@react-three/fiber`, `three`, `@react-three/postprocessing`) for the Selected Work scene; hand-written raw WebGL for the hero and Contact/Footer backdrops. No `drei`. |
 | i18n | **react-i18next** — en + pt |
 
 Each animation library stays in its own lane — they're never mixed for the same effect.
@@ -27,7 +27,8 @@ Each animation library stays in its own lane — they're never mixed for the sam
 npm install      # node 22+
 npm run dev      # vite dev server
 npm run build    # tsc -b && vite build
-npm run preview  # serve the production build (port 4173)
+npm run preview  # build, then wrangler dev (the Workers runtime)
+                 # npx vite preview --port 4173 for a static preview
 npm run test     # unit (vitest) + e2e (playwright)
 ```
 
@@ -39,7 +40,7 @@ src/
     layout/        # Header, Footer, SmoothScroll
     sections/      # Hero, Projects, WorkExperience, Skills, Stats, Contact …
     ui/            # reusable atoms (SectionHeading, Stagger, …)
-    canvas/        # React Three Fiber scenes
+    canvas/        # the Selected Work R3F scene + the raw-WebGL FluidWaves
     projectDetail/ # project case-study page parts
   pages/           # Home, ProjectDetail (routed)
   hooks/           # useLenis, useReducedMotion, scroll/entrance hooks
@@ -47,7 +48,7 @@ src/
   i18n/            # setup + locales/{en,pt}.json
   data/            # typed portfolio content (projects, embeds, social)
   types/           # shared interfaces
-  utils/           # animation presets, constants
+  utils/           # animation presets, palette, scene motion
 ```
 
 Below-the-fold sections are lazy-loaded and warmed at idle, so the initial JS chunk only carries the hero.
@@ -56,4 +57,3 @@ Below-the-fold sections are lazy-loaded and warmed at idle, so the initial JS ch
 
 - **bilingual by design** — all copy is authored in en + pt; switch via the nav toggle or `?lang=en|pt`.
 - **motion is respectful** — every animation honours `prefers-reduced-motion`.
-- the 3D model in the footer is used under **CC-BY**; attribution is in the site footer.

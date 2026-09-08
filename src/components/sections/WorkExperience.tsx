@@ -15,8 +15,6 @@ export function WorkExperience() {
   return (
     <section id="work" className="section">
       <SectionHeading
-        index={t('sections.work.index')}
-        label={t('sections.work.label')}
         title={t('sections.work.title')}
         description={t('sections.work.description')}
       />

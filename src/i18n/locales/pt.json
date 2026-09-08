@@ -20,7 +20,6 @@
   },
   "stats": {
     "heading": "o trabalho, em <em>números.</em>",
-    "eyebrow": "métricas selecionadas",
     "receipt": {
       "years": "anos entregando interativos, do primeiro commit até hoje.",
       "interactives": "interativos publicados na gauchazh.",
@@ -32,16 +31,14 @@
   },
   "sections": {
     "projects": {
-      "index": "01",
-      "label": "trabalhos selecionados",
+      "heading": "trabalhos selecionados",
+      "overture": "algumas coisas que construí",
       "stack": {
         "viewProject": "ver",
         "indexLabel": "projetos selecionados"
       }
     },
     "archive": {
-      "index": "02 · arquivo",
-      "label": "",
       "title": "o <em>arquivo.</em>",
       "description": "tudo o que entreguei. pode buscar.",
       "toolbar": {
@@ -64,8 +61,6 @@
       }
     },
     "work": {
-      "index": "03 · experiência",
-      "label": "",
       "title": "minha <em>carreira.</em>",
       "description": "sete anos entregando. visto por milhões.",
       "award": "★ prêmio",
@@ -75,8 +70,6 @@
       }
     },
     "skills": {
-      "index": "04 · conhecimentos",
-      "label": "",
       "title": "meu <em>arsenal.</em>",
       "description": "o stack: rápido, sem abrir mão do capricho.",
       "frontend": "frontend",
@@ -87,8 +80,6 @@
       "leadership": "liderança"
     },
     "contact": {
-      "index": "05",
-      "label": "entre em contato",
       "title": "vamos <em>criar.</em>",
       "subtitle": "tem um projeto ou ideia? bora conversar.",
       "links": {

@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { accentFor, accentDeepFor, ACCENTS, ACCENTS_DEEP } from '../../src/utils/palette'
+import {
+  accentFor,
+  accentDeepFor,
+  accentDeepLargeFor,
+  ACCENTS,
+  ACCENTS_DEEP,
+  ACCENTS_DEEP_LARGE,
+} from '../../src/utils/palette'
 
 describe('accentFor (raw tricolor, on-ink)', () => {
   it('rotates pink/blue/yellow and wraps', () => {
@@ -22,5 +29,20 @@ describe('accentDeepFor (on-light deep triplet)', () => {
   })
   it('is index-aligned in length with the raw triplet', () => {
     expect(ACCENTS_DEEP.length).toBe(ACCENTS.length)
+  })
+})
+
+describe('accentDeepLargeFor (on-light large-text / decorative triplet)', () => {
+  it('deep pink / deep blue / deep yellow, wraps', () => {
+    expect(accentDeepLargeFor(0)).toBe('#B22B47')
+    expect(accentDeepLargeFor(1)).toBe('#2A54B5')
+    expect(accentDeepLargeFor(2)).toBe('#7A6800')
+    expect(accentDeepLargeFor(3)).toBe('#B22B47')
+  })
+  it('carries a hex in the yellow slot, unlike the small-text triplet', () => {
+    expect(ACCENTS_DEEP_LARGE[2]).toMatch(/^#/)
+  })
+  it('is index-aligned in length with the raw triplet', () => {
+    expect(ACCENTS_DEEP_LARGE.length).toBe(ACCENTS.length)
   })
 })
