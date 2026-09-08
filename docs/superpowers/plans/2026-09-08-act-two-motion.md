@@ -325,7 +325,7 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 - [x] `sceneRefs.ts`, `SelectedWorkScene.tsx` props and `titles`, `SceneRigProps.frieze` and the `actOneSeg(playheadFor(…, frieze.columns))` call; `npx tsc -b` clean and `npm run lint` clean at the end of this step, not the next
 - [x] `Projects.tsx` extent, inline height, `data-svh`, click path, props; `npx tsc -b` clean; `npm run lint` clean
 - [x] `index.css` height and comment removed; `grep -n '550svh' src/index.css` empty; dev server shows `data-svh="1350"`
-- [ ] `git add src/components/sections/Projects.tsx src/components/canvas/SelectedWorkScene.tsx src/components/canvas/scene/SceneRig.tsx src/components/canvas/scene/sceneRefs.ts src/index.css && git commit -m "feat(scene): wrapper height from the frieze extent; act-two strings into the scene"`
+- [x] `git add src/components/sections/Projects.tsx src/components/canvas/SelectedWorkScene.tsx src/components/canvas/scene/SceneRig.tsx src/components/canvas/scene/sceneRefs.ts src/index.css && git commit -m "feat(scene): wrapper height from the frieze extent; act-two strings into the scene"`
 
 ### Task 7: the frame loop, the title draw and the focus · act two on screen
 
@@ -361,11 +361,11 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 **Boundaries:** `Corridor.tsx`, `Overture.tsx`, `Caption.tsx`, `textTexture.ts` untouched. No wall rendering (pipeline 2). No new DOM.
 
-- [ ] `SceneRig.tsx`: playhead split, the single `still` descriptor, camera, fog, focus, the card-four fade, `data-act`, rotation order, far plane; `npx tsc -b` clean; dev server scrub to mid act two shows `data-act="2"`, card four gone, console clean
-- [ ] `SceneRig.tsx` `updateTitle`: `CARD_COUNT` in the act-one calls, the `i < CARD_COUNT` plane envelope and the act-two fit-down, the act-two branch, the title distance; dev server shows `all work` after the release and the years across the dolly
-- [ ] `titleTexture.ts` `TITLE_PAD_RATIO` rename; `SceneTitle.tsx` two-phase draw; `npx tsc -b` clean
-- [ ] `Environment.tsx` `sceneRefs` prop and focus ref, `SelectedWorkScene.tsx` passes it; `npx tsc -b` and `npm run lint` clean
-- [ ] Run the identity script to `after.json`; `diff before.json after.json` → empty (or `far` only); paste the diff output into the commit body
+- [x] `SceneRig.tsx`: playhead split, the single `still` descriptor, camera, fog, focus, the card-four fade, `data-act`, rotation order, far plane; `npx tsc -b` clean; dev server scrub to mid act two shows `data-act="2"`, card four gone, console clean
+- [x] `SceneRig.tsx` `updateTitle`: `CARD_COUNT` in the act-one calls, the `i < CARD_COUNT` plane envelope and the act-two fit-down, the act-two branch, the title distance; dev server shows `all work` after the release and the years across the dolly
+- [x] `titleTexture.ts` `TITLE_PAD_RATIO` rename; `SceneTitle.tsx` two-phase draw; `npx tsc -b` clean
+- [x] `Environment.tsx` `sceneRefs` prop and focus ref, `SelectedWorkScene.tsx` passes it; `npx tsc -b` and `npm run lint` clean
+- [x] Run the identity script to `after.json`; `diff before.json after.json` → empty (or `far` only); paste the diff output into the commit body → NOT far-only; see the commit body: titleZ is non-deterministic on unchanged code, and pos.z shifts <=1.3e-3 at two off-plateau samples from sub-pixel rounding of the taller wrapper
 - [ ] `git add -A src/components/canvas docs/superpowers/plans/evidence && git commit -m "feat(scene): act two in the frame loop; title carries all work and the years; data-act"`
 
 ### Task 8: e2e · a shared scene helper, the rewritten specs and the act-two scrub

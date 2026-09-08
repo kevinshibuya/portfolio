@@ -1,9 +1,10 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { EffectComposer, DepthOfField, Noise } from '@react-three/postprocessing'
+import type { DepthOfFieldEffect } from 'postprocessing'
 import * as THREE from 'three'
 import { focusDistance, sceneGeometry } from '../../../utils/sceneMotion'
-import { TITLE_LAYER } from './sceneRefs'
+import { TITLE_LAYER, type SceneRefs } from './sceneRefs'
 
 const CREAM = '#F5F2EC'
 /** The composer renders at this priority; the title pass runs after it. */
@@ -52,6 +53,8 @@ function TitlePass() {
 interface EnvironmentProps {
   /** Depth of field and grain are desktop-only; phones mount no composer. */
   desktopEffects: boolean
+  /** The rig writes the focus distance here every frame; the DoF effect reads it. */
+  sceneRefs: SceneRefs
 }
 
 /**
@@ -61,8 +64,9 @@ interface EnvironmentProps {
  * visible horizon at all — it exists only to catch the cards' blob shadows,
  * which is the one cue that says the cards are hovering above something.
  */
-export function Environment({ desktopEffects }: EnvironmentProps) {
+export function Environment({ desktopEffects, sceneRefs }: EnvironmentProps) {
   const size = useThree((state) => state.size)
+  const dofRef = useRef<DepthOfFieldEffect | null>(null)
   const geometry = useMemo(() => new THREE.PlaneGeometry(60, 60), [])
   useEffect(() => () => geometry.dispose(), [geometry])
 
@@ -70,6 +74,17 @@ export function Environment({ desktopEffects }: EnvironmentProps) {
     () => sceneGeometry(Math.max(size.width, 1), Math.max(size.height, 1)),
     [size.width, size.height],
   )
+
+  // Focus follows the scene: the slot through act one, walking out to the wall
+  // across act two's release. Written through `sceneRefs` rather than a prop so
+  // it costs zero React renders (ADR 0010), and only when it actually moves.
+  useFrame(() => {
+    const effect = dofRef.current
+    if (!effect) return
+    if (effect.cocMaterial.worldFocusDistance !== sceneRefs.focus.distance) {
+      effect.cocMaterial.worldFocusDistance = sceneRefs.focus.distance
+    }
+  }, COMPOSER_PRIORITY - 1)
 
   return (
     <>
@@ -84,6 +99,7 @@ export function Environment({ desktopEffects }: EnvironmentProps) {
         <>
           <EffectComposer renderPriority={COMPOSER_PRIORITY}>
             <DepthOfField
+              ref={dofRef}
               worldFocusDistance={focusDistance(g)}
               worldFocusRange={0.5 * g.spacing}
               bokehScale={2.5}

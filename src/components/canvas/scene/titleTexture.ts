@@ -59,7 +59,12 @@ let warnedCeiling = false
 const MAX_LINES = 2
 const LINE_HEIGHT = 0.95
 /** Transparent margin so clamp-to-edge sampling never smears a glyph outward. */
-const PAD_RATIO = 0.12
+/**
+ * Canvas padding either side of the ink, in em. Exported because SceneTitle's
+ * two-phase draw has to subtract it to recover an act-one title's INK width
+ * from its padded canvas width.
+ */
+export const TITLE_PAD_RATIO = 0.12
 
 const fontSpec = (fontPx: number): string => `400 ${fontPx}px Anton`
 
@@ -123,8 +128,8 @@ export async function drawTitleTexture(
   // descenders below (p, ç) — or the canvas edge crops the glyphs and shifts
   // the title's optical centre.
   const blockH = capPxUnscaled + (lines.length - 1) * lineHeightPx
-  const padY = Math.max(PAD_RATIO * fontPx, ascent - capPxUnscaled, descent) + 0.04 * fontPx
-  const padX = PAD_RATIO * fontPx
+  const padY = Math.max(TITLE_PAD_RATIO * fontPx, ascent - capPxUnscaled, descent) + 0.04 * fontPx
+  const padX = TITLE_PAD_RATIO * fontPx
   const inkWidth = Math.max(...lines.map((line) => ctx.measureText(line).width))
   const needW = inkWidth + 2 * padX
   const needH = blockH + 2 * padY

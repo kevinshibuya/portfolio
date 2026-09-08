@@ -368,7 +368,7 @@ export function SelectedWorkScene({
       />
       <Overture text={overture} sceneRefs={sceneRefs.current} />
       <Suspense fallback={null}>
-        <Environment desktopEffects={desktopEffects} />
+        <Environment desktopEffects={desktopEffects} sceneRefs={sceneRefs.current} />
         <Corridor cards={cards} sceneRefs={sceneRefs.current} onCardClick={onCardClick} />
         <ReadySignal onReady={onReady} />
         <SceneWarmup sceneRefs={sceneRefs.current} />
