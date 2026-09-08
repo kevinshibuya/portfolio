@@ -160,14 +160,101 @@ export function settleFrac(frac: number): number {
 /** Playhead units the wrapper spans: 1 overture + 0.5 approach + 3 card segments. */
 const PLAYHEAD_SPAN = MAX_SEG - OVERTURE_START
 
+/* ── Act two · the scroll budget past card four ──────────────────────────── */
+
+/** Where act one ends and act two begins: card four settled in its slot. */
+export const ACT_TWO_START = MAX_SEG
+
+/** The camera pulls back and up off card four's slot over this much scroll. */
+export const ACT_TWO_RELEASE_SVH = 100
+/** …then moves in and left toward the newest block over this much. */
+export const ACT_TWO_APPROACH_SVH = 50
+/** …then reads the frieze laterally, one column at a time, at this rate. */
+export const ACT_TWO_SVH_PER_COLUMN = 25
+
 /**
- * Scroll progress (0..1 over the 550svh wrapper) → playhead.
- * `seg = i` means card `i` sits in the slot; `[−1.5, −0.5)` is the overture,
- * `[−0.5, 0)` the approach with the camera one spacing behind card 0 at −0.5
- * and card 0 surfacing from the fog.
+ * Act one's scrub, in svh — the retired `.scene-scroll` CSS literal, now
+ * derived: 4.5 playhead units at 100 svh each, plus the one viewport the pin
+ * itself occupies.
  */
-export function playheadFor(progress: number): number {
-  return clamp(progress * PLAYHEAD_SPAN + OVERTURE_START, OVERTURE_START, MAX_SEG)
+export const ACT_ONE_SVH = (PLAYHEAD_SPAN + 1) * 100
+
+/** Act two's own scrub. No frieze, no act two — and no zero divisor. */
+export function actTwoSvh(columns: number): number {
+  if (columns <= 0) return 0
+  return ACT_TWO_RELEASE_SVH + ACT_TWO_APPROACH_SVH + ACT_TWO_SVH_PER_COLUMN * columns
+}
+
+/** The whole wrapper: act one's 550 svh plus whatever the frieze asks for. */
+export function sceneWrapperSvh(columns: number): number {
+  return ACT_ONE_SVH + actTwoSvh(columns)
+}
+
+/** Act one's scrub range, in svh: the wrapper less the viewport the pin holds. */
+const ACT_ONE_SCRUB_SVH = ACT_ONE_SVH - 100
+
+/**
+ * Where the release and the approach end, in act-two progress `u`. Derived from
+ * the svh budget, so a different column count moves them and nothing else has
+ * to be told.
+ */
+export function actTwoBeats(columns: number): { release: number; approach: number } {
+  const span = actTwoSvh(columns)
+  if (span <= 0) return { release: 0, approach: 0 }
+  return {
+    release: ACT_TWO_RELEASE_SVH / span,
+    approach: (ACT_TWO_RELEASE_SVH + ACT_TWO_APPROACH_SVH) / span,
+  }
+}
+
+/**
+ * Scroll progress (0..1 over the wrapper) → playhead.
+ *
+ * PIECEWISE. Act one is `[−1.5, 3]` in CARD units, one unit per 100 svh:
+ * `seg = i` means card `i` sits in the slot, `[−1.5, −0.5)` is the overture and
+ * `[−0.5, 0)` the approach with the camera one spacing behind card 0 at −0.5.
+ * Act two is `[3, 4]` NORMALISED over its own svh budget, so `actTwoProgress`
+ * needs no extent and act-one poses are the old functions on `min(playhead, 3)`.
+ *
+ * `columns = 0` means no frieze and reproduces today's function exactly. The
+ * early return is not decorative: `progress > 1` is on the live path (Lenis
+ * overscroll, an iOS rubber-band), and without it that call would divide by
+ * `actTwoSvh(0) = 0` and return `Infinity` where the clamp returns 3.
+ */
+export function playheadFor(progress: number, columns = 0): number {
+  if (columns <= 0) {
+    return clamp(progress * PLAYHEAD_SPAN + OVERTURE_START, OVERTURE_START, MAX_SEG)
+  }
+  const span = actTwoSvh(columns)
+  const scrub = progress * (ACT_ONE_SCRUB_SVH + span)
+  if (scrub <= ACT_ONE_SCRUB_SVH) {
+    return Math.max(OVERTURE_START + scrub / 100, OVERTURE_START)
+  }
+  return ACT_TWO_START + Math.min((scrub - ACT_ONE_SCRUB_SVH) / span, 1)
+}
+
+/** The act-two half of a playhead, 0 at card four's slot and 1 at the end. */
+export function actTwoProgress(playhead: number): number {
+  return clamp(playhead - ACT_TWO_START, 0, 1)
+}
+
+/**
+ * The act-one half. Clamped at 3, so every act-one function keeps receiving the
+ * segment it did before: card four holds its slot for the whole of act two
+ * instead of scrubbing a card past it.
+ */
+export function actOneSeg(playhead: number): number {
+  return Math.min(playhead, ACT_TWO_START)
+}
+
+/** …and back: act-two progress → the playhead that carries it. */
+export function actTwoPlayhead(u: number): number {
+  return ACT_TWO_START + clamp(u, 0, 1)
+}
+
+/** The playhead the `#archive` nav link lands on: the whole frieze in frame. */
+export function volumeShotPlayhead(columns: number): number {
+  return actTwoPlayhead(actTwoBeats(columns).release)
 }
 
 /**
@@ -509,17 +596,32 @@ export function titleBand(
 }
 
 /**
- * The document `scrollY` at which `playheadFor` returns exactly `index`, for a
- * wrapper starting at `wrapperTop` whose scrub range is `height − viewport`.
+ * The document `scrollY` at which `playheadFor` returns exactly `playhead`, for
+ * a wrapper starting at `wrapperTop` whose scrub range is `height − viewport`.
+ *
+ * The exact inverse of `playheadFor` on BOTH pieces, and today's function when
+ * `columns = 0`. It takes a number and never an item id: `sceneMotion` has no
+ * cells and must not import the content model. Pipeline 2's
+ * `playheadForItem(itemId, layout, extent)` composes this with
+ * `playheadForColumn`; see the plan's "Scroll seams".
  */
 export function scrollTargetFor(
-  index: number,
+  playhead: number,
   wrapperTop: number,
   wrapperHeight: number,
   viewportHeight: number,
+  columns = 0,
 ): number {
-  const progress = (index - OVERTURE_START) / PLAYHEAD_SPAN
-  return wrapperTop + progress * (wrapperHeight - viewportHeight)
+  const scrub = wrapperHeight - viewportHeight
+  if (columns <= 0) {
+    return wrapperTop + ((playhead - OVERTURE_START) / PLAYHEAD_SPAN) * scrub
+  }
+  const span = actTwoSvh(columns)
+  const svh =
+    playhead <= ACT_TWO_START
+      ? (playhead - OVERTURE_START) * 100
+      : ACT_ONE_SCRUB_SVH + (playhead - ACT_TWO_START) * span
+  return wrapperTop + (svh / (ACT_ONE_SCRUB_SVH + span)) * scrub
 }
 
 /**

@@ -232,7 +232,7 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 - [x] Write the test; `npx vitest run tests/unit/friezeLayout.provisional.test.ts` → red, module not found
 - [x] Write `src/utils/friezeLayout.ts`; the test → green; `npx tsc -b` clean
-- [ ] `git add -A src/utils/friezeLayout.ts tests/unit/friezeLayout.provisional.test.ts && git commit -m "feat(frieze): extent type, cell constants and a provisional extent"`
+- [x] `git add -A src/utils/friezeLayout.ts tests/unit/friezeLayout.provisional.test.ts && git commit -m "feat(frieze): extent type, cell constants and a provisional extent"`
 
 ### Task 3: playhead, scroll budget and scroll targets
 
@@ -250,8 +250,8 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 **Boundaries:** No pose, camera or title code in this task. Do not touch `easedSeg`, `segmentFor`, `frontIndexFor`, `cameraPose`, `cardPose`.
 
-- [ ] Add the describe with the assertions above; `npx vitest run tests/unit/sceneMotion.test.ts` → red on the new block only
-- [ ] Implement the scroll section; `npx vitest run tests/unit/sceneMotion.test.ts` → green, `npx vitest run tests/unit/sceneMotion.actOne.test.ts` → 6 snapshots match
+- [x] Add the describe with the assertions above; `npx vitest run tests/unit/sceneMotion.test.ts` → red on the new block only
+- [x] Implement the scroll section; `npx vitest run tests/unit/sceneMotion.test.ts` → green, `npx vitest run tests/unit/sceneMotion.actOne.test.ts` → 6 snapshots match
 - [ ] `git commit -am "feat(scene): act-two playhead, scroll budget and scroll targets"`
 
 ### Task 4: the frieze frame and the four beats

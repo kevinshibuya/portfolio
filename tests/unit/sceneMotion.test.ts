@@ -51,6 +51,18 @@ import {
   TITLE_CLEARANCE,
   TITLE_CLEARANCE_PORTRAIT,
   scrollTargetFor,
+  ACT_TWO_RELEASE_SVH,
+  ACT_TWO_APPROACH_SVH,
+  ACT_TWO_SVH_PER_COLUMN,
+  ACT_ONE_SVH,
+  ACT_TWO_START,
+  actTwoSvh,
+  sceneWrapperSvh,
+  actTwoBeats,
+  actTwoProgress,
+  actOneSeg,
+  actTwoPlayhead,
+  volumeShotPlayhead,
 } from '../../src/utils/sceneMotion'
 import type { SceneGeometry } from '../../src/utils/sceneMotion'
 
@@ -880,5 +892,102 @@ describe('fogRange', () => {
       expect(ratio).toBeGreaterThan(0.97 - 1e-9)
       expect(ratio).toBeLessThan(1.03 + 1e-9)
     }
+  })
+})
+
+describe('act two · scroll', () => {
+  it('budgets 100 svh of release, 50 of approach and 25 per column', () => {
+    expect(ACT_TWO_RELEASE_SVH).toBe(100)
+    expect(ACT_TWO_APPROACH_SVH).toBe(50)
+    expect(ACT_TWO_SVH_PER_COLUMN).toBe(25)
+    expect(ACT_ONE_SVH).toBe(550)
+    expect(ACT_TWO_START).toBe(CARD_COUNT - 1)
+    expect(actTwoSvh(22)).toBe(700)
+    expect(actTwoSvh(26)).toBe(800)
+  })
+
+  it('sizes the wrapper from the column count', () => {
+    // The shipped extent: the one the running site depends on.
+    expect(sceneWrapperSvh(26)).toBe(1350)
+    // The fictional fixture the spec works through.
+    expect(sceneWrapperSvh(22)).toBe(1250)
+    // No frieze, no act two: today's wrapper exactly.
+    expect(actTwoSvh(0)).toBe(0)
+    expect(sceneWrapperSvh(0)).toBe(550)
+    expect(actTwoSvh(-3)).toBe(0)
+  })
+
+  it('never divides by a zero act-two budget when scroll overshoots', () => {
+    // Lenis overscroll and an iOS rubber-band both hand `progress > 1`.
+    for (const p of [1.4, 2, 12]) {
+      expect(playheadFor(p, 0)).toBe(3)
+      expect(Number.isFinite(playheadFor(p, 0))).toBe(true)
+      expect(playheadFor(p)).toBe(3)
+    }
+  })
+
+  it('places the beats where the svh budget puts them', () => {
+    const fixture = actTwoBeats(22)
+    expect(fixture.release).toBeCloseTo(1 / 7, 12)
+    expect(fixture.approach).toBeCloseTo(3 / 14, 12)
+    const shipped = actTwoBeats(26)
+    expect(shipped.release).toBeCloseTo(0.125, 12)
+    expect(shipped.approach).toBeCloseTo(0.1875, 12)
+  })
+
+  it('reproduces act one exactly over the same scrub pixels', () => {
+    // `p_22 = p · 450 / 1150` puts the same scroll distance under act one.
+    for (let i = 0; i <= 100; i++) {
+      const p = i / 100
+      expect(playheadFor((p * 450) / 1150, 22)).toBeCloseTo(playheadFor(p), 12)
+    }
+    expect(playheadFor(450 / 1150, 22)).toBe(3)
+    expect(playheadFor(1, 22)).toBe(4)
+    expect(playheadFor((450 + 350) / 1150, 22)).toBe(3.5)
+  })
+
+  it('is non-decreasing across the whole wrapper', () => {
+    let prev = -Infinity
+    for (let i = 0; i <= 1000; i++) {
+      const value = playheadFor(i / 1000, 22)
+      expect(value).toBeGreaterThanOrEqual(prev)
+      prev = value
+    }
+    expect(prev).toBe(4)
+  })
+
+  it('splits a playhead into its act-one segment and its act-two progress', () => {
+    expect(actTwoProgress(3)).toBe(0)
+    expect(actTwoProgress(4)).toBe(1)
+    expect(actTwoProgress(2)).toBe(0)
+    expect(actTwoProgress(3.25)).toBeCloseTo(0.25, 12)
+    expect(actOneSeg(3.7)).toBe(3)
+    expect(actOneSeg(1.2)).toBe(1.2)
+    expect(actTwoPlayhead(0)).toBe(3)
+    expect(actTwoPlayhead(1)).toBe(4)
+    expect(actTwoPlayhead(0.5)).toBe(3.5)
+  })
+
+  it('round-trips every playhead through its scroll target', () => {
+    const vh = 900
+    const top = 1234
+    const H = 12.5 * vh
+    for (const P of [-1.5, -0.5, 0, 1, 3, 3.1, 3.5, 4]) {
+      const target = scrollTargetFor(P, top, H, vh, 22)
+      expect(playheadFor((target - top) / (H - vh), 22)).toBeCloseTo(P, 10)
+    }
+  })
+
+  it('keeps the four-argument scroll target byte-identical', () => {
+    const vh = 900
+    const H = 5.5 * vh
+    for (const P of [-1.5, 0, 1, 2, 3]) {
+      expect(scrollTargetFor(P, 1234, H, vh, 0)).toBe(scrollTargetFor(P, 1234, H, vh))
+    }
+  })
+
+  it('lands the nav link on the volume shot', () => {
+    expect(volumeShotPlayhead(22)).toBeCloseTo(3 + 1 / 7, 12)
+    expect(volumeShotPlayhead(26)).toBeCloseTo(3.125, 12)
   })
 })
