@@ -35,8 +35,8 @@
 
 **Boundaries:** Nothing under `src/` or `tests/` in this task.
 
-- [ ] `git fetch origin && git switch staging && git status` clean and in sync; `git switch -c fix/aspect-crossover`
-- [ ] `git add docs/superpowers/specs/2026-09-07-aspect-crossover-design.md docs/superpowers/plans/2026-09-07-aspect-crossover-and-harness-merge.md && git commit -m "docs: aspect crossover spec and plan"`
+- [x] `git fetch origin && git switch staging && git status` clean and in sync; `git switch -c fix/aspect-crossover`
+- [x] `git add docs/superpowers/specs/2026-09-07-aspect-crossover-design.md docs/superpowers/plans/2026-09-07-aspect-crossover-and-harness-merge.md && git commit -m "docs: aspect crossover spec and plan"`
 
 ### Task 2: the failing tests
 
@@ -68,8 +68,8 @@ Leave every other existing test untouched. In particular `'sizes the card agains
 
 **Boundaries:** Do not touch `src/`. Do not edit or delete any existing assertion other than the one `continue` line and that test's name. On ambiguity, stop and report `blocked: <the specific ambiguity>`.
 
-- [ ] Add the imports and the three tests; widen the frame-fit test
-- [ ] `npx vitest run tests/unit/sceneMotion.test.ts` is red for the expected reason; commit `test(scene): the aspect crossover is continuous and frame-fit holds on both sides`
+- [x] Add the imports and the three tests; widen the frame-fit test
+- [x] `npx vitest run tests/unit/sceneMotion.test.ts` is red for the expected reason; commit `test(scene): the aspect crossover is continuous and frame-fit holds on both sides`
 
 ### Task 3: one card formula, a smoothstepped camera
 
@@ -104,9 +104,9 @@ Document the two constants where they are declared: the band is where the camera
 
 **Boundaries:** No change to `CARD_MAX_PX`, `CARD_MIN_PX`, `TITLE_WIDTH_CAP*`, `TITLE_CLEARANCE*`, any seam constant, or any function other than `sceneGeometry` and the new helper. No new field on `SceneGeometry`. If a pre-existing test goes red, that is a plan defect: stop and report `blocked: <test name and numbers>`, do not edit the test.
 
-- [ ] Add the constants, the helper, the new `sized`, `camY` and `titleCapPx`; rewrite the two comments
-- [ ] `npx vitest run tests/unit/sceneMotion.test.ts` green; `npx tsc -b` and `npm run lint` clean
-- [ ] Commit `fix(scene): one card formula on both sides of square, camera height blends across a band`
+- [x] Add the constants, the helper, the new `sized`, `camY` and `titleCapPx`; rewrite the two comments
+- [x] `npx vitest run tests/unit/sceneMotion.test.ts` green; `npx tsc -b` and `npm run lint` clean
+- [x] Commit `fix(scene): one card formula on both sides of square, camera height blends across a band`
 
 ### Task 4: the near-square smoke
 
@@ -121,8 +121,8 @@ Document the two constants where they are declared: the band is where the camera
 
 **Boundaries:** No other e2e spec. No new fixture file. Do not change the existing sizes.
 
-- [ ] Add the loop
-- [ ] Kill 4173, run the spec, green; commit `test(e2e): the scene scrub also crosses square`
+- [x] Add the loop
+- [x] Kill 4173, run the spec, green; commit `test(e2e): the scene scrub also crosses square`
 
 ### Task 5: the record
 
@@ -147,9 +147,9 @@ Document the two constants where they are declared: the band is where the camera
 
 **Boundaries:** No ADR. No edit to `docs/superpowers/specs/2026-09-03-selected-work-scene-design.md`. No other section of either file.
 
-- [ ] Rewrite `### Card size` and the `titleCapPx` sentence
-- [ ] Add the two glossary entries and the invariant
-- [ ] Run the three greps; commit `docs(scene): card size and the crossover band`
+- [x] Rewrite `### Card size` and the `titleCapPx` sentence
+- [x] Add the two glossary entries and the invariant
+- [x] Run the three greps; commit `docs(scene): card size and the crossover band`
 
 ### Task 6: verification and PR A
 
@@ -175,7 +175,7 @@ All green. `gh pr create --base staging` succeeds and prints the URL.
 
 **Boundaries:** Do not merge. Do not touch `staging`.
 
-- [ ] Verification set green, output kept for the PR description
+- [x] Verification set green, output kept for the PR description
 - [ ] `git push -u origin fix/aspect-crossover`; `gh pr create --base staging` with the description above; stop
 
 ---
