@@ -252,7 +252,7 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 - [x] Add the describe with the assertions above; `npx vitest run tests/unit/sceneMotion.test.ts` → red on the new block only
 - [x] Implement the scroll section; `npx vitest run tests/unit/sceneMotion.test.ts` → green, `npx vitest run tests/unit/sceneMotion.actOne.test.ts` → 6 snapshots match
-- [ ] `git commit -am "feat(scene): act-two playhead, scroll budget and scroll targets"`
+- [x] `git commit -am "feat(scene): act-two playhead, scroll budget and scroll targets"`
 
 ### Task 4: the frieze frame and the four beats
 
@@ -270,9 +270,9 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 **Boundaries:** No title-string or cursor code (Task 5). Do not edit `cameraPose`, `projectPoint`, `frameRects`.
 
-- [ ] Add `FIXTURE_FRIEZE`, the shipped 26-column extent and the narrow 2-column extent, and the describe; `npx vitest run tests/unit/sceneMotion.test.ts` → red on the new block only
-- [ ] Implement frame, distances, `dollyY`, `dollyRange`, `dollyEase`, `actTwoCardFade`, `actTwoPose`; the pose assertions → green, `xEnd − xStart > 0` included
-- [ ] Implement `sceneFar`, `fogRangeAt`, `actTwoFogRange`, `actTwoFocusDistance`, `actTwoTitleDistance`, `friezeHeightFill`, `actTwoTopClearFrac`, `maxRowsInFrame`; all green; `npx vitest run` whole suite green
+- [x] Add `FIXTURE_FRIEZE`, the shipped 26-column extent and the narrow 2-column extent, and the describe; `npx vitest run tests/unit/sceneMotion.test.ts` → red on the new block only
+- [x] Implement frame, distances, `dollyY`, `dollyRange`, `dollyEase`, `actTwoCardFade`, `actTwoPose`; the pose assertions → green, `xEnd − xStart > 0` included
+- [x] Implement `sceneFar`, `fogRangeAt`, `actTwoFogRange`, `actTwoFocusDistance`, `actTwoTitleDistance`, `friezeHeightFill`, `actTwoTopClearFrac`, `maxRowsInFrame`; all green; `npx vitest run` whole suite green
 - [ ] `git add src/utils/sceneMotion.ts tests/unit/sceneMotion.test.ts && git commit -m "feat(scene): act-two frieze frame, camera beats, card-four fade, fog, far plane and focus"`
 
 ### Task 5: cursor, `blockAt`, title sequence, stills and column targets

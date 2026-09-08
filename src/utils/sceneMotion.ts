@@ -11,6 +11,8 @@
  * docs/superpowers/plans/2026-09-03-selected-work-scene.md.
  */
 
+import { FRIEZE_CELL_W, FRIEZE_CELL_H, type FriezeExtent } from './friezeLayout'
+
 /** Featured projects in the corridor; the wrapper height is coupled to this. */
 export const CARD_COUNT = 4
 
@@ -730,11 +732,324 @@ export function velocityYaw(energy: number, velocity: number): number {
  * the scene never sits perfectly still.
  */
 export function fogRange(g: SceneGeometry, t: number): { near: number; far: number } {
+  return fogRangeAt(g.D, g, t)
+}
+
+/**
+ * `fogRange` generalised to any focal distance — the same expression with the
+ * slot distance made a parameter, so act two can walk the fog out to the wall
+ * without a second set of constants.
+ */
+export function fogRangeAt(
+  distance: number,
+  g: SceneGeometry,
+  t: number,
+): { near: number; far: number } {
   const drift = 1 + 0.03 * Math.sin((2 * Math.PI * t) / 9)
   return {
-    near: (g.D + 0.15 * g.spacing) * drift,
-    far: (g.D + 2.2 * g.spacing) * drift,
+    near: (distance + 0.15 * g.spacing) * drift,
+    far: (distance + 2.2 * g.spacing) * drift,
   }
+}
+
+/* ── Act two · the frieze frame and the four beats ───────────────────────── */
+
+/** The volume shot fits both axes with a 5 % margin on whichever binds. */
+export const VOLUME_FILL = 0.9
+
+/**
+ * A FLOOR on the wall's vertical fill at the dolly, never a ceiling.
+ *
+ * `dollyDistance` is a `min()`, which picks the NEARER distance, and a nearer
+ * camera means a FULLER frame — so the legibility term can only push the fill
+ * up from here (0.925 at 1440×900, 0.978 at 393×851) and nothing in the
+ * expression caps it. Read it as "the wall never shrinks below 82 % of the
+ * frame height". Asserting `fill ≤ 1` would be vacuous.
+ */
+export const DOLLY_HEIGHT_FILL = 0.82
+
+/**
+ * A frieze cell is never narrower than this on screen, so an embedded 2×2 case
+ * study is never narrower than `CARD_MIN_PX` and its caption never drops under
+ * 12 px — the scene's existing legibility law, halved with the cell.
+ */
+export const FRIEZE_CELL_MIN_PX = Math.ceil(CARD_MIN_PX / 2)
+
+/** The frieze's extent in world space, on the corridor axis. */
+export interface FriezeFrame {
+  left: number
+  right: number
+  bottom: number
+  top: number
+  z: number
+  width: number
+  height: number
+  centreX: number
+  centreY: number
+}
+
+/**
+ * Where the wall stands: centred on the corridor axis, facing the camera, one
+ * spacing beyond card four — exactly where a fifth card would be — with its
+ * bottom edge on the cards' floor gap so the embedded cards share their floor.
+ */
+export function friezeFrame(frieze: FriezeExtent, g: SceneGeometry): FriezeFrame {
+  const width = frieze.columns * FRIEZE_CELL_W
+  const height = frieze.rows * FRIEZE_CELL_H
+  const centreY = HOVER + height / 2
+  return {
+    left: -width / 2,
+    right: width / 2,
+    bottom: HOVER,
+    top: HOVER + height,
+    z: -(ACT_TWO_START + 1) * g.spacing,
+    width,
+    height,
+    centreX: 0,
+    centreY,
+  }
+}
+
+/** How far back the camera must sit for the WHOLE frieze to enter the frame. */
+export function volumeDistance(frieze: FriezeExtent, g: SceneGeometry): number {
+  const { width, height } = friezeFrame(frieze, g)
+  return Math.max(
+    width / (2 * HALF_FOV_TAN * g.aspect * VOLUME_FILL),
+    height / (2 * HALF_FOV_TAN * VOLUME_FILL),
+  )
+}
+
+/**
+ * The reading distance: the nearer of the height fit and the legibility floor.
+ * The legibility term binds on every fixture today, which is what raises the
+ * fill above `DOLLY_HEIGHT_FILL`.
+ */
+export function dollyDistance(frieze: FriezeExtent, g: SceneGeometry): number {
+  const { height } = friezeFrame(frieze, g)
+  const dHeight = height / (2 * HALF_FOV_TAN * DOLLY_HEIGHT_FILL)
+  const dLegible =
+    (FRIEZE_CELL_W * g.widthPx) / (2 * HALF_FOV_TAN * g.aspect * FRIEZE_CELL_MIN_PX)
+  return Math.min(dHeight, dLegible)
+}
+
+/** What fraction of the frame height the wall fills at the dolly distance. */
+export function friezeHeightFill(frieze: FriezeExtent, g: SceneGeometry): number {
+  const { height } = friezeFrame(frieze, g)
+  return height / (2 * HALF_FOV_TAN * dollyDistance(frieze, g))
+}
+
+/**
+ * The air above the wall's top row at the dolly, as a frame fraction — every
+ * pixel of spare height, because the camera is bottom-anchored. Exported so
+ * pipeline 2 can inset the top row's ink under the title band: at eight rows
+ * and a 144 px cell the title reads OVER the top row and no camera work
+ * recovers the rest (Assumption 23).
+ */
+export function actTwoTopClearFrac(frieze: FriezeExtent, g: SceneGeometry): number {
+  return 1 - friezeHeightFill(frieze, g)
+}
+
+/**
+ * The camera height at the dolly: the wall's bottom edge lands on the frame's
+ * bottom edge, so all the spare frame height sits above the wall. A
+ * wall-centred camera would split it, halving the clearance over the top row.
+ */
+export function dollyY(frieze: FriezeExtent, g: SceneGeometry): number {
+  return friezeFrame(frieze, g).bottom + dollyDistance(frieze, g) * HALF_FOV_TAN
+}
+
+/**
+ * How far the camera may travel laterally: to where the frieze's edge meets the
+ * frame's edge, and no further.
+ *
+ * `min` THEN `max`, in that order. With the frieze centred on the axis a wall
+ * wider than the frame has `left + halfVisible < 0 < right − halfVisible`, so
+ * the inverted pair would collapse both ends to 0, the range would be empty and
+ * the camera would never move for the whole beat — while every monotonicity
+ * check still passed vacuously on `0 === 0`. A wall NARROWER than the frame
+ * clamps both ends to 0 through these same two lines, which is the intended
+ * degenerate case.
+ */
+export function dollyRange(
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+): { xStart: number; xEnd: number } {
+  const { left, right } = friezeFrame(frieze, g)
+  const halfVisible = dollyDistance(frieze, g) * HALF_FOV_TAN * g.aspect
+  return {
+    xStart: Math.min(left + halfVisible, 0),
+    xEnd: Math.max(right - halfVisible, 0),
+  }
+}
+
+/** Position under a trapezoid velocity profile: ramps over `w` at each end, flat between. C1 on [0, 1]. */
+export function dollyEase(p: number, w: number): number {
+  const t = clamp(p, 0, 1)
+  const ramp = clamp(w, 1e-6, 0.5)
+  const vmax = 1 / (1 - ramp)
+  if (t < ramp) return (vmax * t * t) / (2 * ramp)
+  if (t > 1 - ramp) return 1 - (vmax * (1 - t) * (1 - t)) / (2 * ramp)
+  return vmax * (t - ramp / 2)
+}
+
+/**
+ * Card four's opacity multiplier across the release, `1` at `u = 0` and exactly
+ * `0` from the end of the release on.
+ *
+ * Without it card four does not recede: the act-one segment is clamped at 3, so
+ * it still sits in its settled slot while the camera closes to the dolly
+ * distance with the card between it and the wall — full size in front of the
+ * frieze on a desktop, filling the frame on a phone. It also takes the mesh out
+ * of the render, so an invisible corridor card cannot intercept a pointer meant
+ * for a wall cell in pipeline 2.
+ */
+export function actTwoCardFade(u: number, frieze: FriezeExtent): number {
+  const { release } = actTwoBeats(frieze.columns)
+  if (release <= 0) return 0
+  return 1 - smoothstep(clamp(u / release, 0, 1))
+}
+
+export interface ActTwoPose {
+  x: number
+  y: number
+  z: number
+  /** Radians; positive turns left, three's `rotation.y`. */
+  yaw: number
+  /** Radians; negative = pitched down. */
+  pitch: number
+}
+
+/** How much the look target leads the body through the approach. */
+const LOOK_LEAD = 1.5
+
+/**
+ * The act-two camera at act-two progress `u`, in three beats.
+ *
+ * RELEASE: position and pitch smoothstep from card four's settled slot to the
+ * volume shot, with zero velocity at both ends, so the settle plateau hands
+ * over without a lurch. Yaw is 0 throughout — the wall stands centred on the
+ * corridor axis, so the act-one heading already faces it (Assumption 21).
+ *
+ * APPROACH: position smoothsteps to the dolly's start while the EYE LEADS THE
+ * BODY — the look target's x runs ahead of the camera's — which is where the
+ * spec's yaw actually lives. Yaw returns to 0 at the beat's end.
+ *
+ * DOLLY: lateral travel on `dollyEase`, constant speed through the middle,
+ * easing to rest inside the last column with no scroll added.
+ */
+export function actTwoPose(u: number, frieze: FriezeExtent, g: SceneGeometry): ActTwoPose {
+  const frame = friezeFrame(frieze, g)
+  const { release, approach } = actTwoBeats(frieze.columns)
+  const slot = cameraPose(ACT_TWO_START, g)
+  const volZ = frame.z + volumeDistance(frieze, g)
+  const dollyZ = frame.z + dollyDistance(frieze, g)
+  const { xStart, xEnd } = dollyRange(frieze, g)
+
+  if (u <= release) {
+    const s = release > 0 ? smoothstep(clamp(u / release, 0, 1)) : 1
+    return {
+      x: slot.x + (frame.centreX - slot.x) * s,
+      y: slot.y + (frame.centreY - slot.y) * s,
+      z: slot.z + (volZ - slot.z) * s,
+      yaw: 0,
+      pitch: slot.pitch + (0 - slot.pitch) * s,
+    }
+  }
+
+  const dollyHeight = dollyY(frieze, g)
+  if (u <= approach) {
+    const span = approach - release
+    const raw = span > 0 ? clamp((u - release) / span, 0, 1) : 1
+    const s = smoothstep(raw)
+    const x = frame.centreX + (xStart - frame.centreX) * s
+    const y = frame.centreY + (dollyHeight - frame.centreY) * s
+    const z = volZ + (dollyZ - volZ) * s
+    // The eye arrives before the body: the look target runs the same path at
+    // 1.5×, so the camera is already turned toward the newest block when it
+    // gets there, and the yaw is back to 0 by the beat's end.
+    const sLead = smoothstep(clamp(LOOK_LEAD * raw, 0, 1))
+    const xTarget = frame.centreX + (xStart - frame.centreX) * sLead
+    return { x, y, z, yaw: Math.atan2(-(xTarget - x), z - frame.z), pitch: 0 }
+  }
+
+  const p = approach < 1 ? clamp((u - approach) / (1 - approach), 0, 1) : 1
+  const w = frieze.columns > 0 ? 1 / frieze.columns : 0.5
+  return {
+    x: xStart + (xEnd - xStart) * dollyEase(p, w),
+    y: dollyHeight,
+    z: dollyZ,
+    yaw: 0,
+    pitch: 0,
+  }
+}
+
+/**
+ * The far plane act two needs, applied with the frustum on the geometry key —
+ * never per frame. Act one's image does not depend on the far plane, so this
+ * changes depth precision and nothing else.
+ */
+export function sceneFar(frieze: FriezeExtent, g: SceneGeometry): number {
+  return Math.max(g.far, volumeDistance(frieze, g) + 2 * g.spacing)
+}
+
+/** The camera's distance to the wall at `u`. */
+function wallDistance(u: number, frieze: FriezeExtent, g: SceneGeometry): number {
+  return actTwoPose(u, frieze, g).z - friezeFrame(frieze, g).z
+}
+
+/**
+ * Fog through act two: act one's range at `u = 0` — where the wall stands one
+ * spacing past the slot and reads about 40 % dissolved, like the next card down
+ * the corridor — walking out to the wall's own distance across the release, and
+ * tracking it from there.
+ */
+export function actTwoFogRange(
+  u: number,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+  t: number,
+): { near: number; far: number } {
+  const { release } = actTwoBeats(frieze.columns)
+  const s = release > 0 ? smoothstep(clamp(u / release, 0, 1)) : 1
+  const act1 = fogRange(g, t)
+  const wall = fogRangeAt(wallDistance(u, frieze, g), g, t)
+  return {
+    near: act1.near + (wall.near - act1.near) * s,
+    far: act1.far + (wall.far - act1.far) * s,
+  }
+}
+
+/** Depth of field walks from the slot to the wall on the same release ease. */
+export function actTwoFocusDistance(
+  u: number,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+): number {
+  const { release } = actTwoBeats(frieze.columns)
+  const s = release > 0 ? smoothstep(clamp(u / release, 0, 1)) : 1
+  return g.D + (wallDistance(u, frieze, g) - g.D) * s
+}
+
+/**
+ * The title plane's distance in act two: kept in front of the wall, because at
+ * 393×851 `titleDistance` is 5.0 and the dolly sits at 4.69. The switch is
+ * invisible — `worldPerPx` scales with the distance, so the title's PIXEL size
+ * is distance-invariant by construction.
+ */
+export function actTwoTitleDistance(dWall: number, g: SceneGeometry): number {
+  return Math.min(g.titleDistance, 0.8 * dWall)
+}
+
+/**
+ * The tallest frieze that still fits the frame at the dolly distance — the
+ * bound any row count must respect. It is exactly 8 at 1440×900 (8.65 before
+ * the floor) and at 393×851 (8.18), so `FRIEZE_ROWS = 8` sits ON it with no
+ * slack: a ninth row clips, because the cell floor binds first and act two has
+ * no vertical camera travel to recover it. A viewport whose bound comes out
+ * below 8 is reported, not worked around.
+ */
+export function maxRowsInFrame(g: SceneGeometry): number {
+  return Math.floor((FRIEZE_CELL_W / FRIEZE_CELL_H) * (g.heightPx / FRIEZE_CELL_MIN_PX))
 }
 
 export { DEG }
