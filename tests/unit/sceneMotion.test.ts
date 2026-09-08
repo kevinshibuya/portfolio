@@ -58,6 +58,7 @@ import {
   ACT_TWO_START,
   actTwoSvh,
   sceneWrapperSvh,
+  actOneVelocityScale,
   actTwoBeats,
   actTwoProgress,
   actOneSeg,
@@ -1499,5 +1500,33 @@ describe('act two · title and stills', () => {
       if (seen[seen.length - 1] !== year) seen.push(year)
     }
     expect(seen).toEqual([2026, 2025, 2024, 2023])
+  })
+})
+
+/**
+ * The scroll velocity act one's energy is derived from is normalised over the
+ * WHOLE wrapper, so act two's extra svh rescale it. Without the correction the
+ * same physical scroll speed reaches 36 % of the energy it used to and the
+ * corridor's lean weakens — invisible to the pose snapshot, which samples at
+ * rest. These are the numbers that keep act one identical.
+ */
+describe('actOneVelocityScale', () => {
+  it('undoes the wrapper extension exactly at the shipped extent', () => {
+    expect(sceneWrapperSvh(SHIPPED_FRIEZE.columns)).toBe(1350)
+    // 1250 svh of scrub where act one alone had 450.
+    expect(actOneVelocityScale(SHIPPED_FRIEZE.columns)).toBeCloseTo(1250 / 450, 12)
+  })
+
+  it('is exactly 1 when act two adds nothing, so act one is untouched', () => {
+    expect(actOneVelocityScale(0)).toBe(1)
+  })
+
+  it('tracks the wrapper, so a different column count needs no second edit', () => {
+    for (const columns of [1, 12, 26, 40]) {
+      expect(actOneVelocityScale(columns)).toBeCloseTo(
+        (sceneWrapperSvh(columns) - 100) / 450,
+        12,
+      )
+    }
   })
 })

@@ -201,6 +201,25 @@ export function sceneWrapperSvh(columns: number): number {
 const ACT_ONE_SCRUB_SVH = ACT_ONE_SVH - 100
 
 /**
+ * What the rig multiplies the raw scroll velocity by before deriving energy.
+ *
+ * `useScroll` normalises progress over the WHOLE wrapper, so progress-velocity
+ * is in units of "wrapper per second" — and act two makes the wrapper longer.
+ * At 26 columns the scrub range goes 450 svh to 1250 svh, so the same physical
+ * scroll speed produces 36 % of the progress-velocity it used to, while
+ * `velocityEnergy` still divides by a constant calibrated in the old units. Act
+ * one's lean and ambient amplitude would quietly weaken across the board — a
+ * regression the pose snapshot cannot see, because it samples poses at rest.
+ *
+ * Scaling back by the ratio restores act one exactly and gives act two the same
+ * energy per svh scrolled, which is the only reading under which the corridor
+ * behaves the same on both sides of the seam.
+ */
+export function actOneVelocityScale(columns: number): number {
+  return (sceneWrapperSvh(columns) - 100) / ACT_ONE_SCRUB_SVH
+}
+
+/**
  * Where the release and the approach end, in act-two progress `u`. Derived from
  * the svh budget, so a different column count moves them and nothing else has
  * to be told.

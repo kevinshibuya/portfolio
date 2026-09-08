@@ -42,6 +42,7 @@ import {
   actTwoStill,
   actTwoStillPose,
   actTwoCardFade,
+  actOneVelocityScale,
   actTwoTitle,
   actTwoTitleDistance,
   actTwoFogRange,
@@ -225,7 +226,7 @@ export function SceneRig({
     // The breath. Scroll owns sequence and position; time owns everything here
     // (ADR 0010). Under reduced motion none of it runs and energy stays 0.
     const t = clock.elapsedTime
-    const v = reducedMotion ? 0 : velocity.get()
+    const v = reducedMotion ? 0 : velocity.get() * actOneVelocityScale(frieze.columns)
     const energy = reducedMotion
       ? 0
       : velocityEnergy(sceneRefs.energy.value, v, delta)
