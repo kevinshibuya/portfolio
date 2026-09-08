@@ -267,9 +267,9 @@ ADRs: delete the `**Note:** the harness this ADR describes lives on the …` lin
 
 **Boundaries:** No new ADR. No other section of `docs/architecture.md`. No edit to the harness spec or plan.
 
-- [ ] Write the section and the index row
-- [ ] Edit the two ADRs
-- [ ] Run the checks; commit `docs: the performance harness has a home`
+- [x] Write the section and the index row
+- [x] Edit the two ADRs
+- [x] Run the checks; commit `docs: the performance harness has a home`
 
 ### Task 10: issues are discoverable
 
@@ -282,7 +282,7 @@ ADRs: delete the `**Note:** the harness this ADR describes lives on the …` lin
 
 **Boundaries:** No other row, no rewording of any other line.
 
-- [ ] Add the row; run the two checks; commit `docs: pending work has a home in the table`
+- [x] Add the row; run the two checks; commit `docs: pending work has a home in the table`
 
 ### Task 11: verification and PR B
 
@@ -301,5 +301,5 @@ All green. `gh pr create --base staging` prints the URL.
 
 **Boundaries:** Do not merge. Do not touch `staging` or `main`.
 
-- [ ] Verification set green
-- [ ] `git push -u origin merge/hero-harness`; `gh pr create --base staging`; stop
+- [x] Verification set green
+- [x] `git push -u origin merge/hero-harness`; `gh pr create --base staging`; stop
