@@ -138,8 +138,8 @@ export function actTwoStill(u: number, frieze: FriezeExtent, g: SceneGeometry): 
 
 **Boundaries:** No other spec box. Nothing under `src/` or `tests/`.
 
-- [ ] Review wave dispatched, findings consolidated, fix pass committed
-- [ ] `sed -i '' 's/- \[ \] Plan 1 · Motion/- [x] Plan 1 · Motion/' docs/superpowers/specs/2026-09-08-archive-act-two-design.md && git commit -am "docs: plan 1 reviewed; tick the spec box"`
+- [x] Review wave dispatched, findings consolidated, fix pass committed
+- [x] `sed -i '' 's/- \[ \] Plan 1 · Motion/- [x] Plan 1 · Motion/' docs/superpowers/specs/2026-09-08-archive-act-two-design.md && git commit -am "docs: plan 1 reviewed; tick the spec box"`
 
 ### Task 1: act-one baseline · pose snapshot and title-identity dump
 
