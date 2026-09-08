@@ -35,6 +35,57 @@ const BOOST_DECAY_TAU = 0.9 // s, settle
 const DISSOLVE_NOISE_AMP = 0.9
 const CREAM_FLOOR = 0.035
 
+// ---------------------------------------------------------------------------
+// Perf harness determinism hooks (test/measurement only — see the hero perf
+// harness plan). All three are opt-in via URL params and DORMANT otherwise:
+// with no params the parsed record is all-null/false, every hook is guarded on
+// it, and not a single extra branch runs inside the rAF loop.
+//   ?perf-seed=<float>    replaces the per-load Math.random() seed
+//   ?perf-freeze=<sec>    no loop; exactly ONE frame, drawn through the live
+//                         frame path at that sim time (wins over reduced
+//                         motion); every other draw site is suppressed
+//   ?perf-counters        exposes window.__PERF_GL__[<data-canvas>] GL counters
+// ---------------------------------------------------------------------------
+interface PerfCounters {
+  drawCalls: number
+  uniformUploads: number
+  frames: number
+  resizes: number
+  rafLoopStarts: number
+}
+
+declare global {
+  interface Window {
+    __PERF_GL__?: Record<string, PerfCounters>
+  }
+}
+
+// A PRESENT but unparseable param is operator error, not a request for default
+// behaviour: warn loudly rather than going silently dormant (a silent fallback
+// surfaces downstream as a selector timeout pointing at nothing, or worse, a
+// non-deterministic capture that still looks plausible). The no-param path
+// never reaches this and stays completely silent.
+const readPerfFloat = (params: URLSearchParams, key: string): number | null => {
+  const raw = params.get(key)
+  if (raw === null) return null
+  const value = Number.parseFloat(raw)
+  if (!Number.isFinite(value)) {
+    console.warn(`[perf] ignoring malformed ?${key}=${raw} — expected a number; hook stays off`)
+    return null
+  }
+  return value
+}
+
+const PERF = ((): { seed: number | null; freeze: number | null; counters: boolean } => {
+  if (typeof window === 'undefined') return { seed: null, freeze: null, counters: false }
+  const params = new URLSearchParams(window.location.search)
+  return {
+    seed: readPerfFloat(params, 'perf-seed'),
+    freeze: readPerfFloat(params, 'perf-freeze'),
+    counters: params.has('perf-counters'),
+  }
+})()
+
 const vertexShader = `
   attribute vec2 position;
   varying vec2 vUv;
@@ -141,10 +192,19 @@ const fragmentShader = `
       float p = 1.0 - vUv.y / max(dissolveStart, 1e-4);
       float diss = 0.0;
       float thin = 0.0;
-      // Skip the noise entirely where the field can never fire: thin's lower
-      // threshold (0.24) needs p > -0.39 with the bounded noise terms, so
-      // p <= -0.6 fragments (~77% of the hero canvas) exit with zeros. The
-      // branch is vertically coherent — near-free on the wavefront.
+      // Skip the noise entirely where the field can never fire. thin's lower
+      // smoothstep edge T=0.24 is reachable only where
+      //   p > T - A*(S-0.5)*(1+k) = 0.24 - 0.9*0.678125 = -0.3703125
+      // with A=DISSOLVE_NOISE_AMP, S=0.9375 (fbm's gain sum: 4 octaves halving
+      // from 0.5 — NOT 1.0, this fbm is unnormalised) and k=0.55 (sweep scale).
+      // Any guard <= -0.3703125 is provably safe — use the FULL value, since
+      // -0.3703 is GREATER than it and so falls outside the proven set. -0.6
+      // keeps 37% headroom on A (raising DISSOLVE_NOISE_AMP to 1.02 already
+      // breaks a -0.45 guard) and skips ~63% of the hero canvas at
+      // dissolveStart ~0.23. RETUNING ANY of T / A / k / the octave count moves
+      // this bound — re-derive it, do not eyeball it. Full derivation, and why
+      // it is deliberately NOT tightened: perf/decisions.md, entry B1.
+      // The branch is vertically coherent — near-free on the wavefront.
       if (p > -0.6) {
         // Screen-anchored base frequency (wide, vertically stretched fingers) +
         // flow drag + slow writhe. Frozen time still yields an organic static
@@ -182,6 +242,10 @@ const fragmentShader = `
 `
 
 export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): ReactElement {
+  // Single source of truth for this canvas's identity: it is BOTH the
+  // data-canvas attribute and the __PERF_GL__ counters key (the harness
+  // contract defines the key AS the attribute value), so they can never drift.
+  const canvasId = variant === 'hero' ? 'fluid-waves' : 'fluid-waves-backdrop'
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [webglFailed, setWebglFailed] = useState(false)
   const { prefersReducedMotion } = useMotion()
@@ -194,6 +258,42 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     if (!gl) {
       setWebglFailed(true)
       return
+    }
+
+    // Counters are wrapped ONCE here, at setup, by shadowing the counted
+    // methods on this canvas's private context — no per-call branch in the hot
+    // loop, and nothing exists at all when the flag is absent (the dormancy
+    // test asserts `'__PERF_GL__' in window === false`). A fresh record per
+    // effect run means a remount resets rather than accumulates.
+    const perf: PerfCounters | null = PERF.counters
+      ? { drawCalls: 0, uniformUploads: 0, frames: 0, resizes: 0, rafLoopStarts: 0 }
+      : null
+    if (perf) {
+      const counted = perf
+      const store = window.__PERF_GL__ ?? {}
+      store[canvasId] = counted
+      window.__PERF_GL__ = store
+
+      const rawDrawArrays = gl.drawArrays.bind(gl)
+      gl.drawArrays = (mode, first, count): void => {
+        counted.drawCalls++
+        rawDrawArrays(mode, first, count)
+      }
+      const rawUniform1f = gl.uniform1f.bind(gl)
+      gl.uniform1f = (location, x): void => {
+        counted.uniformUploads++
+        rawUniform1f(location, x)
+      }
+      const rawUniform2f = gl.uniform2f.bind(gl)
+      gl.uniform2f = (location, x, y): void => {
+        counted.uniformUploads++
+        rawUniform2f(location, x, y)
+      }
+      const rawUniform3fv = gl.uniform3fv.bind(gl)
+      gl.uniform3fv = (location, v): void => {
+        counted.uniformUploads++
+        rawUniform3fv(location, v)
+      }
     }
 
     const createShader = (type: number, source: string): WebGLShader | null => {
@@ -247,7 +347,22 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       gl.STATIC_DRAW,
     )
 
-    const seed = Math.random()
+    // ?perf-seed pins the per-load scatter so a frozen frame is reproducible.
+    const seed = PERF.seed ?? Math.random()
+    // ?perf-freeze: this canvas draws exactly one frame, ever. Every other draw
+    // site below is suppressed, the loop never starts, and it takes precedence
+    // over reduced motion.
+    const frozenAt = PERF.freeze
+    // Once the single frozen frame exists, the RESIZE itself is suppressed too,
+    // not just the redraw: setting canvas.width/height reallocates and clears
+    // the drawing buffer to opaque black, and a frozen canvas may never repaint
+    // it — so a mid-capture viewport change (a scenario runner's
+    // setViewportSize, mobile URL-bar collapse) would bake an all-black frame
+    // that is perfectly deterministic and therefore invisible to the pixel
+    // gate. The contract constrains draws; keeping the one frame intact is what
+    // it is actually for. The mount-time resize() still runs, since it precedes
+    // the frozen draw — viewport and dissolveStart are correct for that frame.
+    let frozenDrawn = false
     let rafId: number | null = null
     let inView = true
     // Scroll-coupled sim clock (see the SCROLL_BOOST_* constants): simTime
@@ -276,6 +391,8 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0)
 
     const resize = (): void => {
+      if (frozenAt !== null && frozenDrawn) return // keep the one frozen frame intact
+      if (perf) perf.resizes++
       const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP)
       const w = canvas.clientWidth
       const h = canvas.clientHeight
@@ -301,13 +418,22 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       // repaint it and the IO only repaints on viewport re-entry — so an
       // in-view resize (window resize, mobile URL-bar collapse) must redraw
       // its one static frame here or the canvas stays black for the session.
-      if (prefersReducedMotion && inView) drawFrame(seed * 10)
+      // A frozen canvas never redraws — not even here (perf-freeze wins).
+      if (prefersReducedMotion && inView && frozenAt === null) drawFrame(seed * 10)
     }
 
-    const drawFrame = (timeSec: number): void => {
+    const drawFrameRaw = (timeSec: number): void => {
       gl.uniform1f(timeLoc, timeSec)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     }
+    // Frame counting is bound once here, not branched per call: with the flag
+    // absent the loop calls drawFrameRaw directly and pays nothing.
+    const drawFrame: (timeSec: number) => void = perf
+      ? (timeSec) => {
+          perf.frames++
+          drawFrameRaw(timeSec)
+        }
+      : drawFrameRaw
 
     const loop = (): void => {
       const now = performance.now()
@@ -326,7 +452,11 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     }
 
     const start = (): void => {
+      if (frozenAt !== null) return // frozen: no loop, ever
       if (rafId === null && !prefersReducedMotion) {
+        // R2: counts REAL loop starts (null -> id), not start() calls — the IO
+        // fires start() on mount and on every viewport re-entry.
+        if (perf) perf.rafLoopStarts++
         // Re-baseline the clocks: while paused (off-screen) both wall time and
         // scrollY moved — without this, resume reads as one giant scroll frame
         // and the paint lurches at 2x for a beat. boost resets too: a pause
@@ -347,7 +477,13 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     resize()
     window.addEventListener('resize', resize)
 
-    if (prefersReducedMotion) {
+    if (frozenAt !== null) {
+      // Exactly one frame, through the LIVE frame path (not the reduced-motion
+      // static path) so whatever per-frame state the loop sets applies to it.
+      drawFrame(frozenAt)
+      frozenDrawn = true
+      canvas.dataset.perfFrozen = 'true'
+    } else if (prefersReducedMotion) {
       // One static frame, time frozen at a seed-derived phase; no loop.
       canvas.dataset.static = 'true'
       drawFrame(seed * 10)
@@ -368,6 +504,9 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       // Every canvas reflects visibility via data-paused — reduced motion too.
       if (inView) canvas.removeAttribute('data-paused')
       else canvas.dataset.paused = 'true'
+      // Frozen canvases keep the visibility reflection (IO pause logic
+      // untouched) but never draw or start a loop on re-entry.
+      if (frozenAt !== null) return
       if (prefersReducedMotion) {
         if (inView) drawFrame(seed * 10) // one-frame repaint on re-entry
         return
@@ -397,7 +536,9 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
       gl.deleteShader(fShader)
       gl.deleteBuffer(buffer)
     }
-  }, [prefersReducedMotion, variant])
+    // canvasId is derived from variant (already a dep) — listed only to satisfy
+    // exhaustive-deps; it can never change independently.
+  }, [prefersReducedMotion, variant, canvasId])
 
   if (webglFailed) {
     // Hero: layered-gradient fallback so the stage never renders black-on-black.
@@ -411,7 +552,7 @@ export function FluidWaves({ variant }: { variant: 'hero' | 'backdrop' }): React
     <canvas
       ref={canvasRef}
       className={variant === 'hero' ? 'fluid-waves-canvas' : 'fluid-waves-canvas fluid-waves-canvas--backdrop'}
-      data-canvas={variant === 'hero' ? 'fluid-waves' : 'fluid-waves-backdrop'}
+      data-canvas={canvasId}
       // Marks the hero canvas as carrying the active cream-dissolve uniforms
       // (the shader-side replacement for the removed .hero-veil).
       data-dissolve={variant === 'hero' ? 'hero' : undefined}

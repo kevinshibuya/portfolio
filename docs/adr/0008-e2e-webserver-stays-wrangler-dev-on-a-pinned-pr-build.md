@@ -10,7 +10,7 @@ Two things were settled. First, `wrangler dev` stays as the web server — that 
 
 ## Consequences
 
-`package.json` pins a URL where a semver belongs, so a fresh `npm ci` depends on pkg.pr.new staying up. The revert condition is recorded: go back to a plain `wrangler@^4.x` in the first release that contains #15252, which is neither 4.124.0 nor 4.125.0.
+`package.json` pins a URL where a semver belongs, so a fresh `npm ci` depends on pkg.pr.new staying up. The URL is also MUTABLE: pkg.pr.new rebuilds `@15252` against the PR head, and the artifact behind it has already moved from the 4.124.0 recorded above to **4.128.0** in `package-lock.json`. The lockfile `integrity` hash means a fresh push to that PR makes a clean clone fail loudly with EINTEGRITY rather than install something unexpected · but it does make the repo un-installable until someone re-pins. The revert condition is recorded: go back to a plain `wrangler@^4.x` in the first release that contains #15252, which is neither 4.124.0 nor 4.125.0.
 
 Because `npm run preview` is wrangler rather than a static server, Lighthouse and ad-hoc preview work use `npx vite preview --port 4173` instead (`CONTEXT.md`).
 

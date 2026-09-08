@@ -15,6 +15,26 @@ const RISE_DURATION = 0.9
 const LINE_DELAYS = [0, 0.08, 0.16] as const
 const RELEASE_MS = (Math.max(...LINE_DELAYS) + RISE_DURATION) * 1000 + 90
 
+// Perf harness (test/measurement only): ?perf-role=<index> pins the role line
+// to one index and never starts the 5 s auto-cycle, so any hero capture stops
+// being time-dependent. Dormant (null) without the param.
+// A present-but-unparseable value warns instead of falling silently back to the
+// live auto-cycle — a silently unpinned role line produces a time-dependent
+// capture that still looks plausible. The no-param path never warns.
+const PERF_ROLE = ((): number | null => {
+  if (typeof window === 'undefined') return null
+  const raw = new URLSearchParams(window.location.search).get('perf-role')
+  if (raw === null) return null
+  const value = Number.parseInt(raw, 10)
+  if (!Number.isInteger(value) || value < 0) {
+    console.warn(`[perf] ignoring malformed ?perf-role=${raw} — expected a non-negative integer; role stays live`)
+    return null
+  }
+  return value
+})()
+
+let warnedRoleRange = false
+
 export function Hero(): ReactElement {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
@@ -63,21 +83,28 @@ export function Hero(): ReactElement {
   }, [t, lang])
 
   // roles[0] is the canonical title; every load starts the cycle there.
-  const [roleIdx, setRoleIdx] = useState(0)
+  // ?perf-role pins the index instead (no cycle at all — see PERF_ROLE).
+  const [roleIdx, setRoleIdx] = useState(PERF_ROLE ?? 0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Start (or reset) the auto-cycle interval. Clicking restarts the timer so
   // the user gets a full ROLE_DURATION_MS to read the role they advanced to.
   const startCycling = (): void => {
     if (intervalRef.current) clearInterval(intervalRef.current)
-    if (roles.length <= 1) return
+    if (PERF_ROLE !== null || roles.length <= 1) return
     intervalRef.current = setInterval(() => {
       setRoleIdx((i) => (i + 1) % roles.length)
     }, ROLE_DURATION_MS)
   }
 
   useEffect(() => {
-    setRoleIdx(0)
+    setRoleIdx(PERF_ROLE ?? 0)
+    // Once per page load: the effect re-runs whenever `roles` is rebuilt (i18n
+    // settle, language toggle), and a duplicated diagnostic reads as two bugs.
+    if (!warnedRoleRange && PERF_ROLE !== null && roles.length > 0 && PERF_ROLE >= roles.length) {
+      warnedRoleRange = true
+      console.warn(`[perf] ?perf-role=${PERF_ROLE} is out of range (${roles.length} roles) — clamped to ${roles.length - 1}`)
+    }
     // Reduced-motion users get the static canonical role (roles[0]) — no
     // interval, no Framer slide transition ever fires. The cycle waits for
     // `entered`: it used to start at React mount, which burned the canonical
@@ -93,12 +120,15 @@ export function Hero(): ReactElement {
   }, [roles, prefersReducedMotion, entered])
 
   const cycleRole = (): void => {
-    if (roles.length <= 1) return
+    if (PERF_ROLE !== null || roles.length <= 1) return
     setRoleIdx((i) => (i + 1) % roles.length)
     startCycling()
   }
 
-  const activeRole = roles[roleIdx] ?? ''
+  // Clamped at read time (roles.length is only known here): an out-of-range
+  // ?perf-role would otherwise render an EMPTY role line — deterministic, so a
+  // pixel gate would happily bake and then defend a role-less hero forever.
+  const activeRole = roles[Math.min(roleIdx, roles.length - 1)] ?? ''
 
   // The loader explosion reveals the shader; then the hero text rises in (above).
   // main.tsx is the sole resolver of the entrance gate (finishLoader →
@@ -107,7 +137,10 @@ export function Hero(): ReactElement {
   // resolves it.
 
   return (
-    <section id="top" className="hero">
+    // data-entrance="settled" marks the moment the rise has finished (or was
+    // bypassed) — an unconditional, test-only marker: capture tooling waits on
+    // it instead of guessing a timeout. Nothing in the app reads it.
+    <section id="top" className="hero" data-entrance={riseSettled ? 'settled' : undefined}>
       <div className="hero-canvas">
         <FluidWaves variant="hero" />
       </div>

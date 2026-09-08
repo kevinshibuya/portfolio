@@ -202,10 +202,10 @@ Note for the verification: `eslint.config.js` scopes every rule block to `**/*.{
 
 **Boundaries:** No edits beyond conflict resolution and the lockfile regeneration in this task. Do not run `npm run perf` or any harness script; the harness measures on Kevin's rig only (ADR 0006).
 
-- [ ] Branch from `origin/perf/hero-harness`, `git merge staging`, confirm exactly three conflicts
-- [ ] Resolve the three as listed; `npm install`; `git add -A && git commit` (merge commit, message `Merge staging into perf/hero-harness per issue #9`)
-- [ ] `git cherry-pick <records commit from Task 1>` so the spec and plan exist on this branch; if PR A has already landed in `staging` the cherry-pick is empty, skip it
-- [ ] `npx tsc -b && npm run lint && npx vitest run` green
+- [x] Branch from `origin/perf/hero-harness`, `git merge staging`, confirm exactly three conflicts
+- [x] Resolve the three as listed; `npm install`; `git add -A && git commit` (merge commit, message `Merge staging into perf/hero-harness per issue #9`)
+- [x] `git cherry-pick <records commit from Task 1>` so the spec and plan exist on this branch; if PR A has already landed in `staging` the cherry-pick is empty, skip it · skipped: PR A landed, both files arrived with the merge
+- [x] `npx tsc -b && npm run lint && npx vitest run` green
 
 ### Task 7a: the harness lands dormant
 
@@ -231,10 +231,10 @@ Then the gate. In each of the three files, `const HARNESS = process.env.PERF_HAR
 
 **Boundaries:** No change to what any harness test asserts. No edit to `perf/`, `playwright.config.ts`, or any golden. Do not delete or `test.fixme` a test; the gate is the env var and nothing else.
 
-- [ ] `gh issue create` as above; note N
-- [ ] Gate the three files
-- [ ] Default suite green with the skips visible; `PERF_HARNESS=1` run observed running; comment the first failure line on issue #N
-- [ ] Commit `test(e2e): the perf harness lands dormant behind PERF_HARNESS=1`
+- [x] `gh issue create` as above; note N
+- [x] Gate the three files · SUPERSEDED 2026-09-08, ratified by Kevin: measurement showed 38 of 48 instances pass, so the gate is FIVE NAMED TESTS, not three files. Spec decision 14 was revised (`3ba4c46`) and the reason strings differ from the ones prescribed above. See PR #12.
+- [x] Default suite green with the skips visible; `PERF_HARNESS=1` run observed running; comment the first failure line on issue #N
+- [x] Commit `test(e2e): the perf harness lands dormant behind PERF_HARNESS=1`
 
 ### Task 8: the Measurement glossary returns
 
@@ -247,8 +247,8 @@ Then the gate. In each of the three files, `const HARNESS = process.env.PERF_HAR
 
 **Boundaries:** Do not add the `Ledger` or `HANDOFF.md` terms or the "Where the records live" table that the same commit removed; PR #8 dissolved those on purpose. Do not touch the **Frame-fit rule** and **Crossover band** entries from PR A.
 
-- [ ] Add the group and the invariant
-- [ ] Run the three checks; commit `docs: the Measurement glossary is true again`
+- [x] Add the group and the invariant
+- [x] Run the three checks; commit `docs: the Measurement glossary is true again`
 
 ### Task 9: the harness has a home in the docs
 
@@ -267,9 +267,9 @@ ADRs: delete the `**Note:** the harness this ADR describes lives on the …` lin
 
 **Boundaries:** No new ADR. No other section of `docs/architecture.md`. No edit to the harness spec or plan.
 
-- [ ] Write the section and the index row
-- [ ] Edit the two ADRs
-- [ ] Run the checks; commit `docs: the performance harness has a home`
+- [x] Write the section and the index row
+- [x] Edit the two ADRs
+- [x] Run the checks; commit `docs: the performance harness has a home`
 
 ### Task 10: issues are discoverable
 
@@ -282,7 +282,7 @@ ADRs: delete the `**Note:** the harness this ADR describes lives on the …` lin
 
 **Boundaries:** No other row, no rewording of any other line.
 
-- [ ] Add the row; run the two checks; commit `docs: pending work has a home in the table`
+- [x] Add the row; run the two checks; commit `docs: pending work has a home in the table`
 
 ### Task 11: verification and PR B
 
@@ -301,5 +301,5 @@ All green. `gh pr create --base staging` prints the URL.
 
 **Boundaries:** Do not merge. Do not touch `staging` or `main`.
 
-- [ ] Verification set green
-- [ ] `git push -u origin merge/hero-harness`; `gh pr create --base staging`; stop
+- [x] Verification set green
+- [x] `git push -u origin merge/hero-harness`; `gh pr create --base staging`; stop

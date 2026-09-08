@@ -37,6 +37,9 @@ a.md
 HANDOFF*.md
 tmp/
 
+# Perf harness per-run reports (baseline.json + decisions.md stay tracked)
+perf/reports/
+
 # Playwright artifacts
 test-results/
 playwright-report/
