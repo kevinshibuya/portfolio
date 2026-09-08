@@ -273,7 +273,7 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 - [x] Add `FIXTURE_FRIEZE`, the shipped 26-column extent and the narrow 2-column extent, and the describe; `npx vitest run tests/unit/sceneMotion.test.ts` → red on the new block only
 - [x] Implement frame, distances, `dollyY`, `dollyRange`, `dollyEase`, `actTwoCardFade`, `actTwoPose`; the pose assertions → green, `xEnd − xStart > 0` included
 - [x] Implement `sceneFar`, `fogRangeAt`, `actTwoFogRange`, `actTwoFocusDistance`, `actTwoTitleDistance`, `friezeHeightFill`, `actTwoTopClearFrac`, `maxRowsInFrame`; all green; `npx vitest run` whole suite green
-- [ ] `git add src/utils/sceneMotion.ts tests/unit/sceneMotion.test.ts && git commit -m "feat(scene): act-two frieze frame, camera beats, card-four fade, fog, far plane and focus"`
+- [x] `git add src/utils/sceneMotion.ts tests/unit/sceneMotion.test.ts && git commit -m "feat(scene): act-two frieze frame, camera beats, card-four fade, fog, far plane and focus"`
 
 ### Task 5: cursor, `blockAt`, title sequence, stills and column targets
 
@@ -291,9 +291,9 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 **Boundaries:** No React. Nothing in `tests/e2e`. No `playheadForItem` and no item-shaped overload of anything (pipeline 2).
 
-- [ ] Add the describe; run → red on the new block only
-- [ ] Implement `dollyCursor`, `blockAt`, `blockIndexAt`, `actTwoTitle`; green
-- [ ] Implement `ActTwoStill`, `actTwoStill`, `actTwoStillPose`, `playheadForColumn`, `playheadForBlock`; green, the per-interval identity assertions included; whole unit suite green; snapshot matches
+- [x] Add the describe; run → red on the new block only
+- [x] Implement `dollyCursor`, `blockAt`, `blockIndexAt`, `actTwoTitle`; green
+- [x] Implement `ActTwoStill`, `actTwoStill`, `actTwoStillPose`, `playheadForColumn`, `playheadForBlock`; green, the per-interval identity assertions included; whole unit suite green; snapshot matches
 - [ ] `git add src/utils/sceneMotion.ts tests/unit/sceneMotion.test.ts && git commit -m "feat(scene): act-two reading cursor, title sequence, still descriptors and column targets"`
 
 ### Task 6: wire the section · wrapper height from data, extent and strings into the scene

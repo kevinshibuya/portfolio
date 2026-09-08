@@ -11,7 +11,12 @@
  * docs/superpowers/plans/2026-09-03-selected-work-scene.md.
  */
 
-import { FRIEZE_CELL_W, FRIEZE_CELL_H, type FriezeExtent } from './friezeLayout'
+import {
+  FRIEZE_CELL_W,
+  FRIEZE_CELL_H,
+  type FriezeExtent,
+  type FriezeBlockExtent,
+} from './friezeLayout'
 
 /** Featured projects in the corridor; the wrapper height is coupled to this. */
 export const CARD_COUNT = 4
@@ -1050,6 +1055,167 @@ export function actTwoTitleDistance(dWall: number, g: SceneGeometry): number {
  */
 export function maxRowsInFrame(g: SceneGeometry): number {
   return Math.floor((FRIEZE_CELL_W / FRIEZE_CELL_H) * (g.heightPx / FRIEZE_CELL_MIN_PX))
+}
+
+/* ── Act two · the reading cursor, the title and the stills ──────────────── */
+
+/** How far through the dolly beat `u` sits, 0 before it starts. */
+function dollyProgress(u: number, frieze: FriezeExtent): number {
+  const { approach } = actTwoBeats(frieze.columns)
+  if (approach >= 1) return 1
+  return clamp((u - approach) / (1 - approach), 0, 1)
+}
+
+/**
+ * The reading cursor, in columns — the SCROLL's column budget, not the camera's
+ * position. Linear in the dolly's progress while the camera follows
+ * `dollyEase`, so the two disagree by up to one column's share at each end of
+ * the beat and coincide through the middle (Assumption 22).
+ *
+ * That disagreement is accepted, and deliberate: only a linear cursor visits
+ * every column, so `blockAt` can name a one-column block that the camera's
+ * clamped range never reaches. Driving the title from camera `x` instead would
+ * silently skip such a block, which is exactly what the acceptance forbids.
+ */
+export function dollyCursor(u: number, frieze: FriezeExtent): number {
+  return frieze.columns * dollyProgress(u, frieze)
+}
+
+/** The block index under the cursor, or `−1` before the dolly begins. */
+export function blockIndexAt(u: number, frieze: FriezeExtent): number {
+  const { approach } = actTwoBeats(frieze.columns)
+  if (u < approach || frieze.blocks.length === 0) return -1
+  const col = Math.min(Math.floor(dollyCursor(u, frieze)), frieze.columns - 1)
+  for (let k = frieze.blocks.length - 1; k >= 0; k--) {
+    if (col >= frieze.blocks[k].startCol) return k
+  }
+  return 0
+}
+
+/** The block under the cursor, or `null` before the dolly begins. */
+export function blockAt(u: number, frieze: FriezeExtent): FriezeBlockExtent | null {
+  const k = blockIndexAt(u, frieze)
+  return k < 0 ? null : frieze.blocks[k]
+}
+
+/**
+ * A title morph in ACT-TWO TITLE SPACE: `−1` is act one's last card, `0` is
+ * `all work`, and `1 + k` is block `k`. The rig maps those onto texture indices.
+ */
+export interface ActTwoTitle {
+  from: number
+  to: number
+  frac: number
+}
+
+/**
+ * Half-widths of the morph window at boundary `k`, in columns: half a column
+ * each side, clipped to half the neighbouring block. Clipping is what keeps the
+ * windows around a ONE-column block from overlapping, while still giving every
+ * boundary a window of its own.
+ */
+function windowHalves(k: number, frieze: FriezeExtent): { hl: number; hr: number } {
+  const blocks = frieze.blocks
+  return {
+    hl: k === 0 ? 0 : Math.min(0.5, blocks[k - 1].columns / 2),
+    hr: Math.min(0.5, blocks[k].columns / 2),
+  }
+}
+
+/**
+ * Which two titles the seam is between at `u`, and how far it has crossed.
+ *
+ * The release morphs card four's name into `all work` over the whole beat; the
+ * approach holds `all work`; the dolly morphs inside a window around each block
+ * boundary and rests on the block's year between them. `seamFor` applies
+ * `settleFrac` downstream, so every window rests at both ends — and the release
+ * window's plateau is what holds card four's name for the first 15 % of it.
+ */
+export function actTwoTitle(u: number, frieze: FriezeExtent): ActTwoTitle {
+  const { release, approach } = actTwoBeats(frieze.columns)
+  if (u <= release) {
+    return { from: -1, to: 0, frac: release > 0 ? clamp(u / release, 0, 1) : 1 }
+  }
+  if (u < approach) return { from: 0, to: 0, frac: 0 }
+
+  const cursor = dollyCursor(u, frieze)
+  for (let k = 0; k < frieze.blocks.length; k++) {
+    const { hl, hr } = windowHalves(k, frieze)
+    const lo = frieze.blocks[k].startCol - hl
+    const hi = frieze.blocks[k].startCol + hr
+    // Half-open, so a cursor landing exactly on the seam between two touching
+    // windows belongs to one of them and never to both.
+    if (cursor >= lo && cursor < hi && hi > lo) {
+      return { from: k, to: k + 1, frac: clamp((cursor - lo) / (hi - lo), 0, 1) }
+    }
+  }
+  const index = Math.max(0, blockIndexAt(u, frieze))
+  return { from: 1 + index, to: 1 + index, frac: 0 }
+}
+
+/**
+ * One discrete still under reduced motion. Every act-two channel — camera, fog,
+ * focus, title distance, title index and the card-four fade — is derived from
+ * THIS, never from the live `u`. Four channels each reading the live playhead is
+ * how a "still" acquires a slow drift that no test looks for.
+ */
+export interface ActTwoStill {
+  /** −1 = the volume shot, else the block index. */
+  index: number
+  /** The single u every act-two function is evaluated at for this still. */
+  u: number
+  /** Camera x for this still. */
+  x: number
+}
+
+/** Which still `u` falls in: the volume shot before the dolly, then one per block. */
+export function actTwoStill(
+  u: number,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+): ActTwoStill {
+  const index = blockIndexAt(u, frieze)
+  const { release, approach } = actTwoBeats(frieze.columns)
+  if (index < 0) return { index, u: release, x: 0 }
+  const block = frieze.blocks[index]
+  const { left } = friezeFrame(frieze, g)
+  const { xStart, xEnd } = dollyRange(frieze, g)
+  const centreX = left + (block.startCol + block.columns / 2) * FRIEZE_CELL_W
+  return { index, u: approach, x: clamp(centreX, xStart, xEnd) }
+}
+
+/**
+ * The still's camera pose. It takes the DESCRIPTOR, not a raw `u`, so a caller
+ * cannot accidentally sample a still off a live playhead.
+ */
+export function actTwoStillPose(
+  still: ActTwoStill,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+): ActTwoPose {
+  return { ...actTwoPose(still.u, frieze, g), x: still.x }
+}
+
+/**
+ * The playhead that parks the reading cursor on a continuous column coordinate.
+ * A cell gives `cell.col + cell.span / 2`.
+ *
+ * This is the WHOLE of pipeline 1's contribution to targeting.
+ * `playheadForItem(itemId, layout, extent)` belongs to pipeline 2's
+ * `src/utils/friezeTargets.ts`, which composes this with the cell lookup —
+ * `sceneMotion` stays pure and ignorant of the content model (Assumption 15).
+ */
+export function playheadForColumn(col: number, frieze: FriezeExtent): number {
+  const { approach } = actTwoBeats(frieze.columns)
+  const p = frieze.columns > 0 ? clamp(col / frieze.columns, 0, 1) : 0
+  return actTwoPlayhead(approach + (1 - approach) * p)
+}
+
+/** …and the same for a block's centre column. */
+export function playheadForBlock(k: number, frieze: FriezeExtent): number {
+  const block = frieze.blocks[k]
+  if (!block) return actTwoPlayhead(actTwoBeats(frieze.columns).approach)
+  return playheadForColumn(block.startCol + block.columns / 2, frieze)
 }
 
 export { DEG }

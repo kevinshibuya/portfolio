@@ -83,6 +83,14 @@ import {
   friezeHeightFill,
   actTwoTopClearFrac,
   maxRowsInFrame,
+  dollyCursor,
+  blockAt,
+  blockIndexAt,
+  actTwoTitle,
+  actTwoStill,
+  actTwoStillPose,
+  playheadForColumn,
+  playheadForBlock,
 } from '../../src/utils/sceneMotion'
 import { FRIEZE_CELL_W, FRIEZE_CELL_H } from '../../src/utils/friezeLayout'
 import type { FriezeExtent } from '../../src/utils/friezeLayout'
@@ -1302,5 +1310,194 @@ describe('act two · pose', () => {
       expect(actTwoTitleDistance(d, g), name).toBeLessThan(d)
       expect(actTwoTitleDistance(d, g), name).toBeLessThanOrEqual(g.titleDistance)
     }
+  })
+})
+
+describe('act two · title and stills', () => {
+  const g = sceneGeometry(1440, 900)
+  const beats = actTwoBeats(FIXTURE_FRIEZE.columns)
+
+  it('holds the cursor back until the dolly, then sweeps every column', () => {
+    expect(dollyCursor(0, FIXTURE_FRIEZE)).toBe(0)
+    expect(dollyCursor(beats.approach, FIXTURE_FRIEZE)).toBe(0)
+    expect(dollyCursor(1, FIXTURE_FRIEZE)).toBeCloseTo(FIXTURE_FRIEZE.columns, 12)
+    const mid = beats.approach + (1 - beats.approach) / 2
+    expect(dollyCursor(mid, FIXTURE_FRIEZE)).toBeCloseTo(FIXTURE_FRIEZE.columns / 2, 12)
+  })
+
+  it('names each year exactly once, newest first, across the dolly', () => {
+    for (const u of [0, beats.release, beats.approach - 1e-6]) {
+      expect(blockAt(u, FIXTURE_FRIEZE)).toBeNull()
+      expect(blockIndexAt(u, FIXTURE_FRIEZE)).toBe(-1)
+    }
+    const seen: number[] = []
+    for (let i = 0; i <= 10000; i++) {
+      const u = beats.approach + ((1 - beats.approach) * i) / 10000
+      const block = blockAt(u, FIXTURE_FRIEZE)
+      expect(block).not.toBeNull()
+      const year = block!.year
+      if (seen[seen.length - 1] !== year) seen.push(year)
+    }
+    // A one-column block is exactly what a camera-driven title would skip.
+    expect(seen).toEqual([2026, 2025, 2024, 2023])
+  })
+
+  it('morphs card four into `all work` across the release', () => {
+    expect(actTwoTitle(0, FIXTURE_FRIEZE)).toEqual({ from: -1, to: 0, frac: 0 })
+    expect(actTwoTitle(beats.release, FIXTURE_FRIEZE)).toEqual({ from: -1, to: 0, frac: 1 })
+    const half = actTwoTitle(beats.release / 2, FIXTURE_FRIEZE)
+    expect(half.from).toBe(-1)
+    expect(half.to).toBe(0)
+    expect(half.frac).toBeCloseTo(0.5, 9)
+    // The approach holds `all work` with no seam running.
+    const approach = actTwoTitle((beats.release + beats.approach) / 2, FIXTURE_FRIEZE)
+    expect(approach).toEqual({ from: 0, to: 0, frac: 0 })
+    const atStart = actTwoTitle(beats.approach, FIXTURE_FRIEZE)
+    expect(atStart.from).toBe(0)
+    expect(atStart.frac).toBe(0)
+    expect([0, 1]).toContain(atStart.to)
+  })
+
+  it('opens one window per boundary, and never two at once', () => {
+    for (let i = 0; i <= 4000; i++) {
+      const u = (i / 4000) * 1
+      const { from, to, frac } = actTwoTitle(u, FIXTURE_FRIEZE)
+      expect(frac).toBeGreaterThanOrEqual(0)
+      expect(frac).toBeLessThanOrEqual(1)
+      // A window is either shut (from === to, frac 0) or open onto the NEXT
+      // title exactly. Two overlapping windows would show up as a jump of 2.
+      if (from !== to) expect(to - from).toBe(1)
+      else expect(frac).toBe(0)
+    }
+  })
+
+  it('crosses the middle of every boundary window', () => {
+    for (let k = 0; k < FIXTURE_FRIEZE.blocks.length; k++) {
+      let found = false
+      for (let i = 0; i <= 20000; i++) {
+        const u = beats.approach + ((1 - beats.approach) * i) / 20000
+        const t = actTwoTitle(u, FIXTURE_FRIEZE)
+        if (t.from === k && t.to === k + 1 && Math.abs(t.frac - 0.5) < 0.01) {
+          found = true
+          break
+        }
+      }
+      expect(found, `boundary ${k}`).toBe(true)
+    }
+  })
+
+  it('keeps the windows around a one-column block touching, not overlapping', () => {
+    // 2026 is one column wide: its window is [0, 0.5] and 2025's is [0.5, 1.5].
+    const at = (cursor: number): ReturnType<typeof actTwoTitle> =>
+      actTwoTitle(
+        beats.approach + ((1 - beats.approach) * cursor) / FIXTURE_FRIEZE.columns,
+        FIXTURE_FRIEZE,
+      )
+    expect(at(0.25).from).toBe(0)
+    expect(at(0.25).to).toBe(1)
+    expect(at(0.75).from).toBe(1)
+    expect(at(0.75).to).toBe(2)
+    // Between them, exactly one hands over to the other with no shared column.
+    expect(at(0.49).to).toBe(1)
+    expect(at(0.51).from).toBe(1)
+  })
+
+  it('resolves act two to five discrete stills', () => {
+    const seen: string[] = []
+    for (let i = 0; i <= 4000; i++) {
+      const still = actTwoStill(i / 4000, FIXTURE_FRIEZE, g)
+      const key = `${still.index}|${still.u}|${still.x}`
+      if (seen[seen.length - 1] !== key) seen.push(key)
+    }
+    expect(seen).toHaveLength(5)
+    const volume = actTwoStill(0, FIXTURE_FRIEZE, g)
+    expect(volume.index).toBe(-1)
+    expect(volume.u).toBe(beats.release)
+    expect(volume.x).toBe(0)
+    const frame = friezeFrame(FIXTURE_FRIEZE, g)
+    const { xStart, xEnd } = dollyRange(FIXTURE_FRIEZE, g)
+    for (let k = 0; k < FIXTURE_FRIEZE.blocks.length; k++) {
+      const block = FIXTURE_FRIEZE.blocks[k]
+      const still = actTwoStill(playheadForBlock(k, FIXTURE_FRIEZE) - 3, FIXTURE_FRIEZE, g)
+      expect(still.index, `block ${k}`).toBe(k)
+      expect(still.u, `block ${k}`).toBe(beats.approach)
+      const centre = frame.left + (block.startCol + block.columns / 2) * FRIEZE_CELL_W
+      expect(still.x, `block ${k}`).toBeCloseTo(clamp(centre, xStart, xEnd), 12)
+    }
+  })
+
+  it('makes a still STILL: every channel bit-identical inside its interval', () => {
+    // `data-static` alone proves nothing — it is set once and never reads a
+    // pose. This is the property that matters, and it holds because every
+    // channel reads the descriptor's single `u`, never the live one.
+    const frame = friezeFrame(FIXTURE_FRIEZE, g)
+    const intervals: Array<[number, number]> = []
+    let start = 0
+    let key = JSON.stringify(actTwoStill(0, FIXTURE_FRIEZE, g))
+    for (let i = 1; i <= 4000; i++) {
+      const u = i / 4000
+      const next = JSON.stringify(actTwoStill(u, FIXTURE_FRIEZE, g))
+      if (next !== key) {
+        intervals.push([start, (i - 1) / 4000])
+        start = u
+        key = next
+      }
+    }
+    intervals.push([start, 1])
+    expect(intervals).toHaveLength(5)
+    for (const [lo, hi] of intervals) {
+      let pose: string | null = null
+      for (let s = 0; s < 20; s++) {
+        const u = lo + ((hi - lo) * s) / 19
+        const still = actTwoStill(u, FIXTURE_FRIEZE, g)
+        const stillPose = actTwoStillPose(still, FIXTURE_FRIEZE, g)
+        // The ambient time term is 0 in act two under reduced motion,
+        // unconditionally: that is what stops a still drifting between two
+        // on-demand frames.
+        const fog = actTwoFogRange(still.u, FIXTURE_FRIEZE, g, 0)
+        const focus = actTwoFocusDistance(still.u, FIXTURE_FRIEZE, g)
+        const dist = actTwoTitleDistance(stillPose.z - frame.z, g)
+        const shot = JSON.stringify({ stillPose, fog, focus, dist, index: still.index })
+        if (pose === null) pose = shot
+        else expect(shot).toBe(pose)
+      }
+    }
+  })
+
+  it('overwrites only the still pose’s x, from the descriptor', () => {
+    const still = actTwoStill(0.5, FIXTURE_FRIEZE, g)
+    const pose = actTwoStillPose(still, FIXTURE_FRIEZE, g)
+    const live = actTwoPose(still.u, FIXTURE_FRIEZE, g)
+    expect(pose.x).toBe(still.x)
+    expect(pose.y).toBe(live.y)
+    expect(pose.z).toBe(live.z)
+    expect(pose.yaw).toBe(live.yaw)
+    expect(pose.pitch).toBe(live.pitch)
+  })
+
+  it('targets a column and a block by playhead', () => {
+    expect(playheadForColumn(0, FIXTURE_FRIEZE)).toBeCloseTo(
+      actTwoPlayhead(beats.approach),
+      12,
+    )
+    expect(playheadForColumn(FIXTURE_FRIEZE.columns, FIXTURE_FRIEZE)).toBeCloseTo(4, 12)
+    for (let k = 0; k < FIXTURE_FRIEZE.blocks.length; k++) {
+      const playhead = playheadForBlock(k, FIXTURE_FRIEZE)
+      expect(playhead).toBeGreaterThanOrEqual(actTwoPlayhead(beats.approach))
+      expect(playhead).toBeLessThanOrEqual(4)
+      const block = blockAt(actTwoProgress(playhead), FIXTURE_FRIEZE)
+      expect(block?.year, `block ${k}`).toBe(FIXTURE_FRIEZE.blocks[k].year)
+    }
+  })
+
+  it('names each shipped year exactly once too', () => {
+    const shipped = actTwoBeats(SHIPPED_FRIEZE.columns)
+    const seen: number[] = []
+    for (let i = 0; i <= 10000; i++) {
+      const u = shipped.approach + ((1 - shipped.approach) * i) / 10000
+      const year = blockAt(u, SHIPPED_FRIEZE)!.year
+      if (seen[seen.length - 1] !== year) seen.push(year)
+    }
+    expect(seen).toEqual([2026, 2025, 2024, 2023])
   })
 })
