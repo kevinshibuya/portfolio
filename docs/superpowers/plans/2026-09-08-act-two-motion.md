@@ -212,7 +212,7 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 - [x] Write `tests/unit/sceneMotion.actOne.test.ts`; `npx vitest run tests/unit/sceneMotion.actOne.test.ts` → 6 snapshots written
 - [x] Add `__sceneCamera` to the DEV effect in `SceneRig.tsx`; `npx tsc -b` clean
 - [x] Write `scripts/scene-title-identity.mjs`; start `npm run dev`; run the script to the `before.json` path; inspect the file has 6×6 samples with non-null `camera`
-- [ ] `git add tests/unit/sceneMotion.actOne.test.ts tests/unit/__snapshots__ scripts/scene-title-identity.mjs docs/superpowers/plans/evidence src/components/canvas/scene/SceneRig.tsx && git commit -m "test(scene): act-one pose snapshot and title-identity baseline"`
+- [x] `git add tests/unit/sceneMotion.actOne.test.ts tests/unit/__snapshots__ scripts/scene-title-identity.mjs docs/superpowers/plans/evidence src/components/canvas/scene/SceneRig.tsx && git commit -m "test(scene): act-one pose snapshot and title-identity baseline"`
 
 ### Task 2: the frieze stub · constants, extent type, provisional extent
 
@@ -230,8 +230,8 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 **Boundaries:** Nothing under `src/components/`, nothing in `sceneMotion.ts`, no content-model change (`src/types/content.ts` is pipeline 2's).
 
-- [ ] Write the test; `npx vitest run tests/unit/friezeLayout.provisional.test.ts` → red, module not found
-- [ ] Write `src/utils/friezeLayout.ts`; the test → green; `npx tsc -b` clean
+- [x] Write the test; `npx vitest run tests/unit/friezeLayout.provisional.test.ts` → red, module not found
+- [x] Write `src/utils/friezeLayout.ts`; the test → green; `npx tsc -b` clean
 - [ ] `git add -A src/utils/friezeLayout.ts tests/unit/friezeLayout.provisional.test.ts && git commit -m "feat(frieze): extent type, cell constants and a provisional extent"`
 
 ### Task 3: playhead, scroll budget and scroll targets
