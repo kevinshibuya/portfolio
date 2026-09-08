@@ -366,7 +366,7 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 - [x] `titleTexture.ts` `TITLE_PAD_RATIO` rename; `SceneTitle.tsx` two-phase draw; `npx tsc -b` clean
 - [x] `Environment.tsx` `sceneRefs` prop and focus ref, `SelectedWorkScene.tsx` passes it; `npx tsc -b` and `npm run lint` clean
 - [x] Run the identity script to `after.json`; `diff before.json after.json` → empty (or `far` only); paste the diff output into the commit body → NOT far-only; see the commit body: titleZ is non-deterministic on unchanged code, and pos.z shifts <=1.3e-3 at two off-plateau samples from sub-pixel rounding of the taller wrapper
-- [ ] `git add -A src/components/canvas docs/superpowers/plans/evidence && git commit -m "feat(scene): act two in the frame loop; title carries all work and the years; data-act"`
+- [x] `git add -A src/components/canvas docs/superpowers/plans/evidence && git commit -m "feat(scene): act two in the frame loop; title carries all work and the years; data-act"`
 
 ### Task 8: e2e · a shared scene helper, the rewritten specs and the act-two scrub
 
@@ -390,7 +390,7 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 - [x] Create `tests/e2e/helpers/scene.ts`; rewrite `scene-scrub.spec.ts` on playheads; `lsof -ti:4173 | xargs -r kill -9; npx playwright test tests/e2e/scene-scrub.spec.ts` → green (act one)
 - [x] Extend `scene-scrub.spec.ts` with the act-two sweep, `data-act` and the registrations sweep; run → green
 - [x] `scene-reduced-motion.spec.ts`, `scene-effects.spec.ts`, `nav-on-light.spec.ts` on the helper plus the act-two stops; run the five-spec command → green on both projects
-- [ ] `git add -A tests/e2e && git commit -m "test(e2e): scene specs scroll by playhead; act-two scrub, data-act and reduced-motion stills"`
+- [x] `git add -A tests/e2e && git commit -m "test(e2e): scene specs scroll by playhead; act-two scrub, data-act and reduced-motion stills"`
 
 ### Task 9: architecture note for act two
 
@@ -407,7 +407,7 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 - [x] Edit the index row, Anatomy, Corridor and playhead, Fallback and data attributes
 - [x] Write the "Act two" subsection
-- [ ] `git add docs/architecture.md && git commit -m "docs(architecture): act two of the Selected Work scene"`
+- [x] `git add docs/architecture.md && git commit -m "docs(architecture): act two of the Selected Work scene"`
 
 ### Task 10: the verification set and the PR
 
@@ -430,10 +430,10 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 **Boundaries:** Nothing merges. No `ALLOW_MAIN_MERGE`. No spec box.
 
-- [ ] `npx tsc -b && npm run lint` clean
-- [ ] `npx vitest run` green; `npx vitest run tests/unit/sceneMotion.actOne.test.ts` reports snapshots matched, none written
-- [ ] `lsof -ti:4173 | xargs -r kill -9; npx playwright test` green on both projects
-- [ ] `git push -u origin feat/act-two-motion`; `gh pr create --base feat/act-two …`; stop
+- [x] `npx tsc -b && npm run lint` clean
+- [x] `npx vitest run` green; `npx vitest run tests/unit/sceneMotion.actOne.test.ts` reports snapshots matched, none written
+- [x] `lsof -ti:4173 | xargs -r kill -9; npx playwright test` green on both projects
+- [x] `git push -u origin feat/act-two-motion`; `gh pr create --base feat/act-two …`; stop
 
 ---
 
