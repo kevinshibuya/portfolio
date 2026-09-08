@@ -89,6 +89,7 @@ Checkboxes in `docs/superpowers/specs/` and `docs/superpowers/plans/` are the so
 | Decisions with their reasoning | `docs/adr/` |
 | Records of live systems | `docs/superpowers/specs/`, `docs/superpowers/plans/` |
 | Records of retired systems | `docs/superpowers/archive/` |
+| Pending work that has no spec yet | GitHub issues on the repository |
 | The resume note (ignored, never tracked) | `HANDOFF.md` |
 | Tests | `tests/e2e/`, `tests/unit/` |
 | Content types | `src/types/content.ts` |
