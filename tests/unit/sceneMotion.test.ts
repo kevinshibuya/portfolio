@@ -338,8 +338,8 @@ describe('sceneGeometry', () => {
 
   // Nothing the frame shows may step as aspect crosses square. The bounds are
   // about double the smooth formula's steepest slope over one 0.005 step
-  // (measured 2026-09-07: card 3.4 px, D 0.10, camY 0.0053, lateral 0.0033,
-  // titleCapPx 0.30). `titleWidthCap` and `titleClearance` are deliberately
+  // (measured 2026-09-08 at band 0.85 to 1.05: card 3.4 px, D 0.10, camY
+  // 0.0106, lateral 0.0033, titleCapPx 0.600). `titleWidthCap` and `titleClearance` are deliberately
   // absent: they step by design (spec decision 3).
   describe.each([390, 600, 820, 960, 1280])('continuity at %i px wide', (w) => {
     const swept = sweepAspect(w)

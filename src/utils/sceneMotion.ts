@@ -316,15 +316,24 @@ const HALF_FOV_TAN = Math.tan((FOV_DEG * DEG) / 2)
  * phone values, and the aspect where they have fully reached their desktop
  * ones. Between them `crossover` blends by `smoothstep`.
  *
- * A tuning knob Kevin adjusts by eye, not a derived number. What it must keep
- * being true is that no real device sits inside the band: every portrait phone
- * and tablet is at or under 0.85 (iPad Pro portrait is 0.75, the foldables
- * 0.81 to 0.83) and every landscape tablet at or over 1.25 (iPad landscape
- * starts at 1.33). Only a near-square desktop window lands between them, and
- * that window is being dragged, so what it wants is continuity, not a value.
+ * A tuning knob Kevin adjusts by eye, not a derived number, with two hard
+ * limits. No real device may sit inside the band: every portrait phone and
+ * tablet is at or under 0.85 (iPad Pro portrait 0.75, the foldables 0.81 to
+ * 0.83) and every landscape tablet at or over 1.25 · except the Z Fold 6 inner
+ * screen in landscape at 1.232, which the original 1.25 end wrongly included.
+ * And the band cannot be arbitrarily narrow: the continuity sweep bounds
+ * |ΔcamY| ≤ 0.02 and |ΔtitleCapPx| ≤ 1 px per 0.005 aspect step imply a
+ * bandwidth floor of 0.106 and 0.120 respectively, so the title floor binds;
+ * 0.20 keeps the 2x headroom those bounds were set with.
+ *
+ * Ends at 1.05, not 1.25, because at 1.25 the near-square card sat too low ·
+ * bottom 0.939 of the frame at 820x821 with its blob shadow clipped, floor
+ * contact at 1.029. At 1.05 it lands at 0.846 with contact at 0.937, within
+ * 0.03 of the landscape-tablet picture, which is right: the card is the same
+ * half-frame height in both.
  */
 export const CROSSOVER_START = 0.85
-export const CROSSOVER_END = 1.25
+export const CROSSOVER_END = 1.05
 
 /** 0 in portrait, 1 in landscape, smoothstepped across the crossover band. */
 function crossover(aspect: number): number {
