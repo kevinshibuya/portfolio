@@ -82,11 +82,11 @@ One plan, two PRs into `staging`, Opus executes. PR A carries item 1 on its own 
 
 ## TODO
 
-- [ ] `sceneGeometry` has no `aspect < 1` fork on `fraction` or `camY`; the `0.46` cap is gone; `CROSSOVER_START` and `CROSSOVER_END` are exported.
-- [ ] The sweep, the two-sided frame-fit rule and the anchor locks pass in `tests/unit/sceneMotion.test.ts`, and the pre-change function was observed failing the sweep (Task 2's red output is in the PR description).
-- [ ] The scene e2e scrub also runs at a near-square viewport with zero console errors.
-- [ ] `docs/architecture.md#card-size` describes the unified formula and the crossover band; `CONTEXT.md` carries **Frame-fit rule** and **Crossover band**.
-- [ ] PR A open against `staging` with the manual-pass steps in its description.
+- [x] `sceneGeometry` has no `aspect < 1` fork on `fraction` or `camY`; the `0.46` cap is gone; `CROSSOVER_START` and `CROSSOVER_END` are exported.
+- [x] The sweep, the two-sided frame-fit rule and the anchor locks pass in `tests/unit/sceneMotion.test.ts`, and the pre-change function was observed failing the sweep (Task 2's red output is in the PR description).
+- [x] The scene e2e scrub also runs at a near-square viewport with zero console errors.
+- [x] `docs/architecture.md#card-size` describes the unified formula and the crossover band; `CONTEXT.md` carries **Frame-fit rule** and **Crossover band**.
+- [x] PR A open against `staging` with the manual-pass steps in its description.
 - [ ] `perf/hero-harness` merged with `staging` per issue #9; `npx tsc -b`, `npm run lint`, `npx vitest run` green on the merged tree.
 - [ ] The harness e2e specs skip unless `PERF_HARNESS=1`; the default `npx playwright test` is green with the skips visible; a follow-up issue for re-baselining exists and carries the first failure line from a `PERF_HARNESS=1` run.
 - [ ] `CONTEXT.md` carries the Measurement group and the rig-relative invariant again.
