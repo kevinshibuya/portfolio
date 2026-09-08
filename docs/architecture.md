@@ -166,13 +166,15 @@ The band (`titleBand`) starts 16 px under the measured nav (`navPx`, a `ResizeOb
 
 The band shrink is clamped, so a viewport too short to hold the band at all cannot drive the fit to zero or below. Clearance above the card is `g.titleClearance`: 0.012 of the frame height, 0.045 in portrait, where the card is 0.88 of the width and the band has the headroom.
 
-`titleCapPx` floors at 56, and at 72 in portrait. Nine per cent of a phone's width is 35 px, so the floor is what actually decides the phone title; 56 read at 0.14 of the card against the desktop's 0.167, and 72 restores that ratio (measured cap 55.6 px on a 343 px card at 390x844).
+`titleCapPx` floors at 72 at or under the band start and 56 at or over the band end, blended across the crossover band by `smoothstep` like `camY`. Nine per cent of a phone's width is 35 px, so the floor is what actually decides the phone title; 56 read at 0.14 of the card against the desktop's 0.167, and 72 restores that ratio (measured cap 55.6 px on a 343 px card at 390x844).
 
 **Layer 1.** The title and the overture live on `TITLE_LAYER` (`src/components/canvas/scene/sceneRefs.ts`), which the composer never renders. `TitlePass` in `src/components/canvas/scene/Environment.tsx` narrows the camera to layer 0 before the composer and, after it, rebuilds depth with a depth-only render and draws layer 1 depth-tested, so depth of field and grain never touch them. Without a composer the camera keeps layer 1 enabled and they render in the main pass.
 
 ### Card size
 
-A fraction of the frame **width**, capped at `CARD_MAX_PX` 620 px in both orientations. Portrait is `min(0.88, 620/width)`: a flat 0.88 made the 620 cap false for every portrait viewport past about 705 px, so tablets drew 722 to 900 px cards. Floored at `CARD_MIN_PX` 287 px, so the caption name never drops under 12 px.
+A fraction of the frame **width**: `min(0.88, 620/width, 0.5/(aspect · CARD_H))`, the same three terms on both sides of square. They are the phone's edge-to-edge card, the `CARD_MAX_PX` 620 px design cap (a flat portrait 0.88 made that cap false past about 705 px, so tablets drew 722 to 900 px cards), and the **frame-fit rule** · the card never exceeds half the frame height, so it cannot push into the title band. There is no portrait branch: the frame-fit term is what carries the card continuously through square, where a branch cliffed. Under all three sits the legibility floor `CARD_MIN_PX` 287 px, so the caption name never drops under 12 px; it binds on landscape phones and on 320 px portrait, and it is the only thing allowed to break frame-fit.
+
+The camera height still differs between a phone and a desktop, but it blends rather than switches: `camY` rises from the desktop coefficient 0.61 to the phone coefficient 1.0 across the **crossover band**, `CROSSOVER_START` 0.85 to `CROSSOVER_END` 1.25 in aspect, by `smoothstep`. The band is tuned by eye, and every real phone and tablet sits outside it (iPad Pro portrait 0.75, the foldables 0.81 to 0.83, iPad landscape from 1.33), so only a near-square desktop window being dragged is ever inside it. (`src/utils/sceneMotion.ts`, `docs/superpowers/specs/2026-09-07-aspect-crossover-design.md`)
 
 ### Environment
 

@@ -63,6 +63,16 @@ The four card positions laid along depth, alternating a lateral offset, that the
 (`src/components/canvas/scene/Corridor.tsx`, `docs/architecture.md#selected-work-scene`)
 _Avoid_: stack, track, rail
 
+**Frame-fit rule**:
+The settled card never exceeds half the frame height, on either side of square; the only thing allowed to break it is the caption legibility floor.
+(`src/utils/sceneMotion.ts`, `docs/architecture.md#card-size`)
+_Avoid_: dominance cap, 0.46, desktop cap
+
+**Crossover band**:
+The aspect range, 0.85 to 1.25 by default, across which camera height and the title floor blend from their phone values to their desktop values.
+(`src/utils/sceneMotion.ts`, `docs/architecture.md#card-size`)
+_Avoid_: regime, breakpoint, portrait mode
+
 **Slot**:
 The settled front position where a card is sharp, in focus and pressable; every integer playhead is a card in the slot.
 (`src/utils/sceneMotion.ts`, ADR 0011, `docs/architecture.md#selected-work-scene`)
@@ -140,6 +150,7 @@ The resume note at the repo root, always present, never tracked. Superseded ones
 - GSAP and Framer Motion never drive the same animation. (`CLAUDE.md`, `docs/architecture.md#animation-lanes`)
 - Any palette or token change ships with a recomputed AA contrast audit across every affected text/background pair. (`CLAUDE.md`, `docs/contrast.md`)
 - The hero text carries a documented, owner-ratified AA exemption; no contrast layer may be reintroduced behind it. (`src/index.css`, ADR 0004, `docs/architecture.md#hero`)
+- The settled card never exceeds half the frame height, except where the 287 px caption legibility floor binds; a unit test asserts it in both orientations. (`tests/unit/sceneMotion.test.ts`)
 - Spec and plan checkboxes are kept in sync with reality; boxes are never invented, only ticked. (`CLAUDE.md`)
 - `npm run preview` is `npm run build && wrangler dev`, not a static preview; it rebuilds first. Lighthouse and ad-hoc preview work use `npx vite preview --port 4173`. (`package.json`, ADR 0008)
 - The JSON-LD in `index.html` mirrors `src/data/projects.ts`, with contiguous positions; a test asserts it. (`tests/unit/seo/jsonld-projects.test.ts`)
