@@ -24,6 +24,7 @@ import {
   SEAM_SIGMA_EM,
   clamp,
   playheadFor,
+  actOneSeg,
   easedSeg,
   sceneGeometry,
   cameraPose,
@@ -39,6 +40,7 @@ import {
   type Rect,
 } from '../../../utils/sceneMotion'
 import type { SceneRefs } from './sceneRefs'
+import type { FriezeExtent } from '../../../utils/friezeLayout'
 
 const HALF_FOV_TAN = Math.tan((FOV_DEG * DEG) / 2)
 /** Title float, in CSS px at the title's distance. */
@@ -66,6 +68,8 @@ interface SceneRigProps {
   sceneRefs: SceneRefs
   /** The fixed nav's height in CSS px; the title band starts 16 px under it. */
   navPx: number
+  /** The frieze act two is framed against; its column count sizes the playhead. */
+  frieze: FriezeExtent
 }
 
 /**
@@ -79,7 +83,13 @@ interface SceneRigProps {
  * Lane rule (CLAUDE.md): the R3F loop READS Framer MotionValues; Framer never
  * animates a three object.
  */
-export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRigProps) {
+export function SceneRig({
+  progress,
+  reducedMotion,
+  sceneRefs,
+  navPx,
+  frieze,
+}: SceneRigProps) {
   const geo = useRef<SceneGeometry | null>(null)
   const geoKey = useRef('')
   // Scratch vectors, reused every frame so the loop allocates nothing.
@@ -143,7 +153,12 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
       fog.far = far
     }
 
-    const seg = playheadFor(progress.get())
+    // `actOneSeg` is not cosmetic. The wrapper is now 1350 svh, so without the
+    // clamp at 3 the act-one code would receive a segment up to 4 and the
+    // corridor would scrub a card PAST its slot the moment the reader enters
+    // act two. With it, every frame of act one is exactly today's frame and
+    // card four holds its slot for the rest of the wrapper.
+    const seg = actOneSeg(playheadFor(progress.get(), frieze.columns))
     const overture = overturePose(seg, reducedMotion)
     // Reduced motion keeps the pin but jumps between slots: no dolly, no ease.
     // While the overture stands it shows the overture's start frame (the line
@@ -284,7 +299,7 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
     title.visible = true
     const n = textures.length
 
-    const seg = playheadFor(progress.get())
+    const seg = actOneSeg(playheadFor(progress.get(), frieze.columns))
     const worldPerPx = (2 * g.titleDistance * HALF_FOV_TAN) / g.heightPx
     const visibleH = 2 * g.titleDistance * HALF_FOV_TAN
     const visibleW = visibleH * g.aspect

@@ -294,7 +294,7 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 - [x] Add the describe; run → red on the new block only
 - [x] Implement `dollyCursor`, `blockAt`, `blockIndexAt`, `actTwoTitle`; green
 - [x] Implement `ActTwoStill`, `actTwoStill`, `actTwoStillPose`, `playheadForColumn`, `playheadForBlock`; green, the per-interval identity assertions included; whole unit suite green; snapshot matches
-- [ ] `git add src/utils/sceneMotion.ts tests/unit/sceneMotion.test.ts && git commit -m "feat(scene): act-two reading cursor, title sequence, still descriptors and column targets"`
+- [x] `git add src/utils/sceneMotion.ts tests/unit/sceneMotion.test.ts && git commit -m "feat(scene): act-two reading cursor, title sequence, still descriptors and column targets"`
 
 ### Task 6: wire the section · wrapper height from data, extent and strings into the scene
 
@@ -322,9 +322,9 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 **Boundaries:** `SceneTitle.tsx` and `Environment.tsx` are Task 7, and so is every act-two line of `SceneRig.tsx` beyond the props declaration and the one playhead call above. No `Archive.tsx` change (pipeline 2 deletes it). No content-model change.
 
-- [ ] `sceneRefs.ts`, `SelectedWorkScene.tsx` props and `titles`, `SceneRigProps.frieze` and the `actOneSeg(playheadFor(…, frieze.columns))` call; `npx tsc -b` clean and `npm run lint` clean at the end of this step, not the next
-- [ ] `Projects.tsx` extent, inline height, `data-svh`, click path, props; `npx tsc -b` clean; `npm run lint` clean
-- [ ] `index.css` height and comment removed; `grep -n '550svh' src/index.css` empty; dev server shows `data-svh="1350"`
+- [x] `sceneRefs.ts`, `SelectedWorkScene.tsx` props and `titles`, `SceneRigProps.frieze` and the `actOneSeg(playheadFor(…, frieze.columns))` call; `npx tsc -b` clean and `npm run lint` clean at the end of this step, not the next
+- [x] `Projects.tsx` extent, inline height, `data-svh`, click path, props; `npx tsc -b` clean; `npm run lint` clean
+- [x] `index.css` height and comment removed; `grep -n '550svh' src/index.css` empty; dev server shows `data-svh="1350"`
 - [ ] `git add src/components/sections/Projects.tsx src/components/canvas/SelectedWorkScene.tsx src/components/canvas/scene/SceneRig.tsx src/components/canvas/scene/sceneRefs.ts src/index.css && git commit -m "feat(scene): wrapper height from the frieze extent; act-two strings into the scene"`
 
 ### Task 7: the frame loop, the title draw and the focus · act two on screen

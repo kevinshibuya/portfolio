@@ -4,6 +4,7 @@ import { useMotionValueEvent, type MotionValue } from 'framer-motion'
 import * as THREE from 'three'
 import { entranceDone } from '../../context/MotionContext'
 import { FOV_DEG, sceneGeometry, fogRange } from '../../utils/sceneMotion'
+import type { FriezeExtent } from '../../utils/friezeLayout'
 import { createSceneRefs, type SceneRefs } from './scene/sceneRefs'
 import { SceneRig } from './scene/SceneRig'
 import { Corridor } from './scene/Corridor'
@@ -40,6 +41,10 @@ export interface SelectedWorkSceneProps {
   navPx: number
   /** The overture line, localised. */
   overture: string
+  /** The frieze's extent: what act two is framed against, and the year strings. */
+  frieze: FriezeExtent
+  /** `all work` / `todos os trabalhos` — act two's first title. */
+  allWork: string
 }
 
 /**
@@ -203,9 +208,17 @@ export function SelectedWorkScene({
   onCardClick,
   navPx,
   overture,
+  frieze,
+  allWork,
 }: SelectedWorkSceneProps) {
   const sceneRefs = useRef(createSceneRefs())
-  const titles = useMemo(() => cards.map((c) => c.title), [cards])
+  // Act one's four names, then act two's: `all work` and one year per block.
+  // The corridor's `cards` identity is untouched by the two new entries, so
+  // `data-registrations` stays 1.
+  const titles = useMemo(
+    () => [...cards.map((c) => c.title), allWork, ...frieze.blocks.map((b) => String(b.year))],
+    [cards, allWork, frieze],
+  )
   const [{ supported, software }] = useState(probeWebgl)
   const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null)
   const [inView, setInView] = useState(false)
@@ -340,6 +353,7 @@ export function SelectedWorkScene({
     >
       <fog attach="fog" args={[CREAM, initialFog.near, initialFog.far]} />
       <SceneRig
+        frieze={frieze}
         progress={progress}
         reducedMotion={reducedMotion}
         sceneRefs={sceneRefs.current}
