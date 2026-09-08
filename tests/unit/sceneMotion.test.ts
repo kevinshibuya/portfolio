@@ -42,6 +42,8 @@ import {
   CAPTION_MIN_NAME_PX,
   CARD_MIN_PX,
   CARD_MAX_PX,
+  CROSSOVER_START,
+  CROSSOVER_END,
   titleBand,
   TITLE_WIDTH_CAP,
   titleWrapAllowancePx,
@@ -50,6 +52,7 @@ import {
   TITLE_CLEARANCE_PORTRAIT,
   scrollTargetFor,
 } from '../../src/utils/sceneMotion'
+import type { SceneGeometry } from '../../src/utils/sceneMotion'
 
 /** The four viewports the geometry contract was worked against. */
 const VIEWPORTS: ReadonlyArray<{ name: string; w: number; h: number }> = [
@@ -255,6 +258,37 @@ describe('card constants', () => {
   })
 })
 
+/** True when the caption legibility floor, not a cap, decided the card size. */
+function floorBinds(g: SceneGeometry): boolean {
+  return Math.abs(g.fraction - CARD_MIN_PX / g.widthPx) < 1e-9
+}
+
+/** Every geometry at one width, aspect 0.4 to 2.4 in 0.005 steps. */
+function sweepAspect(widthPx: number): SceneGeometry[] {
+  const from = 0.4
+  const step = 0.005
+  const steps = Math.round((2.4 - from) / step)
+  const out: SceneGeometry[] = []
+  for (let i = 0; i <= steps; i++) {
+    const aspect = from + i * step
+    out.push(sceneGeometry(widthPx, widthPx / aspect))
+  }
+  return out
+}
+
+/** The largest change in `read` between consecutive samples, and where. */
+function widestStep(
+  swept: readonly SceneGeometry[],
+  read: (g: SceneGeometry) => number,
+): { delta: number; at: number } {
+  let worst = { delta: 0, at: swept[0].aspect }
+  for (let i = 1; i < swept.length; i++) {
+    const delta = Math.abs(read(swept[i]) - read(swept[i - 1]))
+    if (delta > worst.delta) worst = { delta, at: swept[i].aspect }
+  }
+  return worst
+}
+
 describe('sceneGeometry', () => {
   it('sizes the card against the frame at each worked viewport', () => {
     // 620px cap at 1440; the half-frame-height cap at 1920; the cap again at
@@ -265,12 +299,64 @@ describe('sceneGeometry', () => {
     expect(sceneGeometry(393, 851).fraction).toBeCloseTo(0.88, 10)
   })
 
-  it('never lets the card exceed half the frame height on desktop', () => {
-    for (const { name, w, h } of VIEWPORTS) {
-      const g = sceneGeometry(w, h)
-      if (g.aspect < 1) continue
-      expect(g.fraction * g.aspect * CARD_H, name).toBeLessThanOrEqual(0.5 + 1e-9)
+  it('never lets the card exceed half the frame height', () => {
+    // Both orientations of every worked viewport, plus the sizes that sit a
+    // pixel either side of square and the tablets the 620 px cap governs.
+    const pairs: ReadonlyArray<[number, number]> = [
+      ...VIEWPORTS.map(({ w, h }) => [w, h] as [number, number]),
+      [600, 601], [640, 641], [820, 821], [960, 961], [1023, 1024],
+      [705, 1000], [768, 1024], [820, 1180],
+    ]
+    for (const [a, b] of pairs) {
+      for (const [w, h] of [[a, b], [b, a]] as Array<[number, number]>) {
+        const g = sceneGeometry(w, h)
+        // The caption legibility floor is the only thing allowed to break it.
+        if (floorBinds(g)) continue
+        expect(g.fraction * g.aspect * CARD_H, `${w}x${h}`).toBeLessThanOrEqual(0.5 + 1e-9)
+      }
     }
+    // …and it does bind somewhere, so the exemption cannot silently swallow
+    // the whole loop. Inside the loop it fires for 851x393 alone.
+    expect(floorBinds(sceneGeometry(844, 390))).toBe(true)
+    expect(floorBinds(sceneGeometry(320, 568))).toBe(true)
+  })
+
+  it('anchors both ends of the crossover band', () => {
+    const phone = sceneGeometry(393, 852)
+    expect(phone.fraction).toBeCloseTo(0.88, 10)
+    expect(phone.camY).toBeCloseTo(CARD_Y + 1.0 * CARD_H, 6)
+    const desktop = sceneGeometry(1440, 900)
+    expect(desktop.fraction).toBeCloseTo(0.4306, 3)
+    expect(desktop.camY).toBeCloseTo(CARD_Y + 0.61 * CARD_H, 6)
+    // A retune of the band may not swallow either anchor: both must stay on
+    // their own side of it, or the numbers above stop meaning what they say.
+    expect(CROSSOVER_START).toBeLessThan(1)
+    expect(CROSSOVER_END).toBeGreaterThan(1)
+    expect(phone.aspect).toBeLessThanOrEqual(CROSSOVER_START)
+    expect(desktop.aspect).toBeGreaterThanOrEqual(CROSSOVER_END)
+  })
+
+  // Nothing the frame shows may step as aspect crosses square. The bounds are
+  // about double the smooth formula's steepest slope over one 0.005 step
+  // (measured 2026-09-07: card 3.4 px, D 0.10, camY 0.0053, lateral 0.0033,
+  // titleCapPx 0.30). `titleWidthCap` and `titleClearance` are deliberately
+  // absent: they step by design (spec decision 3).
+  describe.each([390, 600, 820, 960, 1280])('continuity at %i px wide', (w) => {
+    const swept = sweepAspect(w)
+    const metrics: ReadonlyArray<[string, (g: SceneGeometry) => number, number]> = [
+      ['the card width in px', (g) => g.fraction * g.widthPx, 8],
+      ['the camera distance D', (g) => g.D, 0.25],
+      ['the camera height', (g) => g.camY, 0.02 * CARD_W],
+      ['the lateral offset', (g) => g.lateral, 0.01 * CARD_W],
+      ['the title cap height', (g) => g.titleCapPx, 1],
+    ]
+    it.each(metrics)('%s never steps through square', (label, read, bound) => {
+      const worst = widestStep(swept, read)
+      expect(
+        worst.delta,
+        `${label} jumps ${worst.delta.toFixed(4)} at aspect ${worst.at.toFixed(3)}, ${w} px wide`,
+      ).toBeLessThanOrEqual(bound)
+    })
   })
 
   it('spaces the corridor at 1.15 camera distances', () => {
