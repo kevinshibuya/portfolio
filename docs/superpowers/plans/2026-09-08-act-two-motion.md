@@ -385,7 +385,7 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 **Acceptance check:** `lsof -ti:4173 | xargs -r kill -9; npx playwright test tests/e2e/scene-scrub.spec.ts tests/e2e/scene-reduced-motion.spec.ts tests/e2e/scene-effects.spec.ts tests/e2e/nav-on-light.spec.ts tests/e2e/scene-no-webgl.spec.ts` green on both projects (`desktop-chromium`, `mobile-chromium`). Before Task 6 the same command was red on the fraction assumptions; after Task 8 it is green.
 
-**Boundaries:** `light-chapter.spec.ts`, `section-enters.spec.ts`, `reduced-motion.spec.ts`, `perf-budget.spec.ts`, `pixel-gate.spec.ts` are not touched (their `#archive` expectations are pipeline 3's). No source change; if a spec can only pass with a source change, stop and report `blocked: <what the scrub exposed>`.
+**Boundaries:** `light-chapter.spec.ts`, `section-enters.spec.ts`, `reduced-motion.spec.ts`, `perf-budget.spec.ts`, `pixel-gate.spec.ts` are not touched (their `#archive` expectations are pipeline 2's). No source change; if a spec can only pass with a source change, stop and report `blocked: <what the scrub exposed>`.
 
 - [ ] Create `tests/e2e/helpers/scene.ts`; rewrite `scene-scrub.spec.ts` on playheads; `lsof -ti:4173 | xargs -r kill -9; npx playwright test tests/e2e/scene-scrub.spec.ts` → green (act one)
 - [ ] Extend `scene-scrub.spec.ts` with the act-two sweep, `data-act` and the registrations sweep; run → green
