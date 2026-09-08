@@ -312,39 +312,55 @@ export interface CameraPose {
 const HALF_FOV_TAN = Math.tan((FOV_DEG * DEG) / 2)
 
 /**
+ * The aspect where the camera height and the title floor begin leaving their
+ * phone values, and the aspect where they have fully reached their desktop
+ * ones. Between them `crossover` blends by `smoothstep`.
+ *
+ * A tuning knob Kevin adjusts by eye, not a derived number. What it must keep
+ * being true is that no real device sits inside the band: every portrait phone
+ * and tablet is at or under 0.85 (iPad Pro portrait is 0.75, the foldables
+ * 0.81 to 0.83) and every landscape tablet at or over 1.25 (iPad landscape
+ * starts at 1.33). Only a near-square desktop window lands between them, and
+ * that window is being dragged, so what it wants is continuity, not a value.
+ */
+export const CROSSOVER_START = 0.85
+export const CROSSOVER_END = 1.25
+
+/** 0 in portrait, 1 in landscape, smoothstepped across the crossover band. */
+function crossover(aspect: number): number {
+  return smoothstep(clamp((aspect - CROSSOVER_START) / (CROSSOVER_END - CROSSOVER_START), 0, 1))
+}
+
+/**
  * Everything the scene's framing depends on, derived from the viewport alone.
  *
  * The card is sized as a fraction of the frame WIDTH, then the camera distance
  * that produces that fraction is solved for — so the card reads at the same
- * size whatever the viewport, and the corridor scales with it. Three caps
- * fight for the desktop fraction: a hard 0.46 (the card never dominates), the
- * 620px design cap, and half the frame HEIGHT (so a short wide window doesn't
- * push the card into the title band). Phones skip all three: one 88vw card.
- * Under all of it sits the legibility floor: the card is never narrower than
- * `CARD_MIN_PX`, so the caption name on it never drops under 12 px — this
- * binds on landscape phones and on 320 px portrait, and a 0.92 ceiling keeps
- * the floored card inside the frame.
+ * size whatever the viewport, and the corridor scales with it. One formula
+ * decides that fraction on both sides of square: the smallest of 0.88 (the
+ * phone's edge-to-edge card), the 620 px design cap, and half the frame HEIGHT
+ * (the frame-fit rule · the card never grows past half the height, so it never
+ * pushes into the title band). There is no portrait branch; the frame-fit term
+ * is what carries the card continuously through square, where the old branch
+ * cliffed. Under all of it sits the legibility floor: the card is never
+ * narrower than `CARD_MIN_PX`, so the caption name on it never drops under
+ * 12 px — this binds on landscape phones and on 320 px portrait, and a 0.92
+ * ceiling keeps the floored card inside the frame.
+ *
+ * The camera height and the title's floor still differ between a phone and a
+ * desktop; they blend across the crossover band instead of switching.
  */
 export function sceneGeometry(widthPx: number, heightPx: number): SceneGeometry {
   const aspect = widthPx / heightPx
-  const sized =
-    aspect < 1
-      ? // Portrait is one wide card — but the 620 px design cap still binds,
-        // which it did not before. Without it `CARD_MAX_PX`'s own contract
-        // ("the card never renders wider than this in CSS px, whatever the
-        // viewport") was false for every portrait viewport past ~705 px: an
-        // 820×1180 tablet drew a 722 px card and 1023×1024 drew 900 px, and a
-        // desktop window dragged through square nearly doubled the card. Phones
-        // are untouched — 620/390 is 1.59, far above 0.88.
-        Math.min(0.88, CARD_MAX_PX / widthPx)
-      : Math.min(0.46, CARD_MAX_PX / widthPx, 0.5 / (aspect * CARD_H))
+  const sized = Math.min(0.88, CARD_MAX_PX / widthPx, 0.5 / (aspect * CARD_H))
   const fraction = Math.min(Math.max(sized, CARD_MIN_PX / widthPx), 0.92)
   const D = CARD_W / (fraction * 2 * HALF_FOV_TAN * aspect)
   const spacing = 1.15 * D
   // The second term keeps an 88vw card inside the frame once it is offset.
   const lateral =
     Math.min(0.35 * clamp(aspect / 1.6, 0, 1), 0.9 * (0.5 / fraction - 0.5)) * CARD_W
-  const camY = CARD_Y + (aspect < 1 ? 1.0 : 0.61) * CARD_H
+  const t = crossover(aspect)
+  const camY = CARD_Y + (1.0 + (0.61 - 1.0) * t) * CARD_H
   return {
     aspect,
     widthPx,
@@ -355,12 +371,13 @@ export function sceneGeometry(widthPx: number, heightPx: number): SceneGeometry 
     lateral,
     camY,
     titleDistance: D + 0.25 * spacing,
-    // 0.09 of the width, floored — and the portrait floor is much higher.
+    // 0.09 of the width, floored — and the phone floor is much higher.
     // A phone's 9% is 35 px, so the floor is what actually decides the title
     // there, and at 56 the title read at 0.14 of the card against the desktop's
     // 0.167. 72 restores that ratio; the wider width cap above is what makes
     // the room for it, and the wrap absorbs whatever does not fit on one line.
-    titleCapPx: clamp(0.09 * widthPx, aspect < 1 ? 72 : 56, 150),
+    // The floor blends 72 to 56 across the crossover band, like `camY`.
+    titleCapPx: clamp(0.09 * widthPx, 72 + (56 - 72) * t, 150),
     titleWidthCap: aspect < 1 ? TITLE_WIDTH_CAP_PORTRAIT : TITLE_WIDTH_CAP,
     titleClearance: aspect < 1 ? TITLE_CLEARANCE_PORTRAIT : TITLE_CLEARANCE,
     near: 0.05,
