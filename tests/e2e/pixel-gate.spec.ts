@@ -6,6 +6,11 @@ const DORMANT =
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PIXEL GATE — the sole arbiter of "zero visual change" for the hero perf
+// campaign. NOTE: 6 of the 30 goldens (stage-arrival, 3 seeds x 2 projects)
+// are DORMANT behind PERF_HARNESS=1 — their golden is of an August DOM stack
+// that no longer exists, and the scene has no ?perf-freeze hook, so no stage
+// golden can be baked yet (issue #11). A green default gate therefore does NOT
+// cover the Selected Work stage: a perf campaign must not resume on it alone.
 // campaign. `npx playwright test pixel-gate` green = the optimized build paints
 // what the pre-campaign build painted, to AA-level tolerance. No flag needed —
 // `playwright.config.ts` sets `workers: 1`, which this spec asserts.

@@ -6,18 +6,21 @@ import { test, expect } from '@playwright/test'
 //
 // One exception, gated below: `perf-counters` counts frames over a 1 s
 // wall-clock window and asserts `> 10` as a liveness check. That is a
-// THROUGHPUT assertion, and it is starved by the 30 freeze-and-screenshot
-// cycles pixel-gate runs immediately before it (measured: 8 frames, twice,
-// in the full serial suite). Loosening the threshold to get green is exactly
-// what ADR 0007 forbids, so the test waits for a quiet rig instead.
+// THROUGHPUT assertion, and it measured 8 frames twice in the full serial
+// suite while passing on its own. The cause is NOT characterised · the file
+// order is perf-budget, perf-hooks, pixel-gate within a project, so pixel-gate
+// does not run immediately before this file, and the identical assertion in
+// perf-budget behaves differently. Loosening the threshold to get green is
+// what ADR 0007 forbids, so both wait for a quiet rig. Issue #11 carries the
+// real fix: a liveness wait that does not depend on wall-clock throughput.
 const HARNESS = process.env.PERF_HARNESS === '1'
 const STARVED =
-  'throughput assertion, starved by pixel-gate running before it; run with PERF_HARNESS=1 on a quiet rig'
+  'throughput assertion, starved in the full suite; run with PERF_HARNESS=1 on a quiet rig'
 
 // Acceptance for the determinism hooks (spec: "App instrumentation").
 // Authored upstream — implementers make these pass, never edit them.
 
-const settle = async (page: import('@playwright/test').Page, query: string) => {
+const settle = async (page: import('@playwright/test').Page, query: string): Promise<void> => {
   await page.goto(`/?${query}`)
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
   await page.waitForSelector('[data-entrance="settled"]')

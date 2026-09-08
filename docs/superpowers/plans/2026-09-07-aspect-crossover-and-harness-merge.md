@@ -232,7 +232,7 @@ Then the gate. In each of the three files, `const HARNESS = process.env.PERF_HAR
 **Boundaries:** No change to what any harness test asserts. No edit to `perf/`, `playwright.config.ts`, or any golden. Do not delete or `test.fixme` a test; the gate is the env var and nothing else.
 
 - [x] `gh issue create` as above; note N
-- [x] Gate the three files
+- [x] Gate the three files · SUPERSEDED 2026-09-08, ratified by Kevin: measurement showed 38 of 48 instances pass, so the gate is FIVE NAMED TESTS, not three files. Spec decision 14 was revised (`3ba4c46`) and the reason strings differ from the ones prescribed above. See PR #12.
 - [x] Default suite green with the skips visible; `PERF_HARNESS=1` run observed running; comment the first failure line on issue #N
 - [x] Commit `test(e2e): the perf harness lands dormant behind PERF_HARNESS=1`
 
