@@ -176,7 +176,7 @@ All green. `gh pr create --base staging` succeeds and prints the URL.
 **Boundaries:** Do not merge. Do not touch `staging`.
 
 - [x] Verification set green, output kept for the PR description
-- [ ] `git push -u origin fix/aspect-crossover`; `gh pr create --base staging` with the description above; stop
+- [x] `git push -u origin fix/aspect-crossover`; `gh pr create --base staging` with the description above; stop
 
 ---
 
