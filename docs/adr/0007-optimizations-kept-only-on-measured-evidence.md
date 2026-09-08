@@ -1,8 +1,6 @@
 # Optimizations are kept only on measured evidence, with the pixel gate as sole visual arbiter
 
-**Note:** the harness this ADR describes lives on the `perf/hero-harness` branch and is not in this tree. The paths below are relative to that branch.
-
-Perf work on this repo used to be guesswork: "Measurement today is ad-hoc (~40 untracked probe scripts in `tmp/`, nothing repeatable, nothing gated)" (docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md). The harness replaced that with a procedure in which the measurement, not the author, decides whether a change survives.
+Perf work on this repo used to be guesswork: "Measurement today is ad-hoc (~40 untracked probe scripts in `tmp/`, nothing repeatable, nothing gated)" (`docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md`). The harness replaced that with a procedure in which the measurement, not the author, decides whether a change survives.
 
 One hypothesis per batch: "implement → `npm run perf` → keep only if (a) the targeted metric improves beyond its noise band, (b) nothing else regresses, (c) the pixel gate holds. Otherwise **revert** — no partial credit, no unmeasured "should help elsewhere" arguments". Kept wins ratchet the baseline down "so later batches can't give them back".
 
@@ -20,4 +18,4 @@ Per-batch human eyeball review of each optimization. Rejected in favour of the g
 
 ## Source
 
-On the `perf/hero-harness` branch: docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md
+`docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md`

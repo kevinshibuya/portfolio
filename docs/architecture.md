@@ -21,6 +21,7 @@ Read the section for the surface you are about to touch. The rules you obey ever
 | Animation | any | [Animation lanes](#animation-lanes) |
 | Sections, tonal rhythm | `src/pages/Home.tsx`, `src/index.css` | [Layout and section flow](#layout-and-section-flow) |
 | Content, data | `src/types/content.ts`, `src/data/` | [Content model](#content-model) |
+| Performance harness | `perf/run.mjs`, `perf/lib/`, `perf/scenarios/`, `perf/baseline.json` | [Performance harness](#performance-harness) |
 
 Direction: dark ink plus WebGL shader craft. Lowercase, monumental, confident. Cream text on near-black ink, with a tricolor accent carried entirely by two raw-shader canvases and rotated per-row tints. The page runs a tonal arc: dark ink at both ends, a cream light chapter through the middle (Selected Work to Skills), dark again at the Contact/Footer stage.
 
@@ -270,3 +271,16 @@ An embed's `title` is Portuguese only, because it is editorial content.
 **Archive items** are that flattened, date-sorted union, tagged by `kind`: featured, editorial, personal, oss or freelance. Archive filters on `kind`, `type`, `editorial` and `year`, plus a debounced search and a sort (`src/components/sections/Archive.tsx`); `type` and `editorial` are disabled unless `kind` is `all` or `editorial`.
 
 A row with no preview image falls back to a type-keyed CSS gradient (`typeGradients` in `src/data/embeds.ts`, carried onto the item as `gradient`), not to a badge. The `imagePreview` field on `Embed` is declared but currently has no consumer.
+
+## Performance harness
+
+The harness measures this site's performance on **one machine** · Kevin's Mac, the rig · and nowhere else. It runs headed on purpose, because headless falls back to SwiftShader and would measure software rasterisation, which for a shader-heavy page is measuring the wrong thing. Numbers are meaningful only against the machine that produced them, so `perf/run.mjs` stamps rig state into every report and refuses to update a baseline when it disagrees; a busy rig is refused too, with `--force` as the deliberate escape hatch (`perf/lib/load.mjs`). ADR 0006 is the decision.
+
+Measurement is tiered. **Layer 1** hard-asserts exact budgets inside the e2e suite · canvas backing stores against the capped-DPR contract, per-frame GL work, off-screen pausing, reduced motion, and per-chunk byte ceilings. **Layer 2** runs controlled in-page scenarios (`perf/scenarios/`), each a reproducible symptom reduced to a median plus a tolerance band. **Layer 3** scores the whole production build in Lighthouse (`perf/lighthouse.mjs`), against `npx vite preview`, never the dev server. Alongside them the **pixel gate** (`tests/e2e/pixel-gate.spec.ts`) is the sole visual arbiter: committed goldens across fixed seeds, viewports and moments, at antialiasing-level tolerance, with no per-batch human eyeball in the loop (ADR 0007).
+
+Commands: `npm run perf` runs every **Layer 2** scenario and nothing else, `npm run perf:lh` is Layer 3, `npm run perf:selftest` proves the runner itself, and Layer 1 rides the ordinary e2e suite. The reference numbers live in `perf/baseline.json` under `rig`, `exact`, `scenarios` and `lighthouse`; kept wins ratchet it down so later batches cannot give them back. A batch is one hypothesis, kept or reverted on the measurement alone · no partial credit and no unmeasured "should help elsewhere" argument (ADR 0007).
+
+The harness's own e2e specs **run by default**, with five exceptions. What runs is self-certifying: `tests/e2e/perf-hooks.spec.ts` asserts the instrumentation contract, two Layer 1 tests in `tests/e2e/perf-budget.spec.ts` assert off-screen pausing and reduced-motion behaviour, and 24 goldens in `tests/e2e/pixel-gate.spec.ts` still match this tree, so ADR 0007's "regenerate only on a commit that declares visual intent" is enforceable · an intentional hero edit carries `--update-snapshots` in that commit, and a red golden is a finding to read before it is a snapshot to re-record. Five tests skip unless `PERF_HARNESS=1`; issue #11 names each and why. Two notes the default suite now inherits: the goldens have only `-darwin` variants, so a bare `npx playwright test` is Mac-bound, and `playwright.config.ts` is `workers: 1`, so the suite is serial.
+
+The deep record is `docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md`.
+

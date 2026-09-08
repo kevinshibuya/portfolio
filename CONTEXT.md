@@ -141,6 +141,33 @@ A record of a retired system under `docs/superpowers/archive/`. It was true when
 The resume note at the repo root, always present, never tracked. Superseded ones are renamed `HANDOFF-<slug>.archived.md` and kept on disk, ignored.
 (`.gitignore`)
 
+### Measurement
+
+**Rig**:
+The single Mac every performance number is relative to. Its state is recorded into every report, and a mismatch refuses a baseline update.
+(`docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md`, `perf/run.mjs`)
+_Avoid_: test machine, CI runner
+
+**Layer 1 / Layer 2 / Layer 3**:
+The three measurement tiers. Layer 1 hard-asserts exact budgets in the e2e suite, Layer 2 measures controlled in-page scenarios, Layer 3 scores the whole production page in Lighthouse.
+(`perf/lighthouse.mjs`, `docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md`)
+
+**Scenario**:
+One reproducible symptom, run a fixed number of times and reduced to a median plus a tolerance band. Nothing in a scenario decides whether a number is good, only whether it moved.
+(`perf/run.mjs`)
+
+**Baseline**:
+The committed reference numbers in `perf/baseline.json`, under four keys · `rig`, `exact`, `scenarios`, `lighthouse`. Kept wins ratchet it down so later batches cannot give them back.
+(`docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md`)
+
+**Pixel gate**:
+The sole visual arbiter over the optimization campaign: committed goldens across fixed seeds, viewports and moments, at antialiasing-level tolerance.
+(`docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md`)
+
+**Batch**:
+One hypothesis, implemented and then kept or reverted on the measurement alone.
+(`docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md`)
+
 ## Invariants
 
 - Every reader-facing string exists in both `en` and `pt`, except embed titles (Portuguese only, editorial source) and the loader's two corner labels in `index.html` (English only, painted before i18n loads). (`src/types/content.ts`, `index.html`, ADR 0001)
@@ -152,6 +179,7 @@ The resume note at the repo root, always present, never tracked. Superseded ones
 - The hero text carries a documented, owner-ratified AA exemption; no contrast layer may be reintroduced behind it. (`src/index.css`, ADR 0004, `docs/architecture.md#hero`)
 - The settled card never exceeds half the frame height, except where the 287 px caption legibility floor binds; a unit test asserts it in both orientations. (`tests/unit/sceneMotion.test.ts`)
 - Spec and plan checkboxes are kept in sync with reality; boxes are never invented, only ticked. (`CLAUDE.md`)
+- Performance numbers are rig-relative. A run on a mismatched or busy rig never updates a baseline. (`docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md`, `perf/lib/load.mjs`)
 - `npm run preview` is `npm run build && wrangler dev`, not a static preview; it rebuilds first. Lighthouse and ad-hoc preview work use `npx vite preview --port 4173`. (`package.json`, ADR 0008)
 - The JSON-LD in `index.html` mirrors `src/data/projects.ts`, with contiguous positions; a test asserts it. (`tests/unit/seo/jsonld-projects.test.ts`)
 - Job titles in work experience are historical facts and are not rewritten; only descriptions sync. (`src/data/workExperience.ts`)
