@@ -231,10 +231,10 @@ Then the gate. In each of the three files, `const HARNESS = process.env.PERF_HAR
 
 **Boundaries:** No change to what any harness test asserts. No edit to `perf/`, `playwright.config.ts`, or any golden. Do not delete or `test.fixme` a test; the gate is the env var and nothing else.
 
-- [ ] `gh issue create` as above; note N
-- [ ] Gate the three files
-- [ ] Default suite green with the skips visible; `PERF_HARNESS=1` run observed running; comment the first failure line on issue #N
-- [ ] Commit `test(e2e): the perf harness lands dormant behind PERF_HARNESS=1`
+- [x] `gh issue create` as above; note N
+- [x] Gate the three files
+- [x] Default suite green with the skips visible; `PERF_HARNESS=1` run observed running; comment the first failure line on issue #N
+- [x] Commit `test(e2e): the perf harness lands dormant behind PERF_HARNESS=1`
 
 ### Task 8: the Measurement glossary returns
 
@@ -247,8 +247,8 @@ Then the gate. In each of the three files, `const HARNESS = process.env.PERF_HAR
 
 **Boundaries:** Do not add the `Ledger` or `HANDOFF.md` terms or the "Where the records live" table that the same commit removed; PR #8 dissolved those on purpose. Do not touch the **Frame-fit rule** and **Crossover band** entries from PR A.
 
-- [ ] Add the group and the invariant
-- [ ] Run the three checks; commit `docs: the Measurement glossary is true again`
+- [x] Add the group and the invariant
+- [x] Run the three checks; commit `docs: the Measurement glossary is true again`
 
 ### Task 9: the harness has a home in the docs
 
