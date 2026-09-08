@@ -1,22 +1,10 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
+import { scrollToPlayhead, scrollToActTwo, beats, CANVAS } from './helpers/scene'
 
 test.use({ contextOptions: { reducedMotion: 'reduce' } })
 
-// Fractions of the 550svh scrub range: playhead = p · 4.5 − 1.5, so settled
-// card k is at (k + 1.5) / 4.5 (0.3333 → card 0, 0.5556 → card 1) and the
-// midpoint between them, where reduced motion snaps to the next card, is 0.4444.
-async function scrollToFraction(page: Page, fraction: number): Promise<void> {
-  await page.evaluate((frac) => {
-    const wrapper = document.querySelector('#projects .scene-scroll') as HTMLElement | null
-    if (!wrapper) return
-    const top = wrapper.getBoundingClientRect().top + window.scrollY
-    window.scrollTo({
-      top: top + frac * (wrapper.offsetHeight - window.innerHeight),
-      behavior: 'instant' as ScrollBehavior,
-    })
-  }, fraction)
-  await page.waitForTimeout(220)
-}
+/** Reduced motion renders ON DEMAND, so every stop needs the longer settle. */
+const SETTLE = { settle: 220 }
 
 test('reduced motion keeps the pin and swaps cards without flight', async ({ page }) => {
   await page.goto('/')
@@ -24,7 +12,7 @@ test('reduced motion keeps the pin and swaps cards without flight', async ({ pag
   await page.locator('#projects .scene-scroll').waitFor()
   await page.locator('#projects .scene-canvas-wrap[data-ready="true"]').waitFor()
 
-  await scrollToFraction(page, 0.3333)
+  await scrollToPlayhead(page, 0, SETTLE)
 
   // The section still pins.
   const stickyTop = await page.evaluate(
@@ -39,28 +27,75 @@ test('reduced motion keeps the pin and swaps cards without flight', async ({ pag
   await expect(page.locator('#projects svg filter')).toHaveCount(0)
 
   // The settled slot is reported on the canvas itself; there is no DOM overlay.
-  const canvas = page.locator('#projects canvas[data-canvas="selected-work-scene"]')
+  const canvas = page.locator(CANVAS)
   await expect(canvas).toHaveAttribute('data-slot', '0')
 
   // The overture is a still frame at the top and absent once the cards show.
   await expect(canvas).toHaveAttribute('data-overture', 'false')
-  await scrollToFraction(page, 0)
+  await scrollToPlayhead(page, -1.5, SETTLE)
   await expect(canvas).toHaveAttribute('data-overture', 'true')
-  await scrollToFraction(page, 0.3333)
+  await scrollToPlayhead(page, 0, SETTLE)
   await expect(canvas).toHaveAttribute('data-overture', 'false')
 
-  // Short of the segment midpoint (playhead ≈ 0.48): still card 0.
-  await scrollToFraction(page, 0.44)
+  // Short of the segment midpoint (playhead 0.48): still card 0.
+  await scrollToPlayhead(page, 0.48, SETTLE)
   await expect(canvas).toHaveAttribute('data-slot', '0')
 
   // Past the midpoint (playhead 0.75): reduced motion has already snapped to
   // card 1 with no flight.
-  await scrollToFraction(page, 0.5)
+  await scrollToPlayhead(page, 0.75, SETTLE)
   await expect(canvas).toHaveAttribute('data-slot', '1')
 
   // Next card settled, then back: scroll is the playhead, exactly reversible.
-  await scrollToFraction(page, 0.5556)
+  await scrollToPlayhead(page, 1, SETTLE)
   await expect(canvas).toHaveAttribute('data-slot', '1')
-  await scrollToFraction(page, 0.3333)
+  await scrollToPlayhead(page, 0, SETTLE)
   await expect(canvas).toHaveAttribute('data-slot', '0')
+})
+
+test('reduced motion renders act two as stills, and a still does not drift', async ({
+  page,
+}) => {
+  const problems: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') problems.push(`console.error: ${message.text()}`)
+  })
+  page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`))
+
+  await page.goto('/')
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+  await page.locator('#projects .scene-canvas-wrap[data-ready="true"]').waitFor()
+  await page.locator(`${CANVAS}[data-warm="true"]`).waitFor({ timeout: 30000 })
+  const stills = page.locator(CANVAS)
+
+  await scrollToActTwo(page, 0.5, SETTLE)
+  await expect(stills).toHaveAttribute('data-act', '2')
+  await expect(stills).toHaveAttribute('data-static', 'true')
+  await expect(stills).toHaveAttribute('data-slot', '3')
+  expect(problems).toEqual([])
+
+  // BLOCKED, and deliberately not asserted here. The plan asks this spec to
+  // sample `window.__scene`'s camera and title index at two `u` values inside
+  // ONE still interval. It cannot: the e2e suite serves the PRODUCTION preview
+  // (`playwright.config.ts` webServer is `npm run preview`, i.e. build +
+  // wrangler dev), and the `__scene` handle sits behind `import.meta.env.DEV`
+  // in SceneRig, so it is stripped from that build. Exposing it in production
+  // would be a source change, which this task's boundary forbids.
+  //
+  // The property itself IS proven, and more strictly than an e2e could: the
+  // unit suite asserts every act-two channel is `===`-identical across twenty
+  // samples inside each of the five still intervals. What these two stops add
+  // is the production-visible half — the same still interval, sampled twice,
+  // staying in act two with no console error.
+  const { approach } = await beats(page)
+  for (const u of [approach + 0.02, approach + 0.04]) {
+    await scrollToActTwo(page, u, SETTLE)
+    await expect(stills, `act two u=${u}`).toHaveAttribute('data-act', '2')
+    await expect(stills, `act two u=${u}`).toHaveAttribute('data-static', 'true')
+    expect(problems, `act two u=${u}`).toEqual([])
+  }
+
+  await scrollToPlayhead(page, 0, SETTLE)
+  await expect(stills).toHaveAttribute('data-act', '1')
+  expect(problems).toEqual([])
 })

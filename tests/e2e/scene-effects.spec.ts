@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { scrollToPlayhead, scrollToActTwo } from './helpers/scene'
 import { inflateSync } from 'node:zlib'
 import sharp from 'sharp'
 import { sceneGeometry, frameRects } from '../../src/utils/sceneMotion'
@@ -65,15 +66,7 @@ test('the scene renders through the composer without shifting the cream', async 
     .locator('#projects canvas[data-canvas="selected-work-scene"][data-warm="true"]')
     .waitFor({ timeout: 120_000 })
 
-  await page.evaluate(() => {
-    const wrapper = document.querySelector('#projects .scene-scroll') as HTMLElement | null
-    if (!wrapper) return
-    const top = wrapper.getBoundingClientRect().top + window.scrollY
-    window.scrollTo({
-      top: top + 0.3333 * (wrapper.offsetHeight - window.innerHeight), // card 0 settled: (0 + 1.5) / 4.5
-      behavior: 'instant' as ScrollBehavior,
-    })
-  })
+  await scrollToPlayhead(page, 0) // card 0 settled
   await page.waitForTimeout(3000)
 
   const canvas = page.locator('#projects canvas[data-canvas="selected-work-scene"]')
@@ -111,6 +104,18 @@ test('the scene renders through the composer without shifting the cream', async 
   }
   expect(minLum, 'title ink present in the band').toBeLessThan(60)
   expect(maxLum, 'cream present in the band').toBeGreaterThan(200)
+
+  // Act two through the composer. This is the ONLY headless path that runs the
+  // composer at all, so it is the only place the DoF focus write in
+  // Environment — `cocMaterial.worldFocusDistance` off `sceneRefs.focus` — is
+  // exercised end to end.
+  await scrollToActTwo(page, 0.5)
+  await page.waitForTimeout(1500)
+  await expect(page.locator('#projects canvas[data-canvas="selected-work-scene"]')).toHaveAttribute(
+    'data-act',
+    '2',
+  )
+  expect(errors).toEqual([])
 
   expect(errors).toEqual([])
 })

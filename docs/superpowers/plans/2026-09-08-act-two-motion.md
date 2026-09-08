@@ -387,9 +387,9 @@ writeFileSync(out, JSON.stringify(result, null, 2))
 
 **Boundaries:** `light-chapter.spec.ts`, `section-enters.spec.ts`, `reduced-motion.spec.ts`, `perf-budget.spec.ts`, `pixel-gate.spec.ts` are not touched (their `#archive` expectations are pipeline 2's). No source change; if a spec can only pass with a source change, stop and report `blocked: <what the scrub exposed>`.
 
-- [ ] Create `tests/e2e/helpers/scene.ts`; rewrite `scene-scrub.spec.ts` on playheads; `lsof -ti:4173 | xargs -r kill -9; npx playwright test tests/e2e/scene-scrub.spec.ts` → green (act one)
-- [ ] Extend `scene-scrub.spec.ts` with the act-two sweep, `data-act` and the registrations sweep; run → green
-- [ ] `scene-reduced-motion.spec.ts`, `scene-effects.spec.ts`, `nav-on-light.spec.ts` on the helper plus the act-two stops; run the five-spec command → green on both projects
+- [x] Create `tests/e2e/helpers/scene.ts`; rewrite `scene-scrub.spec.ts` on playheads; `lsof -ti:4173 | xargs -r kill -9; npx playwright test tests/e2e/scene-scrub.spec.ts` → green (act one)
+- [x] Extend `scene-scrub.spec.ts` with the act-two sweep, `data-act` and the registrations sweep; run → green
+- [x] `scene-reduced-motion.spec.ts`, `scene-effects.spec.ts`, `nav-on-light.spec.ts` on the helper plus the act-two stops; run the five-spec command → green on both projects
 - [ ] `git add -A tests/e2e && git commit -m "test(e2e): scene specs scroll by playhead; act-two scrub, data-act and reduced-motion stills"`
 
 ### Task 9: architecture note for act two
