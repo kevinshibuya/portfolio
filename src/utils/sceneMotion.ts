@@ -845,8 +845,14 @@ export function volumeDistance(frieze: FriezeExtent, g: SceneGeometry): number {
 
 /**
  * The reading distance: the nearer of the height fit and the legibility floor.
- * The legibility term binds on every fixture today, which is what raises the
- * fill above `DOLLY_HEIGHT_FILL`.
+ * WHICH one binds depends on the viewport, and the old claim here that
+ * legibility binds everywhere was wrong twice over: at eight rows it already
+ * failed at 1920×1080, and at six rows the crossover is 761 CSS px of height
+ * (`FRIEZE_ROWS · FRIEZE_CELL_H · 2 · FRIEZE_CELL_MIN_PX / DOLLY_HEIGHT_FILL`).
+ * Below it the 144 px cell floor binds and the fill sits above
+ * `DOLLY_HEIGHT_FILL`; above it the height fit binds, the fill is exactly
+ * `DOLLY_HEIGHT_FILL`, and the projected reading scale keeps growing with the
+ * viewport — which is what the frieze's mask density has to track.
  */
 export function dollyDistance(frieze: FriezeExtent, g: SceneGeometry): number {
   const { height } = friezeFrame(frieze, g)

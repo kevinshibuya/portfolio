@@ -52,6 +52,55 @@ the table above. Where it says "respect Motion's `maxRowsInFrame(g)`", note that
 never at one or two fixtures — asserting it at a single size is what let the
 eight-row overflow ship in the first place.
 
+### Second amendment · the 4096 cap, 2026-09-08 (Kevin's call, after a `reasoner` ruling)
+
+Six rows widened the 2024 block from 16 to 22 columns. At 11 world units and the
+432 texels/world the floor asks for, its mask wants 4752 px against the 4096 cap,
+so it is scaled to 0.862 — and because the cap FREEZES that mask while the wall's
+projected size keeps growing with viewport height, the 2024 block upscales 1.16×
+at 720 px tall, 1.37× at 900, 1.65× at 1080 and 2.19× at 1440, beside three
+blocks drawn 1:1. That block holds 118 of the 171 pieces, and the step falls on
+the 2025|2024 seam. It is a sharpness problem only — nothing renders smaller,
+because the mesh is sized in world units from `friezeFrame`, not from the texture.
+
+Kevin's ruling, now binding and reflected in the spec:
+
+1. **Panels.** A block whose mask exceeds the cap is drawn as
+   `ceil(neededWidth / 4096)` column-aligned panels, one texture and one mesh
+   each, in near-equal whole-column runs, **never split through a 2×2 span**.
+   Today only 2024 splits, into two 11-column panels: five meshes, not four.
+   The lookup DataTexture and the slot-occupancy hit table stay per block; a
+   panel is a column offset into them, and the year count sits in panel 0. The
+   "no span straddle" rule gets its own unit test — today's data never exercises
+   it, which is exactly why it needs one.
+2. **A density ceiling of 612.8 texels/world**, applied in Task 4's sizing
+   function BEFORE the cap. Without it nothing caps above 761 px tall and mask
+   bytes grow with the square of the projected density. 612.8 is 1:1 at renderer
+   DPR 1.5 up to a 1080 px viewport, so every laptop and every DPR-1 desktop is
+   1:1 and a 27" 5K is 1.2×.
+3. **`RGFormat`, two channels, superseding Assumption 19's RGBA8.** R is title
+   coverage; G carries meta AND serial, because the shader draws both in the same
+   fixed muted ink and hover changes only the title. Assert they never overlap
+   within a cell. Two bytes per texel is what pays for the ceiling: **27.2 MiB
+   steady, 71.4 MiB peak**, under the 86.45 MiB the plan review approved.
+
+Recompute the memory table on this basis — `w * h * 2`, panels summed per block —
+and if the recomputed peak breaks the budget, that is a real `blocked:`.
+
+Task 4 gains `panelsFor(block, density, cap)` and the ceiling constant. Task 5's
+"four meshes" becomes one per panel, five today. Task 9 adds an acceptance the CI
+can actually see: the existing matrix is blind to all of this, because
+`devices['Desktop Chrome']` is deviceScaleFactor 1 and at 1440×900 the 2024 block
+needs 3745 px, under the cap. Add a screenshot fixture at deviceScaleFactor 1.5
+and at least 900 px tall, on the 2025|2024 boundary at the dolly.
+
+**Still open, NOT decided, do not resolve it yourself:** at the 1280×720 volume
+shot the wall projects at 65.8 CSS px/world, so a 612.8 mask is minified ~9×
+with linear filtering and no mipmaps — potential shimmer across 171 tiny text
+cells during the act's signature pull-back. Mipmaps cost +33 % memory and are
+legal on NPOT under WebGL2. Measure it in Task 9, report what you see with a
+screenshot of the volume shot mid-release, and leave the decision to Kevin.
+
 ## Global constraints
 
 - Follow `CLAUDE.md`, `CONTEXT.md`, ADRs 0001, 0002, 0009, 0010, 0011 and 0012; use the glossary's terms.
