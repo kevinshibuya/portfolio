@@ -5,6 +5,7 @@ import {
   FRIEZE_CELL_H,
   FRIEZE_CELL_W,
   FRIEZE_ROWS,
+  countCell,
   friezeExtent,
   friezeLayout,
   type Cell,
@@ -282,5 +283,92 @@ describe('fixed-row packed extent through Motion', () => {
   ])('fits the real packed rows within the bound at %ix%i', (width, height) => {
     const extent = friezeExtent(friezeLayout(archive, FRIEZE_ROWS), FRIEZE_ROWS)
     expect(maxRowsInFrame(sceneGeometry(width, height))).toBeGreaterThanOrEqual(extent.rows)
+  })
+})
+
+describe('countCell', () => {
+  /** `n` pieces in one year, the first `projects` of them case studies. */
+  function year(y: number, n: number, projects: number): ArchiveItem[] {
+    return Array.from({ length: n }, (_, i) => ({
+      id: `${y}-${i}`,
+      title: `${y}-${i}`,
+      origin: 'professional' as const,
+      caseStudy: i < projects ? { slug: `${y}-${i}` } : undefined,
+      date: '01/01/2000',
+      sortDate: Date.UTC(2000, 0, 1),
+      year: y,
+      href: '#',
+      internal: i < projects,
+      serial: i + 1,
+    }))
+  }
+
+  it('takes the block top-left when it is a one-cell piece', () => {
+    const layout = friezeLayout(year(2023, 4, 0), FRIEZE_ROWS)
+    const cell = countCell(layout, 0)
+    expect(cell?.col).toBe(0)
+    expect(cell?.row).toBe(0)
+    expect(cell?.span).toBe(1)
+  })
+
+  it('skips a 2x2 case study in the corner and takes the first one-cell after it', () => {
+    const layout = friezeLayout(year(2025, 5, 1), FRIEZE_ROWS)
+    const cell = countCell(layout, 0)
+    expect(cell?.span).toBe(1)
+    // The packer fills column-first, so the one-cell pieces stack BELOW the
+    // corner card rather than beside it. The count follows them down; what it
+    // must never do is land inside the card's footprint.
+    expect(cell?.col).toBe(0)
+    expect(cell?.row).toBe(2)
+  })
+
+  it('drops below every stacked case study, however many there are', () => {
+    // Two 2x2s stack in the same two columns, filling rows 0-3; the one-cell
+    // pieces start at row 4, and the count goes with them.
+    const layout = friezeLayout(year(2022, 4, 2), FRIEZE_ROWS)
+    const cell = countCell(layout, 0)
+    expect(cell?.span).toBe(1)
+    expect(cell?.col).toBe(0)
+    expect(cell?.row).toBe(4)
+  })
+
+  it('prefers the highest cell over the leftmost one', () => {
+    // One card, then ten one-cell pieces: they fill the rest of column 0, then
+    // column 1, then reach the top of column 2. Row-major picks that top cell;
+    // a column-major scan would pick the lower one in column 0 instead, and the
+    // count would sit halfway down the wall.
+    const layout = friezeLayout(year(2021, 11, 1), FRIEZE_ROWS)
+    const cell = countCell(layout, 0)
+    expect(cell?.row).toBe(0)
+    expect(cell?.col).toBe(2)
+    expect(layout.cells.some((c) => c.span === 1 && c.col === 0 && c.row === 2)).toBe(true)
+  })
+
+  it('returns null when a block is nothing but case studies, so a card must carry it', () => {
+    // 2026 today: three 2x2 projects exactly fill a 2-column, six-row block.
+    const layout = friezeLayout(year(2026, 3, 3), FRIEZE_ROWS)
+    expect(layout.blocks[0].columns).toBe(2)
+    expect(countCell(layout, 0)).toBeNull()
+  })
+
+  it('agrees with the real archive: only 2026 needs the card fallback', () => {
+    const layout = friezeLayout(archive, FRIEZE_ROWS)
+    const placed = layout.blocks.map((block, i) => [block.year, countCell(layout, i)] as const)
+    expect(placed.map(([y, c]) => [y, c && [c.col, c.row]])).toEqual([
+      [2026, null],
+      [2025, [4, 0]],
+      [2024, [13, 0]],
+      [2023, [33, 0]],
+    ])
+  })
+
+  it('never returns a cell from a neighbouring block', () => {
+    const layout = friezeLayout([...year(2025, 5, 1), ...year(2024, 4, 0)], FRIEZE_ROWS)
+    for (const [i, block] of layout.blocks.entries()) {
+      const cell = countCell(layout, i)
+      expect(cell?.block).toBe(i)
+      expect(cell!.col).toBeGreaterThanOrEqual(block.startCol)
+      expect(cell!.col).toBeLessThan(block.startCol + block.columns)
+    }
   })
 })

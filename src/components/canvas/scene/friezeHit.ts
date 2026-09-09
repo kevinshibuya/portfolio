@@ -1,5 +1,6 @@
 import {
   FRIEZE_CELL_H,
+  countCell,
   type Cell,
   type FriezeLayout,
 } from '../../../utils/friezeLayout'
@@ -32,6 +33,12 @@ export interface BlockOccupancy {
   rows: number
   /** Column-major `(col * rows + row)` → index into `layout.cells`, or −1. */
   slots: Int32Array
+  /**
+   * Block-relative slot of the cell carrying the year count, or null when the
+   * block has none of its own (its top-left card carries it instead). Resolved
+   * once here so `cellAtUv` stays cheap and pure.
+   */
+  count: { col: number; row: number } | null
 }
 
 /** The count band a block's first column reserves at its top, as a fraction of one cell. */
@@ -39,13 +46,17 @@ const COUNT_BAND_FRAC = (CELL_INSET_WORLD + YEAR_COUNT_BAND_WORLD) / FRIEZE_CELL
 
 /** One occupancy table per block, block-relative columns, built once per layout. */
 export function blockOccupancy(layout: FriezeLayout, rows: number): BlockOccupancy[] {
-  const tables = layout.blocks.map((block, index) => ({
-    block: index,
-    startCol: block.startCol,
-    columns: block.columns,
-    rows,
-    slots: new Int32Array(block.columns * rows).fill(-1),
-  }))
+  const tables = layout.blocks.map((block, index) => {
+    const counted = countCell(layout, index)
+    return {
+      block: index,
+      startCol: block.startCol,
+      columns: block.columns,
+      rows,
+      slots: new Int32Array(block.columns * rows).fill(-1),
+      count: counted ? { col: counted.col - block.startCol, row: counted.row } : null,
+    }
+  })
   layout.cells.forEach((cell, index) => {
     const table = tables[cell.block]
     if (!table) throw new Error(`frieze cell ${cell.itemId} has no block ${cell.block}`)
@@ -88,10 +99,11 @@ export function cellAtUv(
   if (index < 0) return null
   const cell = layout.cells[index]
 
-  // The block's count is drawn over its own first column's top row, in panel 0.
-  // It only displaces text when that slot is a 1×1: under a 2×2 card the count
-  // is hidden, so the card keeps its whole footprint.
-  if (col === 0 && row === 0 && cell.span === 1 && y * rows - row < COUNT_BAND_FRAC) return null
+  // The block's count is drawn in a band across the top of ONE cell, picked by
+  // `countCell` — the same function the rasteriser draws from, because two
+  // copies of that rule is exactly how the raster and the hit test drift.
+  const band = occupancy.count
+  if (band && band.col === col && band.row === row && y * rows - row < COUNT_BAND_FRAC) return null
 
   return cell
 }

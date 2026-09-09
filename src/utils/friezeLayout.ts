@@ -153,6 +153,31 @@ export function friezeLayout(items: readonly ArchiveItem[], rows: number): Friez
   return { columns, blocks, cells }
 }
 
+/**
+ * The cell that carries a block's piece count, or null when every cell in the
+ * block is a case study and the count has nowhere of its own to go.
+ *
+ * The count is drawn in a band across the top of this cell, and that band is
+ * noninteractive, so the rasteriser and the pointer hit test MUST agree on
+ * which cell it is. They agree by both calling this — two copies of the rule is
+ * how they would drift.
+ *
+ * Row-major, first 1x1 wins: the count sits as high and as far left as the
+ * packing allows, which on a newest-left wall is where a reader looks first. It
+ * cannot sit on a 2x2, because a case study's footprint is covered by the card
+ * object, which would hide the count exactly as the block's top-left corner
+ * did. 2026 today is nothing but three case studies, so it returns null and the
+ * top-left card carries the count instead (third amendment).
+ */
+export function countCell(layout: FriezeLayout, blockIndex: number): Cell | null {
+  let best: Cell | null = null
+  for (const cell of layout.cells) {
+    if (cell.block !== blockIndex || cell.span !== 1) continue
+    if (!best || cell.row < best.row || (cell.row === best.row && cell.col < best.col)) best = cell
+  }
+  return best
+}
+
 export function friezeExtent(layout: FriezeLayout, rows: number): PackedFriezeExtent {
   return {
     columns: layout.columns,

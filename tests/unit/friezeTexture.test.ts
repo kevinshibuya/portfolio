@@ -5,6 +5,7 @@ import {
   FRIEZE_CELL_H,
   FRIEZE_CELL_W,
   FRIEZE_ROWS,
+  countCell,
   friezeExtent,
   friezeLayout,
   type Cell,
@@ -598,11 +599,19 @@ describe('rasteriseFrieze', () => {
     const cellW = FRIEZE_CELL_W * t
     const cellH = FRIEZE_CELL_H * t
     const inset = CELL_INSET_WORLD * t
-    const editorialCell = layout.cells.find((c) => c.itemId === 'editorial-0')!
+    // This cell carries the block's count, so its title starts below the band
+    // rather than at the cell's own top inset.
+    const editorialCell = countCell(layout, 0)!
+    expect(editorialCell.itemId).toBe('editorial-0')
     const mask = masks[editorialCell.block]
     const x0 = (editorialCell.col - mask.panel.startCol) * cellW
     const y0 = editorialCell.row * cellH
-    const titleBox = { x: x0 + inset, y: y0 + inset, w: cellW - 2 * inset, h: CELL_TITLE_WORLD * CELL_LINE_HEIGHT * t }
+    const titleBox = {
+      x: x0 + inset,
+      y: y0 + inset + YEAR_COUNT_BAND_WORLD * t,
+      w: cellW - 2 * inset,
+      h: CELL_TITLE_WORLD * CELL_LINE_HEIGHT * t,
+    }
     expect(anyInk(mask, titleBox, 'r')).toBe(true)
     expect(anyInk(mask, titleBox, 'g')).toBe(false)
     // Meta and serial sit below the title stack, in G only.
@@ -615,35 +624,26 @@ describe('rasteriseFrieze', () => {
     for (const m of masks) expect(m.overlapTexels).toBe(0)
   })
 
-  it('leaves a Project body blank and draws only its serial strip', async () => {
+  it('leaves a Project footprint entirely blank, card and serial both', async () => {
     const { masks, layout } = await rasterised()
     const t = DENSITY
     const cell = layout.cells.find((c) => c.itemId === 'featured-a')!
     expect(cell.span).toBe(2)
     const mask = masks[cell.block]
-    const x0 = (cell.col - mask.panel.startCol) * FRIEZE_CELL_W * t
-    const y0 = cell.row * FRIEZE_CELL_H * t
-    const w = 2 * FRIEZE_CELL_W * t
-    const h = 2 * FRIEZE_CELL_H * t
-    const strip = CELL_META_WORLD * CELL_LINE_HEIGHT * t + CELL_INSET_WORLD * t
-    // This card sits at the block's top-left, so the year count's band crosses
-    // its first column (Q7 places the count there; Task 6 decides what the card
-    // does about it). The body below the band and beside it stays blank.
-    const band = (YEAR_COUNT_BAND_WORLD + 2 * CELL_INSET_WORLD) * t
-    expect(cell.col).toBe(layout.blocks[cell.block].startCol)
-    expect(cell.row).toBe(0)
-    const body = { x: x0, y: y0 + band, w, h: h - strip - band }
-    const besideCount = { x: x0 + FRIEZE_CELL_W * t, y: y0, w: FRIEZE_CELL_W * t, h: band }
-    for (const box of [body, besideCount]) {
-      expect(anyInk(mask, box, 'r')).toBe(false)
-      expect(anyInk(mask, box, 'g')).toBe(false)
+    const footprint = {
+      x: (cell.col - mask.panel.startCol) * FRIEZE_CELL_W * t,
+      y: cell.row * FRIEZE_CELL_H * t,
+      w: 2 * FRIEZE_CELL_W * t,
+      h: 2 * FRIEZE_CELL_H * t,
     }
-    const stripBox = { x: x0, y: y0 + h - strip, w, h: strip }
-    expect(anyInk(mask, stripBox, 'g')).toBe(true)
-    expect(anyInk(mask, stripBox, 'r')).toBe(false)
-    // Drawn glyph by glyph: the serial '4' is one fillText, and a two-digit serial would be two.
-    const serialDraws = fillTexts().filter((f) => f.text === '4' && f.fill === '#00FF00')
-    expect(serialDraws).toHaveLength(1)
+    // The card fills its 2x2 exactly (Q9), so the mask draws nothing under it:
+    // not the title, not the meta, and not the serial strip the card now
+    // carries in its own caption (third amendment).
+    expect(anyInk(mask, footprint, 'r')).toBe(false)
+    expect(anyInk(mask, footprint, 'g')).toBe(false)
+    expect(fillTexts().filter((f) => f.text === '4' && f.fill === '#00FF00')).toHaveLength(0)
+    // The count moved off this cell too, so no band crosses the card either.
+    expect(countCell(layout, cell.block)?.itemId).not.toBe('featured-a')
   })
 
   it('draws serial digits one at a time at a fixed advance', async () => {
@@ -665,16 +665,39 @@ describe('rasteriseFrieze', () => {
     expect(advance).toBeCloseTo(digitAdvance((s) => s.length * CELL_META_WORLD * DENSITY * 0.55), 9)
   })
 
-  it('draws the year count once per block, in G, in panel zero only', async () => {
+  it('draws the year count at the block first 1x1 cell and pushes that cell text below it', async () => {
     const { masks, layout } = await rasterised()
-    const counts = fillTexts().filter((f) => f.fill === '#00FF00' && f.text === String(layout.blocks[0].count))
-    // The 2025 block holds three pieces and the serial '3' is also drawn as a digit; two draws in G.
-    expect(counts.length).toBe(2)
     const t = DENSITY
     const inset = CELL_INSET_WORLD * t
-    const band = { x: inset, y: inset, w: FRIEZE_CELL_W * t - 2 * inset, h: YEAR_COUNT_BAND_WORLD * t }
-    expect(anyInk(masks[0], band, 'g')).toBe(true)
-    expect(anyInk(masks[0], band, 'r')).toBe(false)
+    // Row-major, first 1x1 wins: the count cannot sit on a 2x2, whose card
+    // object would cover it exactly as the block's top-left corner did.
+    const cell = countCell(layout, 0)!
+    expect(cell.itemId).toBe('editorial-0')
+    const mask = masks[cell.block]
+    const x0 = (cell.col - mask.panel.startCol) * FRIEZE_CELL_W * t
+    const y0 = cell.row * FRIEZE_CELL_H * t
+    const band = {
+      x: x0 + inset,
+      y: y0 + inset,
+      w: FRIEZE_CELL_W * t - 2 * inset,
+      h: YEAR_COUNT_BAND_WORLD * t,
+    }
+    expect(anyInk(mask, band, 'g')).toBe(true)
+    expect(anyInk(mask, band, 'r')).toBe(false)
+    // That cell yields its first line to the count instead of overprinting it.
+    const title = {
+      x: x0 + inset,
+      y: y0 + inset + YEAR_COUNT_BAND_WORLD * t,
+      w: FRIEZE_CELL_W * t - 2 * inset,
+      h: CELL_TITLE_WORLD * CELL_LINE_HEIGHT * t,
+    }
+    expect(anyInk(mask, title, 'r')).toBe(true)
+    // Once per block: 2025 holds three pieces and editorial-0's serial is also
+    // 3, so '3' is drawn twice in G and no more.
+    const counts = fillTexts().filter(
+      (f) => f.fill === '#00FF00' && f.text === String(layout.blocks[0].count),
+    )
+    expect(counts).toHaveLength(2)
   })
 
   it('draws at most four cells per idle slice and reports progress once a slice', async () => {
@@ -701,8 +724,9 @@ describe('rasteriseFrieze', () => {
       expect(p - prev).toBeGreaterThan(0)
       prev = p
     }
-    // Four pieces plus two year counts.
-    expect(prev).toBe(6)
+    // Three editorials plus two year counts: the fourth piece is a Project, and
+    // its card covers the footprint, so the mask draws no unit for it.
+    expect(prev).toBe(5)
   })
 
   it('cancels between slices, disposes what it drew and releases the scratch canvas', async () => {
@@ -784,11 +808,23 @@ describe('rasteriseFrieze', () => {
       expect(m.texelsPerWorld).toBe(432)
       expect(m.overlapTexels).toBe(0)
     }
-    // The 2024 count sits in its first panel only; the second panel's band is clear.
+    // The 2024 count sits at its own first 1x1 cell, in the panel holding that
+    // cell only; the second panel's matching band is clear.
     const inset = CELL_INSET_WORLD * 432
-    const band = { x: inset, y: inset, w: FRIEZE_CELL_W * 432 - 2 * inset, h: YEAR_COUNT_BAND_WORLD * 432 }
+    const counted = countCell(packed, 2)!
+    const bandX = (counted.col - masks[2].panel.startCol) * FRIEZE_CELL_W * 432
+    expect(bandX).toBeGreaterThan(0)
+    const band = {
+      x: bandX + inset,
+      y: counted.row * FRIEZE_CELL_H * 432 + inset,
+      w: FRIEZE_CELL_W * 432 - 2 * inset,
+      h: YEAR_COUNT_BAND_WORLD * 432,
+    }
     expect(anyInk(masks[2], band, 'g')).toBe(true)
     expect(anyInk(masks[3], band, 'g')).toBe(false)
+    // 2026 is three Projects filling its block exactly, so it has no 1x1 cell
+    // to hold a count and the mask draws none: its top-left card carries it.
+    expect(countCell(packed, 0)).toBeNull()
     disposeFriezeTextures(masks)
   })
 

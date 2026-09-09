@@ -3,6 +3,7 @@ import type { ArchiveItem } from '../../../types/content'
 import {
   FRIEZE_CELL_H,
   FRIEZE_CELL_W,
+  countCell,
   type Cell,
   type FriezeBlockExtent,
   type FriezeExtent,
@@ -66,7 +67,7 @@ const GROUND_FILL = '#000000'
 export interface FriezePanel {
   /** Zero-based block index into the layout. */
   block: number
-  /** Zero-based within the block; the year count is drawn in panel 0. */
+  /** Zero-based within the block; the year count is drawn in the panel holding its cell. */
   panel: number
   /** Absolute first column, from the frieze's left edge. */
   startCol: number
@@ -234,9 +235,7 @@ interface DrawUnit {
   width: number
   height: number
   text: { title: string; meta: string; serial: string }
-  /** A 2×2 case study: only the serial strip is drawn, the card covers the rest. */
-  serialOnly: boolean
-  /** The block's first top-row cell yields its first line to the year count. */
+  /** The cell carrying the year count yields its first line to it. */
   belowCount: boolean
 }
 
@@ -256,24 +255,30 @@ function planPanels(recipe: FriezeRasterRecipe): PanelPlan[] {
       const size = maskSize(panel.columns, rows, density)
       const t = size.texelsPerWorld
       const units: DrawUnit[] = []
-      const countCell = layout.cells.find(
-        (c) => c.block === index && c.col === block.startCol && c.row === 0,
-      )
-      if (panel.panel === 0) {
+      // One rule, two readers: `cellAtUv` makes the same band noninteractive.
+      const counted = countCell(layout, index)
+      const holdsCount =
+        counted !== null &&
+        counted.col >= panel.startCol &&
+        counted.col < panel.startCol + panel.columns
+      if (holdsCount) {
         units.push({
           kind: 'count',
-          x: 0,
-          y: 0,
+          x: (counted.col - panel.startCol) * FRIEZE_CELL_W * t,
+          y: counted.row * FRIEZE_CELL_H * t,
           width: FRIEZE_CELL_W * t,
           height: YEAR_COUNT_BAND_WORLD * t + 2 * CELL_INSET_WORLD * t,
           text: { title: '', meta: String(block.count), serial: '' },
-          serialOnly: false,
           belowCount: false,
         })
       }
       for (const cell of layout.cells) {
         if (cell.block !== index) continue
         if (cell.col < panel.startCol || cell.col >= panel.startCol + panel.columns) continue
+        // A Project's card object fills its 2×2 exactly (Q9) and draws its own
+        // title, origin and serial, so anything the mask drew here would be
+        // invisible ink behind it (third amendment).
+        if (cell.span === 2) continue
         const item = byId.get(cell.itemId)
         if (!item) throw new Error(`frieze cell ${cell.itemId} has no archive item`)
         units.push({
@@ -283,8 +288,7 @@ function planPanels(recipe: FriezeRasterRecipe): PanelPlan[] {
           width: cell.span * FRIEZE_CELL_W * t,
           height: cell.span * FRIEZE_CELL_H * t,
           text: cellText(item, lang),
-          serialOnly: cell.span === 2,
-          belowCount: cell === countCell && cell.span === 1,
+          belowCount: cell === counted,
         })
       }
       plans.push({ panel, size, units })
@@ -324,12 +328,6 @@ function drawUnit(ctx: CanvasRenderingContext2D, unit: DrawUnit, t: number): voi
   if (unit.kind === 'count') {
     ctx.fillStyle = META_FILL
     ctx.fillText(fitMeta(measureMeta, unit.text.meta, maxWidth), left, unit.y + inset + metaBox / 2)
-    return
-  }
-
-  if (unit.serialOnly) {
-    // The serial strip: the bottom inset band of the card's footprint.
-    drawDigits(unit.text.serial, left, unit.y + unit.height - inset - metaBox / 2)
     return
   }
 

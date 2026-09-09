@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import type { ArchiveItem } from '../../src/types/content'
-import { FRIEZE_CELL_H, FRIEZE_ROWS, friezeLayout, type Cell } from '../../src/utils/friezeLayout'
+import {
+  FRIEZE_CELL_H,
+  FRIEZE_ROWS,
+  countCell,
+  friezeLayout,
+  type Cell,
+} from '../../src/utils/friezeLayout'
 import { archive } from '../../src/data/archive'
 import { CELL_INSET_WORLD, YEAR_COUNT_BAND_WORLD } from '../../src/components/canvas/scene/friezeText'
 import { panelsFor, type FriezePanel } from '../../src/components/canvas/scene/friezeTexture'
@@ -108,17 +114,29 @@ describe('cellAtUv', () => {
     expect(below?.row).toBe(e0.row + 1)
   })
 
-  it('keeps the year count band noninteractive when it sits over a one-cell top-left', () => {
-    // Block 1's first top-row slot is a 1×1 editorial, so its text starts under the count.
+  it('keeps the year count band noninteractive on whichever cell carries the count', () => {
+    const bandFrac = (CELL_INSET_WORLD + YEAR_COUNT_BAND_WORLD) / FRIEZE_CELL_H
+
+    // Block 1's first 1x1 IS its top-left, so nothing moves there.
     const panel = wholeBlock(1)
-    const e2 = layout.cells.find((c) => c.itemId === 'editorial-2')!
+    const e2 = countCell(layout, 1)!
+    expect(e2.itemId).toBe('editorial-2')
     expect(e2.col).toBe(layout.blocks[1].startCol)
     expect(e2.row).toBe(0)
-    const bandFrac = (CELL_INSET_WORLD + YEAR_COUNT_BAND_WORLD) / FRIEZE_CELL_H
-    expect(cellAtUv(...uvAt(panel, e2.col, 0, 0.5, bandFrac * 0.5), panel, occupancy[1], layout)).toBeNull()
-    expect(id(cellAtUv(...uvAt(panel, e2.col, 0, 0.5, bandFrac * 1.5), panel, occupancy[1], layout))).toBe('editorial-2')
-    // Under a 2×2 card the count is hidden, so the card takes the whole footprint.
+    expect(cellAtUv(...uvAt(panel, e2.col, e2.row, 0.5, bandFrac * 0.5), panel, occupancy[1], layout)).toBeNull()
+    expect(id(cellAtUv(...uvAt(panel, e2.col, e2.row, 0.5, bandFrac * 1.5), panel, occupancy[1], layout))).toBe('editorial-2')
+
+    // Block 0's top-left is a Project, so its count moved down to the first
+    // 1x1 and the band moved with it — the raster and the hit test read the
+    // one rule (countCell), or they drift.
     const project = wholeBlock(0)
+    const e0 = countCell(layout, 0)!
+    expect(e0.itemId).toBe('editorial-0')
+    expect(e0.row).toBeGreaterThan(0)
+    expect(cellAtUv(...uvAt(project, e0.col, e0.row, 0.5, bandFrac * 0.5), project, occupancy[0], layout)).toBeNull()
+    expect(id(cellAtUv(...uvAt(project, e0.col, e0.row, 0.5, bandFrac * 1.5), project, occupancy[0], layout))).toBe('editorial-0')
+
+    // And the card keeps its whole footprint: no band crosses it any more.
     expect(id(cellAtUv(...uvAt(project, 0, 0, 0.5, bandFrac * 0.5), project, occupancy[0], layout))).toBe('featured-a')
   })
 

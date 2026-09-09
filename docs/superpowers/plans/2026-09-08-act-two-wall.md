@@ -563,6 +563,57 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 - [x] Run the acceptance command and `npx tsc -b`; expected: hit/material contracts pass.
 - [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: render frieze blocks with uv cell interaction'`; expected: block-renderer commit.
 
+### Third amendment · the wall card's caption, serial and year count, 2026-09-09
+
+Kevin's call, after one contract answered by `reasoner` (fable) and `codex-review` (astra) in
+parallel. Both agreed on calls 1-3; call 4 is astra's, because fable's rule cannot cover 2026.
+Every number below was re-derived here against the real archive, not taken on either model's word.
+
+**Verified facts.** The card's body band is `BAND_H = 0.113105` world units. Three caption rows
+(title `26/620 = 0.041935` + meta `0.04` + serial `0.04`, all at line-height 1.2) need `0.146323`
+and DO NOT FIT. Two rows need `0.098323` and fit. Block top-left cells: 2026, 2025 and 2024 each
+hold a 2x2 Project there. **2026 has zero 1x1 cells at all** — three 2x2 Projects exactly fill its
+2-column x 6-row block (12 slots) — so any rule that moves the year count to a 1x1 cell must have a
+fallback.
+
+1. **The wall card's caption is two planes, not one.** A title plane drawn as WHITE coverage whose
+   `material.color` carries the ink (origin ink at rest, the hover accent on hover), and a second
+   plane for the origin word and serial that is never tinted (Q6: tint the title only). Act one's
+   corridor keeps its existing single two-line coloured texture and its arrow, untouched.
+   The muted plane is drawn as **opaque `#646566` at full glyph coverage**, transparency only for
+   antialiasing — NOT as `rgba(11,14,20,.62)` composited at draw time. The card's frame is WHITE
+   while the wall is cream, so that alpha would resolve to `#686A6D` on the card and `#646566` on
+   the wall, and blending into the composer's linear target is neither. Keep `toneMapped: false`
+   and `fog: true` on both planes.
+
+2. **No arrow on wall cards.** The arrow is a hover affordance the rig slides, and act two forbids
+   ambient card motion, so a static arrow would promise what the card cannot do. The wall's
+   affordance is the title tint, shared with all 171 cells. The caption reclaims the arrow's
+   reserved width in wall mode.
+
+3. **The Project serial is drawn by the card, and the mask stops drawing it.** The card fills its
+   2x2 footprint exactly (Q9), so the masked bottom strip is invisible under it; shrinking the card
+   to reveal the strip is refused. Layout, within the two-row limit: title on row one; the origin
+   word left-aligned and the serial right-aligned on row two, both muted. If a long origin would
+   collide with the serial, collapse the row to `origin · serial` (a guard, not the expected path).
+   In `friezeTexture.ts`, **skip a Project cell's draw unit entirely** — do NOT set `serialOnly` to
+   false, which would draw its title and meta onto the wall behind the card. Task 4's masked-serial
+   assertion is updated to match.
+   This contradicts the LITERAL wording of Task 4 and of Task 6's "serial stays on the block's
+   reserved strip", and satisfies its spatial intent plus Q9's "reserve serial space inside the
+   existing caption band". Recorded as an amendment, not claimed as compliance.
+
+4. **The year count moves to the first 1x1 cell, and the card carries it when there is none.**
+   Selection rule, in one place: scan the block's cells row-major (row 0 left to right, then row 1,
+   and so on) and take the first cell whose span is 1. Today that is 2025 r0c4, 2024 r0c13, 2023
+   r0c33 — and NONE for 2026, where the block's top-left Project carries the count instead, in a
+   reserved slot at the right of its TITLE row, muted and never tinted by hover, shortening the
+   title's available width. The count stays block-owned decoration, never Project metadata.
+   The rule is ONE pure function over the layout, consumed by the rasteriser AND by `cellAtUv`'s
+   noninteractive band. Two copies of this rule is exactly how the raster and the hit test drift.
+   `friezeHit.ts`'s current `col === 0 && row === 0` condition is replaced by it, and Task 4's
+   "panel 0 only" becomes "the panel containing the selected count column".
+
 ### Task 6: Embed the nine card objects without disturbing the corridor
 
 **Files:**
@@ -581,12 +632,12 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** No duplicated corridor pose loop, enlarged CARD_COUNT, new mockup files, halo or act-one visual change.
 
-- [ ] Run `apply_patch` for two-consumer, final-release and StrictMode reacquisition tests; expected: shared lifetime scenarios represented.
-- [ ] Run the acceptance command; expected: missing shared cache fails.
-- [ ] Run `apply_patch` for shared card object/resources and explicit caption handles; expected: corridor retains the same geometry and material registrations.
-- [ ] Run `apply_patch` to place all nine frieze cards; expected: card bodies and serial strips stay within each 2×2 footprint.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: ownership and caption tests pass.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: embed shared project objects in the frieze'`; expected: card-reuse commit.
+- [x] Run `apply_patch` for two-consumer, final-release and StrictMode reacquisition tests; expected: shared lifetime scenarios represented.
+- [x] Run the acceptance command; expected: missing shared cache fails.
+- [x] Run `apply_patch` for shared card object/resources and explicit caption handles; expected: corridor retains the same geometry and material registrations.
+- [x] Run `apply_patch` to place all nine frieze cards; expected: card bodies and serial strips stay within each 2×2 footprint.
+- [x] Run the acceptance command and `npx tsc -b`; expected: ownership and caption tests pass.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: embed shared project objects in the frieze'`; expected: card-reuse commit.
 
 ### Task 7: Integrate warm-up, extent and reduced-motion rendering
 
