@@ -13,6 +13,7 @@ import {
   COVER_Z,
   COVER_RADIUS,
 } from './cardAnatomy'
+import { TAP_MAX_DELTA_PX } from './friezeHit'
 import type { SceneRefs } from './sceneRefs'
 import type { SceneCard } from '../SelectedWorkScene'
 import { Caption } from './Caption'
@@ -32,13 +33,6 @@ interface CorridorProps {
   /** A press on card i. Navigation and scrolling happen in the Router root. */
   onCardClick: (index: number) => void
 }
-
-/**
- * R3F fills `event.delta` (px between pointerdown and click) on every hit
- * click but only filters MISSES by it (@react-three/fiber 9.7.0), so a scroll
- * gesture that ends on a card has to be ignored here.
- */
-const TAP_MAX_DELTA_PX = 6
 
 interface CardCoverProps {
   url: string
