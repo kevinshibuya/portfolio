@@ -531,12 +531,12 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** No browser-only font-quality claims from jsdom stubs, no per-cell canvas, no presentation colour baked into coverage, no first-paint rasterisation.
 
-- [ ] Run `apply_patch` to add formatting, sizing and cancellation tests; expected: required contracts covered.
-- [ ] Run the acceptance command; expected: new tests fail on missing utilities.
-- [ ] Run `apply_patch` for presentation/wrapping and tabular digit drawing; expected: deterministic measured layouts and bilingual origin labels.
-- [ ] Run `apply_patch` for bounded canvases, incremental jobs and shared debounce; expected: cancellable block-mask generation and released resources.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: all text assertions pass.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: rasterise bounded frieze coverage masks'`; expected: bounded rasterisation commit.
+- [x] Run `apply_patch` to add formatting, sizing and cancellation tests; expected: required contracts covered.
+- [x] Run the acceptance command; expected: new tests fail on missing utilities.
+- [x] Run `apply_patch` for presentation/wrapping and tabular digit drawing; expected: deterministic measured layouts and bilingual origin labels.
+- [x] Run `apply_patch` for bounded canvases, incremental jobs and shared debounce; expected: cancellable block-mask generation and released resources.
+- [x] Run the acceptance command and `npx tsc -b`; expected: all text assertions pass.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: rasterise bounded frieze coverage masks'`; expected: bounded rasterisation commit.
 
 ### Task 5: Render block surfaces and UV interaction
 

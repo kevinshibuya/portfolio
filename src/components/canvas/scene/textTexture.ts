@@ -53,6 +53,12 @@ export interface TextTexture {
 }
 
 export const TEXT_FAMILY = '"Plus Jakarta Sans"'
+/**
+ * How long a resize must be quiet before the scene's Jakarta textures redraw.
+ * Shared by the card captions and the frieze masks so one window setting
+ * settles every text rebuild together.
+ */
+export const RESIZE_DEBOUNCE_MS = 150
 const ARROW_FALLBACK_FAMILY = 'system-ui, sans-serif'
 const ELLIPSIS = '…'
 const DEFAULT_LINE_HEIGHT = 1.2

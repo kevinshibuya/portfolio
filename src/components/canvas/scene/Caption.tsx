@@ -23,6 +23,7 @@ import {
   captionScale,
   loadTextFont,
   arrowFamily,
+  RESIZE_DEBOUNCE_MS,
   type TextTexture,
 } from './textTexture'
 import type { SceneCard } from '../SelectedWorkScene'
@@ -32,7 +33,6 @@ const NAME_COLOR = '#0B0E14'
 const SUBTITLE_COLOR = 'rgba(11,14,20,0.62)'
 const ARROW = '↗'
 const BAND_CENTRE_Y = (BAND_TOP_Y + BAND_BOTTOM_Y) / 2
-const RESIZE_DEBOUNCE_MS = 150
 /** Above the frame and cover (0), below the title (10). */
 const CAPTION_ORDER = 1
 
