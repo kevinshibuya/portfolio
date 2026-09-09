@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useScroll } from 'framer-motion'
+import { useMotionValue, useScroll } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMotion } from '../../context/MotionContext'
@@ -117,10 +117,34 @@ export function Projects() {
   // Stable identity: the scene subtree must only ever re-render on `cards`.
   const handleCardClick = useCallback((index: number) => cardClick.current(index), [])
 
-  // The wall renders, hovers and reports; where a cell LEADS is Task 8's, and
-  // these stay inert until it lands rather than half-routing a press now.
-  const handleCellClick = useCallback(() => {}, [])
-  const handleCellHover = useCallback(() => {}, [])
+  // Where a wall cell leads. A case study is a route; an Embed is the
+  // publisher's own page, opened SYNCHRONOUSLY — a popup opened after an await
+  // has lost the trusted click stack and the browser blocks it. An id the
+  // archive does not hold does nothing rather than guessing at one.
+  const cellClick = useRef<(itemId: string) => void>(() => {})
+  cellClick.current = (itemId: string) => {
+    const item = archive.find((piece) => piece.id === itemId)
+    if (!item) return
+    if (item.caseStudy) {
+      navigate(`/projects/${item.caseStudy.slug}`)
+      return
+    }
+    // The href goes out exactly as the archive stores it, `#:~:text=` and all.
+    window.open(item.href, '_blank', 'noopener')
+  }
+
+  // Hover rides a MotionValue, never state: the pointer crosses 171 cells, and
+  // a re-render per cell would drive the scene's whole subtree from the
+  // pointer (ADR 0010). Pipeline 3's stream reads its focus target from here.
+  const hoveredCell = useMotionValue<string | null>(null)
+
+  // Stable identities, as onCardClick already keeps: the scene subtree must
+  // only ever re-render on `cards`.
+  const handleCellClick = useCallback((itemId: string) => cellClick.current(itemId), [])
+  const handleCellHover = useCallback(
+    (itemId: string | null) => hoveredCell.set(itemId),
+    [hoveredCell],
+  )
 
   return (
     <section id="projects" className="section projects-scene-section">

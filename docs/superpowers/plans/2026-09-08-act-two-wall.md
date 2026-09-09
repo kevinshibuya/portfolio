@@ -681,11 +681,11 @@ fallback.
 
 **Boundaries:** Existing corridor onCardClick behaviour survives. No router inside canvas, external prefetch, deferred popup or stream ownership change.
 
-- [ ] Run `apply_patch` for Projects callback tests; expected: case-study/external/unknown paths represented.
-- [ ] Run the acceptance command; expected: missing callbacks fail.
-- [ ] Run `apply_patch` for pure target utilities, stable handlers, MotionValue hover and final host props; expected: trusted click stack reaches routing/open directly.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: callback and type contracts pass.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: route frieze cell clicks through projects'`; expected: callback integration commit.
+- [x] Run `apply_patch` for Projects callback tests; expected: case-study/external/unknown paths represented.
+- [x] Run the acceptance command; expected: missing callbacks fail.
+- [x] Run `apply_patch` for pure target utilities, stable handlers, MotionValue hover and final host props; expected: trusted click stack reaches routing/open directly.
+- [x] Run the acceptance command and `npx tsc -b`; expected: callback and type contracts pass.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: route frieze cell clicks through projects'`; expected: callback integration commit.
 
 ### Task 9: Verify the rendered surface and regressions
 
