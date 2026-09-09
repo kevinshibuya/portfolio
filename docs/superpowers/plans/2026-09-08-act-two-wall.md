@@ -5,6 +5,53 @@
 **Spec:** `docs/superpowers/specs/2026-09-08-archive-act-two-design.md`
 **Execution model:** opus
 
+## Controller amendment · six rows, 2026-09-09 (READ FIRST)
+
+Kevin changed `FRIEZE_ROWS` from 8 to 6 after PR #17's review, and pipeline 1
+shipped it. This plan was written and reviewed against eight rows, so every
+extent number below is stale. **This is a decision already made, not a mismatch
+to report as `blocked:`** — but it is also the only part of this plan you may
+treat as superseded. Everything else stands.
+
+Why: the frieze is bottom-anchored and act two has no vertical camera travel, so
+anything that does not fit the frame at the dolly is off the TOP of it forever.
+Eight rows fill `832.4 / heightPx`, so every viewport shorter than ~833 CSS px
+overflowed — 1280×720, Playwright's own desktop project, by 16 % — and
+`actTwoTopClearFrac` went negative there, which is the number THIS pipeline
+insets the top row's ink by. Seven rows still miss 720 px by 1.2 %.
+
+What is now true on the merged base, verified in `feat/act-two`:
+
+| Was (this plan) | Is (merged) |
+| --- | --- |
+| `FRIEZE_ROWS = 8` | `FRIEZE_ROWS = 6` |
+| 26 columns | **35 columns** |
+| block widths 2, 7, 16, 1 | **2, 9, 22, 2** |
+| act two 150 + 25×26 = 800 svh | **150 + 25×35 = 1025 svh** |
+| wrapper 1350 svh | **1575 svh** |
+| lookup textures 26×8×4 = 832 B | **35×6×4 = 840 B** |
+
+Unchanged: 171 pieces, nine 2×2 case-study spans, 198 unit slots, years
+3/42/118/8, the half-card cell constants, the 144 px cell floor, the 288 CSS px
+per world unit reading scale and the 4096 px texture long-side cap. The synthetic
+22-column fixture stays, and `sceneWrapperSvh(22) = 1250` is still its expected
+value.
+
+**Re-derive, do not translate:** the mask memory accounting in "Shared interfaces
+and texture arithmetic" (the ~26.76 MiB / 53.52 MiB / 86.45 MiB figures) was
+derived from eight-row block dimensions at the legibility floor. Six rows change
+both the per-block pixel height and the column count, so those numbers must be
+recomputed from the new extent with the same method, not scaled by eye. Task 1
+records the recomputation alongside the seam reconciliation; if the recomputed
+peak breaks the plan's budget, THAT is a real `blocked:`.
+
+Where this plan says "eight rows" or "26 columns" as an acceptance value, read
+the table above. Where it says "respect Motion's `maxRowsInFrame(g)`", note that
+`maxRowsInFrame` is viewport-dependent (10 at 1920×1080, 8 at 1440×900, 7 at
+820×821, 6 at 1280×720) and must be asserted across the whole viewport matrix,
+never at one or two fixtures — asserting it at a single size is what let the
+eight-row overflow ship in the first place.
+
 ## Global constraints
 
 - Follow `CLAUDE.md`, `CONTEXT.md`, ADRs 0001, 0002, 0009, 0010, 0011 and 0012; use the glossary's terms.
