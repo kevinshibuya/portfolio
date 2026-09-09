@@ -49,6 +49,12 @@ export interface SceneRefs {
   tilt: { pitch: number; yaw: number }
   /** Pointer position over the canvas in NDC, [-1, 1]. */
   pointer: { x: number; y: number }
+  /**
+   * Where depth of field focuses, in world units, written every frame by the
+   * rig and read by Environment's DoF effect. Act one holds the slot; act two
+   * walks it out to the wall across the release.
+   */
+  focus: { distance: number }
 }
 
 export function createSceneRefs(): SceneRefs {
@@ -70,5 +76,6 @@ export function createSceneRefs(): SceneRefs {
     energy: { value: 0 },
     tilt: { pitch: 0, yaw: 0 },
     pointer: { x: 0, y: 0 },
+    focus: { distance: 0 },
   }
 }

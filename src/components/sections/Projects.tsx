@@ -6,7 +6,15 @@ import { useMotion } from '../../context/MotionContext'
 import { useLenisContext } from '../layout/SmoothScroll'
 import { SelectedWorkScene, type SceneCard } from '../canvas/SelectedWorkScene'
 import { projects } from '../../data/projects'
-import { playheadFor, frontIndexFor, scrollTargetFor } from '../../utils/sceneMotion'
+import {
+  playheadFor,
+  frontIndexFor,
+  scrollTargetFor,
+  actOneSeg,
+  sceneWrapperSvh,
+} from '../../utils/sceneMotion'
+import { provisionalFriezeExtent, FRIEZE_ROWS } from '../../utils/friezeLayout'
+import { archive } from '../../data/archive'
 
 /** Used until the nav has been measured, and if it is ever missing. */
 const NAV_FALLBACK_PX = 66
@@ -20,12 +28,20 @@ export function Projects() {
   const { prefersReducedMotion } = useMotion()
   const lang = i18n.language.startsWith('pt') ? 'pt' : 'en'
 
+  // The frieze's extent, and the wrapper height that follows from it. Static:
+  // eight rows in BOTH orientations (amended decision 15), so no aspect key
+  // here or in pipeline 2, and a resize never changes the wrapper's height.
+  const frieze = useMemo(() => provisionalFriezeExtent(archive, FRIEZE_ROWS), [])
+  const svh = sceneWrapperSvh(frieze.columns)
+
   // Nothing here tracks the scroll. The scene's frame loop reads the scroll
   // MotionValue and writes every visual itself; the settled card is reported
   // on the canvas element as `data-slot`, which nothing in React reads
   // (ADR 0011). The language switch is the ONLY thing that may re-render the
   // scene subtree, so `cards` is memoised on `lang` and that is the only
-  // identity change the scene ever sees.
+  // identity change the scene ever sees. `frieze` and `allWork` are the two
+  // other identities the scene sees, and both change only with data or
+  // language.
   const cards = useMemo<SceneCard[]>(
     () =>
       featured.map((p) => ({
@@ -75,7 +91,8 @@ export function Projects() {
   const lenis = useLenisContext()
   const cardClick = useRef((index: number): void => void index)
   cardClick.current = (index) => {
-    const seg = playheadFor(scrollYProgress.get())
+    const playhead = playheadFor(scrollYProgress.get(), frieze.columns)
+    const seg = actOneSeg(playhead)
     if (index === frontIndexFor(seg, cards.length, prefersReducedMotion)) {
       navigate(`/projects/${cards[index].slug}`)
       return
@@ -83,7 +100,13 @@ export function Projects() {
     const wrapper = wrapperRef.current
     if (!wrapper) return
     const wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY
-    const target = scrollTargetFor(index, wrapperTop, wrapper.offsetHeight, window.innerHeight)
+    const target = scrollTargetFor(
+      index,
+      wrapperTop,
+      wrapper.offsetHeight,
+      window.innerHeight,
+      frieze.columns,
+    )
     if (lenis) lenis.scrollTo(target, { duration: 1.2 })
     else window.scrollTo({ top: target, behavior: 'instant' })
   }
@@ -131,7 +154,12 @@ export function Projects() {
           ))}
         </div>
       ) : (
-        <div className="scene-scroll" ref={wrapperRef}>
+        <div
+          className="scene-scroll"
+          ref={wrapperRef}
+          style={{ height: `${svh}svh` }}
+          data-svh={svh}
+        >
           <div className="scene-sticky">
             <div className="scene-inner">
               <div
@@ -148,6 +176,8 @@ export function Projects() {
                   onCardClick={handleCardClick}
                   navPx={navPx}
                   overture={t('sections.projects.overture')}
+                  frieze={frieze}
+                  allWork={t('sections.archive.title')}
                 />
               </div>
 

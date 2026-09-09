@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { scrollToPlayhead } from './helpers/scene'
 
 // Absolute document-Y scroll to a fraction INTO a section (no offsetTop).
 async function scrollIntoSection(page: import('@playwright/test').Page, id: string, frac: number): Promise<void> {
@@ -11,20 +12,6 @@ async function scrollIntoSection(page: import('@playwright/test').Page, id: stri
   await page.waitForTimeout(200)
 }
 
-// Scroll to a fraction of the scene's scrub range (550svh wrapper, 100svh
-// sticky stage; settled card k at (k + 1.5) / 4.5). Mirrors scene-scrub.spec.ts.
-async function scrollToSceneFraction(page: import('@playwright/test').Page, fraction: number): Promise<void> {
-  await page.evaluate((frac) => {
-    const wrapper = document.querySelector('#projects .scene-scroll') as HTMLElement | null
-    if (!wrapper) return
-    const top = wrapper.getBoundingClientRect().top + window.scrollY
-    window.scrollTo({
-      top: top + frac * (wrapper.offsetHeight - window.innerHeight),
-      behavior: 'instant' as ScrollBehavior,
-    })
-  }, fraction)
-  await page.waitForTimeout(160)
-}
 
 test('nav flips to on-light over the cream chapter (Projects → Skills) and back to dark', async ({ page }) => {
   await page.goto('/')
@@ -73,7 +60,8 @@ test('nav re-arms on-light after SPA back-nav from a project page', async ({ pag
   // Follow the first project to its page (SPA nav, Header stays mounted)
   // through the keyboard path: the skip-link index is the DOM's only route
   // into a project; the cards themselves live on the canvas (ADR 0011).
-  await scrollToSceneFraction(page, 0.3333)
+  // Playhead 0: card 0 settled in the slot.
+  await scrollToPlayhead(page, 0)
   const link = page.locator('#projects .scene-skiplink').first()
   const href = await link.getAttribute('href')
   await link.focus()

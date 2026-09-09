@@ -11,6 +11,13 @@
  * docs/superpowers/plans/2026-09-03-selected-work-scene.md.
  */
 
+import {
+  FRIEZE_CELL_W,
+  FRIEZE_CELL_H,
+  type FriezeExtent,
+  type FriezeBlockExtent,
+} from './friezeLayout'
+
 /** Featured projects in the corridor; the wrapper height is coupled to this. */
 export const CARD_COUNT = 4
 
@@ -160,14 +167,120 @@ export function settleFrac(frac: number): number {
 /** Playhead units the wrapper spans: 1 overture + 0.5 approach + 3 card segments. */
 const PLAYHEAD_SPAN = MAX_SEG - OVERTURE_START
 
+/* ── Act two · the scroll budget past card four ──────────────────────────── */
+
+/** Where act one ends and act two begins: card four settled in its slot. */
+export const ACT_TWO_START = MAX_SEG
+
+/** The camera pulls back and up off card four's slot over this much scroll. */
+export const ACT_TWO_RELEASE_SVH = 100
+/** …then moves in and left toward the newest block over this much. */
+export const ACT_TWO_APPROACH_SVH = 50
+/** …then reads the frieze laterally, one column at a time, at this rate. */
+export const ACT_TWO_SVH_PER_COLUMN = 25
+
 /**
- * Scroll progress (0..1 over the 550svh wrapper) → playhead.
- * `seg = i` means card `i` sits in the slot; `[−1.5, −0.5)` is the overture,
- * `[−0.5, 0)` the approach with the camera one spacing behind card 0 at −0.5
- * and card 0 surfacing from the fog.
+ * Act one's scrub, in svh — the retired `.scene-scroll` CSS literal, now
+ * derived: 4.5 playhead units at 100 svh each, plus the one viewport the pin
+ * itself occupies.
  */
-export function playheadFor(progress: number): number {
-  return clamp(progress * PLAYHEAD_SPAN + OVERTURE_START, OVERTURE_START, MAX_SEG)
+export const ACT_ONE_SVH = (PLAYHEAD_SPAN + 1) * 100
+
+/** Act two's own scrub. No frieze, no act two — and no zero divisor. */
+export function actTwoSvh(columns: number): number {
+  if (columns <= 0) return 0
+  return ACT_TWO_RELEASE_SVH + ACT_TWO_APPROACH_SVH + ACT_TWO_SVH_PER_COLUMN * columns
+}
+
+/** The whole wrapper: act one's 550 svh plus whatever the frieze asks for. */
+export function sceneWrapperSvh(columns: number): number {
+  return ACT_ONE_SVH + actTwoSvh(columns)
+}
+
+/** Act one's scrub range, in svh: the wrapper less the viewport the pin holds. */
+const ACT_ONE_SCRUB_SVH = ACT_ONE_SVH - 100
+
+/**
+ * What the rig multiplies the raw scroll velocity by before deriving energy.
+ *
+ * `useScroll` normalises progress over the WHOLE wrapper, so progress-velocity
+ * is in units of "wrapper per second" — and act two makes the wrapper longer.
+ * At 26 columns the scrub range goes 450 svh to 1250 svh, so the same physical
+ * scroll speed produces 36 % of the progress-velocity it used to, while
+ * `velocityEnergy` still divides by a constant calibrated in the old units. Act
+ * one's lean and ambient amplitude would quietly weaken across the board — a
+ * regression the pose snapshot cannot see, because it samples poses at rest.
+ *
+ * Scaling back by the ratio restores act one exactly and gives act two the same
+ * energy per svh scrolled, which is the only reading under which the corridor
+ * behaves the same on both sides of the seam.
+ */
+export function actOneVelocityScale(columns: number): number {
+  return (sceneWrapperSvh(columns) - 100) / ACT_ONE_SCRUB_SVH
+}
+
+/**
+ * Where the release and the approach end, in act-two progress `u`. Derived from
+ * the svh budget, so a different column count moves them and nothing else has
+ * to be told.
+ */
+export function actTwoBeats(columns: number): { release: number; approach: number } {
+  const span = actTwoSvh(columns)
+  if (span <= 0) return { release: 0, approach: 0 }
+  return {
+    release: ACT_TWO_RELEASE_SVH / span,
+    approach: (ACT_TWO_RELEASE_SVH + ACT_TWO_APPROACH_SVH) / span,
+  }
+}
+
+/**
+ * Scroll progress (0..1 over the wrapper) → playhead.
+ *
+ * PIECEWISE. Act one is `[−1.5, 3]` in CARD units, one unit per 100 svh:
+ * `seg = i` means card `i` sits in the slot, `[−1.5, −0.5)` is the overture and
+ * `[−0.5, 0)` the approach with the camera one spacing behind card 0 at −0.5.
+ * Act two is `[3, 4]` NORMALISED over its own svh budget, so `actTwoProgress`
+ * needs no extent and act-one poses are the old functions on `min(playhead, 3)`.
+ *
+ * `columns = 0` means no frieze and reproduces today's function exactly. The
+ * early return is not decorative: `progress > 1` is on the live path (Lenis
+ * overscroll, an iOS rubber-band), and without it that call would divide by
+ * `actTwoSvh(0) = 0` and return `Infinity` where the clamp returns 3.
+ */
+export function playheadFor(progress: number, columns = 0): number {
+  if (columns <= 0) {
+    return clamp(progress * PLAYHEAD_SPAN + OVERTURE_START, OVERTURE_START, MAX_SEG)
+  }
+  const span = actTwoSvh(columns)
+  const scrub = progress * (ACT_ONE_SCRUB_SVH + span)
+  if (scrub <= ACT_ONE_SCRUB_SVH) {
+    return Math.max(OVERTURE_START + scrub / 100, OVERTURE_START)
+  }
+  return ACT_TWO_START + Math.min((scrub - ACT_ONE_SCRUB_SVH) / span, 1)
+}
+
+/** The act-two half of a playhead, 0 at card four's slot and 1 at the end. */
+export function actTwoProgress(playhead: number): number {
+  return clamp(playhead - ACT_TWO_START, 0, 1)
+}
+
+/**
+ * The act-one half. Clamped at 3, so every act-one function keeps receiving the
+ * segment it did before: card four holds its slot for the whole of act two
+ * instead of scrubbing a card past it.
+ */
+export function actOneSeg(playhead: number): number {
+  return Math.min(playhead, ACT_TWO_START)
+}
+
+/** …and back: act-two progress → the playhead that carries it. */
+export function actTwoPlayhead(u: number): number {
+  return ACT_TWO_START + clamp(u, 0, 1)
+}
+
+/** The playhead the `#archive` nav link lands on: the whole frieze in frame. */
+export function volumeShotPlayhead(columns: number): number {
+  return actTwoPlayhead(actTwoBeats(columns).release)
 }
 
 /**
@@ -509,17 +622,32 @@ export function titleBand(
 }
 
 /**
- * The document `scrollY` at which `playheadFor` returns exactly `index`, for a
- * wrapper starting at `wrapperTop` whose scrub range is `height − viewport`.
+ * The document `scrollY` at which `playheadFor` returns exactly `playhead`, for
+ * a wrapper starting at `wrapperTop` whose scrub range is `height − viewport`.
+ *
+ * The exact inverse of `playheadFor` on BOTH pieces, and today's function when
+ * `columns = 0`. It takes a number and never an item id: `sceneMotion` has no
+ * cells and must not import the content model. Pipeline 2's
+ * `playheadForItem(itemId, layout, extent)` composes this with
+ * `playheadForColumn`; see the plan's "Scroll seams".
  */
 export function scrollTargetFor(
-  index: number,
+  playhead: number,
   wrapperTop: number,
   wrapperHeight: number,
   viewportHeight: number,
+  columns = 0,
 ): number {
-  const progress = (index - OVERTURE_START) / PLAYHEAD_SPAN
-  return wrapperTop + progress * (wrapperHeight - viewportHeight)
+  const scrub = wrapperHeight - viewportHeight
+  if (columns <= 0) {
+    return wrapperTop + ((playhead - OVERTURE_START) / PLAYHEAD_SPAN) * scrub
+  }
+  const span = actTwoSvh(columns)
+  const svh =
+    playhead <= ACT_TWO_START
+      ? (playhead - OVERTURE_START) * 100
+      : ACT_ONE_SCRUB_SVH + (playhead - ACT_TWO_START) * span
+  return wrapperTop + (svh / (ACT_ONE_SCRUB_SVH + span)) * scrub
 }
 
 /**
@@ -628,11 +756,486 @@ export function velocityYaw(energy: number, velocity: number): number {
  * the scene never sits perfectly still.
  */
 export function fogRange(g: SceneGeometry, t: number): { near: number; far: number } {
+  return fogRangeAt(g.D, g, t)
+}
+
+/**
+ * `fogRange` generalised to any focal distance — the same expression with the
+ * slot distance made a parameter, so act two can walk the fog out to the wall
+ * without a second set of constants.
+ */
+export function fogRangeAt(
+  distance: number,
+  g: SceneGeometry,
+  t: number,
+): { near: number; far: number } {
   const drift = 1 + 0.03 * Math.sin((2 * Math.PI * t) / 9)
   return {
-    near: (g.D + 0.15 * g.spacing) * drift,
-    far: (g.D + 2.2 * g.spacing) * drift,
+    near: (distance + 0.15 * g.spacing) * drift,
+    far: (distance + 2.2 * g.spacing) * drift,
   }
+}
+
+/* ── Act two · the frieze frame and the four beats ───────────────────────── */
+
+/** The volume shot fits both axes with a 5 % margin on whichever binds. */
+export const VOLUME_FILL = 0.9
+
+/**
+ * A FLOOR on the wall's vertical fill at the dolly, never a ceiling.
+ *
+ * `dollyDistance` is a `min()`, which picks the NEARER distance, and a nearer
+ * camera means a FULLER frame — so the legibility term can only push the fill
+ * up from here (0.925 at 1440×900, 0.978 at 393×851) and nothing in the
+ * expression caps it. Read it as "the wall never shrinks below 82 % of the
+ * frame height". Asserting `fill ≤ 1` would be vacuous.
+ */
+export const DOLLY_HEIGHT_FILL = 0.82
+
+/**
+ * A frieze cell is never narrower than this on screen, so an embedded 2×2 case
+ * study is never narrower than `CARD_MIN_PX` and its caption never drops under
+ * 12 px — the scene's existing legibility law, halved with the cell.
+ */
+export const FRIEZE_CELL_MIN_PX = Math.ceil(CARD_MIN_PX / 2)
+
+/** The frieze's extent in world space, on the corridor axis. */
+export interface FriezeFrame {
+  left: number
+  right: number
+  bottom: number
+  top: number
+  z: number
+  width: number
+  height: number
+  centreX: number
+  centreY: number
+}
+
+/**
+ * Where the wall stands: centred on the corridor axis, facing the camera, one
+ * spacing beyond card four — exactly where a fifth card would be — with its
+ * bottom edge on the cards' floor gap so the embedded cards share their floor.
+ */
+export function friezeFrame(frieze: FriezeExtent, g: SceneGeometry): FriezeFrame {
+  const width = frieze.columns * FRIEZE_CELL_W
+  const height = frieze.rows * FRIEZE_CELL_H
+  const centreY = HOVER + height / 2
+  return {
+    left: -width / 2,
+    right: width / 2,
+    bottom: HOVER,
+    top: HOVER + height,
+    z: -(ACT_TWO_START + 1) * g.spacing,
+    width,
+    height,
+    centreX: 0,
+    centreY,
+  }
+}
+
+/** How far back the camera must sit for the WHOLE frieze to enter the frame. */
+export function volumeDistance(frieze: FriezeExtent, g: SceneGeometry): number {
+  const { width, height } = friezeFrame(frieze, g)
+  return Math.max(
+    width / (2 * HALF_FOV_TAN * g.aspect * VOLUME_FILL),
+    height / (2 * HALF_FOV_TAN * VOLUME_FILL),
+  )
+}
+
+/**
+ * The reading distance: the nearer of the height fit and the legibility floor.
+ * The legibility term binds on every fixture today, which is what raises the
+ * fill above `DOLLY_HEIGHT_FILL`.
+ */
+export function dollyDistance(frieze: FriezeExtent, g: SceneGeometry): number {
+  const { height } = friezeFrame(frieze, g)
+  const dHeight = height / (2 * HALF_FOV_TAN * DOLLY_HEIGHT_FILL)
+  const dLegible =
+    (FRIEZE_CELL_W * g.widthPx) / (2 * HALF_FOV_TAN * g.aspect * FRIEZE_CELL_MIN_PX)
+  return Math.min(dHeight, dLegible)
+}
+
+/** What fraction of the frame height the wall fills at the dolly distance. */
+export function friezeHeightFill(frieze: FriezeExtent, g: SceneGeometry): number {
+  const { height } = friezeFrame(frieze, g)
+  return height / (2 * HALF_FOV_TAN * dollyDistance(frieze, g))
+}
+
+/**
+ * The air above the wall's top row at the dolly, as a frame fraction — every
+ * pixel of spare height, because the camera is bottom-anchored. Exported so
+ * pipeline 2 can inset the top row's ink under the title band: at eight rows
+ * and a 144 px cell the title reads OVER the top row and no camera work
+ * recovers the rest (Assumption 23).
+ */
+export function actTwoTopClearFrac(frieze: FriezeExtent, g: SceneGeometry): number {
+  return 1 - friezeHeightFill(frieze, g)
+}
+
+/**
+ * The camera height at the dolly: the wall's bottom edge lands on the frame's
+ * bottom edge, so all the spare frame height sits above the wall. A
+ * wall-centred camera would split it, halving the clearance over the top row.
+ */
+export function dollyY(frieze: FriezeExtent, g: SceneGeometry): number {
+  return friezeFrame(frieze, g).bottom + dollyDistance(frieze, g) * HALF_FOV_TAN
+}
+
+/**
+ * How far the camera may travel laterally: to where the frieze's edge meets the
+ * frame's edge, and no further.
+ *
+ * `min` THEN `max`, in that order. With the frieze centred on the axis a wall
+ * wider than the frame has `left + halfVisible < 0 < right − halfVisible`, so
+ * the inverted pair would collapse both ends to 0, the range would be empty and
+ * the camera would never move for the whole beat — while every monotonicity
+ * check still passed vacuously on `0 === 0`. A wall NARROWER than the frame
+ * clamps both ends to 0 through these same two lines, which is the intended
+ * degenerate case.
+ */
+export function dollyRange(
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+): { xStart: number; xEnd: number } {
+  const { left, right } = friezeFrame(frieze, g)
+  const halfVisible = dollyDistance(frieze, g) * HALF_FOV_TAN * g.aspect
+  return {
+    xStart: Math.min(left + halfVisible, 0),
+    xEnd: Math.max(right - halfVisible, 0),
+  }
+}
+
+/** Position under a trapezoid velocity profile: ramps over `w` at each end, flat between. C1 on [0, 1]. */
+export function dollyEase(p: number, w: number): number {
+  const t = clamp(p, 0, 1)
+  const ramp = clamp(w, 1e-6, 0.5)
+  const vmax = 1 / (1 - ramp)
+  if (t < ramp) return (vmax * t * t) / (2 * ramp)
+  if (t > 1 - ramp) return 1 - (vmax * (1 - t) * (1 - t)) / (2 * ramp)
+  return vmax * (t - ramp / 2)
+}
+
+/**
+ * Card four's opacity multiplier across the release, `1` at `u = 0` and exactly
+ * `0` from the end of the release on.
+ *
+ * Without it card four does not recede: the act-one segment is clamped at 3, so
+ * it still sits in its settled slot while the camera closes to the dolly
+ * distance with the card between it and the wall — full size in front of the
+ * frieze on a desktop, filling the frame on a phone. It also takes the mesh out
+ * of the render, so an invisible corridor card cannot intercept a pointer meant
+ * for a wall cell in pipeline 2.
+ */
+export function actTwoCardFade(u: number, frieze: FriezeExtent): number {
+  const { release } = actTwoBeats(frieze.columns)
+  if (release <= 0) return 0
+  return 1 - smoothstep(clamp(u / release, 0, 1))
+}
+
+export interface ActTwoPose {
+  x: number
+  y: number
+  z: number
+  /** Radians; positive turns left, three's `rotation.y`. */
+  yaw: number
+  /** Radians; negative = pitched down. */
+  pitch: number
+}
+
+/** How much the look target leads the body through the approach. */
+const LOOK_LEAD = 1.5
+
+/**
+ * The act-two camera at act-two progress `u`, in three beats.
+ *
+ * RELEASE: position and pitch smoothstep from card four's settled slot to the
+ * volume shot, with zero velocity at both ends, so the settle plateau hands
+ * over without a lurch. Yaw is 0 throughout — the wall stands centred on the
+ * corridor axis, so the act-one heading already faces it (Assumption 21).
+ *
+ * APPROACH: position smoothsteps to the dolly's start while the EYE LEADS THE
+ * BODY — the look target's x runs ahead of the camera's — which is where the
+ * spec's yaw actually lives. Yaw returns to 0 at the beat's end.
+ *
+ * DOLLY: lateral travel on `dollyEase`, constant speed through the middle,
+ * easing to rest inside the last column with no scroll added.
+ */
+export function actTwoPose(u: number, frieze: FriezeExtent, g: SceneGeometry): ActTwoPose {
+  const frame = friezeFrame(frieze, g)
+  const { release, approach } = actTwoBeats(frieze.columns)
+  const slot = cameraPose(ACT_TWO_START, g)
+  const volZ = frame.z + volumeDistance(frieze, g)
+  const dollyZ = frame.z + dollyDistance(frieze, g)
+  const { xStart, xEnd } = dollyRange(frieze, g)
+
+  if (u <= release) {
+    const s = release > 0 ? smoothstep(clamp(u / release, 0, 1)) : 1
+    return {
+      x: slot.x + (frame.centreX - slot.x) * s,
+      y: slot.y + (frame.centreY - slot.y) * s,
+      z: slot.z + (volZ - slot.z) * s,
+      yaw: 0,
+      pitch: slot.pitch + (0 - slot.pitch) * s,
+    }
+  }
+
+  const dollyHeight = dollyY(frieze, g)
+  if (u <= approach) {
+    const span = approach - release
+    const raw = span > 0 ? clamp((u - release) / span, 0, 1) : 1
+    const s = smoothstep(raw)
+    const x = frame.centreX + (xStart - frame.centreX) * s
+    const y = frame.centreY + (dollyHeight - frame.centreY) * s
+    const z = volZ + (dollyZ - volZ) * s
+    // The eye arrives before the body: the look target runs the same path at
+    // 1.5×, so the camera is already turned toward the newest block when it
+    // gets there, and the yaw is back to 0 by the beat's end.
+    const sLead = smoothstep(clamp(LOOK_LEAD * raw, 0, 1))
+    const xTarget = frame.centreX + (xStart - frame.centreX) * sLead
+    return { x, y, z, yaw: Math.atan2(-(xTarget - x), z - frame.z), pitch: 0 }
+  }
+
+  const p = approach < 1 ? clamp((u - approach) / (1 - approach), 0, 1) : 1
+  const w = frieze.columns > 0 ? 1 / frieze.columns : 0.5
+  return {
+    x: xStart + (xEnd - xStart) * dollyEase(p, w),
+    y: dollyHeight,
+    z: dollyZ,
+    yaw: 0,
+    pitch: 0,
+  }
+}
+
+/**
+ * The far plane act two needs, applied with the frustum on the geometry key —
+ * never per frame. Act one's image does not depend on the far plane, so this
+ * changes depth precision and nothing else.
+ */
+export function sceneFar(frieze: FriezeExtent, g: SceneGeometry): number {
+  return Math.max(g.far, volumeDistance(frieze, g) + 2 * g.spacing)
+}
+
+/** The camera's distance to the wall at `u`. */
+function wallDistance(u: number, frieze: FriezeExtent, g: SceneGeometry): number {
+  return actTwoPose(u, frieze, g).z - friezeFrame(frieze, g).z
+}
+
+/**
+ * Fog through act two: act one's range at `u = 0` — where the wall stands one
+ * spacing past the slot and reads about 40 % dissolved, like the next card down
+ * the corridor — walking out to the wall's own distance across the release, and
+ * tracking it from there.
+ */
+export function actTwoFogRange(
+  u: number,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+  t: number,
+): { near: number; far: number } {
+  const { release } = actTwoBeats(frieze.columns)
+  const s = release > 0 ? smoothstep(clamp(u / release, 0, 1)) : 1
+  const act1 = fogRange(g, t)
+  const wall = fogRangeAt(wallDistance(u, frieze, g), g, t)
+  return {
+    near: act1.near + (wall.near - act1.near) * s,
+    far: act1.far + (wall.far - act1.far) * s,
+  }
+}
+
+/** Depth of field walks from the slot to the wall on the same release ease. */
+export function actTwoFocusDistance(
+  u: number,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+): number {
+  const { release } = actTwoBeats(frieze.columns)
+  const s = release > 0 ? smoothstep(clamp(u / release, 0, 1)) : 1
+  return g.D + (wallDistance(u, frieze, g) - g.D) * s
+}
+
+/**
+ * The title plane's distance in act two: kept in front of the wall, because at
+ * 393×851 `titleDistance` is 5.0 and the dolly sits at 4.69. The switch is
+ * invisible — `worldPerPx` scales with the distance, so the title's PIXEL size
+ * is distance-invariant by construction.
+ */
+export function actTwoTitleDistance(dWall: number, g: SceneGeometry): number {
+  return Math.min(g.titleDistance, 0.8 * dWall)
+}
+
+/**
+ * The tallest frieze that still fits the frame at the dolly distance — the
+ * bound any row count must respect. It is NOT a constant: it falls with the
+ * viewport's height, to 7 at 820×821 and 6 at 1280×720, because the 144 px cell
+ * floor binds first and act two has no vertical camera travel to recover what
+ * overflows. Eight rows sat above this bound on every viewport shorter than
+ * ~833 px and the overflow went off the top permanently; six sits under it
+ * everywhere in the matrix. Assert against it rather than against a number.
+ */
+export function maxRowsInFrame(g: SceneGeometry): number {
+  return Math.floor((FRIEZE_CELL_W / FRIEZE_CELL_H) * (g.heightPx / FRIEZE_CELL_MIN_PX))
+}
+
+/* ── Act two · the reading cursor, the title and the stills ──────────────── */
+
+/** How far through the dolly beat `u` sits, 0 before it starts. */
+function dollyProgress(u: number, frieze: FriezeExtent): number {
+  const { approach } = actTwoBeats(frieze.columns)
+  if (approach >= 1) return 1
+  return clamp((u - approach) / (1 - approach), 0, 1)
+}
+
+/**
+ * The reading cursor, in columns — the SCROLL's column budget, not the camera's
+ * position. Linear in the dolly's progress while the camera follows
+ * `dollyEase`, so the two disagree by up to one column's share at each end of
+ * the beat and coincide through the middle (Assumption 22).
+ *
+ * That disagreement is accepted, and deliberate: only a linear cursor visits
+ * every column, so `blockAt` can name a one-column block that the camera's
+ * clamped range never reaches. Driving the title from camera `x` instead would
+ * silently skip such a block, which is exactly what the acceptance forbids.
+ */
+export function dollyCursor(u: number, frieze: FriezeExtent): number {
+  return frieze.columns * dollyProgress(u, frieze)
+}
+
+/** The block index under the cursor, or `−1` before the dolly begins. */
+export function blockIndexAt(u: number, frieze: FriezeExtent): number {
+  const { approach } = actTwoBeats(frieze.columns)
+  if (u < approach || frieze.blocks.length === 0) return -1
+  const col = Math.min(Math.floor(dollyCursor(u, frieze)), frieze.columns - 1)
+  for (let k = frieze.blocks.length - 1; k >= 0; k--) {
+    if (col >= frieze.blocks[k].startCol) return k
+  }
+  return 0
+}
+
+/** The block under the cursor, or `null` before the dolly begins. */
+export function blockAt(u: number, frieze: FriezeExtent): FriezeBlockExtent | null {
+  const k = blockIndexAt(u, frieze)
+  return k < 0 ? null : frieze.blocks[k]
+}
+
+/**
+ * A title morph in ACT-TWO TITLE SPACE: `−1` is act one's last card, `0` is
+ * `all work`, and `1 + k` is block `k`. The rig maps those onto texture indices.
+ */
+export interface ActTwoTitle {
+  from: number
+  to: number
+  frac: number
+}
+
+/**
+ * Half-widths of the morph window at boundary `k`, in columns: half a column
+ * each side, clipped to half the neighbouring block. Clipping is what keeps the
+ * windows around a ONE-column block from overlapping, while still giving every
+ * boundary a window of its own.
+ */
+function windowHalves(k: number, frieze: FriezeExtent): { hl: number; hr: number } {
+  const blocks = frieze.blocks
+  return {
+    hl: k === 0 ? 0 : Math.min(0.5, blocks[k - 1].columns / 2),
+    hr: Math.min(0.5, blocks[k].columns / 2),
+  }
+}
+
+/**
+ * Which two titles the seam is between at `u`, and how far it has crossed.
+ *
+ * The release morphs card four's name into `all work` over the whole beat; the
+ * approach holds `all work`; the dolly morphs inside a window around each block
+ * boundary and rests on the block's year between them. `seamFor` applies
+ * `settleFrac` downstream, so every window rests at both ends — and the release
+ * window's plateau is what holds card four's name for the first 15 % of it.
+ */
+export function actTwoTitle(u: number, frieze: FriezeExtent): ActTwoTitle {
+  const { release, approach } = actTwoBeats(frieze.columns)
+  if (u <= release) {
+    return { from: -1, to: 0, frac: release > 0 ? clamp(u / release, 0, 1) : 1 }
+  }
+  if (u < approach) return { from: 0, to: 0, frac: 0 }
+
+  const cursor = dollyCursor(u, frieze)
+  for (let k = 0; k < frieze.blocks.length; k++) {
+    const { hl, hr } = windowHalves(k, frieze)
+    const lo = frieze.blocks[k].startCol - hl
+    const hi = frieze.blocks[k].startCol + hr
+    // Half-open, so a cursor landing exactly on the seam between two touching
+    // windows belongs to one of them and never to both.
+    if (cursor >= lo && cursor < hi && hi > lo) {
+      return { from: k, to: k + 1, frac: clamp((cursor - lo) / (hi - lo), 0, 1) }
+    }
+  }
+  const index = Math.max(0, blockIndexAt(u, frieze))
+  return { from: 1 + index, to: 1 + index, frac: 0 }
+}
+
+/**
+ * One discrete still under reduced motion. Every act-two channel — camera, fog,
+ * focus, title distance, title index and the card-four fade — is derived from
+ * THIS, never from the live `u`. Four channels each reading the live playhead is
+ * how a "still" acquires a slow drift that no test looks for.
+ */
+export interface ActTwoStill {
+  /** −1 = the volume shot, else the block index. */
+  index: number
+  /** The single u every act-two function is evaluated at for this still. */
+  u: number
+  /** Camera x for this still. */
+  x: number
+}
+
+/** Which still `u` falls in: the volume shot before the dolly, then one per block. */
+export function actTwoStill(
+  u: number,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+): ActTwoStill {
+  const index = blockIndexAt(u, frieze)
+  const { release, approach } = actTwoBeats(frieze.columns)
+  if (index < 0) return { index, u: release, x: 0 }
+  const block = frieze.blocks[index]
+  const { left } = friezeFrame(frieze, g)
+  const { xStart, xEnd } = dollyRange(frieze, g)
+  const centreX = left + (block.startCol + block.columns / 2) * FRIEZE_CELL_W
+  return { index, u: approach, x: clamp(centreX, xStart, xEnd) }
+}
+
+/**
+ * The still's camera pose. It takes the DESCRIPTOR, not a raw `u`, so a caller
+ * cannot accidentally sample a still off a live playhead.
+ */
+export function actTwoStillPose(
+  still: ActTwoStill,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+): ActTwoPose {
+  return { ...actTwoPose(still.u, frieze, g), x: still.x }
+}
+
+/**
+ * The playhead that parks the reading cursor on a continuous column coordinate.
+ * A cell gives `cell.col + cell.span / 2`.
+ *
+ * This is the WHOLE of pipeline 1's contribution to targeting.
+ * `playheadForItem(itemId, layout, extent)` belongs to pipeline 2's
+ * `src/utils/friezeTargets.ts`, which composes this with the cell lookup —
+ * `sceneMotion` stays pure and ignorant of the content model (Assumption 15).
+ */
+export function playheadForColumn(col: number, frieze: FriezeExtent): number {
+  const { approach } = actTwoBeats(frieze.columns)
+  const p = frieze.columns > 0 ? clamp(col / frieze.columns, 0, 1) : 0
+  return actTwoPlayhead(approach + (1 - approach) * p)
+}
+
+/** …and the same for a block's centre column. */
+export function playheadForBlock(k: number, frieze: FriezeExtent): number {
+  const block = frieze.blocks[k]
+  if (!block) return actTwoPlayhead(actTwoBeats(frieze.columns).approach)
+  return playheadForColumn(block.startCol + block.columns / 2, frieze)
 }
 
 export { DEG }

@@ -1,8 +1,13 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { sceneGeometry, titleWrapAllowancePx, SEAM_POWER } from '../../../utils/sceneMotion'
-import { drawTitleTexture } from './titleTexture'
+import {
+  sceneGeometry,
+  titleWrapAllowancePx,
+  SEAM_POWER,
+  CARD_COUNT,
+} from '../../../utils/sceneMotion'
+import { drawTitleTexture, TITLE_PAD_RATIO } from './titleTexture'
 import { TITLE_LAYER, type SceneRefs } from './sceneRefs'
 
 /**
@@ -262,9 +267,37 @@ export function SceneTitle({ titles, reducedMotion, sceneRefs }: SceneTitleProps
       // is shared across all four, shrinks the lot: cap/card 0.167 → 0.131 at
       // 1440. Wrap when a line would overflow the frame; shrink otherwise.
       const maxLinePx = titleWrapAllowancePx(g, dpr, scale)
-      const drawn = await Promise.all(
-        latestTitles.current.map((text) => drawTitleTexture(text, { maxLinePx, fontPx })),
+      // TWO PHASES. Act one's four names rasterise first, at the frame-wide
+      // allowance and exactly as before. Act two's strings then wrap to the
+      // widest act-one INK width, so they do not need the rig's fit-down on
+      // today's copy.
+      //
+      // This is the OPTIMISATION, not the guarantee: wrapping bounds a texture's
+      // width, but `canvas.height` grows with the line count here, so it does
+      // not bound the height. What actually keeps act one's plane fixed is the
+      // `i < CARD_COUNT` envelope in SceneRig.updateTitle. Neither covers the
+      // other, so neither may be simplified away on the belief that it does.
+      const actOne = await Promise.all(
+        latestTitles.current
+          .slice(0, CARD_COUNT)
+          .map((text) => drawTitleTexture(text, { maxLinePx, fontPx })),
       )
+      const actOneInkPx =
+        actOne.length > 0
+          ? Math.max(...actOne.map((d) => d.widthPx)) - 2 * TITLE_PAD_RATIO * fontPx
+          : maxLinePx
+      const actTwo = await Promise.all(
+        latestTitles.current
+          .slice(CARD_COUNT)
+          .map((text) =>
+            drawTitleTexture(text, {
+              maxLinePx: Math.min(maxLinePx, actOneInkPx),
+              fontPx,
+            }),
+          ),
+      )
+      // Original order: the rig indexes this list by title index.
+      const drawn = [...actOne, ...actTwo]
       if (id !== draws.current) {
         for (const d of drawn) d.texture.dispose()
         return

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useVelocity, type MotionValue } from 'framer-motion'
 import * as THREE from 'three'
@@ -24,6 +24,7 @@ import {
   SEAM_SIGMA_EM,
   clamp,
   playheadFor,
+  actOneSeg,
   easedSeg,
   sceneGeometry,
   cameraPose,
@@ -35,10 +36,27 @@ import {
   velocityEnergy,
   velocityYaw,
   frameRects,
+  focusDistance,
+  actTwoProgress,
+  actTwoPose,
+  actTwoStill,
+  actTwoStillPose,
+  actTwoCardFade,
+  actOneVelocityScale,
+  actTwoTitle,
+  actTwoTitleDistance,
+  actTwoFogRange,
+  actTwoFocusDistance,
+  friezeFrame,
+  sceneFar,
+  ACT_TWO_START,
   type SceneGeometry,
   type Rect,
+  type ActTwoStill,
+  type FriezeFrame,
 } from '../../../utils/sceneMotion'
 import type { SceneRefs } from './sceneRefs'
+import type { FriezeExtent } from '../../../utils/friezeLayout'
 
 const HALF_FOV_TAN = Math.tan((FOV_DEG * DEG) / 2)
 /** Title float, in CSS px at the title's distance. */
@@ -66,6 +84,8 @@ interface SceneRigProps {
   sceneRefs: SceneRefs
   /** The fixed nav's height in CSS px; the title band starts 16 px under it. */
   navPx: number
+  /** The frieze act two is framed against; its column count sizes the playhead. */
+  frieze: FriezeExtent
 }
 
 /**
@@ -79,7 +99,13 @@ interface SceneRigProps {
  * Lane rule (CLAUDE.md): the R3F loop READS Framer MotionValues; Framer never
  * animates a three object.
  */
-export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRigProps) {
+export function SceneRig({
+  progress,
+  reducedMotion,
+  sceneRefs,
+  navPx,
+  frieze,
+}: SceneRigProps) {
   const geo = useRef<SceneGeometry | null>(null)
   const geoKey = useRef('')
   // Scratch vectors, reused every frame so the loop allocates nothing.
@@ -89,7 +115,19 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
   )
   const cameraRef = useRef<THREE.Camera | null>(null)
   const cardRect = useRef<Rect | null>(null)
+  const wallFrame = useRef<FriezeFrame | null>(null)
   const lastSlot = useRef(-1)
+  const lastAct = useRef(-1)
+  /**
+   * This frame's act-two state, so `updateTitle` reads the SAME descriptor the
+   * camera did rather than resolving a second one off the live playhead.
+   */
+  const actTwo = useRef<{
+    inActTwo: boolean
+    u: number
+    still: ActTwoStill | null
+    poseZ: 0 | number
+  }>({ inActTwo: false, u: 0, still: null, poseZ: 0 })
   const lastOverture = useRef<boolean | null>(null)
   const velocity = useVelocity(progress)
 
@@ -97,13 +135,20 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
   // from the production build, which is why those smokes run on the dev server.
   useEffect(() => {
     if (!import.meta.env.DEV) return
-    const holder = window as unknown as { __scene?: SceneRefs }
+    const holder = window as unknown as {
+      __scene?: SceneRefs
+      __sceneCamera?: RefObject<THREE.Camera | null>
+    }
     holder.__scene = sceneRefs
+    // The ref object, not the camera: `.current` is then always the live one,
+    // and the identity dump can read the pose without a second frame.
+    holder.__sceneCamera = cameraRef
     // Released on unmount: without this the handle outlives the scene and pins
     // `sceneRefs` and every disposed three resource behind it. DEV only — the
     // whole effect is stripped from the production build.
     return () => {
       if (holder.__scene === sceneRefs) delete holder.__scene
+      if (holder.__sceneCamera === cameraRef) delete holder.__sceneCamera
     }
   }, [sceneRefs])
 
@@ -112,31 +157,62 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
 
     // Geometry depends only on the viewport, so recompute it on resize, not
     // per frame — and re-derive the frustum and the fog with it.
-    const key = `${size.width}x${size.height}`
+    const key = `${size.width}x${size.height}:${frieze.columns}x${frieze.rows}`
     if (key !== geoKey.current && size.width > 0 && size.height > 0) {
       geoKey.current = key
       const next = sceneGeometry(size.width, size.height)
       geo.current = next
       cardRect.current = frameRects(next).card
+      wallFrame.current = friezeFrame(frieze, next)
       const perspective = camera as THREE.PerspectiveCamera
       perspective.fov = FOV_DEG
       perspective.near = next.near
-      perspective.far = next.far
+      // The volume shot stands well past act one's far plane. Applied HERE,
+      // with the frustum, never per frame: act one's image does not depend on
+      // the far plane, so this changes depth precision and nothing else.
+      perspective.far = sceneFar(frieze, next)
+      // Yaw-then-pitch, so the approach's yaw composes with the pitch the way
+      // the pose intends. With yaw 0 a single-axis rotation is identical in any
+      // order, so act one's view matrix does not change.
+      camera.rotation.order = 'YXZ'
       perspective.updateProjectionMatrix()
     }
     const g = geo.current
     if (!g) return
 
+    // `actOneSeg` is not cosmetic. The wrapper is now 1575 svh, so without the
+    // clamp at 3 the act-one code would receive a segment up to 4 and the
+    // corridor would scrub a card PAST its slot the moment the reader enters
+    // act two. With it, every frame of act one is exactly today's frame and
+    // card four holds its slot for the rest of the wrapper.
+    const playhead = playheadFor(progress.get(), frieze.columns)
+    const seg = actOneSeg(playhead)
+    const u = actTwoProgress(playhead)
+    const inActTwo = playhead > ACT_TWO_START
+
+    // ONE descriptor under reduced motion, resolved once. Camera, fog, focus,
+    // the card-four fade and the title all read `uAct` below — never the live
+    // `u` while a still is set. Four channels each sampling the live playhead is
+    // how a "still" acquires a slow drift no test looks for, and reduced motion
+    // renders on demand, so that drift would show up between two frames a
+    // reader never asked for.
+    const still = inActTwo && reducedMotion ? actTwoStill(u, frieze, g) : null
+    const uAct = still ? still.u : u
+    // The ambient time term is 0 in act two under reduced motion, always.
+    const fogT = inActTwo && reducedMotion ? 0 : clock.elapsedTime
+
     // Fog drifts on its own slow clock, so the depth of the scene never sits
-    // perfectly still even when the page does.
+    // perfectly still even when the page does. In act two it walks out to the
+    // wall across the release, off act one's exact values at u = 0.
     const fog = scene.fog as THREE.Fog | null
     if (fog) {
-      const { near, far } = fogRange(g, clock.elapsedTime)
+      const { near, far } = inActTwo
+        ? actTwoFogRange(uAct, frieze, g, fogT)
+        : fogRange(g, clock.elapsedTime)
       fog.near = near
       fog.far = far
     }
 
-    const seg = playheadFor(progress.get())
     const overture = overturePose(seg, reducedMotion)
     // Reduced motion keeps the pin but jumps between slots: no dolly, no ease.
     // While the overture stands it shows the overture's start frame (the line
@@ -150,7 +226,7 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
     // The breath. Scroll owns sequence and position; time owns everything here
     // (ADR 0010). Under reduced motion none of it runs and energy stays 0.
     const t = clock.elapsedTime
-    const v = reducedMotion ? 0 : velocity.get()
+    const v = reducedMotion ? 0 : velocity.get() * actOneVelocityScale(frieze.columns)
     const energy = reducedMotion
       ? 0
       : velocityEnergy(sceneRefs.energy.value, v, delta)
@@ -176,10 +252,41 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
       tilt.yaw += (sceneRefs.pointer.x * -TILT_DEG * DEG - tilt.yaw) * k
     }
 
+    // `cam` stays the ACT-ONE pose throughout: the hover lift's direction and
+    // the overture line are placed from it, and neither is act two's business.
     const cam = cameraPose(eased, g)
-    camera.position.set(cam.x, cam.y, cam.z)
-    camera.rotation.set(cam.pitch, 0, 0)
+    const actTwoCam = inActTwo
+      ? still
+        ? actTwoStillPose(still, frieze, g)
+        : actTwoPose(u, frieze, g)
+      : null
+    if (actTwoCam) {
+      camera.position.set(actTwoCam.x, actTwoCam.y, actTwoCam.z)
+      camera.rotation.set(actTwoCam.pitch, actTwoCam.yaw, 0)
+    } else {
+      camera.position.set(cam.x, cam.y, cam.z)
+      camera.rotation.set(cam.pitch, 0, 0)
+    }
     cameraRef.current = camera
+    actTwo.current = {
+      inActTwo,
+      u: uAct,
+      still,
+      poseZ: actTwoCam ? actTwoCam.z : cam.z,
+    }
+
+    // Depth of field focuses on the slot in act one and walks out to the wall
+    // across act two's release; Environment reads this every frame.
+    sceneRefs.focus.distance = inActTwo
+      ? actTwoFocusDistance(uAct, frieze, g)
+      : focusDistance(g)
+
+    // Non-visual, test-only. Written when it CHANGES, never per frame.
+    const act = inActTwo ? 2 : 1
+    if (act !== lastAct.current) {
+      lastAct.current = act
+      state.gl.domElement.dataset.act = String(act)
+    }
 
     // The hover lift eases toward 1 only while the pointer is over the card
     // that is actually settled in the slot; reduced motion never lifts.
@@ -200,6 +307,24 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
       const group = sceneRefs.cards[i]
       if (!group) continue
       const pose = cardPose(i, eased, g)
+      // Card four dissolves across act two's release. Without it the act-one
+      // segment is clamped at 3, so it would still sit in its settled slot with
+      // the camera closing to the dolly distance and the card between the lens
+      // and the wall — full size in front of the frieze on a desktop, filling
+      // the frame on a phone.
+      const fade =
+        inActTwo && i === CARD_COUNT - 1 ? actTwoCardFade(uAct, frieze) : inActTwo ? 0 : 1
+      const opacity = pose.opacity * fade
+      // Out of the render once it is gone. Do not read more into `visible` than
+      // that: three's raycaster tests `layers` and never `visible` (measured on
+      // r185 — a hidden group still returns its children's hits), so this flag
+      // is not by itself what keeps the pointer off a faded card. Measured on
+      // the preview build at both projects: past the fade nothing hovers and
+      // nothing navigates, and a hover parked on the card clears itself as the
+      // card goes. Whatever provides that is not this line. When the wall lands
+      // behind these cards, verify a cell BEHIND card four still takes its own
+      // hover and click rather than assuming this covers it.
+      const visible = pose.visible && opacity > 0
       const amb = reducedMotion
         ? { y: 0, yaw: 0, pitch: 0 }
         : ambientOffset(i, t, energy)
@@ -210,17 +335,17 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
         pose.yaw + amb.yaw + leanYaw + (isFront ? tilt.yaw * settledNow : 0)
       group.rotation.x = amb.pitch + (isFront ? tilt.pitch * settledNow : 0)
       group.scale.setScalar(1 + lift * (HOVER_SCALE - 1))
-      group.visible = pose.visible
+      group.visible = visible
       const arrow = sceneRefs.arrows[i]
       if (arrow) {
         const slide = lift * ARROW_SLIDE_PX * worldPerCardPx
         arrow.position.set(slide, slide, 0)
       }
       const materials = sceneRefs.cardMaterials[i]
-      if (materials) for (const m of materials) m.opacity = pose.opacity
+      if (materials) for (const m of materials) m.opacity = opacity
       // The caption belongs to the card: same opacity, same fog, same fate.
       const captions = sceneRefs.captionMaterials[i]
-      if (captions) for (const m of captions) m.opacity = pose.opacity
+      if (captions) for (const m of captions) m.opacity = opacity
 
       // The shadow lives and dies with its card, so a card passing the lens
       // never leaves its shadow pooled on an empty floor.
@@ -228,13 +353,13 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
       const shadowMaterial = sceneRefs.shadowMaterials[i]
       if (shadow) {
         shadow.position.set(pose.x, shadow.position.y, pose.z)
-        shadow.visible = pose.visible
+        shadow.visible = visible
       }
       if (shadowMaterial) {
         // The shadow lightens as the card breathes upward, which is what sells
         // the hover; amb.y is bounded by AMBIENT_Y so the ratio stays in [-1,1].
         const rise = AMBIENT_Y === 0 ? 0 : amb.y / AMBIENT_Y
-        shadowMaterial.opacity = SHADOW_ALPHA * (1 - 0.4 * rise) * pose.opacity
+        shadowMaterial.opacity = SHADOW_ALPHA * (1 - 0.4 * rise) * opacity
       }
     }
 
@@ -277,9 +402,17 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
     title.visible = true
     const n = textures.length
 
-    const seg = playheadFor(progress.get())
-    const worldPerPx = (2 * g.titleDistance * HALF_FOV_TAN) / g.heightPx
-    const visibleH = 2 * g.titleDistance * HALF_FOV_TAN
+    const seg = actOneSeg(playheadFor(progress.get(), frieze.columns))
+    const { inActTwo, u: uAct, still, poseZ } = actTwo.current
+    // In act two the title plane moves IN FRONT of the wall — at 393x851 the
+    // act-one distance is 5.0 and the dolly sits at 4.69, so the title would
+    // otherwise be drawn inside it. The switch is invisible: `worldPerPx`
+    // scales with the distance, so the title's PIXEL size is distance-invariant.
+    const frame = wallFrame.current
+    const titleDistance =
+      inActTwo && frame ? actTwoTitleDistance(poseZ - frame.z, g) : g.titleDistance
+    const worldPerPx = (2 * titleDistance * HALF_FOV_TAN) / g.heightPx
+    const visibleH = 2 * titleDistance * HALF_FOV_TAN
     const visibleW = visibleH * g.aspect
 
     // Which two titles are on screen, and how far the seam has crossed.
@@ -292,8 +425,39 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
     let seamFrac: number
     let presentA: number
     let presentB: number
-    if (reducedMotion) {
-      indexA = clamp(Math.round(seg), 0, n - 1)
+    /** Act-two title space → texture index: −1 is card four, 0 is `all work`. */
+    const mapActTwo = (i: number): number => (i < 0 ? CARD_COUNT - 1 : CARD_COUNT + i)
+    if (inActTwo) {
+      if (still) {
+        // From the DESCRIPTOR, not a second `blockIndexAt(u)` call: one still,
+        // one index, no chance of the title disagreeing with the camera.
+        indexA = still.index < 0 ? CARD_COUNT : CARD_COUNT + 1 + still.index
+        indexB = indexA
+        blend = 0
+        seamFrac = 0
+        presentA = 1
+        presentB = 0
+      } else {
+        const tt = actTwoTitle(uAct, frieze)
+        indexA = mapActTwo(tt.from)
+        indexB = mapActTwo(tt.to)
+        seamFrac = tt.from === tt.to ? 0 : tt.frac
+        blend = settleFrac(seamFrac)
+        presentA = 1
+        presentB = tt.from === tt.to ? 0 : 1
+      }
+      // The textures may still be drawing after a language switch, so the
+      // act-two entries can briefly be absent from the list.
+      if (indexA >= n) {
+        indexA = n - 1
+        indexB = indexA
+        presentB = 0
+      } else if (indexB >= n) {
+        indexB = indexA
+        presentB = 0
+      }
+    } else if (reducedMotion) {
+      indexA = clamp(Math.round(seg), 0, CARD_COUNT - 1)
       indexB = indexA
       blend = 0
       seamFrac = 0
@@ -308,8 +472,8 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
       presentA = 0
       presentB = 1
     } else {
-      const { index, frac } = segmentFor(seg, n)
-      const hasNext = index + 1 < n
+      const { index, frac } = segmentFor(seg, CARD_COUNT)
+      const hasNext = index + 1 < CARD_COUNT
       indexA = index
       indexB = hasNext ? index + 1 : index
       blend = hasNext ? settleFrac(frac) : 0
@@ -330,11 +494,25 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
     const naturalW: number[] = []
     /** World units per texture px, per title. */
     const k: number[] = []
+    /** Per title: how far act two's fit-down shrank it below its natural scale. */
+    const titleFit: number[] = []
+    // THE PLANE'S ENVELOPE IS ACT ONE'S ALONE, and that is structural, not a
+    // data argument. `titleTexture.ts` grows `canvas.height` with the line
+    // count, so a single act-two string wrapping to one more line than the
+    // tallest act-one title would raise `maxAbove`/`maxBelow`, move `planeH`
+    // and `baseY`, and resize act one — on DATA, not on code. Reducing over
+    // `i < CARD_COUNT` makes act one's plane arithmetically independent of
+    // every act-two string. SceneTitle's two-phase draw complements this by
+    // keeping act-two strings from needing the fit-down below on today's copy;
+    // it is the optimisation, this loop bound is the guarantee. Neither covers
+    // the other, so neither may be simplified away on the belief that it does.
     for (let i = 0; i < n; i++) {
       const m = metrics[i]
       const scale = m ? (g.titleCapPx / m.emPx) * worldPerPx : 0
       k.push(scale)
+      titleFit.push(1)
       naturalW.push(m ? m.widthPx * scale : 1)
+      if (i >= CARD_COUNT) continue
       if (naturalW[i] > planeW) planeW = naturalW[i]
       if (m) {
         maxAbove = Math.max(maxAbove, m.baselinePx * scale)
@@ -342,6 +520,25 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
       }
     }
     const planeH = Math.max(maxAbove + maxBelow, 1e-6)
+    // …and every act-two texture is fitted INTO the envelope act one produced.
+    // One that would have overflowed renders a touch smaller; that is the whole
+    // cost of the guarantee.
+    for (let i = CARD_COUNT; i < n; i++) {
+      const m = metrics[i]
+      if (!m || naturalW[i] <= 0) continue
+      const naturalH = m.heightPx * k[i]
+      const fitIn = Math.min(1, planeW / naturalW[i], naturalH > 0 ? planeH / naturalH : 1)
+      if (fitIn < 1) {
+        k[i] *= fitIn
+        naturalW[i] = m.widthPx * k[i]
+        // The rest LOD below is derived from the NATURAL scale. A fitted-down
+        // title draws its glyphs smaller, so more texture pixels land on each
+        // device pixel and the LOD has to rise with it, or the title shimmers.
+        // Inert while the two-phase draw keeps every act-two string inside the
+        // envelope; the day one does not, this is what keeps it clean.
+        titleFit[i] = fitIn
+      }
+    }
     /** The shared baseline, as a height above the plane centre. */
     const baseY = planeH / 2 - maxAbove
     // Where each title's glyphs actually reach either side of the plane
@@ -384,7 +581,11 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
       // dragging a window short or embedding the page in a short frame.
       const available = Math.max(0, band.bottom - band.top)
       // Shrink only if even the whole band cannot hold the tallest title.
-      const tallest = Math.max(...inkAbove.map((a, i) => a + inkBelow[i]))
+      // Act one's envelope again: the band shrink is shared across every
+      // title, so an act-two string in this reduce would shrink act one too.
+      const tallest = Math.max(
+        ...inkAbove.slice(0, CARD_COUNT).map((a, i) => a + inkBelow[i]),
+      )
       const tallestFrac = (fit * tallest) / visibleH
       if (tallestFrac > available && tallest > 0) fit *= available / tallestFrac
     }
@@ -420,7 +621,7 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
         : FLOAT_PX * worldPerPx * Math.sin((2 * Math.PI * elapsed) / 6)
       title.position
         .copy(camera.position)
-        .addScaledVector(scratch.forward, g.titleDistance)
+        .addScaledVector(scratch.forward, titleDistance)
         .addScaledVector(scratch.up, lift + float)
       title.quaternion.copy(camera.quaternion)
       // The title parallaxes against the pointer at a quarter of the card's
@@ -448,7 +649,7 @@ export function SceneRig({ progress, reducedMotion, sceneRefs, navPx }: SceneRig
       // The rest LOD is the natural minification — texture px per DEVICE px,
       // exactly 0 at the drawn scale because the texture was drawn at the
       // displayed em. The seam's blur pushes further up the chain from there.
-      const texPxPerDevicePx = m.emPx / (g.titleCapPx * viewportDpr * capScale)
+      const texPxPerDevicePx = m.emPx / (g.titleCapPx * viewportDpr * capScale * titleFit[i])
       u[`uBaseLod${slot}`].value = Math.max(0, Math.log2(texPxPerDevicePx))
       u[`uSigma${slot}`].value = SEAM_SIGMA_EM * m.emPx
     }

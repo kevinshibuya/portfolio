@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
+import { openScene, scrollToPlayhead, scrollToActTwo, beats, CANVAS } from './helpers/scene'
 import {
   CARD_H,
   CARD_W,
@@ -10,42 +11,13 @@ import {
   projectPoint,
 } from '../../src/utils/sceneMotion'
 
+
 /**
- * Scroll to a fraction of the scene's scrub range. The wrapper is 550svh over a
- * 100svh sticky stage, so useScroll's 0..1 spans (wrapperHeight - viewport) and
- * playhead = p · 4.5 − 1.5: the overture runs to 0.2222, the approach to
- * 0.3333, and settled card k sits at (k + 1.5) / 4.5 — 0.3333 lands card 0,
- * 0.5556 lands card 1.
+ * Every settled playhead plus the overture and the approach, then back to card
+ * 0 — the same stops the fraction-based sweep meant, now said in the units the
+ * scene actually runs on.
  */
-async function scrollToFraction(page: Page, fraction: number): Promise<void> {
-  await page.evaluate((frac) => {
-    const wrapper = document.querySelector('#projects .scene-scroll') as HTMLElement | null
-    if (!wrapper) return
-    const top = wrapper.getBoundingClientRect().top + window.scrollY
-    window.scrollTo({
-      top: top + frac * (wrapper.offsetHeight - window.innerHeight),
-      behavior: 'instant' as ScrollBehavior,
-    })
-  }, fraction)
-  await page.waitForTimeout(160)
-}
-
-async function openScene(page: Page): Promise<void> {
-  await page.goto('/')
-  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
-  await page.locator('#projects .scene-scroll').waitFor()
-  await page.locator('#projects .scene-canvas-wrap[data-ready="true"]').waitFor()
-  // See the note in perf-budget.spec.ts: the scene compiles and uploads at idle
-  // after the entrance, and only then is the scrub the steady state.
-  await page
-    .locator('#projects canvas[data-canvas="selected-work-scene"][data-warm="true"]')
-    .waitFor({ timeout: 30000 })
-}
-
-const CANVAS = '#projects canvas[data-canvas="selected-work-scene"]'
-
-/** Every settled fraction plus the overture and the approach, then back to card 0. */
-const SWEEP = [0, 0.2222, 0.3333, 0.4444, 0.5556, 0.6667, 0.7778, 0.8889, 1, 0.3333]
+const SWEEP = [-1.5, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3, 0]
 
 /**
  * The suite's blind spot, closed.
@@ -57,6 +29,10 @@ const SWEEP = [0, 0.2222, 0.3333, 0.4444, 0.5556, 0.6667, 0.7778, 0.8889, 1, 0.3
  * scrub with a clean console is the cheap guard against that whole class.
  */
 test('a full scrub raises no console error and never rejects a promise', async ({ page }) => {
+  // Act two roughly doubles this sweep: eleven more stops on the main pass, and
+  // the act-two beats repeated at every short and near-square viewport. The
+  // default 30 s budget was sized for act one alone.
+  test.setTimeout(180_000)
   const problems: string[] = []
   page.on('console', (message) => {
     if (message.type() === 'error') problems.push(`console.error: ${message.text()}`)
@@ -64,14 +40,29 @@ test('a full scrub raises no console error and never rejects a promise', async (
   page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`))
 
   await openScene(page)
-  for (const fraction of SWEEP) {
-    await scrollToFraction(page, fraction)
-    expect(problems, `after scrolling to ${fraction}`).toEqual([])
+  for (const playhead of SWEEP) {
+    await scrollToPlayhead(page, playhead)
+    expect(problems, `after scrolling to playhead ${playhead}`).toEqual([])
   }
   // …and through the middle of every transition, where the title morphs.
-  for (const fraction of [0.4, 0.5, 0.62, 0.72, 0.84]) {
-    await scrollToFraction(page, fraction)
+  for (const playhead of [0.3, 0.75, 1.29, 1.74, 2.28]) {
+    await scrollToPlayhead(page, playhead)
   }
+  expect(problems).toEqual([])
+
+  // ACT TWO, at the beat boundaries the page actually shipped. A throw inside
+  // the frame loop is invisible to every DOM assertion in this suite — the
+  // canvas keeps its element and its attributes while the loop dies — so this
+  // sweep is the only guard over the release, the approach and the dolly.
+  const { release, approach } = await beats(page)
+  const ACT_TWO_STOPS = [
+    0, release / 2, release, (release + approach) / 2, approach, 0.3, 0.5, 0.75, 0.95, 1, 0.5,
+  ]
+  for (const u of ACT_TWO_STOPS) {
+    await scrollToActTwo(page, u)
+    expect(problems, `after scrolling to act two u=${u}`).toEqual([])
+  }
+  await scrollToPlayhead(page, 0)
   expect(problems).toEqual([])
 
   // Short viewports, which nothing else sweeps. Under ~225 CSS px of height the
@@ -82,9 +73,13 @@ test('a full scrub raises no console error and never rejects a promise', async (
   for (const height of [400, 260, 220, 180]) {
     await page.setViewportSize({ width: 1440, height })
     await page.waitForTimeout(400)
-    await scrollToFraction(page, 0.5)
+    await scrollToPlayhead(page, 0.75)
     await page.waitForTimeout(400)
     expect(problems, `at 1440x${height}`).toEqual([])
+    // Act two too: the wall's fit and the title distance are viewport-derived.
+    await scrollToActTwo(page, 0.5)
+    await page.waitForTimeout(400)
+    expect(problems, `act two at 1440x${height}`).toEqual([])
   }
 
   // Near-square, both sides of the crossover. The card formula and the camera
@@ -98,9 +93,15 @@ test('a full scrub raises no console error and never rejects a promise', async (
   ]) {
     await page.setViewportSize({ width, height })
     await page.waitForTimeout(400)
-    await scrollToFraction(page, 0.5)
+    await scrollToPlayhead(page, 0.75)
     await page.waitForTimeout(400)
     expect(problems, `at ${width}x${height}`).toEqual([])
+    const near = await beats(page)
+    for (const u of [near.release, near.approach, 0.5, 1]) {
+      await scrollToActTwo(page, u)
+      await page.waitForTimeout(200)
+      expect(problems, `act two u=${u} at ${width}x${height}`).toEqual([])
+    }
     visited.push(`${width}x${height}`)
   }
   expect(visited).toEqual(['960x950', '960x970', '820x821', '820x819'])
@@ -116,14 +117,14 @@ test('scrubbing the corridor swaps the settled slot, and reversing restores it',
   const heading = page.locator('#projects .scene-title-sr')
   await expect(heading).toHaveText(/selected work|trabalhos selecionados/)
 
-  await scrollToFraction(page, 0.3333)
+  await scrollToPlayhead(page, 0)
   await expect(canvas).toHaveAttribute('data-slot', '0')
 
-  await scrollToFraction(page, 0.5556)
+  await scrollToPlayhead(page, 1)
   await expect(canvas).toHaveAttribute('data-slot', '1')
 
   // Scroll is the playhead: going back restores the earlier state exactly.
-  await scrollToFraction(page, 0.3333)
+  await scrollToPlayhead(page, 0)
   await expect(canvas).toHaveAttribute('data-slot', '0')
   await expect(heading).toHaveText(/selected work|trabalhos selecionados/)
 })
@@ -135,7 +136,11 @@ test('a full scrub never re-registers the corridor (no react state on scroll)', 
   const canvas = page.locator(CANVAS)
   await expect(canvas).toHaveAttribute('data-registrations', '1')
 
-  for (const fraction of SWEEP) await scrollToFraction(page, fraction)
+  for (const playhead of SWEEP) await scrollToPlayhead(page, playhead)
+  // Act two adds two more titles and a frieze extent to the scene's props; if
+  // any of it were a per-frame identity change, this is where it would show.
+  for (const u of [0.1, 0.5, 1]) await scrollToActTwo(page, u)
+  await scrollToPlayhead(page, 0)
 
   // Nothing in React re-rendered the scene subtree: the corridor registered
   // its objects exactly once, at mount (ADR 0011).
@@ -149,25 +154,25 @@ test('the overture line stands at the top and is gone once the cards read', asyn
   await openScene(page)
   const canvas = page.locator(CANVAS)
 
-  await scrollToFraction(page, 0)
+  await scrollToPlayhead(page, -1.5)
   await expect(canvas).toHaveAttribute('data-overture', 'true')
-  await scrollToFraction(page, 0.1)
+  await scrollToPlayhead(page, -1.05)
   await expect(canvas).toHaveAttribute('data-overture', 'true')
   // The approach: the line has flown past and the cards are in the distance.
   // Just past the −0.5 boundary (0.2222): a one-pixel scroll rounding would
   // otherwise land a hair inside the overture on some viewports.
-  await scrollToFraction(page, 0.23)
+  await scrollToPlayhead(page, -0.47)
   await expect(canvas).toHaveAttribute('data-overture', 'false')
-  await scrollToFraction(page, 0.3333)
+  await scrollToPlayhead(page, 0)
   await expect(canvas).toHaveAttribute('data-overture', 'false')
   // Exactly reversible.
-  await scrollToFraction(page, 0)
+  await scrollToPlayhead(page, -1.5)
   await expect(canvas).toHaveAttribute('data-overture', 'true')
 })
 
 test('clicking the settled card opens its project', async ({ page }) => {
   await openScene(page)
-  await scrollToFraction(page, 0.3333)
+  await scrollToPlayhead(page, 0)
   const href = (await page.locator('#projects .scene-skiplink').first().getAttribute('href'))!
 
   // The settled card's projected rect, from the same geometry the scene uses.
@@ -179,7 +184,7 @@ test('clicking the settled card opens its project', async ({ page }) => {
 
 test('clicking a distant card scrolls it into the slot', async ({ page }) => {
   await openScene(page)
-  await scrollToFraction(page, 0.3333)
+  await scrollToPlayhead(page, 0)
   const canvas = page.locator(CANVAS)
   await expect(canvas).toHaveAttribute('data-slot', '0')
 
@@ -204,7 +209,7 @@ test('clicking a distant card scrolls it into the slot', async ({ page }) => {
 
 test('the project index skip-link navigates to its project', async ({ page }) => {
   await openScene(page)
-  await scrollToFraction(page, 0.3333)
+  await scrollToPlayhead(page, 0)
 
   const link = page.locator('#projects .scene-skiplink').first()
   const href = (await link.getAttribute('href'))!
@@ -218,7 +223,7 @@ test('losing the webgl context falls back to a plain project list, permanently',
   page,
 }) => {
   await openScene(page)
-  await scrollToFraction(page, 0.3333)
+  await scrollToPlayhead(page, 0)
 
   await page.evaluate(() => {
     const canvas = document.querySelector(
@@ -231,4 +236,38 @@ test('losing the webgl context falls back to a plain project list, permanently',
   await expect(page.locator('#projects .scene-fallback .scene-fallback-link')).toHaveCount(4)
   await expect(page.locator('#projects .scene-scroll')).toHaveCount(0)
   await expect(page.locator('#projects canvas')).toHaveCount(0)
+})
+
+test('data-act names the act, and act two holds the last slot throughout', async ({
+  page,
+}) => {
+  await openScene(page)
+  const canvas = page.locator(CANVAS)
+
+  // Act two begins STRICTLY after playhead 3: at 3 exactly card four is settled
+  // and `u` is 0, which is still act one (Spec conflict 6).
+  //
+  // Sampled at 2.99, not 3, for the same reason the overture test samples −0.47
+  // and not −0.5: scroll lands on whole pixels, so a target exactly ON a
+  // boundary rounds either side of it. At 589×1090 it rounded UP and read act
+  // two. The strictness itself is asserted below, where every act-two stop is
+  // past the boundary and reads 2.
+  for (const playhead of [-1.5, 0, 2.99]) {
+    await scrollToPlayhead(page, playhead)
+    await expect(canvas, `playhead ${playhead}`).toHaveAttribute('data-act', '1')
+  }
+
+  for (const u of [0.05, 0.5, 1]) {
+    await scrollToActTwo(page, u)
+    await expect(canvas, `act two u=${u}`).toHaveAttribute('data-act', '2')
+    // The act-one segment is clamped at 3 for the whole of act two, so
+    // `frontIndexFor` keeps returning card four's index. In act two it names
+    // the last act-one slot, NOT a card under the pointer (Assumption 18).
+    await expect(canvas, `act two u=${u}`).toHaveAttribute('data-slot', '3')
+  }
+
+  // Reversible, like every other scroll-driven state in the scene.
+  await scrollToPlayhead(page, 0)
+  await expect(canvas).toHaveAttribute('data-act', '1')
+  await expect(canvas).toHaveAttribute('data-slot', '0')
 })
