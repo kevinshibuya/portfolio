@@ -76,14 +76,18 @@ Act one is untouched: overture, approach, four card slots, playhead clamped at `
 | Dolly | 25 svh per column | Lateral travel along the frieze, newest to oldest, constant speed per column, an ambient breath on time only; the camera is bottom-anchored so the wall's bottom edge sits on the frame's bottom edge | Morphs to the year string at each block boundary; the title overprints the wall's top row (see below) |
 | Exit | none added | Slows to rest at the last column; the pin releases into the next section | Holds the last year |
 
-**The title overprints the top row during the dolly** (plan review, 2026-09-08). At the 144 px cell floor the wall fills about 0.92 of the frame height at 1440×900 and 0.98 on a phone, and eight rows is exactly what fits, so no camera placement clears the title band (which reaches 0.32 of the frame from the top). The year title therefore reads over the top row's ink, as type over type. Pipeline 1 exports `actTwoTopClearFrac` for pipeline 2 to know the clearance; the only lever for more air is the row count (six rows would clear the band at roughly 35 columns and 1025 svh), which is Kevin's to pull after the manual pass, not a pipeline's.
+**Six rows, not eight** (implementation review, 2026-09-08; Kevin's call, decision 15 amended a second time). Eight did not fit. The frieze is bottom-anchored and act two has no vertical camera travel, so whatever does not fit the frame at the dolly is off the TOP of it permanently. At the 144 px cell floor eight rows fill `832.4 / heightPx` of the frame height, so every viewport shorter than about 833 CSS px overflowed — 1280×720, which is Playwright's own desktop project, by 16 % — and `actTwoTopClearFrac` returned a NEGATIVE clearance there, which is the number pipeline 2 insets the top row's ink by. Seven rows still miss 720 px by 1.2 %. Six clear every viewport in the matrix, at 35 columns and 1025 svh of act two.
+
+The claim this replaces read "eight rows is exactly what fits". It was checked at 1440×900 and 393×851 only, the two viewports where it happens to hold; `maxRowsInFrame` is not a constant but falls with viewport height, to 7 at 820×821 and 6 at 1280×720. The unit suite now asserts `maxRowsInFrame(g) >= FRIEZE_ROWS`, `friezeHeightFill <= 1` and a non-negative `actTwoTopClearFrac` across the whole matrix plus the short viewports it does not name, and those assertions go red at eight rows.
+
+**The title still overprints the top row during the dolly.** Six rows lift the clearance to 0.13–0.18 of the frame, and the title band reaches 0.32 from the top, so the year title still reads over the top row's ink, as type over type. That remains the ratified reading, not a defect; `actTwoTopClearFrac` is what pipeline 2 insets by.
 
 Seams pipeline 1 exports and the others consume:
 
 - `ACT_TWO_RELEASE_SVH = 100`, `ACT_TWO_APPROACH_SVH = 50`, `ACT_TWO_SVH_PER_COLUMN = 25`.
 - `actTwoSvh(columns)` and `sceneWrapperSvh(columns)`; the wrapper's inline height is set from the data, and the `550svh` literal and its comment in `src/index.css` go.
 - `actTwoProgress(playhead)` in `[0, 1]`, and `actTwoPose(u, frieze, geometry)` returning camera position, yaw and pitch. `frieze` is the extent object from pipeline 2.
-- `blockAt(u, frieze)` for the title string and for reduced-motion stills; `actTwoCardFade(u)` for card four's dissolve; `data-svh` on `.scene-scroll` carrying `sceneWrapperSvh(columns)`.
+- `blockAt(u, frieze)` for the title string and for reduced-motion stills; `actTwoCardFade(u, frieze)` for card four's dissolve; `data-svh` on `.scene-scroll` carrying `sceneWrapperSvh(columns)`.
 - Column-based targets: `playheadForColumn(col, frieze)`, `volumeShotPlayhead(columns)` and the numeric `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns)`. The item lookup is not pipeline 1's: pipeline 2 exports `playheadForItem(itemId, layout, extent)` from `src/utils/friezeTargets.ts` (a pure module that imports both `friezeLayout.ts` and `sceneMotion.ts`), and pipeline 3 builds stream focus and the nav link on those two.
 - The playhead's unit and `PLAYHEAD_SPAN` may change; `CARD_COUNT` stays 4 and every act-one pose is asserted unchanged by the existing unit tests.
 
@@ -93,7 +97,7 @@ Owned by pipeline 2. Layout is a pure module, `src/utils/friezeLayout.ts`, unit-
 
 Layout:
 
-- `FRIEZE_ROWS = 8` in both orientations (decision 15); `maxRowsInFrame(g)` from pipeline 1 is the bound any future change must respect.
+- `FRIEZE_ROWS = 6` in both orientations (decision 15, amended); `maxRowsInFrame(g)` from pipeline 1 is the bound any future change must respect — and it is viewport-dependent, so it is asserted across the matrix, never at a single size.
 - `friezeLayout(items, rows) → { columns, blocks: YearBlock[], cells: Cell[] }`. A `Cell` is `{ itemId, block, col, row, span: 1 | 2 }`. Case studies span 2×2 and sit at the head of their year block; cells fill column-major, newest first, left to right. A block's width is its column count; the frieze's world width is `columns × FRIEZE_CELL_W`, its height `rows × FRIEZE_CELL_H`.
 - `FRIEZE_CELL_W = CARD_W / 2` and `FRIEZE_CELL_H = CARD_H / 2`, in world units, so a 2×2 span is exactly one scene card with no inset and the cell's legibility floor is `ceil(CARD_MIN_PX / 2) = 144` CSS px. Pipeline 1 creates `friezeLayout.ts` with these constants and the base extent type `{ columns, rows, blocks: readonly { year, startCol, columns }[] }`; pipeline 2 completes the module and may only extend that type (`count`, `width`, `height`), never replace it. `sceneMotion.ts` imports from `friezeLayout.ts`, never the reverse.
 

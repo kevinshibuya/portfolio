@@ -93,7 +93,7 @@ import {
   playheadForColumn,
   playheadForBlock,
 } from '../../src/utils/sceneMotion'
-import { FRIEZE_CELL_W, FRIEZE_CELL_H } from '../../src/utils/friezeLayout'
+import { FRIEZE_CELL_W, FRIEZE_CELL_H, FRIEZE_ROWS } from '../../src/utils/friezeLayout'
 import type { FriezeExtent } from '../../src/utils/friezeLayout'
 
 /** tan(FOV/2), mirrored so the tests can project without importing internals. */
@@ -942,7 +942,7 @@ describe('act two · scroll', () => {
 
   it('sizes the wrapper from the column count', () => {
     // The shipped extent: the one the running site depends on.
-    expect(sceneWrapperSvh(26)).toBe(1350)
+    expect(sceneWrapperSvh(35)).toBe(1575)
     // The fictional fixture the spec works through.
     expect(sceneWrapperSvh(22)).toBe(1250)
     // No frieze, no act two: today's wrapper exactly.
@@ -1046,13 +1046,13 @@ const FIXTURE_FRIEZE: FriezeExtent = {
 
 /** Today's archive through `provisionalFriezeExtent`: what the running site has. */
 const SHIPPED_FRIEZE: FriezeExtent = {
-  columns: 26,
-  rows: 8,
+  columns: 35,
+  rows: 6,
   blocks: [
     { year: 2026, startCol: 0, columns: 2 },
-    { year: 2025, startCol: 2, columns: 7 },
-    { year: 2024, startCol: 9, columns: 16 },
-    { year: 2023, startCol: 25, columns: 1 },
+    { year: 2025, startCol: 2, columns: 9 },
+    { year: 2024, startCol: 11, columns: 22 },
+    { year: 2023, startCol: 33, columns: 2 },
   ],
 }
 
@@ -1150,11 +1150,14 @@ describe('act two · pose', () => {
     const desk = sceneGeometry(1440, 900)
     expect(dollyRange(FIXTURE_FRIEZE, desk).xStart).toBeCloseTo(-3, 6)
     expect(dollyRange(FIXTURE_FRIEZE, desk).xEnd).toBeCloseTo(3, 6)
-    expect(dollyRange(SHIPPED_FRIEZE, desk).xStart).toBeCloseTo(-4, 6)
-    expect(dollyRange(SHIPPED_FRIEZE, desk).xEnd).toBeCloseTo(4, 6)
+    // 35 columns at the six-row dolly distance. The round -4/+4 these replace
+    // were 26 columns at the eight-row distance: both the frieze's width and
+    // the camera's distance to it moved, so neither end survives the row change.
+    expect(dollyRange(SHIPPED_FRIEZE, desk).xStart).toBeCloseTo(-6.6351, 4)
+    expect(dollyRange(SHIPPED_FRIEZE, desk).xEnd).toBeCloseTo(6.6351, 4)
     const phone = sceneGeometry(393, 851)
-    expect(dollyRange(SHIPPED_FRIEZE, phone).xStart).toBeCloseTo(-5.8177, 4)
-    expect(dollyRange(SHIPPED_FRIEZE, phone).xEnd).toBeCloseTo(5.8177, 4)
+    expect(dollyRange(SHIPPED_FRIEZE, phone).xStart).toBeCloseTo(-8.1396, 4)
+    expect(dollyRange(SHIPPED_FRIEZE, phone).xEnd).toBeCloseTo(8.1396, 4)
   })
 
   it('travels left to right across the dolly and rests at both ends', () => {
@@ -1271,9 +1274,38 @@ describe('act two · pose', () => {
     }
   })
 
-  it('sits eight rows exactly on the in-frame bound', () => {
-    expect(maxRowsInFrame(sceneGeometry(1440, 900))).toBe(8)
-    expect(maxRowsInFrame(sceneGeometry(393, 851))).toBe(8)
+  /**
+   * The invariant the old assertion missed. `maxRowsInFrame` is not a constant:
+   * it falls with viewport height, and the frieze is bottom-anchored with no
+   * vertical camera travel, so a row that does not fit is off the top forever.
+   * The previous version asserted `=== 8` at the two viewports where it happened
+   * to be 8 and skipped the rest of its own list, while `friezeHeightFill` was
+   * checked only against its FLOOR — so 1.1561 at 1280x720 passed both. Assert
+   * the bound and the fit across every viewport, at the real row count.
+   */
+  it('fits the frame at the dolly on every viewport in the matrix', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      expect(maxRowsInFrame(g), name).toBeGreaterThanOrEqual(FRIEZE_ROWS)
+      expect(friezeHeightFill(SHIPPED_FRIEZE, g), name).toBeLessThanOrEqual(1)
+      expect(actTwoTopClearFrac(SHIPPED_FRIEZE, g), name).toBeGreaterThanOrEqual(0)
+    }
+  })
+
+  it('holds the fit at the shortest viewports the matrix does not name', () => {
+    // 1280x720 is Playwright's own desktop project; 1024x640 is shorter still.
+    for (const [w, h] of [
+      [1280, 720],
+      [1024, 640],
+      [1440, 790],
+      [820, 821],
+    ] as const) {
+      const g = sceneGeometry(w, h)
+      const name = `${w}x${h}`
+      expect(maxRowsInFrame(g), name).toBeGreaterThanOrEqual(FRIEZE_ROWS)
+      expect(friezeHeightFill(SHIPPED_FRIEZE, g), name).toBeLessThanOrEqual(1)
+      expect(actTwoTopClearFrac(SHIPPED_FRIEZE, g), name).toBeGreaterThanOrEqual(0)
+    }
   })
 
   it('extends the far plane to hold the volume shot', () => {
@@ -1512,9 +1544,9 @@ describe('act two · title and stills', () => {
  */
 describe('actOneVelocityScale', () => {
   it('undoes the wrapper extension exactly at the shipped extent', () => {
-    expect(sceneWrapperSvh(SHIPPED_FRIEZE.columns)).toBe(1350)
-    // 1250 svh of scrub where act one alone had 450.
-    expect(actOneVelocityScale(SHIPPED_FRIEZE.columns)).toBeCloseTo(1250 / 450, 12)
+    expect(sceneWrapperSvh(SHIPPED_FRIEZE.columns)).toBe(1575)
+    // 1475 svh of scrub where act one alone had 450.
+    expect(actOneVelocityScale(SHIPPED_FRIEZE.columns)).toBeCloseTo(1475 / 450, 12)
   })
 
   it('is exactly 1 when act two adds nothing, so act one is untouched', () => {

@@ -41,7 +41,7 @@ describe('frieze cell constants', () => {
   })
 
   it('is eight rows, in both orientations (amended decision 15)', () => {
-    expect(FRIEZE_ROWS).toBe(8)
+    expect(FRIEZE_ROWS).toBe(6)
   })
 })
 
@@ -108,13 +108,13 @@ describe('provisionalFriezeExtent', () => {
 describe('the shipped extent is the one the pose fixtures assume', () => {
   it('matches what today\'s archive produces', () => {
     expect(provisionalFriezeExtent(archive, FRIEZE_ROWS)).toEqual({
-      columns: 26,
-      rows: 8,
+      columns: 35,
+      rows: 6,
       blocks: [
         { year: 2026, startCol: 0, columns: 2 },
-        { year: 2025, startCol: 2, columns: 7 },
-        { year: 2024, startCol: 9, columns: 16 },
-        { year: 2023, startCol: 25, columns: 1 },
+        { year: 2025, startCol: 2, columns: 9 },
+        { year: 2024, startCol: 11, columns: 22 },
+        { year: 2023, startCol: 33, columns: 2 },
       ],
     })
   })

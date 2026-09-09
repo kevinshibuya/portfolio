@@ -1066,11 +1066,12 @@ export function actTwoTitleDistance(dWall: number, g: SceneGeometry): number {
 
 /**
  * The tallest frieze that still fits the frame at the dolly distance — the
- * bound any row count must respect. It is exactly 8 at 1440×900 (8.65 before
- * the floor) and at 393×851 (8.18), so `FRIEZE_ROWS = 8` sits ON it with no
- * slack: a ninth row clips, because the cell floor binds first and act two has
- * no vertical camera travel to recover it. A viewport whose bound comes out
- * below 8 is reported, not worked around.
+ * bound any row count must respect. It is NOT a constant: it falls with the
+ * viewport's height, to 7 at 820×821 and 6 at 1280×720, because the 144 px cell
+ * floor binds first and act two has no vertical camera travel to recover what
+ * overflows. Eight rows sat above this bound on every viewport shorter than
+ * ~833 px and the overflow went off the top permanently; six sits under it
+ * everywhere in the matrix. Assert against it rather than against a number.
  */
 export function maxRowsInFrame(g: SceneGeometry): number {
   return Math.floor((FRIEZE_CELL_W / FRIEZE_CELL_H) * (g.heightPx / FRIEZE_CELL_MIN_PX))

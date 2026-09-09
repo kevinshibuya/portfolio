@@ -14,7 +14,7 @@
  *    consumes.
  * 2. It does NOT retune the cell constants. The spec fixes a cell at half a
  *    scene card so a 2×2 span is exactly one card, with no inset, and
- *    `FRIEZE_ROWS` at eight in BOTH orientations (amended decision 15): act two
+ *    `FRIEZE_ROWS` at six in BOTH orientations (amended decision 15): act two
  *    has no vertical camera travel, so a taller frieze would leave rows off
  *    frame forever. `maxRowsInFrame(g)` in `sceneMotion.ts` is the bound.
  * 3. The import direction is one-way: `sceneMotion.ts` imports from here, never
@@ -41,10 +41,19 @@ export const FRIEZE_CELL_W = CARD_W / 2
 export const FRIEZE_CELL_H = CARD_H / 2
 
 /**
- * Eight rows, in both orientations (amended decision 15). Portrait sees fewer
+ * Six rows, in both orientations (amended decision 15). Portrait sees fewer
  * columns at a time, not more rows.
+ *
+ * Six, not eight: the frieze is bottom-anchored and act two has no vertical
+ * camera travel, so anything that does not fit the frame at the dolly is off
+ * the TOP of it forever. Eight rows fill 832.4 / heightPx of the frame, so
+ * every viewport shorter than ~833 CSS px overflowed — 1280x720 (Playwright's
+ * own desktop project) by 16 %, and `actTwoTopClearFrac` went NEGATIVE there,
+ * which is the number pipeline 2 insets the top row's ink by. Seven rows still
+ * miss 720 px by 1.2 %. Six clear every viewport in the matrix, at 35 columns
+ * and 1025 svh of act two. `friezeFitsFrame` in the test suite is the guard.
  */
-export const FRIEZE_ROWS = 8
+export const FRIEZE_ROWS = 6
 
 export interface FriezeBlockExtent {
   year: number

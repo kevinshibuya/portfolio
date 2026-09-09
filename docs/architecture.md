@@ -131,7 +131,7 @@ The page centerpiece: a real 3D environment in the third canvas. Code in `src/co
 
 Inside: `nav.scene-skiplinks` (the keyboard and screen-reader path into a project), then `div.scene-scroll` (the `useScroll` target), then `div.scene-sticky` (100svh, pinned), then `div.scene-inner`, holding `div.scene-canvas-wrap[aria-hidden][data-ready]` and a static `h2.scene-title-sr.sr-only` naming the section.
 
-`.scene-scroll`'s height is an **inline style**, `sceneWrapperSvh(columns)` computed in `Projects.tsx` from the frieze's own extent, and the same number is published as `data-svh` for the e2e helper. The CSS carries `position` and `margin-top` only. At today's 26 columns that is 1350svh.
+`.scene-scroll`'s height is an **inline style**, `sceneWrapperSvh(columns)` computed in `Projects.tsx` from the frieze's own extent, and the same number is published as `data-svh` for the e2e helper. The CSS carries `position` and `margin-top` only. At today's 35 columns that is 1575svh.
 
 No eyebrow, no overlay, and no DOM element tracks the settled card: the card carries its own caption and is pressable.
 
@@ -152,7 +152,7 @@ The camera is one continuous ease from −1.5 to 0 (`easedSeg`), starting `CORRI
 
 Past card four the same playhead reads the archive as a wall. The geometry is derived in `src/utils/sceneMotion.ts`; the grid it is derived against comes from `src/utils/friezeLayout.ts`, which `sceneMotion` imports and never the reverse.
 
-**The frieze frame.** `friezeFrame(frieze, g)` stands the wall centred on the corridor axis (`centreX = 0`), facing the camera, one spacing beyond card four · exactly where a fifth card would be · with its bottom edge at `HOVER`, so the embedded cards share the corridor cards' floor gap. A cell is half a scene card (`FRIEZE_CELL_W = CARD_W / 2`, `FRIEZE_CELL_H = CARD_H / 2`), so a 2×2 case study spans exactly one card with no inset, at `FRIEZE_ROWS = 8` rows in both orientations.
+**The frieze frame.** `friezeFrame(frieze, g)` stands the wall centred on the corridor axis (`centreX = 0`), facing the camera, one spacing beyond card four · exactly where a fifth card would be · with its bottom edge at `HOVER`, so the embedded cards share the corridor cards' floor gap. A cell is half a scene card (`FRIEZE_CELL_W = CARD_W / 2`, `FRIEZE_CELL_H = CARD_H / 2`), so a 2×2 case study spans exactly one card with no inset, at `FRIEZE_ROWS = 6` rows in both orientations.
 
 **The beats and their scroll.** `actTwoSvh(columns) = 100 + 50 + 25·columns`, and `sceneWrapperSvh(columns) = 550 + actTwoSvh(columns)`. `actTwoBeats(columns)` turns that into the two boundaries in `u`:
 
@@ -166,7 +166,7 @@ Past card four the same playhead reads the archive as a wall. The geometry is de
 
 **The dolly camera is bottom-anchored.** `dollyY` lands the wall's bottom edge on the frame's bottom edge, so every spare pixel of frame height sits ABOVE the wall rather than being split between top and bottom. `actTwoTopClearFrac = 1 − friezeHeightFill` is that air · 0.0751 at 1440×900, 0.0218 at 393×851, roughly double what a wall-centred camera would leave · and it is exported so pipeline 2 can inset the top row's cell ink under the title band.
 
-**The title reads over the wall's top row, and that is settled.** Clearing act one's title band would need a fill of 0.679, i.e. a 106px cell, which breaks the 144px floor; and there is no row to trade away, because `maxRowsInFrame(g)` is exactly 8 at both fixtures and `FRIEZE_ROWS = 8` sits on that bound with no slack. Eight rows, the cell floor and a reserved title band are mutually infeasible. The camera work buys the largest clearance the constraint set allows and stops there. **No scrim, halo or darkening is added to make the overlap read** · that is the site's standing NO, and the fix belongs to the wall's own typography. ADR 0012.
+**The title reads over the wall's top row, and that is settled.** Clearing act one's title band would need a fill of 0.679, i.e. a 106px cell, which breaks the 144px floor. Six rows lift the clearance to 0.13–0.18 of the frame against a band reaching 0.32, so the overlap survives the row change: the cell floor and a reserved title band remain mutually infeasible. The camera work buys the largest clearance the constraint set allows and stops there. **No scrim, halo or darkening is added to make the overlap read** · that is the site's standing NO, and the fix belongs to the wall's own typography. ADR 0012.
 
 **The reading cursor and the year titles.** The cursor is the SCROLL's column budget, not the camera's position: `dollyCursor(u, frieze) = columns · p`, linear in the dolly's progress. `blockAt` returns the block under it, so across the dolly every year is named exactly once, newest first · **including a one-column block that the camera's clamped range never reaches**, which is exactly what a camera-driven title would silently skip. The two therefore disagree by up to one column's share at each end of the dolly, where the camera ramps and the cursor does not, and coincide through the middle. That lag is accepted and bounded.
 
@@ -182,7 +182,7 @@ Past card four the same playhead reads the archive as a wall. The geometry is de
 
 **Scroll seams.** Pipeline 1 exports COLUMN targets only: `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns)` · a number, never an item id · plus `playheadForColumn`, `playheadForBlock` and `volumeShotPlayhead` (what the `#archive` nav link lands on), and `data-svh` on the wrapper. The item lookup belongs to pipeline 2's `src/utils/friezeTargets.ts`, whose `playheadForItem(itemId, layout, extent)` imports both modules and composes `playheadForColumn(cell.col + cell.span / 2, extent)`. Pipeline 3 calls `playheadForItem` for stream focus and the wall click, and feeds the number to `scrollTargetFor`. `sceneMotion.ts` stays pure and ignorant of the content model, which is the whole reason the split exists.
 
-**Bounds pipeline 2 must respect:** `maxRowsInFrame(g)` (the tallest frieze that still fits at the reading distance, 8 at both fixtures) and `actTwoTopClearFrac(frieze, g)` (the air over the top row, which the top row's ink must be inset by).
+**Bounds pipeline 2 must respect:** `maxRowsInFrame(g)` (the tallest frieze that still fits at the reading distance) and `actTwoTopClearFrac(frieze, g)` (the air over the top row, which the top row's ink must be inset by). Neither is a constant: `maxRowsInFrame` falls with viewport height · 10 at 1920×1080, 8 at 1440×900, 7 at 820×821, 6 at 1280×720 · which is why `FRIEZE_ROWS` is 6 and why both are asserted across the whole viewport matrix rather than at one or two fixtures. Eight rows overflowed the frame on every viewport shorter than ~833 CSS px, and because the wall is bottom-anchored with no vertical camera travel, the overflow was off the top permanently.
 
 ### Frame loop
 

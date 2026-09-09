@@ -9,7 +9,7 @@ Kevin asked for the archive (every shipped piece, 171 today) to feel cinematic a
 
 ## Consequences
 
-- The scene section owns the archive. The pin grows from `550svh` to a height computed from the frieze's column count (about 1250 svh today), and the playhead gains an act.
+- The scene section owns the archive. The pin grows from `550svh` to a height computed from the frieze's column count (1575 svh today, at six rows and 35 columns), and the playhead gains an act.
 - The title object shows strings that are not project names ("all work", then years). The Anton fence in `CLAUDE.md` reads "the Selected Work title"; this object is that title, so the fence holds without amendment.
 - "Everything is a piece; origin is the only axis." The reader sees no project-versus-editorial split, only `professional`, `freelance` and `personal`. The content types stay separate in the data.
 - Per-card canvas textures do not scale to 171. The wall rasterises one alpha-coverage texture per year block and colours it in a shader, the title's technique, not the caption's.

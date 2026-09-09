@@ -180,7 +180,7 @@ export function SceneRig({
     const g = geo.current
     if (!g) return
 
-    // `actOneSeg` is not cosmetic. The wrapper is now 1350 svh, so without the
+    // `actOneSeg` is not cosmetic. The wrapper is now 1575 svh, so without the
     // clamp at 3 the act-one code would receive a segment up to 4 and the
     // corridor would scrub a card PAST its slot the moment the reader enters
     // act two. With it, every frame of act one is exactly today's frame and
