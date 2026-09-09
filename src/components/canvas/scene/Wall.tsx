@@ -78,12 +78,22 @@ export function Wall({
   const shownRef = useRef<FriezeGeneration | null>(null)
   useEffect(() => () => shown?.dispose(), [shown])
 
+  // Permission is granted once, by the warm-up. A generation made after that
+  // (a language switch, a settled resize) is born permitted, or it would park
+  // on a promise nobody will ever resolve and the wall would keep the old text.
+  const permitted = useRef(false)
+
   useEffect(() => {
-    const generation = friezeGeneration({ layout, rows: extent.rows, items, lang, density })
+    const generation = friezeGeneration(
+      { layout, rows: extent.rows, items, lang, density },
+      undefined,
+      permitted.current,
+    )
     let superseded = false
 
     // Registered for the warm-up, which awaits it before flagging the canvas.
     sceneRefs.frieze.prepare = async () => {
+      permitted.current = true
       generation.permit()
       await generation.settled
       const masks = generation.masks()
@@ -129,10 +139,10 @@ export function Wall({
     }
   }, [sceneRefs])
 
-  // The wall's OWN boundary. Its card objects load nine covers, and they mount
-  // late — when a generation lands, long after the scene is live. Suspending
-  // the scene's shared boundary then would tear down Corridor and Environment
-  // and re-register the corridor, which `data-registrations` forbids (ADR 0011).
+  // The wall's OWN boundary. Its card objects load nine covers, which resolve
+  // after the scene is live. Suspending the scene's shared boundary then would
+  // tear down Corridor and Environment and re-register the corridor, which
+  // `data-registrations` forbids (ADR 0011).
   // Everything above this line lives outside it, so a suspension can never
   // destroy the generation the warm-up is waiting on.
   return (

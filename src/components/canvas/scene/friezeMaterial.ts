@@ -8,7 +8,7 @@ import {
   type FriezeLayout,
 } from '../../../utils/friezeLayout'
 import { accentDeepLargeFor } from '../../../utils/palette'
-import type { FriezePanel, FriezeTexture } from './friezeTexture'
+import { panelsFor, type FriezePanel, type FriezeTexture } from './friezeTexture'
 
 /**
  * The wall's colour: one lookup texture per year block, one shader per panel.
@@ -270,6 +270,8 @@ export function panelMeshes(
   layout: FriezeLayout,
   rows: number,
   masks: readonly FriezeTexture[] | null,
+  /** The wall's density: without masks, the panels are the ones it WILL draw. */
+  density: number,
 ): FriezePanelMesh[] {
   const place = (panel: FriezePanel, mask: FriezeTexture | null): FriezePanelMesh => ({
     panel,
@@ -282,7 +284,23 @@ export function panelMeshes(
     mask,
   })
   if (masks) return masks.map((mask) => place(mask.panel, mask))
-  return layout.blocks.map((block, index) =>
-    place({ block: index, panel: 0, startCol: block.startCol, columns: block.columns }, null),
+  // The cream wall is already split the way the masks will be: `panelsFor` is
+  // a function of layout and density alone, so the raster lands on the SAME
+  // panels and the swap is a uniform write, never a rebuild.
+  return layout.blocks.flatMap((block, index) =>
+    panelsFor({ ...block, index }, layout.cells, density).map((panel) => place(panel, null)),
   )
+}
+
+/**
+ * The panel plan as one string: the identity the wall's materials are keyed
+ * on. Equal across a mask swap at the same density, so the materials the
+ * warm-up compiled are the ones that stay; different when the split changes,
+ * so a new plan gets new materials and the old ones are disposed then, and
+ * only then.
+ */
+export function panelKey(meshes: readonly FriezePanelMesh[]): string {
+  return meshes
+    .map((m) => `${m.panel.block}:${m.panel.panel}:${m.panel.startCol}:${m.panel.columns}`)
+    .join('|')
 }

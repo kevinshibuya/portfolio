@@ -58,7 +58,13 @@ export const FRIEZE_DENSITY_CEILING = 612.8
 export const FRIEZE_MASK_MAX_PX = 4096
 /** Cells drawn per idle slice. */
 export const FRIEZE_RASTER_SLICE = 4
-const IDLE_TIMEOUT_MS = 200
+/**
+ * How long a slice waits for an idle period before running anyway. Two frames,
+ * not a comfortable 200 ms: a thread that is never idle (measured headless,
+ * `timeRemaining()` 0 on every slice) makes every slice pay the whole timeout,
+ * and 43 slices at 200 ms was 11.4 s of waiting for 48 ms of drawing.
+ */
+export const IDLE_TIMEOUT_MS = 32
 
 const TITLE_FILL = '#FF0000'
 const META_FILL = '#00FF00'
@@ -133,14 +139,29 @@ export class FriezeRasterCancelled extends Error {
   }
 }
 
-/** requestIdleCallback, with a timeout fallback for browsers without it. */
+/**
+ * The first of an idle period or a real timer, then the other is cancelled.
+ *
+ * Not requestIdleCallback's own `timeout` option: Chrome honours that loosely
+ * when the thread is busy — measured under load, a 32 ms timeout fired every
+ * ~185 ms — and a busy thread is exactly when the fallback matters. A
+ * setTimeout task interleaves with frames on its own schedule.
+ */
 export function onIdle(run: () => void, timeout: number): () => void {
-  if (typeof requestIdleCallback === 'function') {
-    const id = requestIdleCallback(run, { timeout })
-    return () => cancelIdleCallback(id)
+  let idle: number | undefined
+  let timer: number | undefined
+  const cancel = (): void => {
+    if (idle !== undefined) cancelIdleCallback(idle)
+    if (timer !== undefined) window.clearTimeout(timer)
+    idle = timer = undefined
   }
-  const id = window.setTimeout(run, timeout)
-  return () => window.clearTimeout(id)
+  const fire = (): void => {
+    cancel()
+    run()
+  }
+  timer = window.setTimeout(fire, timeout)
+  if (typeof requestIdleCallback === 'function') idle = requestIdleCallback(fire)
+  return cancel
 }
 
 const defaultScheduler: RasterScheduler = { idle: onIdle, fontReady: loadTextFont }
@@ -524,11 +545,19 @@ export interface FriezeGeneration {
 export function friezeGeneration(
   recipe: FriezeRasterRecipe,
   scheduler?: RasterScheduler,
+  /**
+   * True for a generation made after the warm-up has already granted
+   * permission: a language switch or a settled resize. Permission is a
+   * one-time event, so a later generation that waited for it would wait
+   * for ever.
+   */
+  permitted = false,
 ): FriezeGeneration {
   let allow: () => void = () => {}
   const permission = new Promise<void>((resolve) => {
     allow = resolve
   })
+  if (permitted) allow()
   let drawn: FriezeTexture[] | null = null
   let state: 'pending' | 'ready' | 'failed' = 'pending'
   let disposed = false

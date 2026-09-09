@@ -17,6 +17,7 @@ import {
   createFriezeLookups,
   createFriezeMaterial,
   hoverColorFor,
+  panelKey,
   panelMeshes,
   setFriezeHover,
 } from '../../src/components/canvas/scene/friezeMaterial'
@@ -238,7 +239,7 @@ describe('panelMeshes', () => {
 
   it('is one mesh per panel, five today, placed in the wall frame from its top-left', () => {
     const masks = fakeMasks(432)
-    const meshes = panelMeshes(packed, FRIEZE_ROWS, masks)
+    const meshes = panelMeshes(packed, FRIEZE_ROWS, masks, 432)
     expect(masks).toHaveLength(5)
     expect(meshes).toHaveLength(5)
     for (const [i, mesh] of meshes.entries()) {
@@ -251,10 +252,29 @@ describe('panelMeshes', () => {
     expect(meshes.reduce((sum, m) => sum + m.panel.columns, 0)).toBe(packed.columns)
   })
 
-  it('falls back to one cream mesh per block when there are no masks', () => {
-    const meshes = panelMeshes(packed, FRIEZE_ROWS, null)
-    expect(meshes).toHaveLength(4)
-    expect(meshes.every((m) => m.mask === null)).toBe(true)
-    expect(meshes.map((m) => m.panel.columns)).toEqual(packed.blocks.map((b) => b.columns))
+  it('is one cream mesh per PANEL before the masks land, the same panels the masks will use', () => {
+    // The warm-up compiles the cream wall's materials, and three's compileAsync
+    // polls them by identity; a swap that rebuilt them would dispose the ones
+    // being polled and hang the warm-up. Same panels, same materials.
+    const cream = panelMeshes(packed, FRIEZE_ROWS, null, 432)
+    const drawn = panelMeshes(packed, FRIEZE_ROWS, fakeMasks(432), 432)
+    expect(cream).toHaveLength(5)
+    expect(cream.every((m) => m.mask === null)).toBe(true)
+    expect(cream.map((m) => m.panel)).toEqual(drawn.map((m) => m.panel))
+    expect(cream.map((m) => m.centre)).toEqual(drawn.map((m) => m.centre))
+    expect(cream.map((m) => m.size)).toEqual(drawn.map((m) => m.size))
+  })
+
+  it('keys the materials by panel plan, so a mask swap keeps them and a new split replaces them', () => {
+    const cream = panelKey(panelMeshes(packed, FRIEZE_ROWS, null, 432))
+    const drawn = panelKey(panelMeshes(packed, FRIEZE_ROWS, fakeMasks(432), 432))
+    expect(cream).toBe(drawn)
+    expect(cream.split('|')).toHaveLength(5)
+    // At a density where nothing splits, 2024 is one panel: a different plan.
+    const single = panelKey(panelMeshes(packed, FRIEZE_ROWS, null, 1))
+    expect(single.split('|')).toHaveLength(4)
+    expect(single).not.toBe(cream)
+    // Old masks keep their own topology until the replacement generation lands.
+    expect(panelKey(panelMeshes(packed, FRIEZE_ROWS, fakeMasks(432), 1))).toBe(cream)
   })
 })

@@ -28,6 +28,8 @@ import {
   FRIEZE_DENSITY_CEILING,
   FRIEZE_MASK_MAX_PX,
   FRIEZE_RASTER_SLICE,
+  IDLE_TIMEOUT_MS,
+  onIdle,
   FriezeRasterCancelled,
   friezeDensity,
   friezeGeneration,
@@ -862,6 +864,45 @@ describe('friezeGeneration', () => {
     gen.dispose()
   })
 
+  it('born permitted, it draws without anyone calling permit, so a generation made after the warm-up never parks', async () => {
+    const scheduler = manualScheduler()
+    const { items, layout } = twoBlockFixture()
+    const gen = friezeGeneration(
+      { layout, rows: FRIEZE_ROWS, items, lang: 'en', density: DENSITY },
+      scheduler,
+      true,
+    )
+    scheduler.resolveFont()
+    await scheduler.drain()
+    await gen.settled
+    expect(gen.status()).toBe('ready')
+    expect(gen.masks()).toHaveLength(2)
+    gen.dispose()
+  })
+
+  it('waits at most two frames for an idle slot, because a busy thread never offers one', async () => {
+    // Measured headless: rAF at 34 ms, timeRemaining() 0, all 43 slices fired
+    // on their timeout. At 200 ms that was 11.4 s of waiting for 48 ms of drawing.
+    expect(IDLE_TIMEOUT_MS).toBeLessThanOrEqual(34)
+    const base = manualScheduler()
+    const seen: number[] = []
+    const scheduler: ManualScheduler = {
+      ...base,
+      idle: (run, timeout) => {
+        seen.push(timeout)
+        return base.idle(run, timeout)
+      },
+    }
+    const gen = generation(scheduler)
+    gen.permit()
+    scheduler.resolveFont()
+    await scheduler.drain()
+    await gen.settled
+    expect(seen.length).toBeGreaterThan(1)
+    expect(seen.every((t) => t === IDLE_TIMEOUT_MS)).toBe(true)
+    gen.dispose()
+  })
+
   it('settles when it is disposed before anyone permits it, so the warm-up never waits for ever', async () => {
     const scheduler = manualScheduler()
     const gen = generation(scheduler)
@@ -968,5 +1009,74 @@ describe('friezeGeneration', () => {
 describe('shared resize debounce', () => {
   it('is the caption debounce, exported once from textTexture', () => {
     expect(RESIZE_DEBOUNCE_MS).toBe(150)
+  })
+})
+
+describe('onIdle', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  /** A browser whose idle callbacks fire only when the test says so. */
+  function stubIdle() {
+    const callbacks = new Map<number, IdleRequestCallback>()
+    let next = 1
+    vi.stubGlobal('requestIdleCallback', (cb: IdleRequestCallback) => {
+      const id = next++
+      callbacks.set(id, cb)
+      return id
+    })
+    vi.stubGlobal('cancelIdleCallback', (id: number) => {
+      callbacks.delete(id)
+    })
+    return {
+      fire() {
+        for (const [id, cb] of callbacks) {
+          callbacks.delete(id)
+          cb({ didTimeout: false, timeRemaining: () => 10 })
+        }
+      },
+      pending: () => callbacks.size,
+    }
+  }
+
+  it('runs on a real timer when the thread never goes idle, once, and drops the idle request', () => {
+    // Chrome honours requestIdleCallback's own timeout loosely: measured under
+    // load, a 32 ms timeout fired every ~185 ms. A setTimeout is kept.
+    const idle = stubIdle()
+    const run = vi.fn()
+    onIdle(run, 32)
+    vi.advanceTimersByTime(31)
+    expect(run).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(1)
+    expect(run).toHaveBeenCalledTimes(1)
+    expect(idle.pending()).toBe(0)
+    idle.fire()
+    expect(run).toHaveBeenCalledTimes(1)
+  })
+
+  it('runs on the idle callback when one comes first, and clears the timer', () => {
+    const idle = stubIdle()
+    const run = vi.fn()
+    onIdle(run, 32)
+    idle.fire()
+    expect(run).toHaveBeenCalledTimes(1)
+    expect(vi.getTimerCount()).toBe(0)
+    vi.advanceTimersByTime(100)
+    expect(run).toHaveBeenCalledTimes(1)
+  })
+
+  it('cancel stops both routes', () => {
+    const idle = stubIdle()
+    const run = vi.fn()
+    const cancel = onIdle(run, 32)
+    cancel()
+    idle.fire()
+    vi.advanceTimersByTime(100)
+    expect(run).not.toHaveBeenCalled()
+    expect(idle.pending()).toBe(0)
+    expect(vi.getTimerCount()).toBe(0)
   })
 })

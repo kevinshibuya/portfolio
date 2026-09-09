@@ -23,6 +23,7 @@ import {
   createFriezeMaterial,
   disposeFriezeLookups,
   hoverColorFor,
+  panelKey,
   panelMeshes,
   setFriezeHover,
 } from './friezeMaterial'
@@ -101,14 +102,26 @@ export function Frieze({
   const rows = extent.rows
 
   const occupancy = useMemo(() => blockOccupancy(layout, rows), [layout, rows])
-  const meshes = useMemo(() => panelMeshes(layout, rows, masks), [layout, rows, masks])
+  const meshes = useMemo(
+    () => panelMeshes(layout, rows, masks, texelsPerWorld),
+    [layout, rows, masks, texelsPerWorld],
+  )
 
   // Colour is per BLOCK and independent of the raster, so the lookups survive
   // every mask generation and are rebuilt only when the packing itself changes.
   const lookups = useMemo(() => createFriezeLookups(layout, items, rows), [layout, items, rows])
   useEffect(() => () => disposeFriezeLookups(lookups), [lookups])
 
-  const materials = useMemo(() => meshes.map(() => createFriezeMaterial()), [meshes])
+  // Keyed on the panel PLAN, not on the meshes. The warm-up compiles these and
+  // three's compileAsync then polls them by identity until the GPU reports the
+  // programs ready; a mask landing meanwhile rebuilds the meshes, and a rebuild
+  // of the materials would dispose the ones being polled, and the warm-up
+  // would hang inside three. Same plan, same materials: a swap writes uniforms.
+  const plan = panelKey(meshes)
+  const materials = useMemo(
+    () => plan.split('|').map(() => createFriezeMaterial()),
+    [plan],
+  )
   useEffect(
     () => () => {
       for (const material of materials) material.dispose()
