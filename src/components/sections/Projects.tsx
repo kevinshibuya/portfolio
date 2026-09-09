@@ -13,7 +13,7 @@ import {
   actOneSeg,
   sceneWrapperSvh,
 } from '../../utils/sceneMotion'
-import { provisionalFriezeExtent, FRIEZE_ROWS } from '../../utils/friezeLayout'
+import { friezeLayout, friezeExtent, FRIEZE_ROWS } from '../../utils/friezeLayout'
 import { archive } from '../../data/archive'
 
 /** Used until the nav has been measured, and if it is ever missing. */
@@ -29,9 +29,9 @@ export function Projects() {
   const lang = i18n.language.startsWith('pt') ? 'pt' : 'en'
 
   // The frieze's extent, and the wrapper height that follows from it. Static:
-  // eight rows in BOTH orientations (amended decision 15), so no aspect key
+  // six rows in BOTH orientations (amended decision 15), so no aspect key
   // here or in pipeline 2, and a resize never changes the wrapper's height.
-  const frieze = useMemo(() => provisionalFriezeExtent(archive, FRIEZE_ROWS), [])
+  const frieze = useMemo(() => friezeExtent(friezeLayout(archive, FRIEZE_ROWS), FRIEZE_ROWS), [])
   const svh = sceneWrapperSvh(frieze.columns)
 
   // Nothing here tracks the scroll. The scene's frame loop reads the scroll

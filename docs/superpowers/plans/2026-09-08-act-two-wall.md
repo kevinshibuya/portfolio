@@ -507,12 +507,12 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** Layout imports no sceneMotion, React, DOM or three. Keep existing act-one pose assertions intact.
 
-- [ ] Run `apply_patch` to add hand-computed packing tests; expected: all acceptance properties represented.
-- [ ] Run the acceptance command; expected: missing layout exports fail.
-- [ ] Run `apply_patch` to implement layout/constants/extent; expected: pure explicit-return utilities.
-- [ ] Run `apply_patch` to replace the provisional caller/test and add the fixed-row aspect sweep; expected: dependency flows from motion to layout only.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: new cases and act-one fixtures pass.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: pack archive into year-block frieze'`; expected: pure layout commit.
+- [x] Run `apply_patch` to add hand-computed packing tests; expected: all acceptance properties represented.
+- [x] Run the acceptance command; expected: missing layout exports fail.
+- [x] Run `apply_patch` to implement layout/constants/extent; expected: pure explicit-return utilities.
+- [x] Run `apply_patch` to replace the provisional caller/test and add the fixed-row aspect sweep; expected: dependency flows from motion to layout only.
+- [x] Run the acceptance command and `npx tsc -b`; expected: new cases and act-one fixtures pass.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: pack archive into year-block frieze'`; expected: pure layout commit.
 
 ### Task 4: Define cell text and bounded coverage rasterisation
 
