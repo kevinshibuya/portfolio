@@ -114,6 +114,22 @@ describe('createFriezeLookup', () => {
 describe('createFriezeMaterial', () => {
   const material = createFriezeMaterial()
 
+  it('carries its own copy of three fog uniforms, or every frame throws', () => {
+    // `fog: true` plus the fog chunks makes three call `refreshFogUniforms` on
+    // this material on every draw, and a ShaderMaterial does not inherit them:
+    // without these the renderer threw inside its own render loop, on a
+    // surface no DOM assertion can see.
+    for (const name of Object.keys(THREE.UniformsLib.fog)) {
+      expect(material.uniforms, name).toHaveProperty(name)
+    }
+    // Cloned per material: three writes the scene's fog into these, so sharing
+    // them would let one panel's fog state overwrite another's.
+    const other = createFriezeMaterial()
+    expect(material.uniforms.fogColor).not.toBe(other.uniforms.fogColor)
+    expect(material.uniforms.fogColor).not.toBe(THREE.UniformsLib.fog.fogColor)
+    other.dispose()
+  })
+
   it('is an opaque, fogged, depth-tested GLSL3 shader with the sanctioned colour conversion', () => {
     expect(material).toBeInstanceOf(THREE.ShaderMaterial)
     expect(material.glslVersion).toBe(THREE.GLSL3)

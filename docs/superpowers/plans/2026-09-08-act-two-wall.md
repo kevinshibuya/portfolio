@@ -657,12 +657,12 @@ fallback.
 
 **Boundaries:** No second camera controller, per-frame React setState, added canvas, extra offscreen loop or compile work during entrance.
 
-- [ ] Run `apply_patch` for delayed preparation, stale generation and failed preparation assertions; expected: readiness cannot race rasterisation.
-- [ ] Run the acceptance command; expected: new readiness assertions fail before wiring.
-- [ ] Run `apply_patch` for host/refs warm-up wiring; expected: successful block/lookup textures uploaded before data-warm; failed preparation settles without blocking it.
-- [ ] Run `apply_patch` for Motion placement, active gate, composer focus and atomic resize wiring; expected: one committed extent drives renderer and camera.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: lifecycle and act-one checks pass.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: warm and integrate the act-two frieze'`; expected: scene integration commit.
+- [x] Run `apply_patch` for delayed preparation, stale generation and failed preparation assertions; expected: readiness cannot race rasterisation.
+- [x] Run the acceptance command; expected: new readiness assertions fail before wiring.
+- [x] Run `apply_patch` for host/refs warm-up wiring; expected: successful block/lookup textures uploaded before data-warm; failed preparation settles without blocking it.
+- [x] Run `apply_patch` for Motion placement, active gate, composer focus and atomic resize wiring; expected: one committed extent drives renderer and camera.
+- [x] Run the acceptance command and `npx tsc -b`; expected: lifecycle and act-one checks pass.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: warm and integrate the act-two frieze'`; expected: scene integration commit.
 
 ### Task 8: Route cell actions through Projects
 

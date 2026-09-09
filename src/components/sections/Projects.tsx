@@ -31,7 +31,11 @@ export function Projects() {
   // The frieze's extent, and the wrapper height that follows from it. Static:
   // six rows in BOTH orientations (amended decision 15), so no aspect key
   // here or in pipeline 2, and a resize never changes the wrapper's height.
-  const frieze = useMemo(() => friezeExtent(friezeLayout(archive, FRIEZE_ROWS), FRIEZE_ROWS), [])
+  // ONE packing: the wrapper's height, the camera's framing, the wall's raster
+  // and its hit test all read the same object, so they cannot disagree about
+  // how wide the archive is.
+  const layout = useMemo(() => friezeLayout(archive, FRIEZE_ROWS), [])
+  const frieze = useMemo(() => friezeExtent(layout, FRIEZE_ROWS), [layout])
   const svh = sceneWrapperSvh(frieze.columns)
 
   // Nothing here tracks the scroll. The scene's frame loop reads the scroll
@@ -113,6 +117,11 @@ export function Projects() {
   // Stable identity: the scene subtree must only ever re-render on `cards`.
   const handleCardClick = useCallback((index: number) => cardClick.current(index), [])
 
+  // The wall renders, hovers and reports; where a cell LEADS is Task 8's, and
+  // these stay inert until it lands rather than half-routing a press now.
+  const handleCellClick = useCallback(() => {}, [])
+  const handleCellHover = useCallback(() => {}, [])
+
   return (
     <section id="projects" className="section projects-scene-section">
       {/* Keyboard/SR path: visually-hidden-until-focused project index, no
@@ -177,6 +186,11 @@ export function Projects() {
                   navPx={navPx}
                   overture={t('sections.projects.overture')}
                   frieze={frieze}
+                  friezeLayout={layout}
+                  archive={archive}
+                  lang={lang}
+                  onCellClick={handleCellClick}
+                  onCellHover={handleCellHover}
                   allWork={t('sections.archive.title')}
                 />
               </div>

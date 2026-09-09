@@ -181,6 +181,11 @@ export function createFriezeMaterial(): THREE.ShaderMaterial {
     depthWrite: true,
     depthTest: true,
     uniforms: {
+      // `fog: true` plus the fog chunks in the shader means three calls
+      // `refreshFogUniforms` on this material every frame, and a ShaderMaterial
+      // does not get those uniforms for free. Cloned, not shared: three writes
+      // the scene's fog INTO them, and every material needs its own.
+      ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog),
       uMask: { value: null },
       uMaskPresent: { value: 0 },
       uLookup: { value: null },

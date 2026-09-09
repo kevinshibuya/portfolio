@@ -30,6 +30,7 @@ import {
   FRIEZE_RASTER_SLICE,
   FriezeRasterCancelled,
   friezeDensity,
+  friezeGeneration,
   maskSize,
   panelsFor,
   rasteriseFrieze,
@@ -834,6 +835,133 @@ describe('rasteriseFrieze', () => {
     disposeFriezeTextures(masks)
     expect(disposed).toHaveBeenCalledTimes(masks.length)
     disposed.mockRestore()
+  })
+})
+
+describe('friezeGeneration', () => {
+  const generation = (scheduler: ManualScheduler) => {
+    const { items, layout } = twoBlockFixture()
+    return friezeGeneration({ layout, rows: FRIEZE_ROWS, items, lang: 'en', density: DENSITY }, scheduler)
+  }
+
+  it('draws nothing before it is permitted, and reports ready only once the masks exist', async () => {
+    const scheduler = manualScheduler()
+    const gen = generation(scheduler)
+    scheduler.resolveFont()
+    await scheduler.drain()
+    // The warm-up has not asked yet: nothing drawn, nothing to upload.
+    expect(gen.status()).toBe('pending')
+    expect(gen.masks()).toBeNull()
+    expect(fillTexts()).toHaveLength(0)
+
+    gen.permit()
+    await scheduler.drain()
+    await gen.settled
+    expect(gen.status()).toBe('ready')
+    expect(gen.masks()).toHaveLength(2)
+    gen.dispose()
+  })
+
+  it('settles when it is disposed before anyone permits it, so the warm-up never waits for ever', async () => {
+    const scheduler = manualScheduler()
+    const gen = generation(scheduler)
+    scheduler.resolveFont()
+    gen.dispose()
+    // Resolves rather than rejects: the warm-up awaits this and must not throw.
+    await expect(gen.settled).resolves.toBeUndefined()
+    expect(gen.masks()).toBeNull()
+    expect(fillTexts()).toHaveLength(0)
+  })
+
+  it('disposes what a superseded generation drew, and hands back none of it', async () => {
+    const scheduler = manualScheduler()
+    const gen = generation(scheduler)
+    scheduler.resolveFont()
+    gen.permit()
+    for (let i = 0; i < 40 && fillTexts().length === 0; i++) {
+      await Promise.resolve()
+      await Promise.resolve()
+      scheduler.step()
+    }
+    expect(fillTexts().length).toBeGreaterThan(0)
+    const disposed = vi.spyOn(THREE.Texture.prototype, 'dispose')
+    gen.dispose()
+    await gen.settled
+    await scheduler.drain()
+    // A resize supersedes this one mid-draw; the renderer must never be handed
+    // a texture the next generation is about to replace.
+    expect(gen.masks()).toBeNull()
+    expect(scheduler.pending()).toBe(0)
+    disposed.mockRestore()
+  })
+
+  it('disposes a finished generation exactly once when it is superseded later', async () => {
+    const scheduler = manualScheduler()
+    const gen = generation(scheduler)
+    scheduler.resolveFont()
+    gen.permit()
+    await scheduler.drain()
+    await gen.settled
+    const masks = gen.masks()!
+    expect(masks).toHaveLength(2)
+    const disposed = vi.spyOn(THREE.Texture.prototype, 'dispose')
+    gen.dispose()
+    gen.dispose()
+    expect(disposed).toHaveBeenCalledTimes(masks.length)
+    expect(gen.masks()).toBeNull()
+    disposed.mockRestore()
+  })
+
+  it('disposes masks that land after it was superseded, so none are left orphaned', async () => {
+    const scheduler = manualScheduler()
+    const gen = generation(scheduler)
+    scheduler.resolveFont()
+    gen.permit()
+    await Promise.resolve()
+    await Promise.resolve()
+    // Drive every slice with no microtask between them, so the job resolves
+    // while its own continuation is still queued.
+    while (scheduler.step());
+    expect(fillTexts().length).toBeGreaterThan(0)
+
+    const disposed = vi.spyOn(THREE.Texture.prototype, 'dispose')
+    gen.dispose()
+    await gen.settled
+    // The masks arrive into a generation that is already superseded. Nothing
+    // else owns them, so this one has to dispose them on the way past.
+    expect(gen.masks()).toBeNull()
+    expect(disposed).toHaveBeenCalledTimes(2)
+    disposed.mockRestore()
+  })
+
+  it('releases a raster parked on its permit when disposed, rather than leaving it awaiting', async () => {
+    const scheduler = manualScheduler()
+    const gen = generation(scheduler)
+    const fontReady = vi.spyOn(scheduler, 'fontReady')
+    scheduler.resolveFont()
+    // Nothing past `await permit` has run yet.
+    expect(fontReady).not.toHaveBeenCalled()
+
+    gen.dispose()
+    await gen.settled
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(fontReady).toHaveBeenCalled()
+  })
+
+  it('settles a failed raster as failed instead of rejecting, and keeps the wall cream', async () => {
+    const scheduler = manualScheduler()
+    const gen = generation(scheduler)
+    scheduler.resolveFont()
+    measureThrows = true
+    gen.permit()
+    await scheduler.drain()
+    // A raster failure must never reach the WebGL-unavailable path: that kills
+    // act one for the session over a wall the reader has not scrolled to.
+    await expect(gen.settled).resolves.toBeUndefined()
+    expect(gen.status()).toBe('failed')
+    expect(gen.masks()).toBeNull()
+    gen.dispose()
   })
 })
 

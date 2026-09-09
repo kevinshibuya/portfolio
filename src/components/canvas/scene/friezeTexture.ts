@@ -496,6 +496,82 @@ export function rasteriseFrieze(request: FriezeRasterRequest): FriezeRasterJob {
   }
 }
 
+/**
+ * One generation of the wall's masks, from permission to disposal.
+ *
+ * Two things pull on a generation from opposite ends. The warm-up must not
+ * flag the canvas warm before the masks are uploaded, and a resize or a
+ * language switch must be able to supersede a generation that is still drawing
+ * without handing the renderer a texture the next one is about to replace.
+ *
+ * So `settled` NEVER rejects. A failed raster settles as `failed` and the wall
+ * stays cream: a rasterisation failure must not reach the WebGL-unavailable
+ * path, which would end act one for the whole session over a surface the
+ * reader has not even scrolled to.
+ */
+export interface FriezeGeneration {
+  /** Resolves when this generation has finished, failed or been disposed. */
+  settled: Promise<void>
+  /** The drawn masks, or null while pending, after a failure, or once disposed. */
+  masks(): readonly FriezeTexture[] | null
+  status(): 'pending' | 'ready' | 'failed'
+  /** Lets the raster start. Nothing is drawn before it is called. */
+  permit(): void
+  /** Cancels the raster and disposes everything this generation owns. */
+  dispose(): void
+}
+
+export function friezeGeneration(
+  recipe: FriezeRasterRecipe,
+  scheduler?: RasterScheduler,
+): FriezeGeneration {
+  let allow: () => void = () => {}
+  const permission = new Promise<void>((resolve) => {
+    allow = resolve
+  })
+  let drawn: FriezeTexture[] | null = null
+  let state: 'pending' | 'ready' | 'failed' = 'pending'
+  let disposed = false
+
+  const job = rasteriseFrieze({ ...recipe, permit: permission, scheduler })
+  const settled = job.promise.then(
+    (masks) => {
+      // Superseded between the last slice and here: this generation owns these
+      // textures and nothing else will ever dispose them.
+      if (disposed) {
+        disposeFriezeTextures(masks)
+        return
+      }
+      drawn = masks
+      state = 'ready'
+    },
+    () => {
+      // Cancellation and a real draw failure arrive the same way; the job has
+      // already disposed whatever it made in both cases.
+      if (!disposed) state = 'failed'
+    },
+  )
+
+  return {
+    settled,
+    masks: () => drawn,
+    status: () => state,
+    permit: () => allow(),
+    dispose(): void {
+      disposed = true
+      job.cancel()
+      // Nulling `drawn` is what makes a second call a no-op, so disposal is
+      // idempotent without a flag to guard it.
+      if (drawn) disposeFriezeTextures(drawn)
+      drawn = null
+      // `cancel` already settles the job, but the raster is still parked on
+      // `await permit`; releasing it lets that closure reach its own
+      // cancellation check and go, rather than being held for the page's life.
+      allow()
+    },
+  }
+}
+
 export function disposeFriezeTextures(masks: readonly FriezeTexture[]): void {
   for (const mask of masks) mask.texture.dispose()
 }
