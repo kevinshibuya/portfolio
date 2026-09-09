@@ -3,7 +3,7 @@
 **Goal:** Render every archive piece as an interactive frieze inside the Selected Work scene, backed by one tested content and layout contract.
 **Architecture:** Pure archive derivation and packing feed both the scene and pipeline 3's stream. Four year-block coverage textures supply typography through one shader mesh per block; nine embedded Projects reuse the scene's card object. Pipeline 1 owns the camera and wall placement; Projects owns navigation.
 **Spec:** `docs/superpowers/specs/2026-09-08-archive-act-two-design.md`
-**Execution model:** opus
+**Execution model:** fable, because the plan changes architecture across many files, where each task depends on judgement made in the previous one (`writing-plans` reason b) — packing feeds rasterisation feeds the shader meshes feeds interaction feeds routing, and the two amendments above add panel splitting, a density ceiling and a channel-format change on top of that chain. Kevin's call, 2026-09-09: the remaining tasks move off Astra to Fable and run unattended overnight. It was `opus` while codex drove the implementation.
 
 ## Controller amendment · six rows, 2026-09-09 (READ FIRST)
 
