@@ -431,12 +431,12 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** No CSV/parser, route or Project content/rank changes beyond origin. Access owns the future stream and WorkRow refactor.
 
-- [ ] Run `apply_patch` to replace archive assertions and tie fixtures; expected: exact counts and serial contract represented.
-- [ ] Run the acceptance command; expected: new archive assertions fail, unchanged JSON-LD passes.
-- [ ] Run `apply_patch` for types/data; expected: exact spec shape and hotmart-bunde origin, no obsolete archive exports.
-- [ ] Run `apply_patch` for Archive/dropdown deletion, Home cleanup, CSS and locales; expected: no dangling imports, retired toolbar or removed-field references.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: data tests and typecheck pass.
-- [ ] Run `git diff --check`, stage only this task's Files and plan ticks, then `git commit -m 'feat: derive archive origins serials and year blocks'`; expected: bounded data migration commit.
+- [x] Run `apply_patch` to replace archive assertions and tie fixtures; expected: exact counts and serial contract represented.
+- [x] Run the acceptance command; expected: new archive assertions fail, unchanged JSON-LD passes.
+- [x] Run `apply_patch` for types/data; expected: exact spec shape and hotmart-bunde origin, no obsolete archive exports.
+- [x] Run `apply_patch` for Archive/dropdown deletion, Home cleanup, CSS and locales; expected: no dangling imports, retired toolbar or removed-field references.
+- [x] Run the acceptance command and `npx tsc -b`; expected: data tests and typecheck pass.
+- [x] Run `git diff --check`, stage only this task's Files and plan ticks, then `git commit -m 'feat: derive archive origins serials and year blocks'`; expected: bounded data migration commit.
 
 ### Task 3: Implement pure packing and extent
 

@@ -88,7 +88,7 @@ export function provisionalFriezeExtent(
   const cellsByYear = new Map<number, number>()
   for (const item of items) {
     const year = new Date(item.sortDate).getUTCFullYear()
-    const cells = item.kind === 'featured' ? CASE_STUDY_CELLS : 1
+    const cells = item.caseStudy !== undefined ? CASE_STUDY_CELLS : 1
     cellsByYear.set(year, (cellsByYear.get(year) ?? 0) + cells)
   }
   const years = [...cellsByYear.keys()].sort((a, b) => b - a)
