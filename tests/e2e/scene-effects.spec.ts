@@ -111,11 +111,41 @@ test('the scene renders through the composer without shifting the cream', async 
   // exercised end to end.
   await scrollToActTwo(page, 0.5)
   await page.waitForTimeout(1500)
-  await expect(page.locator('#projects canvas[data-canvas="selected-work-scene"]')).toHaveAttribute(
-    'data-act',
-    '2',
-  )
-  expect(errors).toEqual([])
+  const sceneCanvas = page.locator('#projects canvas[data-canvas="selected-work-scene"]')
+  await expect(sceneCanvas).toHaveAttribute('data-act', '2')
+  await expect(sceneCanvas).toHaveAttribute('data-frieze', 'ready')
+  await page.waitForTimeout(900)
+
+  // The wall reaches the reader THROUGH the composer, and depth of field is a
+  // blur: it is exactly the effect that can leave a wall of small type legible
+  // in a screenshot-free suite while turning it to mush on screen. Sample the
+  // frieze deep enough to miss the year title, and require both real ink and
+  // real cream — a softened wall loses the ink floor first.
+  const actTwoBox = (await sceneCanvas.boundingBox())!
+  const band = await page.screenshot({
+    clip: {
+      x: actTwoBox.x,
+      y: actTwoBox.y + Math.round(actTwoBox.height * 0.55),
+      width: actTwoBox.width,
+      height: 40,
+    },
+  })
+  const wall = await sharp(band).raw().toBuffer({ resolveWithObject: true })
+  let wallMin = 255
+  let wallMax = 0
+  let wallSum = 0
+  let wallCount = 0
+  for (let i = 0; i < wall.data.length; i += wall.info.channels) {
+    const lum =
+      0.2126 * wall.data[i] + 0.7152 * wall.data[i + 1] + 0.0722 * wall.data[i + 2]
+    if (lum < wallMin) wallMin = lum
+    if (lum > wallMax) wallMax = lum
+    wallSum += lum
+    wallCount++
+  }
+  expect(wallMin, 'frieze ink stays readable through the composer').toBeLessThan(40)
+  expect(wallMax, 'cream survives the composer in act two').toBeGreaterThan(200)
+  expect(wallSum / wallCount, 'the wall stays a light sheet').toBeGreaterThan(170)
 
   expect(errors).toEqual([])
 })

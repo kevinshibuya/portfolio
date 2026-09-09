@@ -705,13 +705,13 @@ fallback.
 
 **Boundaries:** No fake click success, deleted regression assertions, relaxed console checks, changed snapshots to conceal unrelated regressions or claimed performance measurements from SwiftShader.
 
-- [ ] Run `apply_patch` for yaw-aware coordinate helpers and real click tests; expected: tests select archive IDs via layout and click canvas coordinates.
-- [ ] Run `apply_patch` for the four old-Archive rewrites plus root/console, glyph, hover, language and resize smokes; expected: browser assertions include rendered pixels, not only canvas existence.
-- [ ] Run `apply_patch` for actual-extent scrub and composer coverage; expected: act-one assertions and Motion's act-two attributes retained.
-- [ ] Run `npx tsc -b`, `npm run lint`, then `npx vitest run`; expected: all exit 0, including JSON-LD and bundle dependencies.
-- [ ] Run the port-kill command, then the targeted Playwright command; expected: desktop/mobile wall click and all scene regressions pass, smoke reports zero errors.
-- [ ] Run the port-kill command, then `npx playwright test --workers=1`; expected: full-suite result recorded. Rewrite all four old-Archive specs in this pipeline; the entire suite must be green on the integration branch before Wall review. Access adds stream-specific assertions later.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'test: verify frieze clicks and rendered scene'`; expected: tests committed with truthful verification results in this plan.
+- [x] Run `apply_patch` for yaw-aware coordinate helpers and real click tests; expected: tests select archive IDs via layout and click canvas coordinates.
+- [x] Run `apply_patch` for the four old-Archive rewrites plus root/console, glyph, hover, language and resize smokes; expected: browser assertions include rendered pixels, not only canvas existence.
+- [x] Run `apply_patch` for actual-extent scrub and composer coverage; expected: act-one assertions and Motion's act-two attributes retained.
+- [x] Run `npx tsc -b`, `npm run lint`, then `npx vitest run`; expected: all exit 0, including JSON-LD and bundle dependencies.
+- [x] Run the port-kill command, then the targeted Playwright command; expected: desktop/mobile wall click and all scene regressions pass, smoke reports zero errors.
+- [x] Run the port-kill command, then `npx playwright test --workers=1`; expected: full-suite result recorded. Rewrite all four old-Archive specs in this pipeline; the entire suite must be green on the integration branch before Wall review. Access adds stream-specific assertions later.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'test: verify frieze clicks and rendered scene'`; expected: tests committed with truthful verification results in this plan.
 
 ### Task 10: Document the frieze and close the review handoff
 
