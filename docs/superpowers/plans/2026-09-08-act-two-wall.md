@@ -261,6 +261,133 @@ Raster density is the maximum projected pixels/world unit required by Motion’s
 
 Four RGBA8 masks total about 26.76 MiB GPU with no mipmaps in either orientation at that floor. Release canvas backing stores immediately after upload (retain data/recipe for explicit context-loss regeneration); steady CPU canvas storage is zero. During redraw, old and new masks require at most 53.52 MiB GPU; conservatively budget two largest-block CPU stores for channel assembly/upload, about 32.93 MiB, giving an 86.45 MiB mask-only peak. The four RGBA8 lookup textures total 26×8×4 = 832 bytes per generation, no mipmaps. DPR 2/3 both cap at renderer DPR 1.5; larger projected densities require recalculation. Exclude covers, captions, render targets and driver overhead; measure whole-scene deltas in Access. Test upload-before-canvas-release and dispose obsolete textures on swap/unmount.
 
+## Task 1 record · reconciled Motion seam
+
+Both acceptance commands exited 0: `test -f docs/superpowers/plans/2026-09-08-act-two-motion.md` and `rg -n 'actTwoPose|actTwoProgress|scrollTargetFor|FriezeExtent' src/utils/sceneMotion.ts docs/superpowers/plans/2026-09-08-act-two-motion.md`. The dependency is merged; Task 1's “initially fails” describes the old fork. The contracts below were checked against the merged source, including the host, rig, Environment and viewport fixtures. Numbers are source-derived calculations, not browser measurements.
+
+**Placement and camera.** These are the real exports from `src/utils/sceneMotion.ts`, with their return interfaces (field comments omitted):
+
+```ts
+export function friezeFrame(frieze: FriezeExtent, g: SceneGeometry): FriezeFrame
+export interface FriezeFrame {
+  left: number
+  right: number
+  bottom: number
+  top: number
+  z: number
+  width: number
+  height: number
+  centreX: number
+  centreY: number
+}
+
+export function actTwoProgress(playhead: number): number
+export function actTwoPose(u: number, frieze: FriezeExtent, g: SceneGeometry): ActTwoPose
+export interface ActTwoPose {
+  x: number
+  y: number
+  z: number
+  yaw: number
+  pitch: number
+}
+```
+
+`friezeFrame` **is the wall placement accessor**; there is no separate wall-transform export. It derives `width = frieze.columns * FRIEZE_CELL_W`, `height = frieze.rows * FRIEZE_CELL_H`, `left = -width / 2`, `right = width / 2`, `bottom = HOVER`, `top = HOVER + height`, `centreX = 0`, `centreY = HOVER + height / 2` and `z = -(ACT_TWO_START + 1) * g.spacing`. For Wall's local top-left coordinates, place the group at `[frame.left, frame.top, frame.z]`, with unit scale and no rotation; cell positions remain local. Wall must consume this frame and never invent a second placement. `actTwoPose(actTwoProgress(playhead), frieze, g)` supplies the camera, not the wall. The existing SceneRig writes `camera.position.set(pose.x, pose.y, pose.z)` and `camera.rotation.set(pose.pitch, pose.yaw, 0)` with Euler order `'YXZ'`; yaw and pitch are radians. Reduced motion already uses one `actTwoStill` descriptor and `actTwoStillPose` through the same rig.
+
+**Extent and resize.** `src/utils/friezeLayout.ts` owns the following base exports. Wall may extend them with block counts and world dimensions, but its packed extent must remain structurally assignable to this shape:
+
+```ts
+export interface FriezeBlockExtent {
+  year: number
+  startCol: number
+  columns: number
+}
+export interface FriezeExtent {
+  columns: number
+  rows: number
+  blocks: readonly FriezeBlockExtent[]
+}
+```
+
+Blocks are newest first and contiguous: the next `startCol` equals this block's `startCol + columns`. The import direction is one-way: `sceneMotion.ts` imports `friezeLayout.ts`, never the reverse. Layout's private `CARD_W = 1` and `CARD_H = 448 / 620` mirror Motion's constants so the half-card exports need no reverse import.
+
+Currently Projects memoises `provisionalFriezeExtent(archive, FRIEZE_ROWS)`, computes `sceneWrapperSvh(frieze.columns)`, and passes that same extent through SelectedWorkScene to SceneRig. The rig keys geometry, cached `friezeFrame` and `sceneFar` by viewport width/height plus extent columns/rows. Wall replaces the provisional derivation with its shared layout/extent; renderer, wrapper, camera and item targets must consume the same committed extent. Six rows do not change with orientation. A debounced resize redraw changes raster density; any generation commit must keep its layout/extent and wrapper/camera inputs together. A language redraw leaves extent unchanged. This atomic raster-generation wiring belongs to Wall Task 7; it is not already supplied by Motion.
+
+**Row reachability.** The merged constant is `FRIEZE_ROWS = 6`. The actual bound is:
+
+```ts
+export function maxRowsInFrame(g: SceneGeometry): number {
+  return Math.floor((FRIEZE_CELL_W / FRIEZE_CELL_H) * (g.heightPx / FRIEZE_CELL_MIN_PX))
+}
+```
+
+Wall must assert `FRIEZE_ROWS <= maxRowsInFrame(g)` across the **whole e2e viewport matrix**, never one or two fixtures. `playwright.config.ts` names `desktop-chromium` (`Desktop Chrome`, installed viewport 1280×720) and `mobile-chromium` (`Pixel 5`, installed viewport 393×727). `tests/e2e/scene-scrub.spec.ts` additionally sweeps 1440×400, 1440×260, 1440×220 and 1440×180, then the near-square matrix 960×950, 960×970, 820×821 and 820×819, on both projects. The preset bounds are 6/6; the near-square bounds are 9/9/7/7. Reference sizes 1440×900, 393×851 and 1920×1080 give 8/8/10, but do not cover the short-height sweeps.
+
+**Not blocked · verified.** The reachability requirement is already met, and pipeline 1 already guards it. `tests/unit/sceneMotion.test.ts` asserts `maxRowsInFrame(g) >= FRIEZE_ROWS` across its `VIEWPORTS` matrix and again at 1280×720, 1024×640, 1440×790 and 820×821; all 153 tests pass on this base. The 1440×400, 1440×260, 1440×220 and 1440×180 sweeps in `tests/e2e/scene-scrub.spec.ts` are a different guard: they assert `problems === []`, that nothing throws inside the frame loop when a window is dragged short, and they have never asserted row fit. Reading the amendment's “whole viewport matrix” onto those degenerate heights conflates the two. Wall asserts the bound over the row-fit matrix, preserves the short-height sweeps as throw guards, and adds neither a row reduction nor vertical travel.
+
+**Reading scale and the binding distance.** Motion exports `CARD_MIN_PX = Math.ceil((CARD_MAX_PX * CAPTION_MIN_NAME_PX) / CAPTION_NAME_PX)`: `ceil(620 * 12 / 26) = 287`. Then `FRIEZE_CELL_MIN_PX = Math.ceil(CARD_MIN_PX / 2) = 144`, while layout exports `FRIEZE_CELL_W = CARD_W / 2 = 0.5` and `FRIEZE_CELL_H = CARD_H / 2 = 448 / 620 / 2`. Thus the cell floor gives `144 / 0.5 = 288` CSS px/world, not 240. At renderer DPR 1.5 it requests `288 * 1.5 = 432` texels/world, applied once.
+
+The real `export function dollyDistance(frieze: FriezeExtent, g: SceneGeometry): number` returns `Math.min(dHeight, dLegible)`, with `dHeight = height / (2 * HALF_FOV_TAN * DOLLY_HEIGHT_FILL)` and `dLegible = (FRIEZE_CELL_W * g.widthPx) / (2 * HALF_FOV_TAN * g.aspect * FRIEZE_CELL_MIN_PX)`. `DOLLY_HEIGHT_FILL = 0.82` is the fill floor. Since `g.aspect = g.widthPx / g.heightPx`, equality occurs at `heightPx = rows * FRIEZE_CELL_H * 288 / 0.82`. This is **761.3533 CSS px at six rows**, against 1015.1377 at eight. Below that height `dLegible` binds; above it `dHeight` binds, with equality at the crossover. The two Playwright presets remain at the 288 floor, while 1440×900, 393×851, every near-square fixture above and 1920×1080 are height-bound at six rows. The source comment saying legibility binds on every fixture is stale; the function body establishes the contract.
+
+**Fog, DoF and warm-up.** Motion owns these existing pure exports:
+
+```ts
+export function actTwoFogRange(
+  u: number,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+  t: number,
+): { near: number; far: number }
+export function actTwoFocusDistance(
+  u: number,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+): number
+export function actTwoTitleDistance(dWall: number, g: SceneGeometry): number
+```
+
+SceneRig already applies the fog range, writes `sceneRefs.focus.distance`, extends the far plane with `sceneFar`, and uses `actTwoTitleDistance(pose.z - frame.z, g)`. Environment already consumes the focus through `effect.cocMaterial.worldFocusDistance` before the composer and adopts changed camera settings for its depth reconstruction. Reduced motion uses the descriptor's `u` for these channels and forces fog time to 0. Wall keeps its surface inside this fog/composer; it owns neither a replacement focus controller nor title-distance maths. Task 7 needs no transfer of the existing DoF wiring from Motion.
+
+The concrete raster insertion point is the private `SceneWarmup` in `src/components/canvas/SelectedWorkScene.tsx`: `entranceDone` → `HERO_SETTLE_MS = 1500` → `onIdle(..., 2000)` → `warm()`. Today `warm()` awaits `gl.compileAsync(scene, camera)`, uploads material maps and `sceneRefs.titleTextures` via `gl.initTexture`, then calls the single offscreen `advance(performance.now())`; its `finally` sets `data-warm='true'`. SceneRefs has no frieze preparation callback or readiness promise yet. Wall Task 7 registers and awaits preparation inside this existing warm window, before compiling/uploading the frieze materials and every mask/lookup uniform texture, then uses the same single warm-up frame. Successful readiness follows upload; raster rejection settles to the planned cream wall with disabled hits and still permits warm-up to finish. It must not invoke the permanent WebGL-unavailable callback. These are Wall hooks to add, not invented Motion exports.
+
+**Horizontal targets and column budget.** The real signatures are:
+
+```ts
+export function playheadForColumn(col: number, frieze: FriezeExtent): number
+export function scrollTargetFor(
+  playhead: number,
+  wrapperTop: number,
+  wrapperHeight: number,
+  viewportHeight: number,
+  columns = 0,
+): number
+```
+
+Task 8's `friezeTargets.ts` resolves a cell, calls `playheadForColumn(cell.col + cell.span / 2, extent)`, and returns null for an unknown ID. Its caller feeds the resulting number and `extent.columns` to `scrollTargetFor`; Access consumes the same item seam. Motion already derives the approach beat and column fraction, including the empty-extent guard, so Wall must not duplicate beat maths or add a string overload.
+
+Executing the merged provisional helper against the actual 171-piece archive returned six rows and blocks `2026 @0 ×2`, `2025 @2 ×9`, `2024 @11 ×22`, `2023 @33 ×2`: 35 columns. The real `actTwoSvh(columns: number): number` returns `100 + 50 + 25 * columns` for positive columns, and `sceneWrapperSvh(columns: number): number` returns `ACT_ONE_SVH + actTwoSvh(columns)`. Calls verified `actTwoSvh(35) = 1025`, `sceneWrapperSvh(35) = 1575` and `sceneWrapperSvh(22) = 550 + 100 + 50 + 25 * 22 = 1250`. The synthetic `FIXTURE_FRIEZE` in `tests/unit/sceneMotion.test.ts` remains 22 columns, eight rows and blocks 1/6/13/2; it is not the shipped extent and stays intact. Six-row lookup textures require `35 * 6 * 4 = 840 B` per generation.
+
+**Mask arithmetic, recomputed.** For each block use `neededWidth = columns * FRIEZE_CELL_W * density`, `neededHeight = rows * FRIEZE_CELL_H * density`, then `s = min(1, 4096 / neededWidth, 4096 / neededHeight)` and `w = round(neededWidth * s)`, `h = round(neededHeight * s)`. RGBA8 without mipmaps costs `w * h * 4` bytes; `1 MiB = 1048576 B`. Sum the four blocks for steady GPU, double for redraw, add twice the **largest resulting block** for CPU channel assembly/upload to obtain peak. The arithmetic was sanity-checked first at eight rows, widths 2/7/16/1 and density 432: dimensions 432×1249, 1512×1249, 3456×1249 and 216×1249 reproduce steady **26.75775 MiB**, redraw **53.51550 MiB**, CPU allowance **32.93262 MiB** and peak **86.44812 MiB**, rounding to the plan's 26.76/53.52/86.45.
+
+At six rows the floor's uncapped height is `6 * (448 / 620 / 2) * 432 = 936.4645` texels. At 1080 CSS px tall, the height-bound dolly instead projects `0.82 * 1080 / (6 * FRIEZE_CELL_H) = 408.535714` CSS px/world, requesting **612.803571 texels/world** at DPR 1.5. Applying the same sizing and rounding afresh gives:
+
+| Block / allocation | Six-row floor · dimensions | MiB at 432 texels/world | 1080 px height · dimensions | MiB at 612.803571 texels/world |
+| --- | --- | ---: | --- | ---: |
+| 2026 · 2 columns | 432×936 | 1.54248 | 613×1328 | 3.10541 |
+| 2025 · 9 columns | 1944×936 | 6.94116 | 2758×1328 | 13.97180 |
+| 2024 · 22 columns | 4096×807 | 12.60938 | 4096×807 | 12.60938 |
+| 2023 · 2 columns | 432×936 | 1.54248 | 613×1328 | 3.10541 |
+| Steady GPU | Four masks | **22.63550** | Four masks | **32.79199** |
+| Redraw GPU | 2× steady | **45.27100** | 2× steady | **65.58398** |
+| CPU allowance | 2× 2024 | **25.21875** | 2× 2025 | **27.94360** |
+| Mask-only peak | Redraw + CPU | **70.48975** | Redraw + CPU | **93.52759** |
+
+The floor peak is 73913856 B, **70.49 MiB**, within the plan's 86.45 MiB budget. The 2024 block already hits the 4096 cap there: needed width `22 * 0.5 * 432 = 4752`, so `s = 4096 / 4752 = 0.861952862`. Its effective raster density is `432 * s = 372.363636` texels/world, equivalent to **248.242424 CSS px/world** at DPR 1.5, about 13.80% below the requested 288 floor. This reduces raster detail; the world typography still projects at Motion's reading scale. The plan already permits cap-driven detail loss, so font quality still needs the later browser evidence.
+
+The capped 2024 dimensions are **density-invariant while the width cap binds**: with world width 11 and height `6 * FRIEZE_CELL_H`, `s = 4096 / (11 * density)` cancels density in both dimensions, leaving `4096 × round(4096 * 6 * FRIEZE_CELL_H / 11) = 4096×807`. Width begins to cap at 372.363636 texels/world, below the floor's 432, so this holds at every density from the floor upwards. Higher density cannot recover detail in that block under the present cap. At 1080 px tall the cap scale is 0.607639468 and the dimensions remain unchanged, but the uncapped 2025 block becomes the largest allocation. The CPU allowance must therefore follow 2025, not keep using 2024.
+
+**Not blocked · verified, and six rows improves it.** The 86.45 MiB figure is the peak at the FLOOR density, and the plan's own accounting says larger projected densities require recalculation rather than forbidding them. Recomputed at 1080 CSS px of viewport height, eight rows would have needed **97.80 MiB** against six rows' **93.53 MiB**, so the overshoot is pre-existing and the six-row change reduces it; at the floor the peak falls from 86.45 to 70.49 MiB. The tall-viewport exposure is real and unbounded upward — 146.66 MiB at 1440 CSS px of height — but it is inherited, not introduced, and bounding it (a global density ceiling above the 4096 per-block cap) is Access's performance work, not a Wall contract change. Covers, captions, render targets, lookups and driver overhead remain outside this mask-only total. This documentation task changes no source, budget, fixture or placement contract.
+
 ## Implementation tasks
 
 Each Files boundary also permits updating this plan's own step ticks. Commands run from repository root. Edit steps name `apply_patch` as their command; expected output is the described diff plus `Done!`. Internal structure is the implementer's choice within the stated interfaces. For any newly discovered ambiguity beyond the recorded resolutions, stop that task and report `blocked: <specific ambiguity>` to the controller; do not silently alter the contract.
@@ -278,10 +405,10 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** No independent camera, invented placement export, shared-source edit or spec tick. Missing dependency is an execution prerequisite, not an invitation to stub motion.
 
-- [ ] Run the two acceptance commands; expected: Motion plan/source present and signatures located.
-- [ ] Run `apply_patch` to record the resolved seam in this plan; expected: exact placement import and return shape, shared resize extent and row reachability documented.
-- [ ] Run `git diff --check`; expected: no whitespace errors; review the recorded seam against both plans.
-- [ ] Run `git add docs/superpowers/plans/2026-09-08-act-two-wall.md` and `git commit -m 'docs: reconcile wall and motion contracts'`; expected: only the reviewed plan update committed.
+- [x] Run the two acceptance commands; expected: Motion plan/source present and signatures located.
+- [x] Run `apply_patch` to record the resolved seam in this plan; expected: exact placement import and return shape, shared resize extent and row reachability documented.
+- [x] Run `git diff --check`; expected: no whitespace errors; review the recorded seam against both plans.
+- [x] Run `git add docs/superpowers/plans/2026-09-08-act-two-wall.md` and `git commit -m 'docs: reconcile wall and motion contracts'`; expected: only the reviewed plan update committed.
 
 ### Task 2: Migrate archive data and delete the old Archive surface
 
