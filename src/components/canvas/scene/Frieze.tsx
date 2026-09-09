@@ -41,6 +41,11 @@ interface FriezeProps {
   masks: readonly FriezeTexture[] | null
   /** False outside act two: the wall still draws, but nothing responds. */
   active: boolean
+  /**
+   * Texels per world unit for the cards' captions — the wall's own density, so
+   * a card's caption and the cells around it are set at the same sharpness.
+   */
+  texelsPerWorld: number
   /** The active language; the cards' titles and origin words follow it. */
   lang: 'en' | 'pt'
   onCellClick: (itemId: string) => void
@@ -68,7 +73,6 @@ interface WallCard {
   count?: string
   /** The card's own materials; nothing in act two drives their opacity. */
   materials: THREE.MeshBasicMaterial[]
-  texelsPerWorld: number
 }
 
 /**
@@ -87,6 +91,7 @@ export function Frieze({
   frame,
   masks,
   active,
+  texelsPerWorld,
   lang,
   onCellClick,
   onCellHover,
@@ -126,8 +131,14 @@ export function Frieze({
 
   // The nine Project cards. A Project's mask cell is drawn blank, so this is
   // the only thing that renders inside a 2x2 footprint.
+  //
+  // Deliberately NOT gated on the masks. The cards carry nine cover textures,
+  // and mounting them only once a generation lands puts their first GPU upload
+  // on a live frame during scroll — measured at 855 ms against a 300 ms budget
+  // in `perf-budget.spec.ts`. Mounted from the start they are in the scene for
+  // the warm-up's `initTexture` pass and its one offscreen frame, which is
+  // exactly what that warm-up exists to pay for.
   const cards = useMemo<WallCard[]>(() => {
-    if (!masks) return []
     const bySlug = new Map(projects.map((p) => [p.slug, p]))
     const out: WallCard[] = []
     for (const cell of layout.cells) {
@@ -139,16 +150,6 @@ export function Frieze({
       if (!item || !project) {
         throw new Error(`frieze Project cell ${cell.itemId} has no project to draw`)
       }
-      // The card sits wholly inside one panel: `panelsFor` never splits a 2x2.
-      // A miss means these masks predate this layout; that generation's cards
-      // arrive with the next one rather than drawn at a stale density.
-      const mask = masks.find(
-        (m) =>
-          m.panel.block === cell.block &&
-          cell.col >= m.panel.startCol &&
-          cell.col < m.panel.startCol + m.panel.columns,
-      )
-      if (!mask) continue
       const text = cellText(item, lang)
       const block = layout.blocks[cell.block]
       // A block whose every cell is a Project has nowhere of its own to put
@@ -165,11 +166,10 @@ export function Frieze({
         serial: text.serial,
         count: carriesCount ? String(block.count) : undefined,
         materials: [],
-        texelsPerWorld: mask.texelsPerWorld,
       })
     }
     return out
-  }, [layout, items, lang, masks])
+  }, [layout, items, lang])
 
   // A card's title is tinted by writing its material, not by the shader: its
   // caption is white coverage, and the colour IS the ink (third amendment).
@@ -308,7 +308,7 @@ export function Frieze({
               index={card.index}
               title={card.title}
               wall={{
-                texelsPerWorld: card.texelsPerWorld,
+                texelsPerWorld,
                 origin: card.originWord,
                 serial: card.serial,
                 count: card.count,

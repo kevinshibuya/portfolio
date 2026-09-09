@@ -144,6 +144,7 @@ export function Wall({
         frame={frame}
         masks={shown?.masks() ?? null}
         active={active}
+        texelsPerWorld={density}
         lang={lang}
         onCellClick={onCellClick}
         onCellHover={onCellHover}
