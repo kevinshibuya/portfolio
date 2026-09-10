@@ -84,8 +84,18 @@ export function Wall({
   const shownRef = useRef<FriezeGeneration | null>(null)
   useEffect(() => {
     shownRef.current = shown
-    return () => shown?.dispose()
-  }, [shown])
+    // Point the warm-up's upload list at the generation actually on screen.
+    // `prepare` runs ONCE, so without this the array keeps a strong reference to
+    // generation one's masks for the life of the scene · and `dispose()` frees
+    // the GPU copy, never the CPU image buffer behind it, so a language switch
+    // or a settled resize would strand 6-27 MiB of obsolete mask data.
+    const masks = shown?.masks()
+    sceneRefs.frieze.textures = masks ? masks.map((mask) => mask.texture) : []
+    return () => {
+      sceneRefs.frieze.textures = []
+      shown?.dispose()
+    }
+  }, [shown, sceneRefs])
 
   // Permission is granted once, by the warm-up. A generation made after that
   // (a language switch, a settled resize) is born permitted, or it would park

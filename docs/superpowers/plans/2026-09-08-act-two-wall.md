@@ -1037,7 +1037,7 @@ bridge would also have created a second owner for an id pipeline 3's plan alread
 
 ## PR #18 review wave · 2026-09-10
 
-**Two legs of three completed.** `reviewer` on opus (xhigh) and `reviewer` on fable (xhigh) both
+**All three legs completed**, the third after the codex window reset · see its own section below. Originally two of three: `reviewer` on opus (xhigh) and `reviewer` on fable (xhigh) both
 returned. `codex-review` on gpt-6-astra hit the codex usage limit mid-run (registry
 `2026-09-09T23:45:01`, 297 s, exit 1) and was interrupted; per the ops rule a limit hit is a hard
 stop for every GPT lane, with no retry and no fallback to another GPT model. **The astra leg is
@@ -1119,6 +1119,73 @@ count-carrier fallback living in `Frieze.tsx` rather than beside `countCell`; `F
 cover URLs from `data/projects` as a second source beside `ArchiveItem`; and the absence of a
 `Wall.tsx` unit test over the ownership seam finding 2 lives in. Each is a quality or judgement item,
 none is a defect, and all of them touch surfaces Kevin has frozen until the revamp lands.
+
+### The third leg · `codex-review` on gpt-6-astra, xhigh
+
+Run after the codex window reset at 03:00 · registry `2026-09-10T03:33:23`, 592 s, exit 0, no reset
+credit spent. It reviewed the FIXED tip (`828d4be`), not the original, so its findings sit on top of
+the opus and fable fix pass. It raised five P2s and said plainly that browser verification was
+blocked by its sandbox, so every one of them is a claim from reading, not from running. Each was
+hand-verified here.
+
+**A5 · `sceneRefs.frieze.textures` retains the first generation. CONFIRMED, FIXED.** The array is
+written only inside `prepare` (`Wall.tsx`), and only the warm-up ever calls `prepare` · once. After a
+language switch or a settled resize the array still strong-references generation one's textures, and
+`DataTexture.dispose()` frees the GPU copy but not the CPU `image.data` behind it, so 6-27 MiB of
+obsolete mask data stayed reachable for the life of the scene. The upload list now follows the
+committed generation and is cleared on unmount. Astra's best find.
+
+**A4 · Hover is never recomputed when the camera moves. CONFIRMED, NOT FIXED.** `grep -rn
+"events.update" src/` returns nothing, so R3F recomputes intersections on pointer events only. Scroll
+moves the wall under a stationary pointer, so during the dolly the tinted cell can stop being the
+cell under the cursor, and `onCellHover` keeps reporting the stale id to pipeline 3. Real, and
+user-visible on a mouse. **Not fixed here on purpose:** the remedy is an `events.update()` driven
+from the frame loop, which adds a raycast per frame to the one loop in this codebase whose contract
+is that it does no React work per frame, and it wants its own measurement rather than a patch at the
+end of a review pass. Recommend a follow-up issue.
+
+**A2 · "Faded corridor cards intercept wall clicks." DISPROVEN as stated; one residual question.**
+This is the guard pipeline 1 explicitly asked pipeline 2 to settle (`SceneRig.tsx`: three's raycaster
+"tests `layers` and never `visible`... verify a cell BEHIND card four still takes its own hover and
+click rather than assuming this covers it"), and the handoff had it recorded as still unverified. It
+was tested directly in the browser rather than reasoned about.
+
+A probe swept all of act two for the frame where an interactive cell sits closest to card four's own
+projection. Findings, at 1280×720:
+
+- **Through the whole dolly, card four is not in frame at all.** It projects to y ≈ 1124 on a 720 px
+  canvas, because the dolly camera is bottom-anchored and raised to `dollyY` while the card sits at
+  the corridor's floor height. It cannot intercept anything at the reading beat.
+- The closest approach is `u ≈ 0.105`, just past the volume shot, where card four projects to
+  (730, 420) and `editorial-87` to (730, 423) · **3 px apart**, squarely behind it.
+- **There, the wall takes the hover:** the canvas cursor reads `pointer`. That is the direct answer
+  pipeline 1 asked for.
+- **The click does not navigate to a project.** `page.url()` was identical before and after. Astra's
+  specific claim · "clicking that editorial cell navigates to the fourth featured project instead" ·
+  does not reproduce.
+
+**Residual, honestly unresolved:** in that same frame the click opened no popup either, where hover
+had just succeeded at the same pixel. The probe used a fixed wait rather than the settle-until-stable
+discipline `frieze-click.spec.ts` uses, and act two's camera carries a time term, so the cell may
+simply have moved between the two events. At that playhead a cell is ~34 px wide and clicking is
+marginal by design · the spec puts reading and clicking at the dolly, where the committed click tests
+pass. **This is not established as a defect and is not treated as one. It belongs on the manual pass:
+try clicking a cell during the volume shot and the approach, not just the dolly.**
+
+**A1 · Panel materials disposed while `compileAsync` polls. NOT REPRODUCED, RECORDED.** The claim is
+that a resize changing the panel count during the warm-up's `compileAsync` disposes materials three
+is still polling, leaving `data-warm` unset. The window is real in principle · the material effect
+does dispose per panel on a plan change · but it needs a resize landing inside the compile window,
+and no run here produced it. `desktop-hidpi`, where the compile is slowest by far, is green across
+four tests.
+
+**A3 · The warm-up does not await the wall's mounted resources. RECORDED as a known trade.** True as
+described: `Frieze` sits behind Wall's own inner `<Suspense>`, so `prepare()` can resolve while the
+covers keep `Frieze` unmounted, and `SceneWarmup` can then flag the canvas warm without the wall's
+materials in the scene. That boundary is deliberate · nesting the wall in the shared boundary would
+tear down `Corridor` and re-register it, which `data-registrations` forbids (ADR 0011) · and the
+masks themselves are uploaded through `initTexture` regardless. What is left unwarmed is the panel
+shader compile, whose cost is one hitch rather than a defect. Worth a decision later, not a fix now.
 
 ### Verification after the fix pass
 
