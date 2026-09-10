@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 /**
  * Shared scene helpers.
@@ -21,6 +21,28 @@ export const CANVAS = '#projects canvas[data-canvas="selected-work-scene"]'
 const SETTLE_MS = 160
 const SETTLE_REDUCED_MS = 220
 
+/**
+ * How long to allow for a full raster of the wall, by project.
+ *
+ * It covers the warm-up and every later redraw (a language switch, a settled
+ * resize), because both rebuild all 171 cells across five panels.
+ *
+ * The warm-up compiles, uploads every texture and renders one off-screen frame,
+ * and headless Chromium does all of it on SwiftShader. Its cost therefore scales
+ * with the backing store, and `desktop-hidpi` is a 1904x1620 buffer carrying the
+ * frieze's largest mask set (27.16 MiB at the 612.8 texels/world ceiling) against
+ * 1269x720 and 6.00 MiB on `desktop-chromium` — about 3.4x the pixels.
+ *
+ * Measured on the reference machine, idle: warm lands at 21-25 s there against
+ * 30 s here, headroom that disappears once earlier tests have loaded the machine.
+ * That is a rasteriser cost, not a product regression, so the cap follows the
+ * project rather than the suite loosening for everyone. A genuine warm failure
+ * still fails; it just fails later on the one project that legitimately needs it.
+ */
+export function rasterBudgetMs(): number {
+  return test.info().project.name === 'desktop-hidpi' ? 120_000 : 30_000
+}
+
 export async function openScene(page: Page): Promise<void> {
   await page.goto('/')
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
@@ -30,7 +52,7 @@ export async function openScene(page: Page): Promise<void> {
   // after the entrance, and only then is the scrub the steady state.
   await page
     .locator('#projects canvas[data-canvas="selected-work-scene"][data-warm="true"]')
-    .waitFor({ timeout: 30000 })
+    .waitFor({ timeout: rasterBudgetMs() })
 }
 
 /** The wrapper's height in svh, as the page rendered it. */

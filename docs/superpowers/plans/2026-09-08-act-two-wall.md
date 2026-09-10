@@ -3,7 +3,7 @@
 **Goal:** Render every archive piece as an interactive frieze inside the Selected Work scene, backed by one tested content and layout contract.
 **Architecture:** Pure archive derivation and packing feed both the scene and pipeline 3's stream. Four year-block coverage textures supply typography through one shader mesh per block; nine embedded Projects reuse the scene's card object. Pipeline 1 owns the camera and wall placement; Projects owns navigation.
 **Spec:** `docs/superpowers/specs/2026-09-08-archive-act-two-design.md`
-**Execution model:** opus
+**Execution model:** opus. Kevin's call, 2026-09-09 ~02:00: the Fable session that ran Task 4 unattended consumed too much quota, so the remainder returns to the harness default — Opus executes, Fable keeps judgement (`reasoner`) and its review leg. The earlier header (`fable, because` reason b, for an unattended overnight run) is withdrawn; the run is attended again. It was `opus` while codex drove the implementation.
 
 ## Controller amendment · six rows, 2026-09-09 (READ FIRST)
 
@@ -51,6 +51,55 @@ the table above. Where it says "respect Motion's `maxRowsInFrame(g)`", note that
 820×821, 6 at 1280×720) and must be asserted across the whole viewport matrix,
 never at one or two fixtures — asserting it at a single size is what let the
 eight-row overflow ship in the first place.
+
+### Second amendment · the 4096 cap, 2026-09-08 (Kevin's call, after a `reasoner` ruling)
+
+Six rows widened the 2024 block from 16 to 22 columns. At 11 world units and the
+432 texels/world the floor asks for, its mask wants 4752 px against the 4096 cap,
+so it is scaled to 0.862 — and because the cap FREEZES that mask while the wall's
+projected size keeps growing with viewport height, the 2024 block upscales 1.16×
+at 720 px tall, 1.37× at 900, 1.65× at 1080 and 2.19× at 1440, beside three
+blocks drawn 1:1. That block holds 118 of the 171 pieces, and the step falls on
+the 2025|2024 seam. It is a sharpness problem only — nothing renders smaller,
+because the mesh is sized in world units from `friezeFrame`, not from the texture.
+
+Kevin's ruling, now binding and reflected in the spec:
+
+1. **Panels.** A block whose mask exceeds the cap is drawn as
+   `ceil(neededWidth / 4096)` column-aligned panels, one texture and one mesh
+   each, in near-equal whole-column runs, **never split through a 2×2 span**.
+   Today only 2024 splits, into two 11-column panels: five meshes, not four.
+   The lookup DataTexture and the slot-occupancy hit table stay per block; a
+   panel is a column offset into them, and the year count sits in panel 0. The
+   "no span straddle" rule gets its own unit test — today's data never exercises
+   it, which is exactly why it needs one.
+2. **A density ceiling of 612.8 texels/world**, applied in Task 4's sizing
+   function BEFORE the cap. Without it nothing caps above 761 px tall and mask
+   bytes grow with the square of the projected density. 612.8 is 1:1 at renderer
+   DPR 1.5 up to a 1080 px viewport, so every laptop and every DPR-1 desktop is
+   1:1 and a 27" 5K is 1.2×.
+3. **`RGFormat`, two channels, superseding Assumption 19's RGBA8.** R is title
+   coverage; G carries meta AND serial, because the shader draws both in the same
+   fixed muted ink and hover changes only the title. Assert they never overlap
+   within a cell. Two bytes per texel is what pays for the ceiling: **27.2 MiB
+   steady, 71.4 MiB peak**, under the 86.45 MiB the plan review approved.
+
+Recompute the memory table on this basis — `w * h * 2`, panels summed per block —
+and if the recomputed peak breaks the budget, that is a real `blocked:`.
+
+Task 4 gains `panelsFor(block, density, cap)` and the ceiling constant. Task 5's
+"four meshes" becomes one per panel, five today. Task 9 adds an acceptance the CI
+can actually see: the existing matrix is blind to all of this, because
+`devices['Desktop Chrome']` is deviceScaleFactor 1 and at 1440×900 the 2024 block
+needs 3745 px, under the cap. Add a screenshot fixture at deviceScaleFactor 1.5
+and at least 900 px tall, on the 2025|2024 boundary at the dolly.
+
+**Still open, NOT decided, do not resolve it yourself:** at the 1280×720 volume
+shot the wall projects at 65.8 CSS px/world, so a 612.8 mask is minified ~9×
+with linear filtering and no mipmaps — potential shimmer across 171 tiny text
+cells during the act's signature pull-back. Mipmaps cost +33 % memory and are
+legal on NPOT under WebGL2. Measure it in Task 9, report what you see with a
+screenshot of the volume shot mid-release, and leave the decision to Kevin.
 
 ## Global constraints
 
@@ -261,6 +310,133 @@ Raster density is the maximum projected pixels/world unit required by Motion’s
 
 Four RGBA8 masks total about 26.76 MiB GPU with no mipmaps in either orientation at that floor. Release canvas backing stores immediately after upload (retain data/recipe for explicit context-loss regeneration); steady CPU canvas storage is zero. During redraw, old and new masks require at most 53.52 MiB GPU; conservatively budget two largest-block CPU stores for channel assembly/upload, about 32.93 MiB, giving an 86.45 MiB mask-only peak. The four RGBA8 lookup textures total 26×8×4 = 832 bytes per generation, no mipmaps. DPR 2/3 both cap at renderer DPR 1.5; larger projected densities require recalculation. Exclude covers, captions, render targets and driver overhead; measure whole-scene deltas in Access. Test upload-before-canvas-release and dispose obsolete textures on swap/unmount.
 
+## Task 1 record · reconciled Motion seam
+
+Both acceptance commands exited 0: `test -f docs/superpowers/plans/2026-09-08-act-two-motion.md` and `rg -n 'actTwoPose|actTwoProgress|scrollTargetFor|FriezeExtent' src/utils/sceneMotion.ts docs/superpowers/plans/2026-09-08-act-two-motion.md`. The dependency is merged; Task 1's “initially fails” describes the old fork. The contracts below were checked against the merged source, including the host, rig, Environment and viewport fixtures. Numbers are source-derived calculations, not browser measurements.
+
+**Placement and camera.** These are the real exports from `src/utils/sceneMotion.ts`, with their return interfaces (field comments omitted):
+
+```ts
+export function friezeFrame(frieze: FriezeExtent, g: SceneGeometry): FriezeFrame
+export interface FriezeFrame {
+  left: number
+  right: number
+  bottom: number
+  top: number
+  z: number
+  width: number
+  height: number
+  centreX: number
+  centreY: number
+}
+
+export function actTwoProgress(playhead: number): number
+export function actTwoPose(u: number, frieze: FriezeExtent, g: SceneGeometry): ActTwoPose
+export interface ActTwoPose {
+  x: number
+  y: number
+  z: number
+  yaw: number
+  pitch: number
+}
+```
+
+`friezeFrame` **is the wall placement accessor**; there is no separate wall-transform export. It derives `width = frieze.columns * FRIEZE_CELL_W`, `height = frieze.rows * FRIEZE_CELL_H`, `left = -width / 2`, `right = width / 2`, `bottom = HOVER`, `top = HOVER + height`, `centreX = 0`, `centreY = HOVER + height / 2` and `z = -(ACT_TWO_START + 1) * g.spacing`. For Wall's local top-left coordinates, place the group at `[frame.left, frame.top, frame.z]`, with unit scale and no rotation; cell positions remain local. Wall must consume this frame and never invent a second placement. `actTwoPose(actTwoProgress(playhead), frieze, g)` supplies the camera, not the wall. The existing SceneRig writes `camera.position.set(pose.x, pose.y, pose.z)` and `camera.rotation.set(pose.pitch, pose.yaw, 0)` with Euler order `'YXZ'`; yaw and pitch are radians. Reduced motion already uses one `actTwoStill` descriptor and `actTwoStillPose` through the same rig.
+
+**Extent and resize.** `src/utils/friezeLayout.ts` owns the following base exports. Wall may extend them with block counts and world dimensions, but its packed extent must remain structurally assignable to this shape:
+
+```ts
+export interface FriezeBlockExtent {
+  year: number
+  startCol: number
+  columns: number
+}
+export interface FriezeExtent {
+  columns: number
+  rows: number
+  blocks: readonly FriezeBlockExtent[]
+}
+```
+
+Blocks are newest first and contiguous: the next `startCol` equals this block's `startCol + columns`. The import direction is one-way: `sceneMotion.ts` imports `friezeLayout.ts`, never the reverse. Layout's private `CARD_W = 1` and `CARD_H = 448 / 620` mirror Motion's constants so the half-card exports need no reverse import.
+
+Currently Projects memoises `provisionalFriezeExtent(archive, FRIEZE_ROWS)`, computes `sceneWrapperSvh(frieze.columns)`, and passes that same extent through SelectedWorkScene to SceneRig. The rig keys geometry, cached `friezeFrame` and `sceneFar` by viewport width/height plus extent columns/rows. Wall replaces the provisional derivation with its shared layout/extent; renderer, wrapper, camera and item targets must consume the same committed extent. Six rows do not change with orientation. A debounced resize redraw changes raster density; any generation commit must keep its layout/extent and wrapper/camera inputs together. A language redraw leaves extent unchanged. This atomic raster-generation wiring belongs to Wall Task 7; it is not already supplied by Motion.
+
+**Row reachability.** The merged constant is `FRIEZE_ROWS = 6`. The actual bound is:
+
+```ts
+export function maxRowsInFrame(g: SceneGeometry): number {
+  return Math.floor((FRIEZE_CELL_W / FRIEZE_CELL_H) * (g.heightPx / FRIEZE_CELL_MIN_PX))
+}
+```
+
+Wall must assert `FRIEZE_ROWS <= maxRowsInFrame(g)` across the **whole e2e viewport matrix**, never one or two fixtures. `playwright.config.ts` names `desktop-chromium` (`Desktop Chrome`, installed viewport 1280×720) and `mobile-chromium` (`Pixel 5`, installed viewport 393×727). `tests/e2e/scene-scrub.spec.ts` additionally sweeps 1440×400, 1440×260, 1440×220 and 1440×180, then the near-square matrix 960×950, 960×970, 820×821 and 820×819, on both projects. The preset bounds are 6/6; the near-square bounds are 9/9/7/7. Reference sizes 1440×900, 393×851 and 1920×1080 give 8/8/10, but do not cover the short-height sweeps.
+
+**Not blocked · verified.** The reachability requirement is already met, and pipeline 1 already guards it. `tests/unit/sceneMotion.test.ts` asserts `maxRowsInFrame(g) >= FRIEZE_ROWS` across its `VIEWPORTS` matrix and again at 1280×720, 1024×640, 1440×790 and 820×821; all 153 tests pass on this base. The 1440×400, 1440×260, 1440×220 and 1440×180 sweeps in `tests/e2e/scene-scrub.spec.ts` are a different guard: they assert `problems === []`, that nothing throws inside the frame loop when a window is dragged short, and they have never asserted row fit. Reading the amendment's “whole viewport matrix” onto those degenerate heights conflates the two. Wall asserts the bound over the row-fit matrix, preserves the short-height sweeps as throw guards, and adds neither a row reduction nor vertical travel.
+
+**Reading scale and the binding distance.** Motion exports `CARD_MIN_PX = Math.ceil((CARD_MAX_PX * CAPTION_MIN_NAME_PX) / CAPTION_NAME_PX)`: `ceil(620 * 12 / 26) = 287`. Then `FRIEZE_CELL_MIN_PX = Math.ceil(CARD_MIN_PX / 2) = 144`, while layout exports `FRIEZE_CELL_W = CARD_W / 2 = 0.5` and `FRIEZE_CELL_H = CARD_H / 2 = 448 / 620 / 2`. Thus the cell floor gives `144 / 0.5 = 288` CSS px/world, not 240. At renderer DPR 1.5 it requests `288 * 1.5 = 432` texels/world, applied once.
+
+The real `export function dollyDistance(frieze: FriezeExtent, g: SceneGeometry): number` returns `Math.min(dHeight, dLegible)`, with `dHeight = height / (2 * HALF_FOV_TAN * DOLLY_HEIGHT_FILL)` and `dLegible = (FRIEZE_CELL_W * g.widthPx) / (2 * HALF_FOV_TAN * g.aspect * FRIEZE_CELL_MIN_PX)`. `DOLLY_HEIGHT_FILL = 0.82` is the fill floor. Since `g.aspect = g.widthPx / g.heightPx`, equality occurs at `heightPx = rows * FRIEZE_CELL_H * 288 / 0.82`. This is **761.3533 CSS px at six rows**, against 1015.1377 at eight. Below that height `dLegible` binds; above it `dHeight` binds, with equality at the crossover. The two Playwright presets remain at the 288 floor, while 1440×900, 393×851, every near-square fixture above and 1920×1080 are height-bound at six rows. The source comment saying legibility binds on every fixture is stale; the function body establishes the contract.
+
+**Fog, DoF and warm-up.** Motion owns these existing pure exports:
+
+```ts
+export function actTwoFogRange(
+  u: number,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+  t: number,
+): { near: number; far: number }
+export function actTwoFocusDistance(
+  u: number,
+  frieze: FriezeExtent,
+  g: SceneGeometry,
+): number
+export function actTwoTitleDistance(dWall: number, g: SceneGeometry): number
+```
+
+SceneRig already applies the fog range, writes `sceneRefs.focus.distance`, extends the far plane with `sceneFar`, and uses `actTwoTitleDistance(pose.z - frame.z, g)`. Environment already consumes the focus through `effect.cocMaterial.worldFocusDistance` before the composer and adopts changed camera settings for its depth reconstruction. Reduced motion uses the descriptor's `u` for these channels and forces fog time to 0. Wall keeps its surface inside this fog/composer; it owns neither a replacement focus controller nor title-distance maths. Task 7 needs no transfer of the existing DoF wiring from Motion.
+
+The concrete raster insertion point is the private `SceneWarmup` in `src/components/canvas/SelectedWorkScene.tsx`: `entranceDone` → `HERO_SETTLE_MS = 1500` → `onIdle(..., 2000)` → `warm()`. Today `warm()` awaits `gl.compileAsync(scene, camera)`, uploads material maps and `sceneRefs.titleTextures` via `gl.initTexture`, then calls the single offscreen `advance(performance.now())`; its `finally` sets `data-warm='true'`. SceneRefs has no frieze preparation callback or readiness promise yet. Wall Task 7 registers and awaits preparation inside this existing warm window, before compiling/uploading the frieze materials and every mask/lookup uniform texture, then uses the same single warm-up frame. Successful readiness follows upload; raster rejection settles to the planned cream wall with disabled hits and still permits warm-up to finish. It must not invoke the permanent WebGL-unavailable callback. These are Wall hooks to add, not invented Motion exports.
+
+**Horizontal targets and column budget.** The real signatures are:
+
+```ts
+export function playheadForColumn(col: number, frieze: FriezeExtent): number
+export function scrollTargetFor(
+  playhead: number,
+  wrapperTop: number,
+  wrapperHeight: number,
+  viewportHeight: number,
+  columns = 0,
+): number
+```
+
+Task 8's `friezeTargets.ts` resolves a cell, calls `playheadForColumn(cell.col + cell.span / 2, extent)`, and returns null for an unknown ID. Its caller feeds the resulting number and `extent.columns` to `scrollTargetFor`; Access consumes the same item seam. Motion already derives the approach beat and column fraction, including the empty-extent guard, so Wall must not duplicate beat maths or add a string overload.
+
+Executing the merged provisional helper against the actual 171-piece archive returned six rows and blocks `2026 @0 ×2`, `2025 @2 ×9`, `2024 @11 ×22`, `2023 @33 ×2`: 35 columns. The real `actTwoSvh(columns: number): number` returns `100 + 50 + 25 * columns` for positive columns, and `sceneWrapperSvh(columns: number): number` returns `ACT_ONE_SVH + actTwoSvh(columns)`. Calls verified `actTwoSvh(35) = 1025`, `sceneWrapperSvh(35) = 1575` and `sceneWrapperSvh(22) = 550 + 100 + 50 + 25 * 22 = 1250`. The synthetic `FIXTURE_FRIEZE` in `tests/unit/sceneMotion.test.ts` remains 22 columns, eight rows and blocks 1/6/13/2; it is not the shipped extent and stays intact. Six-row lookup textures require `35 * 6 * 4 = 840 B` per generation.
+
+**Mask arithmetic, recomputed.** For each block use `neededWidth = columns * FRIEZE_CELL_W * density`, `neededHeight = rows * FRIEZE_CELL_H * density`, then `s = min(1, 4096 / neededWidth, 4096 / neededHeight)` and `w = round(neededWidth * s)`, `h = round(neededHeight * s)`. RGBA8 without mipmaps costs `w * h * 4` bytes; `1 MiB = 1048576 B`. Sum the four blocks for steady GPU, double for redraw, add twice the **largest resulting block** for CPU channel assembly/upload to obtain peak. The arithmetic was sanity-checked first at eight rows, widths 2/7/16/1 and density 432: dimensions 432×1249, 1512×1249, 3456×1249 and 216×1249 reproduce steady **26.75775 MiB**, redraw **53.51550 MiB**, CPU allowance **32.93262 MiB** and peak **86.44812 MiB**, rounding to the plan's 26.76/53.52/86.45.
+
+At six rows the floor's uncapped height is `6 * (448 / 620 / 2) * 432 = 936.4645` texels. At 1080 CSS px tall, the height-bound dolly instead projects `0.82 * 1080 / (6 * FRIEZE_CELL_H) = 408.535714` CSS px/world, requesting **612.803571 texels/world** at DPR 1.5. Applying the same sizing and rounding afresh gives:
+
+| Block / allocation | Six-row floor · dimensions | MiB at 432 texels/world | 1080 px height · dimensions | MiB at 612.803571 texels/world |
+| --- | --- | ---: | --- | ---: |
+| 2026 · 2 columns | 432×936 | 1.54248 | 613×1328 | 3.10541 |
+| 2025 · 9 columns | 1944×936 | 6.94116 | 2758×1328 | 13.97180 |
+| 2024 · 22 columns | 4096×807 | 12.60938 | 4096×807 | 12.60938 |
+| 2023 · 2 columns | 432×936 | 1.54248 | 613×1328 | 3.10541 |
+| Steady GPU | Four masks | **22.63550** | Four masks | **32.79199** |
+| Redraw GPU | 2× steady | **45.27100** | 2× steady | **65.58398** |
+| CPU allowance | 2× 2024 | **25.21875** | 2× 2025 | **27.94360** |
+| Mask-only peak | Redraw + CPU | **70.48975** | Redraw + CPU | **93.52759** |
+
+The floor peak is 73913856 B, **70.49 MiB**, within the plan's 86.45 MiB budget. The 2024 block already hits the 4096 cap there: needed width `22 * 0.5 * 432 = 4752`, so `s = 4096 / 4752 = 0.861952862`. Its effective raster density is `432 * s = 372.363636` texels/world, equivalent to **248.242424 CSS px/world** at DPR 1.5, about 13.80% below the requested 288 floor. This reduces raster detail; the world typography still projects at Motion's reading scale. The plan already permits cap-driven detail loss, so font quality still needs the later browser evidence.
+
+The capped 2024 dimensions are **density-invariant while the width cap binds**: with world width 11 and height `6 * FRIEZE_CELL_H`, `s = 4096 / (11 * density)` cancels density in both dimensions, leaving `4096 × round(4096 * 6 * FRIEZE_CELL_H / 11) = 4096×807`. Width begins to cap at 372.363636 texels/world, below the floor's 432, so this holds at every density from the floor upwards. Higher density cannot recover detail in that block under the present cap. At 1080 px tall the cap scale is 0.607639468 and the dimensions remain unchanged, but the uncapped 2025 block becomes the largest allocation. The CPU allowance must therefore follow 2025, not keep using 2024.
+
+**Not blocked · verified, and six rows improves it.** The 86.45 MiB figure is the peak at the FLOOR density, and the plan's own accounting says larger projected densities require recalculation rather than forbidding them. Recomputed at 1080 CSS px of viewport height, eight rows would have needed **97.80 MiB** against six rows' **93.53 MiB**, so the overshoot is pre-existing and the six-row change reduces it; at the floor the peak falls from 86.45 to 70.49 MiB. The tall-viewport exposure is real and unbounded upward — 146.66 MiB at 1440 CSS px of height — but it is inherited, not introduced, and bounding it (a global density ceiling above the 4096 per-block cap) is Access's performance work, not a Wall contract change. Covers, captions, render targets, lookups and driver overhead remain outside this mask-only total. This documentation task changes no source, budget, fixture or placement contract.
+
 ## Implementation tasks
 
 Each Files boundary also permits updating this plan's own step ticks. Commands run from repository root. Edit steps name `apply_patch` as their command; expected output is the described diff plus `Done!`. Internal structure is the implementer's choice within the stated interfaces. For any newly discovered ambiguity beyond the recorded resolutions, stop that task and report `blocked: <specific ambiguity>` to the controller; do not silently alter the contract.
@@ -278,10 +454,10 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** No independent camera, invented placement export, shared-source edit or spec tick. Missing dependency is an execution prerequisite, not an invitation to stub motion.
 
-- [ ] Run the two acceptance commands; expected: Motion plan/source present and signatures located.
-- [ ] Run `apply_patch` to record the resolved seam in this plan; expected: exact placement import and return shape, shared resize extent and row reachability documented.
-- [ ] Run `git diff --check`; expected: no whitespace errors; review the recorded seam against both plans.
-- [ ] Run `git add docs/superpowers/plans/2026-09-08-act-two-wall.md` and `git commit -m 'docs: reconcile wall and motion contracts'`; expected: only the reviewed plan update committed.
+- [x] Run the two acceptance commands; expected: Motion plan/source present and signatures located.
+- [x] Run `apply_patch` to record the resolved seam in this plan; expected: exact placement import and return shape, shared resize extent and row reachability documented.
+- [x] Run `git diff --check`; expected: no whitespace errors; review the recorded seam against both plans.
+- [x] Run `git add docs/superpowers/plans/2026-09-08-act-two-wall.md` and `git commit -m 'docs: reconcile wall and motion contracts'`; expected: only the reviewed plan update committed.
 
 ### Task 2: Migrate archive data and delete the old Archive surface
 
@@ -304,12 +480,12 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** No CSV/parser, route or Project content/rank changes beyond origin. Access owns the future stream and WorkRow refactor.
 
-- [ ] Run `apply_patch` to replace archive assertions and tie fixtures; expected: exact counts and serial contract represented.
-- [ ] Run the acceptance command; expected: new archive assertions fail, unchanged JSON-LD passes.
-- [ ] Run `apply_patch` for types/data; expected: exact spec shape and hotmart-bunde origin, no obsolete archive exports.
-- [ ] Run `apply_patch` for Archive/dropdown deletion, Home cleanup, CSS and locales; expected: no dangling imports, retired toolbar or removed-field references.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: data tests and typecheck pass.
-- [ ] Run `git diff --check`, stage only this task's Files and plan ticks, then `git commit -m 'feat: derive archive origins serials and year blocks'`; expected: bounded data migration commit.
+- [x] Run `apply_patch` to replace archive assertions and tie fixtures; expected: exact counts and serial contract represented.
+- [x] Run the acceptance command; expected: new archive assertions fail, unchanged JSON-LD passes.
+- [x] Run `apply_patch` for types/data; expected: exact spec shape and hotmart-bunde origin, no obsolete archive exports.
+- [x] Run `apply_patch` for Archive/dropdown deletion, Home cleanup, CSS and locales; expected: no dangling imports, retired toolbar or removed-field references.
+- [x] Run the acceptance command and `npx tsc -b`; expected: data tests and typecheck pass.
+- [x] Run `git diff --check`, stage only this task's Files and plan ticks, then `git commit -m 'feat: derive archive origins serials and year blocks'`; expected: bounded data migration commit.
 
 ### Task 3: Implement pure packing and extent
 
@@ -331,12 +507,12 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** Layout imports no sceneMotion, React, DOM or three. Keep existing act-one pose assertions intact.
 
-- [ ] Run `apply_patch` to add hand-computed packing tests; expected: all acceptance properties represented.
-- [ ] Run the acceptance command; expected: missing layout exports fail.
-- [ ] Run `apply_patch` to implement layout/constants/extent; expected: pure explicit-return utilities.
-- [ ] Run `apply_patch` to replace the provisional caller/test and add the fixed-row aspect sweep; expected: dependency flows from motion to layout only.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: new cases and act-one fixtures pass.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: pack archive into year-block frieze'`; expected: pure layout commit.
+- [x] Run `apply_patch` to add hand-computed packing tests; expected: all acceptance properties represented.
+- [x] Run the acceptance command; expected: missing layout exports fail.
+- [x] Run `apply_patch` to implement layout/constants/extent; expected: pure explicit-return utilities.
+- [x] Run `apply_patch` to replace the provisional caller/test and add the fixed-row aspect sweep; expected: dependency flows from motion to layout only.
+- [x] Run the acceptance command and `npx tsc -b`; expected: new cases and act-one fixtures pass.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: pack archive into year-block frieze'`; expected: pure layout commit.
 
 ### Task 4: Define cell text and bounded coverage rasterisation
 
@@ -355,12 +531,12 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** No browser-only font-quality claims from jsdom stubs, no per-cell canvas, no presentation colour baked into coverage, no first-paint rasterisation.
 
-- [ ] Run `apply_patch` to add formatting, sizing and cancellation tests; expected: required contracts covered.
-- [ ] Run the acceptance command; expected: new tests fail on missing utilities.
-- [ ] Run `apply_patch` for presentation/wrapping and tabular digit drawing; expected: deterministic measured layouts and bilingual origin labels.
-- [ ] Run `apply_patch` for bounded canvases, incremental jobs and shared debounce; expected: cancellable block-mask generation and released resources.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: all text assertions pass.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: rasterise bounded frieze coverage masks'`; expected: bounded rasterisation commit.
+- [x] Run `apply_patch` to add formatting, sizing and cancellation tests; expected: required contracts covered.
+- [x] Run the acceptance command; expected: new tests fail on missing utilities.
+- [x] Run `apply_patch` for presentation/wrapping and tabular digit drawing; expected: deterministic measured layouts and bilingual origin labels.
+- [x] Run `apply_patch` for bounded canvases, incremental jobs and shared debounce; expected: cancellable block-mask generation and released resources.
+- [x] Run the acceptance command and `npx tsc -b`; expected: all text assertions pass.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: rasterise bounded frieze coverage masks'`; expected: bounded rasterisation commit.
 
 ### Task 5: Render block surfaces and UV interaction
 
@@ -380,12 +556,63 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** No router, per-frame material allocation, per-piece raycaster or change to corridor interaction semantics. Only canvas cursor is written here.
 
-- [ ] Run `apply_patch` for UV/lookup/uniform tests; expected: boundaries and colour mappings asserted.
-- [ ] Run the acceptance command; expected: missing hit/material helpers fail.
-- [ ] Run `apply_patch` for occupancy lookup, DataTexture and shader; expected: four cream block surfaces with coverage-driven text.
-- [ ] Run `apply_patch` for Frieze callbacks and shared threshold; expected: direct callbacks with drag rejection and hover cleanup.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: hit/material contracts pass.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: render frieze blocks with uv cell interaction'`; expected: block-renderer commit.
+- [x] Run `apply_patch` for UV/lookup/uniform tests; expected: boundaries and colour mappings asserted.
+- [x] Run the acceptance command; expected: missing hit/material helpers fail.
+- [x] Run `apply_patch` for occupancy lookup, DataTexture and shader; expected: four cream block surfaces with coverage-driven text.
+- [x] Run `apply_patch` for Frieze callbacks and shared threshold; expected: direct callbacks with drag rejection and hover cleanup.
+- [x] Run the acceptance command and `npx tsc -b`; expected: hit/material contracts pass.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: render frieze blocks with uv cell interaction'`; expected: block-renderer commit.
+
+### Third amendment · the wall card's caption, serial and year count, 2026-09-09
+
+Kevin's call, after one contract answered by `reasoner` (fable) and `codex-review` (astra) in
+parallel. Both agreed on calls 1-3; call 4 is astra's, because fable's rule cannot cover 2026.
+Every number below was re-derived here against the real archive, not taken on either model's word.
+
+**Verified facts.** The card's body band is `BAND_H = 0.113105` world units. Three caption rows
+(title `26/620 = 0.041935` + meta `0.04` + serial `0.04`, all at line-height 1.2) need `0.146323`
+and DO NOT FIT. Two rows need `0.098323` and fit. Block top-left cells: 2026, 2025 and 2024 each
+hold a 2x2 Project there. **2026 has zero 1x1 cells at all** — three 2x2 Projects exactly fill its
+2-column x 6-row block (12 slots) — so any rule that moves the year count to a 1x1 cell must have a
+fallback.
+
+1. **The wall card's caption is two planes, not one.** A title plane drawn as WHITE coverage whose
+   `material.color` carries the ink (origin ink at rest, the hover accent on hover), and a second
+   plane for the origin word and serial that is never tinted (Q6: tint the title only). Act one's
+   corridor keeps its existing single two-line coloured texture and its arrow, untouched.
+   The muted plane is drawn as **opaque `#646566` at full glyph coverage**, transparency only for
+   antialiasing — NOT as `rgba(11,14,20,.62)` composited at draw time. The card's frame is WHITE
+   while the wall is cream, so that alpha would resolve to `#686A6D` on the card and `#646566` on
+   the wall, and blending into the composer's linear target is neither. Keep `toneMapped: false`
+   and `fog: true` on both planes.
+
+2. **No arrow on wall cards.** The arrow is a hover affordance the rig slides, and act two forbids
+   ambient card motion, so a static arrow would promise what the card cannot do. The wall's
+   affordance is the title tint, shared with all 171 cells. The caption reclaims the arrow's
+   reserved width in wall mode.
+
+3. **The Project serial is drawn by the card, and the mask stops drawing it.** The card fills its
+   2x2 footprint exactly (Q9), so the masked bottom strip is invisible under it; shrinking the card
+   to reveal the strip is refused. Layout, within the two-row limit: title on row one; the origin
+   word left-aligned and the serial right-aligned on row two, both muted. If a long origin would
+   collide with the serial, collapse the row to `origin · serial` (a guard, not the expected path).
+   In `friezeTexture.ts`, **skip a Project cell's draw unit entirely** — do NOT set `serialOnly` to
+   false, which would draw its title and meta onto the wall behind the card. Task 4's masked-serial
+   assertion is updated to match.
+   This contradicts the LITERAL wording of Task 4 and of Task 6's "serial stays on the block's
+   reserved strip", and satisfies its spatial intent plus Q9's "reserve serial space inside the
+   existing caption band". Recorded as an amendment, not claimed as compliance.
+
+4. **The year count moves to the first 1x1 cell, and the card carries it when there is none.**
+   Selection rule, in one place: scan the block's cells row-major (row 0 left to right, then row 1,
+   and so on) and take the first cell whose span is 1. Today that is 2025 r0c4, 2024 r0c13, 2023
+   r0c33 — and NONE for 2026, where the block's top-left Project carries the count instead, in a
+   reserved slot at the right of its TITLE row, muted and never tinted by hover, shortening the
+   title's available width. The count stays block-owned decoration, never Project metadata.
+   The rule is ONE pure function over the layout, consumed by the rasteriser AND by `cellAtUv`'s
+   noninteractive band. Two copies of this rule is exactly how the raster and the hit test drift.
+   `friezeHit.ts`'s current `col === 0 && row === 0` condition is replaced by it, and Task 4's
+   "panel 0 only" becomes "the panel containing the selected count column".
 
 ### Task 6: Embed the nine card objects without disturbing the corridor
 
@@ -405,12 +632,12 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** No duplicated corridor pose loop, enlarged CARD_COUNT, new mockup files, halo or act-one visual change.
 
-- [ ] Run `apply_patch` for two-consumer, final-release and StrictMode reacquisition tests; expected: shared lifetime scenarios represented.
-- [ ] Run the acceptance command; expected: missing shared cache fails.
-- [ ] Run `apply_patch` for shared card object/resources and explicit caption handles; expected: corridor retains the same geometry and material registrations.
-- [ ] Run `apply_patch` to place all nine frieze cards; expected: card bodies and serial strips stay within each 2×2 footprint.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: ownership and caption tests pass.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: embed shared project objects in the frieze'`; expected: card-reuse commit.
+- [x] Run `apply_patch` for two-consumer, final-release and StrictMode reacquisition tests; expected: shared lifetime scenarios represented.
+- [x] Run the acceptance command; expected: missing shared cache fails.
+- [x] Run `apply_patch` for shared card object/resources and explicit caption handles; expected: corridor retains the same geometry and material registrations.
+- [x] Run `apply_patch` to place all nine frieze cards; expected: card bodies and serial strips stay within each 2×2 footprint.
+- [x] Run the acceptance command and `npx tsc -b`; expected: ownership and caption tests pass.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: embed shared project objects in the frieze'`; expected: card-reuse commit.
 
 ### Task 7: Integrate warm-up, extent and reduced-motion rendering
 
@@ -430,12 +657,12 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** No second camera controller, per-frame React setState, added canvas, extra offscreen loop or compile work during entrance.
 
-- [ ] Run `apply_patch` for delayed preparation, stale generation and failed preparation assertions; expected: readiness cannot race rasterisation.
-- [ ] Run the acceptance command; expected: new readiness assertions fail before wiring.
-- [ ] Run `apply_patch` for host/refs warm-up wiring; expected: successful block/lookup textures uploaded before data-warm; failed preparation settles without blocking it.
-- [ ] Run `apply_patch` for Motion placement, active gate, composer focus and atomic resize wiring; expected: one committed extent drives renderer and camera.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: lifecycle and act-one checks pass.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: warm and integrate the act-two frieze'`; expected: scene integration commit.
+- [x] Run `apply_patch` for delayed preparation, stale generation and failed preparation assertions; expected: readiness cannot race rasterisation.
+- [x] Run the acceptance command; expected: new readiness assertions fail before wiring.
+- [x] Run `apply_patch` for host/refs warm-up wiring; expected: successful block/lookup textures uploaded before data-warm; failed preparation settles without blocking it.
+- [x] Run `apply_patch` for Motion placement, active gate, composer focus and atomic resize wiring; expected: one committed extent drives renderer and camera.
+- [x] Run the acceptance command and `npx tsc -b`; expected: lifecycle and act-one checks pass.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: warm and integrate the act-two frieze'`; expected: scene integration commit.
 
 ### Task 8: Route cell actions through Projects
 
@@ -454,11 +681,11 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** Existing corridor onCardClick behaviour survives. No router inside canvas, external prefetch, deferred popup or stream ownership change.
 
-- [ ] Run `apply_patch` for Projects callback tests; expected: case-study/external/unknown paths represented.
-- [ ] Run the acceptance command; expected: missing callbacks fail.
-- [ ] Run `apply_patch` for pure target utilities, stable handlers, MotionValue hover and final host props; expected: trusted click stack reaches routing/open directly.
-- [ ] Run the acceptance command and `npx tsc -b`; expected: callback and type contracts pass.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: route frieze cell clicks through projects'`; expected: callback integration commit.
+- [x] Run `apply_patch` for Projects callback tests; expected: case-study/external/unknown paths represented.
+- [x] Run the acceptance command; expected: missing callbacks fail.
+- [x] Run `apply_patch` for pure target utilities, stable handlers, MotionValue hover and final host props; expected: trusted click stack reaches routing/open directly.
+- [x] Run the acceptance command and `npx tsc -b`; expected: callback and type contracts pass.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'feat: route frieze cell clicks through projects'`; expected: callback integration commit.
 
 ### Task 9: Verify the rendered surface and regressions
 
@@ -478,13 +705,13 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** No fake click success, deleted regression assertions, relaxed console checks, changed snapshots to conceal unrelated regressions or claimed performance measurements from SwiftShader.
 
-- [ ] Run `apply_patch` for yaw-aware coordinate helpers and real click tests; expected: tests select archive IDs via layout and click canvas coordinates.
-- [ ] Run `apply_patch` for the four old-Archive rewrites plus root/console, glyph, hover, language and resize smokes; expected: browser assertions include rendered pixels, not only canvas existence.
-- [ ] Run `apply_patch` for actual-extent scrub and composer coverage; expected: act-one assertions and Motion's act-two attributes retained.
-- [ ] Run `npx tsc -b`, `npm run lint`, then `npx vitest run`; expected: all exit 0, including JSON-LD and bundle dependencies.
-- [ ] Run the port-kill command, then the targeted Playwright command; expected: desktop/mobile wall click and all scene regressions pass, smoke reports zero errors.
-- [ ] Run the port-kill command, then `npx playwright test --workers=1`; expected: full-suite result recorded. Rewrite all four old-Archive specs in this pipeline; the entire suite must be green on the integration branch before Wall review. Access adds stream-specific assertions later.
-- [ ] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'test: verify frieze clicks and rendered scene'`; expected: tests committed with truthful verification results in this plan.
+- [x] Run `apply_patch` for yaw-aware coordinate helpers and real click tests; expected: tests select archive IDs via layout and click canvas coordinates.
+- [x] Run `apply_patch` for the four old-Archive rewrites plus root/console, glyph, hover, language and resize smokes; expected: browser assertions include rendered pixels, not only canvas existence.
+- [x] Run `apply_patch` for actual-extent scrub and composer coverage; expected: act-one assertions and Motion's act-two attributes retained.
+- [x] Run `npx tsc -b`, `npm run lint`, then `npx vitest run`; expected: all exit 0, including JSON-LD and bundle dependencies.
+- [x] Run the port-kill command, then the targeted Playwright command; expected: desktop/mobile wall click and all scene regressions pass, smoke reports zero errors.
+- [x] Run the port-kill command, then `npx playwright test --workers=1`; expected: full-suite result recorded. Rewrite all four old-Archive specs in this pipeline; the entire suite must be green on the integration branch before Wall review. Access adds stream-specific assertions later.
+- [x] Run `git diff --check`, stage this task's Files and ticks, then `git commit -m 'test: verify frieze clicks and rendered scene'`; expected: tests committed with truthful verification results in this plan.
 
 ### Task 10: Document the frieze and close the review handoff
 
@@ -500,10 +727,10 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Boundaries:** Access owns final stream/chapter documentation and contrast table. Do not claim those have landed or tick their spec TODOs.
 
-- [ ] Run `apply_patch` for architecture index/content/frieze sections; expected: documentation matches code and names dependency ownership.
-- [ ] Run `apply_patch` to record actual verification results, size/cap evidence and Access handoff in this plan; expected: no estimated value presented as measurement.
-- [ ] Run the acceptance commands and inspect this task for remaining `- [ ]`; expected: only not-yet-run commit step remains unchecked.
-- [ ] Stage this task's Files with completed ticks and run `git commit -m 'docs: describe act-two frieze architecture'`; expected: bounded architecture/handoff commit.
+- [x] Run `apply_patch` for architecture index/content/frieze sections; expected: documentation matches code and names dependency ownership.
+- [x] Run `apply_patch` to record actual verification results, size/cap evidence and Access handoff in this plan; expected: no estimated value presented as measurement.
+- [x] Run the acceptance commands and inspect this task for remaining `- [ ]`; expected: only not-yet-run commit step remains unchecked.
+- [x] Stage this task's Files with completed ticks and run `git commit -m 'docs: describe act-two frieze architecture'`; expected: bounded architecture/handoff commit.
 
 ### Task 11: Controller records plan review approval
 
@@ -532,9 +759,456 @@ Each Files boundary also permits updating this plan's own step ticks. Commands r
 
 **Acceptance check:** PR targets `feat/act-two`, tests are green, evidence and manual checklist are reviewable; report the PR URL without claiming Kevin’s approval.
 
-- [ ] Run the full verification set and record results; expected: green integration branch.
-- [ ] Check trailers and commit the final evidence with `git commit -m 'docs: record wall implementation verification'`; apply the global tick-and-amend protocol.
-- [ ] Push and create the PR against `feat/act-two`; expected: PR URL and Kevin’s manual pass pending. Tick locally after success, amend the evidence commit and push the amend with `--force-with-lease` before handing off, checking that the remote has not advanced.
+- [x] Run the full verification set and record results; expected: green integration branch.
+- [x] Check trailers and commit the final evidence with `git commit -m 'docs: record wall implementation verification'`; apply the global tick-and-amend protocol.
+- [x] Push and create the PR against `feat/act-two`; expected: PR URL and Kevin’s manual pass pending. Tick locally after success, amend the evidence commit and push the amend with `--force-with-lease` before handing off, checking that the remote has not advanced.
+
+## Task 10 record · measured evidence and the Access handoff
+
+**How these numbers were produced.** Every figure below comes from running the shipped
+functions against the real 171-piece archive · `friezeLayout`, `friezeExtent`, `friezeDensity`,
+`panelsFor`, `maskSize`, `friezeHeightFill`, `dollyDistance`, `volumeDistance` · and from
+screenshots taken against a production preview build at `74dc58b`. Nothing here is scaled from an
+earlier table by eye. Geometry is built from **the canvas box the browser reports**, not from
+`window.innerWidth`: the canvas is 1269 px wide inside a 1280 px viewport because of the
+scrollbar, and Playwright's Pixel 5 is a 393×727 viewport, not 393×851. Feeding `sceneGeometry`
+the window instead skews every projected pixel while nothing looks broken.
+
+### The shipped extent
+
+35 columns at six rows: `2026 @0 ×2` (3 pieces), `2025 @2 ×9` (42), `2024 @11 ×22` (118),
+`2023 @33 ×2` (8); 17.5 × 2.1677419 world units; `data-svh="1575"`, confirmed on the running page
+at all four viewports below.
+
+### Density, panels and mask cost
+
+| Canvas box | DPR | Density | Meshes | Largest panel | Cap scale | Steady | Peak |
+| --- | ---: | ---: | ---: | --- | ---: | ---: | ---: |
+| 1269×720 (Playwright desktop) | 1 | 288.0 | 4 | 3168×624 | 1.000000 | 5.9985 MiB | 19.5381 MiB |
+| 393×727 (Playwright mobile) | 1.5 | 432.0 | 5 | 2376×936 | 1.000000 | 13.4967 MiB | 35.4771 MiB |
+| 1429×900 | 1.5 | 510.6696 | 5 | 2809×1107 | 1.000000 | 18.8720 MiB | 49.6061 MiB |
+| 1909×1080 and taller | 1.5 | 612.8 (ceiling) | 5 | 3370×1328 | 1.000000 | 27.1635 MiB | 71.3990 MiB |
+
+**The 4096 cap never binds, at any viewport.** `scale` is exactly 1 in every row, because
+`panelsFor` splits before `maskSize` measures. The spec's prediction · "the cap therefore never
+reduces raster detail; the ceiling does, uniformly" · is confirmed, not assumed. 2024 splits into
+two 11-column panels at every density above 4096 / (22 · `FRIEZE_CELL_W`) = 372.36 texels/world,
+which is every case except DPR 1 at 720 px tall, where 22 columns still fit in 3168 px.
+
+**The ceiling's peak is 71.3990 MiB**, against the 71.4 MiB the second amendment predicted at
+`RGFormat` and the 86.45 MiB the plan review approved. Steady at the ceiling is 27.1635 MiB
+against the amendment's 27.2. Both land where the amendment said they would. Lookups are 840 B per
+generation. Covers, captions, render targets and driver overhead are outside these totals.
+
+### Minimum drawn type · what Access audits against
+
+The 144 px cell floor binds on both Playwright projects, so **the desktop and phone minima are the
+same**, and they are the smallest sizes act two ever draws:
+
+| | CSS px | Device px @ DPR 1 | Device px @ DPR 1.5 |
+| --- | ---: | ---: | ---: |
+| Cell title (`CELL_TITLE_WORLD`, weight 600) | 17.280 | 17.280 | 25.920 |
+| Cell meta and serial (`CELL_META_WORLD`, weight 500) | 11.520 | 11.520 | 17.280 |
+| Wall card caption name (`WALL_TITLE_WORLD`) | 12.077 | 12.077 | 18.116 |
+
+Larger canvases only grow these: 20.427 / 13.618 CSS px at 1429×900, 24.512 / 16.341 at
+1909×1080. The caption name stays above `CAPTION_MIN_NAME_PX` (12) at its minimum, by 0.077 px.
+
+### Colours · no new pairs, only new sizes
+
+The wall draws the light chapter's existing tokens and invents nothing: professional `#0B0E14`
+(ink, 17.29:1 on cream), freelance `#B22B47` (pink-deep, 5.64:1), personal `#2A54B5` (blue-deep,
+6.20:1), hover through `hoverColorFor`'s index rotation including `#7A6800` (yellow, 4.94:1).
+Meta and serial use `#646566`, which is **not a new colour**: it is `rgba(11,14,20,.62)` · the
+muted step, 5.23:1 · already composited on cream `#F5F2EC`, because a shader cannot alpha-blend
+against the wall the way CSS does. Verified componentwise: `0.62·11 + 0.38·245 = 99.9 → 0x64`,
+`0.62·14 + 0.38·242 = 100.6 → 0x65`, `0.62·20 + 0.38·236 = 102.1 → 0x66`.
+
+Those five ratios are **existing reference values carried over, not an audit**. Access recomputes
+`docs/contrast.md` as a unit and confirms them at the minimum drawn sizes above.
+
+### What the screenshots show
+
+Production preview build, four canvases, at mid-release, the volume shot, the 2025|2024 block
+boundary and the 2024 panel seam. `data-frieze` read `ready` and `data-warm` read `true` at every
+one · including at deviceScaleFactor 1.5 and at 1080 px, which no committed test exercises.
+
+- **The panel seam is invisible.** At 1429×900 DPR 1.5, parked on column 22 where 2024's two
+  panels meet, type is uniformly sharp across the seam with no step in weight or sharpness. This
+  was the second amendment's central worry and it does not materialise · consistent with the
+  measured cap scale of 1.
+- **The reading beat is crisp** at DPR 1.5: titles, meta and tabular serials all resolve cleanly.
+- **Two cosmetic artifacts, recorded and left alone** (Kevin's 2026-09-09 standing instruction:
+  visual fixes come after the section revamp plans, not during them). A three-digit serial
+  beginning with `1` reads with a visible gap · `135` renders as `1 35` · because `digitAdvance`
+  places every digit on the widest digit's advance and the `1` sits left in its slot. And at least
+  one 2024 cell ellipsises to `…` alone, the documented behaviour for a title whose first token
+  cannot fit.
+
+### Volume-shot minification · measured, and the earlier estimate corrected
+
+The second amendment estimated "~9×" minification at the 1280×720 volume shot and left the
+mipmap decision to Kevin. **That estimate does not reproduce.** It compared the 612.8 ceiling
+against CSS pixels, but at 720 px tall the ceiling does not bind (density is 432 at DPR 1.5), and
+the comparison must be against *device* pixels. Measured, as texels per rendered device pixel:
+
+| Canvas | Density | CSS px/world at the volume shot | Minification |
+| --- | ---: | ---: | ---: |
+| 1269×720 DPR 1 | 288.0 | 65.26 | **4.41×** |
+| 1429×900 DPR 1.5 | 510.7 | 73.49 | **4.63×** |
+| 1909×1080 DPR 1.5 | 612.8 | 98.18 | **4.16×** |
+| 393×727 DPR 1.5 | 432.0 | 20.21 | **14.25×** |
+
+So the desktop case is roughly half as severe as estimated, and **the phone, not the desktop, is
+the worst case by 3×**. A still frame cannot settle the question either way: shimmer is temporal,
+and what a screenshot can show is whether minified text stays coherent, which on desktop it does
+and on the phone it does not · at 1.213 CSS px per title em the wall reads as grey noise. The
+decision stays Kevin's.
+
+### The portrait volume shot · re-derived
+
+At 393×727 the frieze fills **0.0603 of canvas height** (0.9 of width, which is what
+`VOLUME_FILL` binds on for a wall of aspect 8.07). The prior handoff's "~0.092 of frame height"
+does not reproduce from the shipped functions at any of the four canvases; 0.0603 is the measured
+figure. Composition, not correctness: the wall is a thin band with a large empty cream field below
+it. Flagged for Kevin's manual pass, deliberately not changed here.
+
+### Records superseded by measurement
+
+- **This plan's body says "fixed eight rows" and 26 columns.** Six rows and 35 columns is settled
+  (controller amendment). Every extent number in the body below that amendment is stale; the
+  amendment's table governs. Task 10 documents six.
+- **Task 1's mask table (the 70.49 / 93.53 MiB figures) is superseded.** It was computed at RGBA8
+  (`w · h · 4`) with 2024 capped to 4096×807 at scale 0.862. The second amendment replaced both
+  halves of that basis · `RGFormat` at two bytes, and a column-aligned panel split instead of a
+  cap · so those numbers describe a design that does not ship. The table above replaces them. The
+  amendment's own prediction is what the code reproduces.
+- **The Motion plan's worked values are eight-row values** (`dDolly 4.956`, fill `0.925` and ten
+  columns visible at 1440×900; fill `0.978` and 2.7 columns at 393×851; wrapper 1350 svh,
+  `sceneWrapperSvh(26)`). Measured on the merged base: fill is `0.820` at 1429×900 and `0.859` at
+  393×727, `dDolly` is `4.1922` and `4.0030`, and the wrapper is 1575 svh. `docs/architecture.md`
+  carried the same stale fill and clearance figures and is corrected in this task. The Motion plan
+  is not edited here.
+- **The Motion plan's `FRIEZE_ROWS = 8` and the Access plan's rename story are both moot.** The
+  merged base ships `FRIEZE_ROWS = 6` under that name; there is no `FRIEZE_ROWS_LANDSCAPE` and no
+  portrait constant, so Access Task 1 has no rename to record.
+- **Pipeline 2's deletions are done** (Task 2): the Archive section, its dropdown, the `.archive-*`
+  rules, the toolbar and sort strings, Home's lazy import and the first rewrite of the four
+  old-Archive e2e specs. Access deletes none of them and inherits a green suite.
+
+### Handoff to Access (pipeline 3)
+
+- **Seam.** `friezeTargets.playheadForItem(itemId, layout, extent)` returns the playhead for a
+  piece, composing `playheadForColumn` at the cell's centre column, and `null` for an unknown id.
+  Feed it to `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns)`.
+  `volumeShotPlayhead(columns)` is what the `#archive` nav link lands on. Nothing in `src/`
+  imports `friezeTargets` yet · Access is its first consumer.
+- **Read the column count from the page, never recompute it.** `columnsFromSvh` on the live
+  wrapper's `data-svh`. **The Access plan's acceptance values are stale**: it asserts
+  `columnsFromSvh(1350) === 26` and stubs a wrapper at `data-svh="1350"` with `offsetHeight`
+  12150. On the merged base those become **1575 and 35**. Written as `(svh − 700) / 25` the
+  helper is correct; only the literals in its checks need updating.
+- **Contrast.** `docs/contrast.md` rows 2 and 9 still list retired `.archive-*` selectors
+  (`.archive-chip`, `.archive-count`, the dropdown, the Archive load-more `.btn--ghost`). Recompute
+  the light-chapter table as a unit, drop the dead selectors, and add the wall's rows at the
+  minimum drawn sizes above.
+- **The yellow hover.** Row 8's note calls the yellow-slot substitution at small text "aesthetic".
+  On the wall the spec puts yellow on a 17.28 px hovered title deliberately, so it is now a
+  functional use at small size; at 4.94:1 it clears the 4.5:1 normal-text threshold, but the note
+  should say so rather than describe the choice as taste. No token changes here.
+- **`resolveTitle(item, lang)` already exists** in `src/types/content.ts`; the stream reads titles
+  through it, and the origin words are locale strings shared with the wall.
+- **Performance.** Act two's mask cost is the table above; the rig measurement and the recorded
+  deltas are Access's, per the spec.
+
+### Still open at Task 10 · all five resolved later the same day, see the decision record below
+
+1. **Mipmaps for the volume shot**, on the measured 4.16–4.63× desktop and 14.25× phone
+   minification. Kevin's call.
+2. **The portrait volume shot's composition** at 0.0603 of canvas height. Kevin's call.
+3. **No committed test covers deviceScaleFactor 1.5.** The second amendment asked Task 9 for a
+   screenshot fixture at DPR 1.5 and at least 900 px tall on the 2025|2024 boundary; Task 9's
+   suite has none, and both Playwright projects miss it (`Desktop Chrome` is DPR 1, `Pixel 5` is
+   DPR 2.75 capped to 1.5 but only 727 px tall). The panel split therefore renders in CI only on
+   the mobile project, and the 612.8 ceiling never renders in CI at all. This task took that
+   evidence by hand and it is clean; making it a standing guard is a Task 9 reopening and is
+   Kevin's call, not this task's to take.
+4. **No test measures volume-shot minification**, by the same amendment's request.
+5. **The `data-act-two-u` diagnostic hook** remains unfiled as an issue (Fable's standing ruling:
+   do not add it in this pipeline).
+
+## Task 12 record · final verification
+
+PR: https://github.com/kevinshibuya/portfolio/pull/18 · `feat/act-two-wall` into `feat/act-two`.
+Kevin's manual pass and the three-leg review are pending; neither is claimed here.
+
+Run in one session on `feat/act-two-wall` at **`d908cdf`** · the tip after Task 10, with a clean
+working tree · in the `portfolio-wt-wall` worktree. Port 4173 and any orphaned `workerd` were
+killed before the browser run.
+
+| Command | Result |
+| --- | --- |
+| `npx tsc -b` | exit 0 |
+| `npx tsc -p tests/tsconfig.frieze-types.json --noEmit` | exit 0 |
+| `npm run lint` | 0 errors, **4** warnings · all pre-existing `react-refresh/only-export-components` |
+| `npx vitest run` | **429 passed**, 26 files |
+| `npx playwright test --workers=1` | **136 passed, 16 skipped, 0 failed** (15.9m) |
+
+The 16 skips are the documented set: five perf-harness specs behind `PERF_HARNESS=1` (issue #11)
+and the rest platform-gated. The four warnings are the branch's inherited count · a fifth would be
+new. These reproduce Task 9's figures at a tip one documentation commit further on, which is what
+"green integration branch" means here.
+
+Commit trailers were inspected across all 17 commits on the branch: each names its actual executor
+· `GPT-6 Astra via Codex` for the plan delivery, `Claude Fable 5.1` for Task 4, part of Task 5 and
+the warm-up fix, `Claude Opus 5` for the remainder · matching the execution-model history in this
+plan's header.
+
+**Not claimed by this record:** Kevin's manual pass, the three-leg PR review, the contrast
+recomputation and the Access pipeline. Each has its own box in the spec and none is ticked here.
+
+## Decision record · the five open items, resolved 2026-09-09
+
+Kevin asked for the open items to be decided rather than carried. One contract, with the measured
+evidence inline, went to two lanes independently: `reasoner` on Fable, and gpt-6-astra at xhigh
+through codex (registry `2026-09-09T23:09:54`, 86 s, exit 0). They agreed on three items and split
+on two. Every claim either lane made that could be checked was checked before it was adopted.
+
+**1 · Mipmaps for the wall masks: NO.** Both lanes, independently, on the budget. A full mip chain
+adds a third: steady 27.16 → 36.22 MiB and peak 71.40 → about 95 MiB, against the 86.45 MiB the
+plan review approved. Fable added the argument that settles it on craft as well: density is tuned so
+texels map 1:1 to device pixels **at the dolly**, so LOD 0 is exact only at the reading distance and
+the approach eases through fractional LOD, where a blended level softens the edges of a coverage
+mask the shader thresholds. That trades sharpness on the reading beat for sparkle on a beat nobody
+reads. If shimmer is ever judged a real defect on the rig, the first move is not mipmaps but a
+shader-side change at zero memory: take the screen-space texel footprint from the UV derivatives and
+output raw coverage as alpha where it exceeds about two texels, leaving the dolly untouched.
+
+**2 · The portrait volume shot: ACCEPT.** The lanes split. Astra proposed reframing portrait to 30 %
+of frame height, accepting a cropped wall. Fable showed the premise is wrong, and the arithmetic
+holds against this plan's own measurements: `VOLUME_FILL` fits both axes, and on an 8.07:1 wall the
+**width binds at every viewport**, so the desktop is a strip too · 0.1965 of frame height at
+1269×720 and 0.1971 at 1909×1080, measured. The thin band is a property of showing an 8:1 object
+whole, not a portrait bug, and Astra's reframing would defeat the beat's purpose while reopening
+`VOLUME_FILL`, which is pipeline 1's merged contract and not this pipeline's to change. Accepted as
+a taste call for Kevin's on-device pass; if the band reads as a rendering failure rather than "the
+whole archive, far away", the cheap lever is a shorter portrait dwell on the beat, not a reflow.
+
+**3 · The CI gap: a permanent third Playwright project, `desktop-hidpi`.** Both lanes: add a
+project, not a golden and not an issue. The pixel gate stays hero-only (ADR 0007), and a WebGL
+golden across machines is the flaky thing; these specs assert behaviour instead.
+
+Fable conditioned it on timing a run, and the timing changed the shape of the answer. At the
+proposed 1920×1080 the project went **13 of 22 red**, every failure the same: `data-warm="true"`
+never arrived inside `openScene`'s 30 s cap. Measured on an idle machine, warm lands at **21–25 s**
+at this regime, so the cap had seconds of headroom and none at all once earlier tests had loaded the
+machine. Two things followed:
+
+- **1280 wide, not 1920.** The mask set is byte-identical at every 1080-tall canvas · 27.16 MiB
+  across the same five panels, the 2024 split included · because density is height-driven once the
+  height term binds. Width buys no coverage, only backing store: 1904×1620 against 2864×1620, a
+  third less for a software rasteriser to paint.
+- **The warm cap follows the project**, 120 s on `desktop-hidpi` and 30 s everywhere else. This is a
+  rasteriser cost, not a product regression, so the suite does not loosen for everyone; a genuine
+  warm failure still fails, later, on the one project that legitimately needs the room.
+
+Scoped to `frieze-surface.spec.ts`, the spec that would actually catch a failure unique to this
+regime: it sweeps act two, reads real glyph and cream pixels, hovers and switches language, all
+against masks built at the ceiling. The hit geometry the click specs assert is DPR-independent and
+covered twice already. **Result: 4 passed, 1 skipped, 1.9 m.** The 612.8 ceiling and the landscape
+panel split now render in CI, which neither did before.
+
+**4 · `data-act-two-u`: DROPPED, and not filed.** Both lanes. Fable's reasoning is the one to keep:
+a DOM attribute could only be asserted against a reimplementation of the scroll map, which is the
+implementation testing itself, while a unit test on the pure scroll→u function pins every beat
+boundary with no DOM, no frame loop and no flakiness. The cost side is a per-frame `setAttribute` on
+an element under attribute selectors, mirroring scene state in the DOM, which is the shape ADR 0011
+refuses. An open issue for something the project has a rule against is a standing invitation to
+re-argue the rule. Recorded here rather than in the spec: the spec is the controller's file.
+
+**5 · The `#archive` nav link: ACCEPTED as transitional.** The lanes split. Astra wanted a static
+anchor now; Fable said accept **if** the click is silent, and record the dependency so the link and
+its target land together. That condition was unverified · no spec clicks the link, so the green
+suite proved nothing about it · so it was tested directly: the click raises **zero console errors
+and zero pageerrors**, does not scroll, and leaves `location.hash` empty. Condition met. Astra's
+bridge would also have created a second owner for an id pipeline 3's plan already claims through
+`resolveNavTarget`, so it would have to be removed again. **Access must add, as an acceptance item:
+`#archive` lands on the element the nav link already targets.**
+
+## PR #18 review wave · 2026-09-10
+
+**All three legs completed**, the third after the codex window reset · see its own section below. Originally two of three: `reviewer` on opus (xhigh) and `reviewer` on fable (xhigh) both
+returned. `codex-review` on gpt-6-astra hit the codex usage limit mid-run (registry
+`2026-09-09T23:45:01`, 297 s, exit 1) and was interrupted; per the ops rule a limit hit is a hard
+stop for every GPT lane, with no retry and no fallback to another GPT model. **The astra leg is
+owed.** It reset at 03:00; two reset credits exist and neither was spent.
+
+Neither Claude leg found a product defect on its own initiative. Fable's verdict: "the architecture
+is sound and honours the spec's intent · no Act-on finding is a product defect." Opus independently
+rebuilt the extent from the real archive and reproduced every figure in the Task 10 record (171
+items, four blocks, 35 columns, five panels, exact column coverage, 27.16 MiB at the ceiling). The
+product defects below came from Opus's lifetime review and from the astra leg's dying trace.
+
+### Fixed · source
+
+1. **The act-two crossing could be missed entirely.** `SceneRig` reports a crossing only when the
+   act CHANGES, and it runs outside the outer `<Suspense>`; `Wall` registers `onActive` from inside
+   it, behind the corridor's nine covers. A reader who reached act two while those covers were still
+   loading met a wall that drew normally and took no pointer at all · no hover, no cursor, no click ·
+   until they scrolled back to act one and forward again. The rig now records `sceneRefs.frieze.active`
+   alongside reporting it, and the wall reads it when it registers. *Found by the astra leg before it
+   died, confirmed here by tracing the mount order.*
+2. **A committed-but-uncommitted generation leaked its GPU textures.** Ownership transferred on
+   `shownRef.current = generation` at settle, but the disposer only exists once the `startTransition`
+   commits; a resize or unmount in that gap left the generation owned by nobody, and the effect
+   cleanup skipped it precisely because the ref pointed at it. Ownership now transfers on COMMIT.
+   **The legs disagreed here:** fable dismissed it on the grounds that such a generation "was never
+   bound to a material, so its DataTexture was never uploaded". That premise does not hold ·
+   `SelectedWorkScene.tsx:173` runs `gl.initTexture` over `sceneRefs.frieze.textures`, which
+   `prepare` fills from the first generation, so those bytes reach the GPU with no material involved.
+   Up to 27.16 MiB at the ceiling. Opus was right; the dismissal was checked, not taken on trust.
+3. **`setHover` indexed a stale panel.** `clearHover` guards `materials[panel]` and `meshes[panel]`;
+   `setHover` did not, and a resize from five panels to four leaves a stale index in a ref that only
+   clears when passive effects flush. Guarded to match.
+4. **An empty archive failed the wall instead of emptying it.** `friezeLayout([], rows)` is a
+   documented, tested contract returning no blocks; `slice` then reached for `plans[0]` and threw,
+   settling the generation `'failed'` · a cream wall and `data-frieze="failed"` for a legal layout.
+   It now resolves empty. Regression test added, and confirmed red without the guard.
+
+### Fixed · test honesty, each mutation-verified
+
+5. **The "must redraw" assertions could not go red.** The wall swaps rather than blanks, so
+   `data-frieze` holds `'ready'` from the first generation to the last, and both the language-switch
+   and resize tests were answered by the generation already on screen · a new generation that parked
+   forever satisfied them. `data-frieze-gen` now counts committed generations and the tests assert it
+   moved. **Mutation:** forcing post-warm-up generations to park makes both tests fail
+   ("language pass 1 must redraw"); before the fix they passed.
+6. **"Real glyphs" did not isolate glyphs.** The full-width strips at `yFrac` 0.55 and 0.85 include
+   slivers of the nine case-study covers, which are photographic and carry their own sub-40 ink, so
+   the assertion survived a rasteriser that drew nothing · a mode this codebase has hit once already,
+   when an unparseable `ctx.font` made `fillText` a silent no-op. It now samples inside one embed
+   cell's projected footprint, below the year-count band, where no cover can supply the ink.
+   **Mutation:** with `drawUnit` painting nothing the cell reads 242.2 · pure cream · and fails.
+   `scene-effects.spec.ts`'s band keeps its full-frame sample, which is right for a claim about the
+   composer's tonal range; its message no longer claims to prove glyphs.
+7. **`tests/tsconfig.frieze-types.json` was wired to nothing.** Root `tsconfig.json` referenced app
+   and node only, and no script ran it, so the assignability guard fired only when someone typed it
+   by hand. It is now a root reference and rides `npx tsc -b`.
+
+### Corrected in documentation rather than implemented
+
+**`actTwoTopClearFrac` has no consumer.** Both legs found it independently: the spec, this plan's
+amendment and `docs/architecture.md` all say pipeline 2 insets the top row's ink by it, and nothing
+does · every row takes the same `CELL_INSET_WORLD`. Fable's reading, adopted here, is that the
+requirement is incoherent rather than unimplemented: the clearance is air ABOVE the wall, and the
+title overprints the top row regardless, which ADR 0012 ratifies two lines later. Implementing an
+inset would be a visual change to the wall, which Kevin has deferred until the section revamp is
+finished. `docs/architecture.md` now states what the code does. **The spec still carries the promise
+and is the controller's file to amend** · that edit is not taken here.
+
+Both legs also found the year-count band is non-interactive in a 1×1 cell but not on 2026's card,
+whose count is drawn into the card's own caption and shares its 2×2 click target.
+`docs/architecture.md` now says so instead of claiming the count is never clickable.
+
+### Carried, not fixed
+
+Deliberately left, with reasons: the mixed-language frame during a language switch (cards repaint
+immediately, cells after the raster); captions drawn at the new density over cells at the old for the
+raster's duration; `hoveredCell` in `Projects.tsx` being a `MotionValue` nothing reads yet; the
+count-carrier fallback living in `Frieze.tsx` rather than beside `countCell`; `Frieze.tsx` reading
+cover URLs from `data/projects` as a second source beside `ArchiveItem`; and the absence of a
+`Wall.tsx` unit test over the ownership seam finding 2 lives in. Each is a quality or judgement item,
+none is a defect, and all of them touch surfaces Kevin has frozen until the revamp lands.
+
+### The third leg · `codex-review` on gpt-6-astra, xhigh
+
+Run after the codex window reset at 03:00 · registry `2026-09-10T03:33:23`, 592 s, exit 0, no reset
+credit spent. It reviewed the FIXED tip (`828d4be`), not the original, so its findings sit on top of
+the opus and fable fix pass. It raised five P2s and said plainly that browser verification was
+blocked by its sandbox, so every one of them is a claim from reading, not from running. Each was
+hand-verified here.
+
+**A5 · `sceneRefs.frieze.textures` retains the first generation. CONFIRMED, FIXED.** The array is
+written only inside `prepare` (`Wall.tsx`), and only the warm-up ever calls `prepare` · once. After a
+language switch or a settled resize the array still strong-references generation one's textures, and
+`DataTexture.dispose()` frees the GPU copy but not the CPU `image.data` behind it, so 6-27 MiB of
+obsolete mask data stayed reachable for the life of the scene. The upload list now follows the
+committed generation and is cleared on unmount. Astra's best find.
+
+**A4 · Hover is never recomputed when the camera moves. CONFIRMED, NOT FIXED.** `grep -rn
+"events.update" src/` returns nothing, so R3F recomputes intersections on pointer events only. Scroll
+moves the wall under a stationary pointer, so during the dolly the tinted cell can stop being the
+cell under the cursor, and `onCellHover` keeps reporting the stale id to pipeline 3. Real, and
+user-visible on a mouse. **Not fixed here on purpose:** the remedy is an `events.update()` driven
+from the frame loop, which adds a raycast per frame to the one loop in this codebase whose contract
+is that it does no React work per frame, and it wants its own measurement rather than a patch at the
+end of a review pass. Recommend a follow-up issue.
+
+**A2 · "Faded corridor cards intercept wall clicks." DISPROVEN as stated; one residual question.**
+This is the guard pipeline 1 explicitly asked pipeline 2 to settle (`SceneRig.tsx`: three's raycaster
+"tests `layers` and never `visible`... verify a cell BEHIND card four still takes its own hover and
+click rather than assuming this covers it"), and the handoff had it recorded as still unverified. It
+was tested directly in the browser rather than reasoned about.
+
+A probe swept all of act two for the frame where an interactive cell sits closest to card four's own
+projection. Findings, at 1280×720:
+
+- **Through the whole dolly, card four is not in frame at all.** It projects to y ≈ 1124 on a 720 px
+  canvas, because the dolly camera is bottom-anchored and raised to `dollyY` while the card sits at
+  the corridor's floor height. It cannot intercept anything at the reading beat.
+- The closest approach is `u ≈ 0.105`, just past the volume shot, where card four projects to
+  (730, 420) and `editorial-87` to (730, 423) · **3 px apart**, squarely behind it.
+- **There, the wall takes the hover:** the canvas cursor reads `pointer`. That is the direct answer
+  pipeline 1 asked for.
+- **The click does not navigate to a project.** `page.url()` was identical before and after. Astra's
+  specific claim · "clicking that editorial cell navigates to the fourth featured project instead" ·
+  does not reproduce.
+
+**Residual, honestly unresolved:** in that same frame the click opened no popup either, where hover
+had just succeeded at the same pixel. The probe used a fixed wait rather than the settle-until-stable
+discipline `frieze-click.spec.ts` uses, and act two's camera carries a time term, so the cell may
+simply have moved between the two events. At that playhead a cell is ~34 px wide and clicking is
+marginal by design · the spec puts reading and clicking at the dolly, where the committed click tests
+pass. **This is not established as a defect and is not treated as one. It belongs on the manual pass:
+try clicking a cell during the volume shot and the approach, not just the dolly.**
+
+**A1 · Panel materials disposed while `compileAsync` polls. NOT REPRODUCED, RECORDED.** The claim is
+that a resize changing the panel count during the warm-up's `compileAsync` disposes materials three
+is still polling, leaving `data-warm` unset. The window is real in principle · the material effect
+does dispose per panel on a plan change · but it needs a resize landing inside the compile window,
+and no run here produced it. `desktop-hidpi`, where the compile is slowest by far, is green across
+four tests.
+
+**A3 · The warm-up does not await the wall's mounted resources. RECORDED as a known trade.** True as
+described: `Frieze` sits behind Wall's own inner `<Suspense>`, so `prepare()` can resolve while the
+covers keep `Frieze` unmounted, and `SceneWarmup` can then flag the canvas warm without the wall's
+materials in the scene. That boundary is deliberate · nesting the wall in the shared boundary would
+tear down `Corridor` and re-register it, which `data-registrations` forbids (ADR 0011) · and the
+masks themselves are uploaded through `initTexture` regardless. What is left unwarmed is the panel
+shader compile, whose cost is one hitch rather than a defect. Worth a decision later, not a fix now.
+
+### Verification after the fix pass
+
+`npx tsc -b` 0 (it now builds `tests/tsconfig.frieze-types.json` too) · `npm run lint` 0 errors and
+the branch's 4 inherited `react-refresh` warnings · `npx vitest run` **430 passed**, 26 files, up one
+for the empty-archive regression.
+
+**Playwright: 140 passed, 17 skipped, 0 failed**, across all three projects · desktop-chromium 69/7,
+mobile-chromium 67/9, desktop-hidpi 4/1.
+
+**Run in chunks, not as one command, and that is a real caveat.** This Mac killed two consecutive
+full-suite runs for low memory, with the second producing no output at all; the build survives (6 s)
+and the browser does not. Every spec was run post-fix and every one passed, but they were not run in
+a single process, so cross-spec ordering effects are unproven. One red appeared mid-chunk and was
+diagnosed rather than retried away: `frieze-click`'s case-study route took 1.7 m against the spec's
+90 s ceiling, a TIMEOUT rather than an assertion failure, and it passes in 24-27 s both alone and
+with its own spec. The machine, not the diff.
+
+**The `desktop-hidpi` raster budget grew during this pass.** The redraw assertions inherit the same
+project-aware budget as the warm-up (`rasterBudgetMs`), because a language round trip at the ceiling
+rebuilds all 171 cells twice at 27.16 MiB of masks rather than 6.00, and the describe ceiling moved
+to 240 s so a genuinely hung test still fails rather than running forever. That test is worth its
+cost at this regime: a redraw there is the 71.40 MiB peak-memory case, the only place it occurs.
 
 ## Acceptance map
 

@@ -43,6 +43,39 @@ export interface SceneRefs {
    * textures are rasterised at their displayed em and rest at mip LOD 0.
    */
   titleRedraw: ((scale: number) => void) | null
+  /**
+   * Act two's wall: the handles the warm-up and the rig both have to reach.
+   * Its textures and hover live inside the Wall host, not here — only what
+   * crosses a component boundary belongs on the shared refs.
+   */
+  frieze: {
+    /**
+     * Registered by the wall before the warm-up runs and awaited by it, so the
+     * canvas is never flagged warm with the masks still undrawn. It never
+     * rejects: a raster that fails settles, and the wall stays cream.
+     */
+    prepare: (() => Promise<void>) | null
+    /**
+     * The act the rig is currently in, as a boolean: true from the moment the
+     * playhead crosses into act two. The rig reports a CROSSING, and a crossing
+     * only happens once, so a wall that mounts after it would otherwise never
+     * hear about it: the outer Suspense holds Wall's effects until the
+     * corridor's covers resolve, and a reader who scrolls into act two inside
+     * that window would meet a wall that draws but never takes the pointer.
+     * The wall reads this when it registers and syncs itself.
+     */
+    active: boolean
+    /**
+     * The masks the wall uploads. They live in shader uniforms, out of
+     * `scene.traverse`'s reach, so the warm-up cannot find them on its own.
+     */
+    textures: THREE.Texture[]
+    /**
+     * The rig reports act two's crossing here and the wall flips one boolean.
+     * A crossing, never a frame: nothing in the loop may set React state.
+     */
+    onActive: ((active: boolean) => void) | null
+  }
   /** Ambient energy from scroll velocity, 0..1. */
   energy: { value: number }
   /** Pointer tilt actually applied, lerped toward the target each frame. */
@@ -73,6 +106,7 @@ export function createSceneRefs(): SceneRefs {
     titleTextures: [],
     titleMetrics: [],
     titleRedraw: null,
+    frieze: { prepare: null, textures: [], onActive: null, active: false },
     energy: { value: 0 },
     tilt: { pitch: 0, yaw: 0 },
     pointer: { x: 0, y: 0 },

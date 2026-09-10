@@ -4,10 +4,12 @@ import { useMotionValueEvent, type MotionValue } from 'framer-motion'
 import * as THREE from 'three'
 import { entranceDone } from '../../context/MotionContext'
 import { FOV_DEG, sceneGeometry, fogRange } from '../../utils/sceneMotion'
-import type { FriezeExtent } from '../../utils/friezeLayout'
+import type { ArchiveItem } from '../../types/content'
+import type { FriezeExtent, FriezeLayout } from '../../utils/friezeLayout'
 import { createSceneRefs, type SceneRefs } from './scene/sceneRefs'
 import { SceneRig } from './scene/SceneRig'
 import { Corridor } from './scene/Corridor'
+import { Wall } from './scene/Wall'
 import { SceneTitle } from './scene/SceneTitle'
 import { Overture } from './scene/Overture'
 import { Environment } from './scene/Environment'
@@ -43,6 +45,16 @@ export interface SelectedWorkSceneProps {
   overture: string
   /** The frieze's extent: what act two is framed against, and the year strings. */
   frieze: FriezeExtent
+  /** The packing that extent was derived from; the wall draws and hits on it. */
+  friezeLayout: FriezeLayout
+  /** The archive in its own order, for the wall's cells and card objects. */
+  archive: readonly ArchiveItem[]
+  /** The active language; the wall's cell text and card titles follow it. */
+  lang: 'en' | 'pt'
+  /** A press on an archive cell. The Router root decides what it means. */
+  onCellClick: (itemId: string) => void
+  /** The settled cell under the pointer, or null. */
+  onCellHover: (itemId: string | null) => void
   /** `all work` / `todos os trabalhos` — act two's first title. */
   allWork: string
 }
@@ -141,6 +153,11 @@ function SceneWarmup({ sceneRefs }: SceneWarmupProps) {
       if (cancelled) return
       started.current = true
       try {
+        // The wall's masks are drawn HERE, not on the first live frame, and
+        // the compile below needs them bound. A raster that fails settles all
+        // the same, so `data-warm` can never hang on a cream wall.
+        await sceneRefs.frieze.prepare?.()
+        if (cancelled) return
         await gl.compileAsync(scene, camera)
         if (cancelled) return
         scene.traverse((object) => {
@@ -150,8 +167,10 @@ function SceneWarmup({ sceneRefs }: SceneWarmupProps) {
             : null
           if (map) gl.initTexture(map)
         })
-        // The title's textures live in shader uniforms, out of traverse's reach.
+        // The title's textures and the wall's masks live in shader uniforms,
+        // out of traverse's reach.
         for (const texture of sceneRefs.titleTextures) gl.initTexture(texture)
+        for (const texture of sceneRefs.frieze.textures) gl.initTexture(texture)
         // compileAsync and initTexture alone do NOT pay the whole first-draw
         // cost — measured, a 1528ms task still landed on the first live frame
         // — and postprocessing exposes no way to pre-build the DoF's internal
@@ -209,6 +228,11 @@ export function SelectedWorkScene({
   navPx,
   overture,
   frieze,
+  friezeLayout,
+  archive,
+  lang,
+  onCellClick,
+  onCellHover,
   allWork,
 }: SelectedWorkSceneProps) {
   const sceneRefs = useRef(createSceneRefs())
@@ -370,6 +394,18 @@ export function SelectedWorkScene({
       <Suspense fallback={null}>
         <Environment desktopEffects={desktopEffects} sceneRefs={sceneRefs.current} />
         <Corridor cards={cards} sceneRefs={sceneRefs.current} onCardClick={onCardClick} />
+        {/* Before SceneWarmup on purpose: effects run in tree order, so the
+            wall has registered its preparation by the time the warm-up looks
+            for it. */}
+        <Wall
+          items={archive}
+          layout={friezeLayout}
+          extent={frieze}
+          lang={lang}
+          sceneRefs={sceneRefs.current}
+          onCellClick={onCellClick}
+          onCellHover={onCellHover}
+        />
         <ReadySignal onReady={onReady} />
         <SceneWarmup sceneRefs={sceneRefs.current} />
       </Suspense>

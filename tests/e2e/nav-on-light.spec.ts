@@ -27,10 +27,11 @@ test('nav flips to on-light over the cream chapter (Projects → Skills) and bac
   await scrollIntoSection(page, 'projects', 0.4)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
 
-  // Archive is INSIDE the light chapter now (Plan B): the nav stays on-light
-  // all the way from #projects to the bottom of #skills, and theme-color
-  // follows the flip so the mobile browser chrome matches the cream sheet.
-  await scrollIntoSection(page, 'archive', 0.3)
+  // The whole light chapter holds the flip: the nav stays on-light all the way
+  // from #projects to the bottom of #skills, and theme-color follows it so the
+  // mobile browser chrome matches the cream sheet. Sampled at Work Experience,
+  // the chapter's middle now that Archive's rows are the act-two wall.
+  await scrollIntoSection(page, 'work', 0.3)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
   await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#F5F2EC')
 

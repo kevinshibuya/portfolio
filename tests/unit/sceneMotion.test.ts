@@ -1044,7 +1044,7 @@ const FIXTURE_FRIEZE: FriezeExtent = {
   ],
 }
 
-/** Today's archive through `provisionalFriezeExtent`: what the running site has. */
+/** Today's archive through `friezeLayout` / `friezeExtent`: what the running site has. */
 const SHIPPED_FRIEZE: FriezeExtent = {
   columns: 35,
   rows: 6,

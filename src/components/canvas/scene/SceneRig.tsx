@@ -286,6 +286,13 @@ export function SceneRig({
     if (act !== lastAct.current) {
       lastAct.current = act
       state.gl.domElement.dataset.act = String(act)
+      // The wall's hit testing rides the same crossing: act one must not take
+      // the pointer through the wall standing behind it. A crossing is not a
+      // frame, so this is the one place the loop may reach React at all.
+      // Recorded as well as reported: a wall that has not mounted yet cannot
+      // hear a crossing, and a crossing does not repeat.
+      sceneRefs.frieze.active = inActTwo
+      sceneRefs.frieze.onActive?.(inActTwo)
     }
 
     // The hover lift eases toward 1 only while the pointer is over the card

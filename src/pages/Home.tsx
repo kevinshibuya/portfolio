@@ -12,9 +12,6 @@ import { resetPageMeta } from '../utils/pageMeta'
 const Projects = lazy(() =>
   import('../components/sections/Projects').then((m) => ({ default: m.Projects }))
 )
-const Archive = lazy(() =>
-  import('../components/sections/Archive').then((m) => ({ default: m.Archive }))
-)
 const WorkExperience = lazy(() =>
   import('../components/sections/WorkExperience').then((m) => ({ default: m.WorkExperience }))
 )
@@ -212,7 +209,6 @@ export function Home() {
   useEffect(() => {
     const warm = () => {
       void import('../components/sections/Projects')
-      void import('../components/sections/Archive')
       void import('../components/sections/WorkExperience')
       void import('../components/sections/Skills')
       void import('../components/sections/Stats')
@@ -242,7 +238,6 @@ export function Home() {
             ancestor would silently break the pin. */}
         <div id="chapter-light" className="chapter-light">
           <Projects />
-          <Archive />
           <WorkExperience />
           <Stats />
           <Skills />

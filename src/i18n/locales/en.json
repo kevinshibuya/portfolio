@@ -40,24 +40,9 @@
     },
     "archive": {
       "title": "all work",
-      "description": "everything i've shipped, searchable.",
-      "toolbar": {
-        "search": "search…",
-        "kind": "kind",
-        "type": "type",
-        "editorial": "editorial",
-        "year": "year",
-        "sort": "sort",
-        "all": "all",
-        "countLabel": "items",
-        "showMore": "show more"
-      },
-      "sort": {
-        "featured": "featured",
-        "newest": "newest first",
-        "oldest": "oldest first",
-        "az": "a–z",
-        "za": "z–a"
+      "origin": {
+        "freelance": "freelance",
+        "personal": "personal"
       }
     },
     "work": {
