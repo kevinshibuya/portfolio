@@ -49,13 +49,13 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
     expect(await bgOf(page, 'body')).toBe('rgb(11, 14, 20)')
   })
 
-  test('2 · structure: five sections in the wrapper, veil as its sibling', async ({ page }) => {
+  test('2 · structure: four sections in the wrapper, veil as its sibling', async ({ page }) => {
     await settle(page)
 
     const ids = await page.evaluate(() =>
       Array.from(document.querySelectorAll('#chapter-light > *')).map((el) => el.id),
     )
-    expect(ids).toEqual(['projects', 'archive', 'work', 'stats', 'skills'])
+    expect(ids).toEqual(['projects', 'work', 'stats', 'skills'])
 
     // The veil is the wrapper's NEXT SIBLING, never a child: its gradient ends
     // in var(--bg), which the wrapper's token scope would turn cream.
@@ -83,7 +83,6 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
     await settle(page)
     await scrollIntoSection(page, 'work', 0.2)
 
-    expect(await bgOf(page, '#archive')).toBe('rgb(237, 233, 224)')
     expect(await bgOf(page, '#skills')).toBe('rgb(237, 233, 224)')
     expect(await bgOf(page, '#stats')).toBe('rgb(245, 242, 236)')
     expect(await bgOf(page, '#projects')).toBe('rgb(245, 242, 236)')
@@ -94,16 +93,6 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
 
   test('4 · text inverts to the on-light ink system', async ({ page }) => {
     await settle(page)
-    await scrollIntoSection(page, 'archive', 0.2)
-
-    expect(await colorOf(page, '#archive .workrow-title')).toBe('rgb(11, 14, 20)')
-    expect(await colorOf(page, '#archive .workrow-meta')).toBe('rgba(11, 14, 20, 0.62)')
-    // aria-hidden decoration keeps the faded step (exempt from 1.4.3).
-    expect(await colorOf(page, '#archive .workrow-index')).toBe('rgba(11, 14, 20, 0.4)')
-    // The expand glyph is a STATE indicator (WCAG 1.4.11, 3:1), not decoration,
-    // so it takes muted (5.23:1) and never the 2.62:1 faded step.
-    expect(await colorOf(page, '#archive .workrow-arrow')).toBe('rgba(11, 14, 20, 0.62)')
-
     await scrollIntoSection(page, 'stats', 0.2)
     expect(await colorOf(page, '#stats .stats-row-value')).toBe('rgb(11, 14, 20)')
 
@@ -115,8 +104,16 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
     // Row 0 is expanded by default → deep pink small-text channel.
     expect(await colorOf(page, '#work .work-highlight-label')).toBe('rgb(178, 43, 71)')
 
+    expect(await colorOf(page, '#work .workrow-title')).toBe('rgb(11, 14, 20)')
+    expect(await colorOf(page, '#work .workrow-meta')).toBe('rgba(11, 14, 20, 0.62)')
+    // aria-hidden decoration keeps the faded step (exempt from 1.4.3).
+    expect(await colorOf(page, '#work .workrow-index')).toBe('rgba(11, 14, 20, 0.4)')
+    // The expand glyph is a STATE indicator (WCAG 1.4.11, 3:1), not decoration,
+    // so it takes muted (5.23:1) and never the 2.62:1 faded step.
+    expect(await colorOf(page, '#work .workrow-arrow')).toBe('rgba(11, 14, 20, 0.62)')
+
     const border = await page.evaluate(() => {
-      const el = document.querySelector('#archive .workrow')
+      const el = document.querySelector('#work .workrow')
       if (!el) return 'MISSING'
       return getComputedStyle(el).borderBottomColor
     })
@@ -168,10 +165,10 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
 
   test('6 · WorkRow hover tint rotates through the deep large triplet', async ({ page, isMobile }) => {
     await settle(page)
-    await scrollIntoSection(page, 'archive', 0.2)
+    await scrollIntoSection(page, 'work', 0.2)
 
     const tints = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('#archive .workrow'))
+      Array.from(document.querySelectorAll('#work .workrow'))
         .slice(0, 3)
         .map((el) => getComputedStyle(el).getPropertyValue('--row-tint-deep-large').trim()),
     )
@@ -181,7 +178,7 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
     if (!isMobile) {
       const expected = ['rgb(178, 43, 71)', 'rgb(42, 84, 181)', 'rgb(122, 104, 0)']
       for (let i = 0; i < expected.length; i++) {
-        const row = page.locator('#archive .workrow').nth(i)
+        const row = page.locator('#work .workrow').nth(i)
         await row.locator('.workrow-link, .workrow-toggle').first().hover()
         await page.waitForTimeout(600)
         const color = await row.locator('.workrow-title').first().evaluate(

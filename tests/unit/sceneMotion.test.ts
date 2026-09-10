@@ -51,7 +51,53 @@ import {
   TITLE_CLEARANCE,
   TITLE_CLEARANCE_PORTRAIT,
   scrollTargetFor,
+  ACT_TWO_RELEASE_SVH,
+  ACT_TWO_APPROACH_SVH,
+  ACT_TWO_SVH_PER_COLUMN,
+  ACT_ONE_SVH,
+  ACT_TWO_START,
+  actTwoSvh,
+  sceneWrapperSvh,
+  actOneVelocityScale,
+  actTwoBeats,
+  actTwoProgress,
+  actOneSeg,
+  actTwoPlayhead,
+  volumeShotPlayhead,
+  VOLUME_FILL,
+  DOLLY_HEIGHT_FILL,
+  FRIEZE_CELL_MIN_PX,
+  HOVER,
+  friezeFrame,
+  volumeDistance,
+  dollyDistance,
+  dollyY,
+  dollyRange,
+  dollyEase,
+  actTwoCardFade,
+  actTwoPose,
+  sceneFar,
+  fogRangeAt,
+  actTwoFogRange,
+  actTwoFocusDistance,
+  actTwoTitleDistance,
+  friezeHeightFill,
+  actTwoTopClearFrac,
+  maxRowsInFrame,
+  dollyCursor,
+  blockAt,
+  blockIndexAt,
+  actTwoTitle,
+  actTwoStill,
+  actTwoStillPose,
+  playheadForColumn,
+  playheadForBlock,
 } from '../../src/utils/sceneMotion'
+import { FRIEZE_CELL_W, FRIEZE_CELL_H, FRIEZE_ROWS } from '../../src/utils/friezeLayout'
+import type { FriezeExtent } from '../../src/utils/friezeLayout'
+
+/** tan(FOV/2), mirrored so the tests can project without importing internals. */
+const HALF_FOV_TAN_T = Math.tan(((FOV_DEG * Math.PI) / 180) / 2)
 import type { SceneGeometry } from '../../src/utils/sceneMotion'
 
 /** The four viewports the geometry contract was worked against. */
@@ -879,6 +925,640 @@ describe('fogRange', () => {
       const ratio = fogRange(g, t).near / base
       expect(ratio).toBeGreaterThan(0.97 - 1e-9)
       expect(ratio).toBeLessThan(1.03 + 1e-9)
+    }
+  })
+})
+
+describe('act two · scroll', () => {
+  it('budgets 100 svh of release, 50 of approach and 25 per column', () => {
+    expect(ACT_TWO_RELEASE_SVH).toBe(100)
+    expect(ACT_TWO_APPROACH_SVH).toBe(50)
+    expect(ACT_TWO_SVH_PER_COLUMN).toBe(25)
+    expect(ACT_ONE_SVH).toBe(550)
+    expect(ACT_TWO_START).toBe(CARD_COUNT - 1)
+    expect(actTwoSvh(22)).toBe(700)
+    expect(actTwoSvh(26)).toBe(800)
+  })
+
+  it('sizes the wrapper from the column count', () => {
+    // The shipped extent: the one the running site depends on.
+    expect(sceneWrapperSvh(35)).toBe(1575)
+    // The fictional fixture the spec works through.
+    expect(sceneWrapperSvh(22)).toBe(1250)
+    // No frieze, no act two: today's wrapper exactly.
+    expect(actTwoSvh(0)).toBe(0)
+    expect(sceneWrapperSvh(0)).toBe(550)
+    expect(actTwoSvh(-3)).toBe(0)
+  })
+
+  it('never divides by a zero act-two budget when scroll overshoots', () => {
+    // Lenis overscroll and an iOS rubber-band both hand `progress > 1`.
+    for (const p of [1.4, 2, 12]) {
+      expect(playheadFor(p, 0)).toBe(3)
+      expect(Number.isFinite(playheadFor(p, 0))).toBe(true)
+      expect(playheadFor(p)).toBe(3)
+    }
+  })
+
+  it('places the beats where the svh budget puts them', () => {
+    const fixture = actTwoBeats(22)
+    expect(fixture.release).toBeCloseTo(1 / 7, 12)
+    expect(fixture.approach).toBeCloseTo(3 / 14, 12)
+    const shipped = actTwoBeats(26)
+    expect(shipped.release).toBeCloseTo(0.125, 12)
+    expect(shipped.approach).toBeCloseTo(0.1875, 12)
+  })
+
+  it('reproduces act one exactly over the same scrub pixels', () => {
+    // `p_22 = p · 450 / 1150` puts the same scroll distance under act one.
+    for (let i = 0; i <= 100; i++) {
+      const p = i / 100
+      expect(playheadFor((p * 450) / 1150, 22)).toBeCloseTo(playheadFor(p), 12)
+    }
+    expect(playheadFor(450 / 1150, 22)).toBe(3)
+    expect(playheadFor(1, 22)).toBe(4)
+    expect(playheadFor((450 + 350) / 1150, 22)).toBe(3.5)
+  })
+
+  it('is non-decreasing across the whole wrapper', () => {
+    let prev = -Infinity
+    for (let i = 0; i <= 1000; i++) {
+      const value = playheadFor(i / 1000, 22)
+      expect(value).toBeGreaterThanOrEqual(prev)
+      prev = value
+    }
+    expect(prev).toBe(4)
+  })
+
+  it('splits a playhead into its act-one segment and its act-two progress', () => {
+    expect(actTwoProgress(3)).toBe(0)
+    expect(actTwoProgress(4)).toBe(1)
+    expect(actTwoProgress(2)).toBe(0)
+    expect(actTwoProgress(3.25)).toBeCloseTo(0.25, 12)
+    expect(actOneSeg(3.7)).toBe(3)
+    expect(actOneSeg(1.2)).toBe(1.2)
+    expect(actTwoPlayhead(0)).toBe(3)
+    expect(actTwoPlayhead(1)).toBe(4)
+    expect(actTwoPlayhead(0.5)).toBe(3.5)
+  })
+
+  it('round-trips every playhead through its scroll target', () => {
+    const vh = 900
+    const top = 1234
+    const H = 12.5 * vh
+    for (const P of [-1.5, -0.5, 0, 1, 3, 3.1, 3.5, 4]) {
+      const target = scrollTargetFor(P, top, H, vh, 22)
+      expect(playheadFor((target - top) / (H - vh), 22)).toBeCloseTo(P, 10)
+    }
+  })
+
+  it('keeps the four-argument scroll target byte-identical', () => {
+    const vh = 900
+    const H = 5.5 * vh
+    for (const P of [-1.5, 0, 1, 2, 3]) {
+      expect(scrollTargetFor(P, 1234, H, vh, 0)).toBe(scrollTargetFor(P, 1234, H, vh))
+    }
+  })
+
+  it('lands the nav link on the volume shot', () => {
+    expect(volumeShotPlayhead(22)).toBeCloseTo(3 + 1 / 7, 12)
+    expect(volumeShotPlayhead(26)).toBeCloseTo(3.125, 12)
+  })
+})
+
+/**
+ * FICTIONAL, on purpose: 22 columns is not today's data and never will be. It
+ * exists to make the spec's worked `sceneWrapperSvh(22) = 1250` exact and to
+ * give the pose maths a second, differently shaped extent — including a
+ * one-column block at the newest edge, which is where the title windows are
+ * tightest. What SHIPS is `SHIPPED_FRIEZE` below.
+ */
+const FIXTURE_FRIEZE: FriezeExtent = {
+  columns: 22,
+  rows: 8,
+  blocks: [
+    { year: 2026, startCol: 0, columns: 1 },
+    { year: 2025, startCol: 1, columns: 6 },
+    { year: 2024, startCol: 7, columns: 13 },
+    { year: 2023, startCol: 20, columns: 2 },
+  ],
+}
+
+/** Today's archive through `friezeLayout` / `friezeExtent`: what the running site has. */
+const SHIPPED_FRIEZE: FriezeExtent = {
+  columns: 35,
+  rows: 6,
+  blocks: [
+    { year: 2026, startCol: 0, columns: 2 },
+    { year: 2025, startCol: 2, columns: 9 },
+    { year: 2024, startCol: 11, columns: 22 },
+    { year: 2023, startCol: 33, columns: 2 },
+  ],
+}
+
+/** Narrower than the frame at the dolly distance: the degenerate range. */
+const NARROW_FRIEZE: FriezeExtent = {
+  columns: 2,
+  rows: 8,
+  blocks: [{ year: 2026, startCol: 0, columns: 2 }],
+}
+
+const DESKTOP = VIEWPORTS.filter(({ w, h }) => w / h >= 1)
+
+describe('act two · pose', () => {
+  it('stands the frieze at the corridor’s end, one spacing past card four', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      const frame = friezeFrame(FIXTURE_FRIEZE, g)
+      expect(frame.width, name).toBeCloseTo(22 * FRIEZE_CELL_W, 12)
+      expect(frame.height, name).toBeCloseTo(8 * FRIEZE_CELL_H, 12)
+      expect(frame.centreX, name).toBe(0)
+      expect(frame.left, name).toBeCloseTo(-frame.width / 2, 12)
+      expect(frame.right, name).toBeCloseTo(frame.width / 2, 12)
+      // Bottom edge on the cards' floor gap, like every card in the corridor.
+      expect(frame.bottom, name).toBeCloseTo(HOVER, 12)
+      expect(frame.top, name).toBeCloseTo(HOVER + frame.height, 12)
+      expect(frame.centreY, name).toBeCloseTo(HOVER + frame.height / 2, 12)
+      expect(frame.z, name).toBeCloseTo(-(ACT_TWO_START + 1) * g.spacing, 12)
+    }
+  })
+
+  it('hands over from card four’s settled slot with no lurch', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      const slot = cameraPose(ACT_TWO_START, g)
+      const pose = actTwoPose(0, FIXTURE_FRIEZE, g)
+      expect(pose.x, name).toBeCloseTo(slot.x, 9)
+      expect(pose.y, name).toBeCloseTo(slot.y, 9)
+      expect(pose.z, name).toBeCloseTo(slot.z, 9)
+      expect(pose.pitch, name).toBeCloseTo(slot.pitch, 9)
+      expect(pose.yaw, name).toBe(0)
+    }
+  })
+
+  it('parks the volume shot at the fitting distance, centred on the wall', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      const frame = friezeFrame(FIXTURE_FRIEZE, g)
+      const { release } = actTwoBeats(FIXTURE_FRIEZE.columns)
+      const pose = actTwoPose(release, FIXTURE_FRIEZE, g)
+      expect(pose.z, name).toBeCloseTo(frame.z + volumeDistance(FIXTURE_FRIEZE, g), 9)
+      expect(pose.y, name).toBeCloseTo(frame.centreY, 9)
+      expect(pose.x, name).toBeCloseTo(0, 12)
+      expect(pose.pitch, name).toBeCloseTo(0, 9)
+      expect(pose.yaw, name).toBe(0)
+    }
+  })
+
+  it('brings the whole frieze inside the frame at the volume shot', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      const frame = friezeFrame(FIXTURE_FRIEZE, g)
+      const { release } = actTwoBeats(FIXTURE_FRIEZE.columns)
+      const cam = actTwoPose(release, FIXTURE_FRIEZE, g)
+      for (const x of [frame.left, frame.right]) {
+        for (const y of [frame.bottom, frame.top]) {
+          const { fx, fy, ahead } = projectPoint(x, y, frame.z, cam, g)
+          expect(ahead, name).toBeGreaterThan(0)
+          expect(fx, `${name} fx`).toBeGreaterThanOrEqual(0.05 - 1e-9)
+          expect(fx, `${name} fx`).toBeLessThanOrEqual(0.95 + 1e-9)
+          expect(fy, `${name} fy`).toBeGreaterThanOrEqual(0.05 - 1e-9)
+          expect(fy, `${name} fy`).toBeLessThanOrEqual(0.95 + 1e-9)
+        }
+      }
+    }
+  })
+
+  it('gives the dolly a REAL range on a frieze wider than the frame', () => {
+    // The assertion an inverted min/max would fail. Without it the three
+    // monotonicity checks below all pass on a camera that never moves.
+    for (const { name, w, h } of DESKTOP) {
+      const g = sceneGeometry(w, h)
+      for (const frieze of [FIXTURE_FRIEZE, SHIPPED_FRIEZE]) {
+        const { xStart, xEnd } = dollyRange(frieze, g)
+        expect(xEnd - xStart, `${name} ${frieze.columns}`).toBeGreaterThan(0)
+        expect(xStart, `${name} ${frieze.columns}`).toBeLessThan(0)
+        expect(xEnd, `${name} ${frieze.columns}`).toBeGreaterThan(0)
+      }
+    }
+    // …and the intended degenerate case, reached by the same two lines.
+    const g = sceneGeometry(1440, 900)
+    expect(dollyRange(NARROW_FRIEZE, g)).toEqual({ xStart: 0, xEnd: 0 })
+  })
+
+  it('matches the derived dolly range at the named fixtures', () => {
+    const desk = sceneGeometry(1440, 900)
+    expect(dollyRange(FIXTURE_FRIEZE, desk).xStart).toBeCloseTo(-3, 6)
+    expect(dollyRange(FIXTURE_FRIEZE, desk).xEnd).toBeCloseTo(3, 6)
+    // 35 columns at the six-row dolly distance. The round -4/+4 these replace
+    // were 26 columns at the eight-row distance: both the frieze's width and
+    // the camera's distance to it moved, so neither end survives the row change.
+    expect(dollyRange(SHIPPED_FRIEZE, desk).xStart).toBeCloseTo(-6.6351, 4)
+    expect(dollyRange(SHIPPED_FRIEZE, desk).xEnd).toBeCloseTo(6.6351, 4)
+    const phone = sceneGeometry(393, 851)
+    expect(dollyRange(SHIPPED_FRIEZE, phone).xStart).toBeCloseTo(-8.1396, 4)
+    expect(dollyRange(SHIPPED_FRIEZE, phone).xEnd).toBeCloseTo(8.1396, 4)
+  })
+
+  it('travels left to right across the dolly and rests at both ends', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      const { approach } = actTwoBeats(FIXTURE_FRIEZE.columns)
+      const { xStart, xEnd } = dollyRange(FIXTURE_FRIEZE, g)
+      expect(actTwoPose(approach, FIXTURE_FRIEZE, g).x, name).toBeCloseTo(xStart, 9)
+      expect(actTwoPose(1, FIXTURE_FRIEZE, g).x, name).toBeCloseTo(xEnd, 9)
+      let prev = -Infinity
+      for (let u = approach; u <= 1 + 1e-12; u += 0.001) {
+        const x = actTwoPose(u, FIXTURE_FRIEZE, g).x
+        expect(x, name).toBeGreaterThanOrEqual(prev - 1e-12)
+        prev = x
+      }
+    }
+  })
+
+  it('eases the dolly on a trapezoid velocity profile', () => {
+    const w = 1 / 22
+    expect(dollyEase(0, w)).toBe(0)
+    expect(dollyEase(1, w)).toBe(1)
+    let prev = -Infinity
+    for (let p = 0; p <= 1 + 1e-12; p += 0.001) {
+      const value = dollyEase(p, w)
+      expect(value).toBeGreaterThanOrEqual(prev - 1e-12)
+      prev = value
+    }
+    const d = 1e-6
+    const middle = (dollyEase(0.5 + d, w) - dollyEase(0.5 - d, w)) / (2 * d)
+    for (const p of [0.0005, 0.9995]) {
+      const slope = (dollyEase(p + d, w) - dollyEase(p - d, w)) / (2 * d)
+      expect(slope / middle).toBeLessThan(0.05)
+    }
+  })
+
+  it('lets the eye lead the body through the approach, and only there', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      const { release, approach } = actTwoBeats(FIXTURE_FRIEZE.columns)
+      for (const u of [0, release, approach, 0.5, 1]) {
+        expect(actTwoPose(u, FIXTURE_FRIEZE, g).yaw, `${name} @${u}`).toBeCloseTo(0, 12)
+      }
+    }
+    for (const { name, w, h } of DESKTOP) {
+      const g = sceneGeometry(w, h)
+      const { release, approach } = actTwoBeats(FIXTURE_FRIEZE.columns)
+      const mid = (release + approach) / 2
+      expect(Math.abs(actTwoPose(mid, FIXTURE_FRIEZE, g).yaw), name).toBeGreaterThan(1e-3)
+    }
+  })
+
+  it('dissolves card four across the release, once and for good', () => {
+    const { release } = actTwoBeats(FIXTURE_FRIEZE.columns)
+    expect(actTwoCardFade(0, FIXTURE_FRIEZE)).toBe(1)
+    expect(actTwoCardFade(release, FIXTURE_FRIEZE)).toBe(0)
+    for (const u of [release + 1e-9, 0.3, 0.5, 1]) {
+      expect(actTwoCardFade(u, FIXTURE_FRIEZE)).toBe(0)
+    }
+    let prev = Infinity
+    for (let u = 0; u <= 1 + 1e-12; u += 0.001) {
+      const value = actTwoCardFade(u, FIXTURE_FRIEZE)
+      expect(value).toBeLessThanOrEqual(prev + 1e-12)
+      prev = value
+    }
+  })
+
+  it('never lets a cell fall under the 144 px legibility floor', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      const d = dollyDistance(FIXTURE_FRIEZE, g)
+      const cellPx = (FRIEZE_CELL_W * g.widthPx) / (2 * HALF_FOV_TAN_T * g.aspect * d)
+      expect(cellPx, name).toBeGreaterThanOrEqual(FRIEZE_CELL_MIN_PX - 1e-9)
+    }
+    expect(FRIEZE_CELL_MIN_PX).toBe(Math.ceil(CARD_MIN_PX / 2))
+    expect(FRIEZE_CELL_MIN_PX).toBe(144)
+  })
+
+  it('treats DOLLY_HEIGHT_FILL as a FLOOR on the fill, never a ceiling', () => {
+    // `min()` picks the nearer distance and a nearer camera fills MORE frame,
+    // so nothing in the expression caps the fill. Asserting `fill <= 1` would
+    // be vacuous — true of any distance at all.
+    // At 1920x1080 the HEIGHT term binds, not the legibility one, so the fill
+    // sits exactly ON the floor — and lands 2e-16 under it in binary. The
+    // invariant is `>=`; the epsilon is what any `>=` on a computed float needs.
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      expect(friezeHeightFill(FIXTURE_FRIEZE, g), name).toBeGreaterThanOrEqual(
+        DOLLY_HEIGHT_FILL - 1e-12,
+      )
+    }
+    const desk = sceneGeometry(1440, 900)
+    expect(friezeHeightFill(FIXTURE_FRIEZE, desk)).toBeCloseTo(0.9249, 4)
+    expect(actTwoTopClearFrac(FIXTURE_FRIEZE, desk)).toBeCloseTo(0.0751, 4)
+    const phone = sceneGeometry(393, 851)
+    expect(friezeHeightFill(FIXTURE_FRIEZE, phone)).toBeCloseTo(0.9782, 4)
+    expect(actTwoTopClearFrac(FIXTURE_FRIEZE, phone)).toBeCloseTo(0.0218, 4)
+    expect(VOLUME_FILL).toBe(0.9)
+    expect(DOLLY_HEIGHT_FILL).toBe(0.82)
+  })
+
+  it('anchors the dolly camera on the wall’s bottom edge', () => {
+    // All the spare frame height goes ABOVE the wall; that air is the whole
+    // clearance act two has to give the title (Assumption 23).
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      const frame = friezeFrame(FIXTURE_FRIEZE, g)
+      const cam = actTwoPose(1, FIXTURE_FRIEZE, g)
+      expect(cam.y, name).toBeCloseTo(dollyY(FIXTURE_FRIEZE, g), 12)
+      const { fy } = projectPoint(0, frame.bottom, frame.z, cam, g)
+      expect(fy, name).toBeCloseTo(1, 9)
+      const top = projectPoint(0, frame.top, frame.z, cam, g)
+      expect(top.fy, name).toBeCloseTo(actTwoTopClearFrac(FIXTURE_FRIEZE, g), 9)
+    }
+  })
+
+  /**
+   * The invariant the old assertion missed. `maxRowsInFrame` is not a constant:
+   * it falls with viewport height, and the frieze is bottom-anchored with no
+   * vertical camera travel, so a row that does not fit is off the top forever.
+   * The previous version asserted `=== 8` at the two viewports where it happened
+   * to be 8 and skipped the rest of its own list, while `friezeHeightFill` was
+   * checked only against its FLOOR — so 1.1561 at 1280x720 passed both. Assert
+   * the bound and the fit across every viewport, at the real row count.
+   */
+  it('fits the frame at the dolly on every viewport in the matrix', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      expect(maxRowsInFrame(g), name).toBeGreaterThanOrEqual(FRIEZE_ROWS)
+      expect(friezeHeightFill(SHIPPED_FRIEZE, g), name).toBeLessThanOrEqual(1)
+      expect(actTwoTopClearFrac(SHIPPED_FRIEZE, g), name).toBeGreaterThanOrEqual(0)
+    }
+  })
+
+  it('holds the fit at the shortest viewports the matrix does not name', () => {
+    // 1280x720 is Playwright's own desktop project; 1024x640 is shorter still.
+    for (const [w, h] of [
+      [1280, 720],
+      [1024, 640],
+      [1440, 790],
+      [820, 821],
+    ] as const) {
+      const g = sceneGeometry(w, h)
+      const name = `${w}x${h}`
+      expect(maxRowsInFrame(g), name).toBeGreaterThanOrEqual(FRIEZE_ROWS)
+      expect(friezeHeightFill(SHIPPED_FRIEZE, g), name).toBeLessThanOrEqual(1)
+      expect(actTwoTopClearFrac(SHIPPED_FRIEZE, g), name).toBeGreaterThanOrEqual(0)
+    }
+  })
+
+  it('extends the far plane to hold the volume shot', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      expect(sceneFar(FIXTURE_FRIEZE, g), name).toBeGreaterThanOrEqual(
+        volumeDistance(FIXTURE_FRIEZE, g) + g.spacing,
+      )
+      expect(sceneFar(FIXTURE_FRIEZE, g), name).toBeGreaterThanOrEqual(g.far)
+    }
+  })
+
+  it('blends the fog and the focus off act one’s values, not onto them', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      const { release } = actTwoBeats(FIXTURE_FRIEZE.columns)
+      const act1 = fogRange(g, 0)
+      const at0 = actTwoFogRange(0, FIXTURE_FRIEZE, g, 0)
+      expect(at0.near, name).toBeCloseTo(act1.near, 9)
+      expect(at0.far, name).toBeCloseTo(act1.far, 9)
+      // `fogRangeAt` generalises `fogRange`, bit for bit at the slot distance.
+      expect(fogRangeAt(g.D, g, 0)).toEqual(act1)
+      const frame = friezeFrame(FIXTURE_FRIEZE, g)
+      const dWall = actTwoPose(release, FIXTURE_FRIEZE, g).z - frame.z
+      expect(actTwoFogRange(release, FIXTURE_FRIEZE, g, 0).near, name).toBeGreaterThan(dWall)
+      expect(actTwoFocusDistance(0, FIXTURE_FRIEZE, g), name).toBe(g.D)
+      expect(actTwoFocusDistance(release, FIXTURE_FRIEZE, g), name).toBeCloseTo(dWall, 9)
+    }
+  })
+
+  it('keeps the title plane in front of the wall', () => {
+    for (const { name, w, h } of VIEWPORTS) {
+      const g = sceneGeometry(w, h)
+      const d = dollyDistance(FIXTURE_FRIEZE, g)
+      expect(actTwoTitleDistance(d, g), name).toBeLessThan(d)
+      expect(actTwoTitleDistance(d, g), name).toBeLessThanOrEqual(g.titleDistance)
+    }
+  })
+})
+
+describe('act two · title and stills', () => {
+  const g = sceneGeometry(1440, 900)
+  const beats = actTwoBeats(FIXTURE_FRIEZE.columns)
+
+  it('holds the cursor back until the dolly, then sweeps every column', () => {
+    expect(dollyCursor(0, FIXTURE_FRIEZE)).toBe(0)
+    expect(dollyCursor(beats.approach, FIXTURE_FRIEZE)).toBe(0)
+    expect(dollyCursor(1, FIXTURE_FRIEZE)).toBeCloseTo(FIXTURE_FRIEZE.columns, 12)
+    const mid = beats.approach + (1 - beats.approach) / 2
+    expect(dollyCursor(mid, FIXTURE_FRIEZE)).toBeCloseTo(FIXTURE_FRIEZE.columns / 2, 12)
+  })
+
+  it('names each year exactly once, newest first, across the dolly', () => {
+    for (const u of [0, beats.release, beats.approach - 1e-6]) {
+      expect(blockAt(u, FIXTURE_FRIEZE)).toBeNull()
+      expect(blockIndexAt(u, FIXTURE_FRIEZE)).toBe(-1)
+    }
+    const seen: number[] = []
+    for (let i = 0; i <= 10000; i++) {
+      const u = beats.approach + ((1 - beats.approach) * i) / 10000
+      const block = blockAt(u, FIXTURE_FRIEZE)
+      expect(block).not.toBeNull()
+      const year = block!.year
+      if (seen[seen.length - 1] !== year) seen.push(year)
+    }
+    // A one-column block is exactly what a camera-driven title would skip.
+    expect(seen).toEqual([2026, 2025, 2024, 2023])
+  })
+
+  it('morphs card four into `all work` across the release', () => {
+    expect(actTwoTitle(0, FIXTURE_FRIEZE)).toEqual({ from: -1, to: 0, frac: 0 })
+    expect(actTwoTitle(beats.release, FIXTURE_FRIEZE)).toEqual({ from: -1, to: 0, frac: 1 })
+    const half = actTwoTitle(beats.release / 2, FIXTURE_FRIEZE)
+    expect(half.from).toBe(-1)
+    expect(half.to).toBe(0)
+    expect(half.frac).toBeCloseTo(0.5, 9)
+    // The approach holds `all work` with no seam running.
+    const approach = actTwoTitle((beats.release + beats.approach) / 2, FIXTURE_FRIEZE)
+    expect(approach).toEqual({ from: 0, to: 0, frac: 0 })
+    const atStart = actTwoTitle(beats.approach, FIXTURE_FRIEZE)
+    expect(atStart.from).toBe(0)
+    expect(atStart.frac).toBe(0)
+    expect([0, 1]).toContain(atStart.to)
+  })
+
+  it('opens one window per boundary, and never two at once', () => {
+    for (let i = 0; i <= 4000; i++) {
+      const u = (i / 4000) * 1
+      const { from, to, frac } = actTwoTitle(u, FIXTURE_FRIEZE)
+      expect(frac).toBeGreaterThanOrEqual(0)
+      expect(frac).toBeLessThanOrEqual(1)
+      // A window is either shut (from === to, frac 0) or open onto the NEXT
+      // title exactly. Two overlapping windows would show up as a jump of 2.
+      if (from !== to) expect(to - from).toBe(1)
+      else expect(frac).toBe(0)
+    }
+  })
+
+  it('crosses the middle of every boundary window', () => {
+    for (let k = 0; k < FIXTURE_FRIEZE.blocks.length; k++) {
+      let found = false
+      for (let i = 0; i <= 20000; i++) {
+        const u = beats.approach + ((1 - beats.approach) * i) / 20000
+        const t = actTwoTitle(u, FIXTURE_FRIEZE)
+        if (t.from === k && t.to === k + 1 && Math.abs(t.frac - 0.5) < 0.01) {
+          found = true
+          break
+        }
+      }
+      expect(found, `boundary ${k}`).toBe(true)
+    }
+  })
+
+  it('keeps the windows around a one-column block touching, not overlapping', () => {
+    // 2026 is one column wide: its window is [0, 0.5] and 2025's is [0.5, 1.5].
+    const at = (cursor: number): ReturnType<typeof actTwoTitle> =>
+      actTwoTitle(
+        beats.approach + ((1 - beats.approach) * cursor) / FIXTURE_FRIEZE.columns,
+        FIXTURE_FRIEZE,
+      )
+    expect(at(0.25).from).toBe(0)
+    expect(at(0.25).to).toBe(1)
+    expect(at(0.75).from).toBe(1)
+    expect(at(0.75).to).toBe(2)
+    // Between them, exactly one hands over to the other with no shared column.
+    expect(at(0.49).to).toBe(1)
+    expect(at(0.51).from).toBe(1)
+  })
+
+  it('resolves act two to five discrete stills', () => {
+    const seen: string[] = []
+    for (let i = 0; i <= 4000; i++) {
+      const still = actTwoStill(i / 4000, FIXTURE_FRIEZE, g)
+      const key = `${still.index}|${still.u}|${still.x}`
+      if (seen[seen.length - 1] !== key) seen.push(key)
+    }
+    expect(seen).toHaveLength(5)
+    const volume = actTwoStill(0, FIXTURE_FRIEZE, g)
+    expect(volume.index).toBe(-1)
+    expect(volume.u).toBe(beats.release)
+    expect(volume.x).toBe(0)
+    const frame = friezeFrame(FIXTURE_FRIEZE, g)
+    const { xStart, xEnd } = dollyRange(FIXTURE_FRIEZE, g)
+    for (let k = 0; k < FIXTURE_FRIEZE.blocks.length; k++) {
+      const block = FIXTURE_FRIEZE.blocks[k]
+      const still = actTwoStill(playheadForBlock(k, FIXTURE_FRIEZE) - 3, FIXTURE_FRIEZE, g)
+      expect(still.index, `block ${k}`).toBe(k)
+      expect(still.u, `block ${k}`).toBe(beats.approach)
+      const centre = frame.left + (block.startCol + block.columns / 2) * FRIEZE_CELL_W
+      expect(still.x, `block ${k}`).toBeCloseTo(clamp(centre, xStart, xEnd), 12)
+    }
+  })
+
+  it('makes a still STILL: every channel bit-identical inside its interval', () => {
+    // `data-static` alone proves nothing — it is set once and never reads a
+    // pose. This is the property that matters, and it holds because every
+    // channel reads the descriptor's single `u`, never the live one.
+    const frame = friezeFrame(FIXTURE_FRIEZE, g)
+    const intervals: Array<[number, number]> = []
+    let start = 0
+    let key = JSON.stringify(actTwoStill(0, FIXTURE_FRIEZE, g))
+    for (let i = 1; i <= 4000; i++) {
+      const u = i / 4000
+      const next = JSON.stringify(actTwoStill(u, FIXTURE_FRIEZE, g))
+      if (next !== key) {
+        intervals.push([start, (i - 1) / 4000])
+        start = u
+        key = next
+      }
+    }
+    intervals.push([start, 1])
+    expect(intervals).toHaveLength(5)
+    for (const [lo, hi] of intervals) {
+      let pose: string | null = null
+      for (let s = 0; s < 20; s++) {
+        const u = lo + ((hi - lo) * s) / 19
+        const still = actTwoStill(u, FIXTURE_FRIEZE, g)
+        const stillPose = actTwoStillPose(still, FIXTURE_FRIEZE, g)
+        // The ambient time term is 0 in act two under reduced motion,
+        // unconditionally: that is what stops a still drifting between two
+        // on-demand frames.
+        const fog = actTwoFogRange(still.u, FIXTURE_FRIEZE, g, 0)
+        const focus = actTwoFocusDistance(still.u, FIXTURE_FRIEZE, g)
+        const dist = actTwoTitleDistance(stillPose.z - frame.z, g)
+        const shot = JSON.stringify({ stillPose, fog, focus, dist, index: still.index })
+        if (pose === null) pose = shot
+        else expect(shot).toBe(pose)
+      }
+    }
+  })
+
+  it('overwrites only the still pose’s x, from the descriptor', () => {
+    const still = actTwoStill(0.5, FIXTURE_FRIEZE, g)
+    const pose = actTwoStillPose(still, FIXTURE_FRIEZE, g)
+    const live = actTwoPose(still.u, FIXTURE_FRIEZE, g)
+    expect(pose.x).toBe(still.x)
+    expect(pose.y).toBe(live.y)
+    expect(pose.z).toBe(live.z)
+    expect(pose.yaw).toBe(live.yaw)
+    expect(pose.pitch).toBe(live.pitch)
+  })
+
+  it('targets a column and a block by playhead', () => {
+    expect(playheadForColumn(0, FIXTURE_FRIEZE)).toBeCloseTo(
+      actTwoPlayhead(beats.approach),
+      12,
+    )
+    expect(playheadForColumn(FIXTURE_FRIEZE.columns, FIXTURE_FRIEZE)).toBeCloseTo(4, 12)
+    for (let k = 0; k < FIXTURE_FRIEZE.blocks.length; k++) {
+      const playhead = playheadForBlock(k, FIXTURE_FRIEZE)
+      expect(playhead).toBeGreaterThanOrEqual(actTwoPlayhead(beats.approach))
+      expect(playhead).toBeLessThanOrEqual(4)
+      const block = blockAt(actTwoProgress(playhead), FIXTURE_FRIEZE)
+      expect(block?.year, `block ${k}`).toBe(FIXTURE_FRIEZE.blocks[k].year)
+    }
+  })
+
+  it('names each shipped year exactly once too', () => {
+    const shipped = actTwoBeats(SHIPPED_FRIEZE.columns)
+    const seen: number[] = []
+    for (let i = 0; i <= 10000; i++) {
+      const u = shipped.approach + ((1 - shipped.approach) * i) / 10000
+      const year = blockAt(u, SHIPPED_FRIEZE)!.year
+      if (seen[seen.length - 1] !== year) seen.push(year)
+    }
+    expect(seen).toEqual([2026, 2025, 2024, 2023])
+  })
+})
+
+/**
+ * The scroll velocity act one's energy is derived from is normalised over the
+ * WHOLE wrapper, so act two's extra svh rescale it. Without the correction the
+ * same physical scroll speed reaches 36 % of the energy it used to and the
+ * corridor's lean weakens — invisible to the pose snapshot, which samples at
+ * rest. These are the numbers that keep act one identical.
+ */
+describe('actOneVelocityScale', () => {
+  it('undoes the wrapper extension exactly at the shipped extent', () => {
+    expect(sceneWrapperSvh(SHIPPED_FRIEZE.columns)).toBe(1575)
+    // 1475 svh of scrub where act one alone had 450.
+    expect(actOneVelocityScale(SHIPPED_FRIEZE.columns)).toBeCloseTo(1475 / 450, 12)
+  })
+
+  it('is exactly 1 when act two adds nothing, so act one is untouched', () => {
+    expect(actOneVelocityScale(0)).toBe(1)
+  })
+
+  it('tracks the wrapper, so a different column count needs no second edit', () => {
+    for (const columns of [1, 12, 26, 40]) {
+      expect(actOneVelocityScale(columns)).toBeCloseTo(
+        (sceneWrapperSvh(columns) - 100) / 450,
+        12,
+      )
     }
   })
 })

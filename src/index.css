@@ -1263,122 +1263,6 @@ body[data-loader-state="loading"] {
   .stats-row-ann { font-size: 15px; }
 }
 
-/* =========================================================================
-   ARCHIVE DROPDOWN
-   ========================================================================= */
-.archive-dropdown { position: relative; display: inline-block; }
-.archive-dropdown.is-disabled { opacity: 0.4; pointer-events: none; }
-.archive-dropdown-trigger {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 8px 14px;
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
-  background: var(--bg-tonal);
-  color: var(--text);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: lowercase;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: border-color var(--dur-hover-in) var(--ease-house), background var(--dur-hover-in) var(--ease-house);
-}
-.archive-dropdown-trigger:hover { border-color: var(--accent-blue); }
-.archive-dropdown-trigger.is-open { border-color: var(--accent-blue); background: var(--bg); }
-.archive-dropdown-label { color: var(--text-faded); }
-.archive-dropdown-value { color: var(--text); font-weight: 600; }
-.archive-dropdown-caret { font-size: 10px; color: var(--text-muted); }
-.archive-dropdown-list {
-  position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
-  min-width: 100%;
-  max-height: 280px; overflow-y: auto;
-  margin: 0; padding: 6px;
-  list-style: none;
-  background: var(--bg-tonal);
-  border: 1px solid var(--hairline);
-  border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-}
-.archive-dropdown-option {
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--text-muted);
-  text-transform: lowercase;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.archive-dropdown-option.is-active { background: var(--bg); color: var(--text); }
-.archive-dropdown-option.is-selected { color: var(--accent-blue); font-weight: 600; }
-
-/* =========================================================================
-   ARCHIVE — toolbar, chips, list
-   ========================================================================= */
-.archive-toolbar {
-  display: flex; flex-wrap: wrap; gap: 10px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-.archive-search {
-  flex: 1 1 240px;
-  min-width: 200px;
-  padding: 9px 14px 9px 0;
-  border: none;
-  border-bottom: 1px solid var(--hairline);
-  border-radius: 0;
-  background: transparent;
-  font: inherit;
-  font-size: 12px;
-  color: var(--text);
-  letter-spacing: 0.02em;
-  transition: border-color var(--dur-hover-in) var(--ease-house);
-}
-.archive-search:focus { outline: none; border-color: var(--accent-blue); }
-.archive-search::placeholder { color: var(--text-faded); text-transform: lowercase; }
-
-@media (max-width: 720px) {
-  .archive-search { min-height: 44px; padding: 11px 0; }
-  .archive-dropdown-trigger { min-height: 44px; padding: 8px 16px; }
-}
-
-.archive-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-.archive-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
-  background: transparent;
-  font: inherit; font-size: 11px;
-  color: var(--text-muted);
-  text-transform: lowercase;
-  cursor: pointer;
-  transition: background var(--dur-hover-in) var(--ease-house), border-color var(--dur-hover-in) var(--ease-house), color var(--dur-hover-in) var(--ease-house);
-}
-.archive-chip:hover { background: var(--bg-tonal); border-color: var(--accent-blue); color: var(--text); }
-
-.archive-count {
-  font-size: 12px;
-  color: var(--text-faded);
-  text-transform: lowercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 24px;
-}
-.archive-count strong { color: var(--text); font-weight: 600; }
-
-.archive-star {
-  color: var(--accent-blue);
-  font-size: 14px;
-}
-
-.archive-more { display: flex; justify-content: center; margin-top: 32px; }
-
-.archive-list {
-  border-top: 1px solid var(--hairline);
-}
-
-/* Archive rows are denser than featured work rows — tighten the title scale
-   the WorkRow primitive uses by default. */
-#archive .workrow-title { font-size: clamp(20px, 2.6vw, 34px); }
 
 /* =====================================================================
  * Project detail page
@@ -2222,9 +2106,6 @@ body[data-loader-state="loading"] {
 .chapter-light .workrow-float-inner {
   box-shadow: 0 24px 60px rgba(11, 14, 20, 0.22);
 }
-.chapter-light .archive-dropdown-list {
-  box-shadow: 0 12px 32px rgba(11, 14, 20, 0.16);
-}
 
 /* =========================================================================
    SELECTED WORK — SCENE (R3F corridor, scroll-driven camera dolly)
@@ -2249,10 +2130,7 @@ body[data-loader-state="loading"] {
 
 .scene-scroll {
   position: relative;
-  height: 550svh; /* COUPLED to Projects.tsx: a 150svh approach (100svh overture
-                     + 50svh surfacing) + n×100svh at n=4.
-                     If the top-4 curation ever changes size, update this and
-                     sceneMotion's CARD_COUNT / playheadFor TOGETHER. */
+  /* height is inline, from sceneWrapperSvh(columns) in Projects.tsx */
   margin-top: 96px;
 }
 .scene-sticky {

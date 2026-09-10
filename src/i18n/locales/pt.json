@@ -1,9 +1,9 @@
 {
   "nav": {
-    "work": "obras",
-    "archive": "arquivo",
-    "experience": "carreira",
-    "skills": "habilidades",
+    "work": "trabalhos",
+    "archive": "todos os trabalhos",
+    "experience": "experiência",
+    "skills": "stack",
     "contact": "contato"
   },
   "lang": "PT",
@@ -19,7 +19,7 @@
     ]
   },
   "stats": {
-    "heading": "o trabalho, em <em>números.</em>",
+    "heading": "números",
     "receipt": {
       "years": "anos entregando interativos, do primeiro commit até hoje.",
       "interactives": "interativos publicados na gauchazh.",
@@ -39,29 +39,14 @@
       }
     },
     "archive": {
-      "title": "o <em>arquivo.</em>",
-      "description": "tudo o que entreguei. pode buscar.",
-      "toolbar": {
-        "search": "buscar…",
-        "kind": "tipo",
-        "type": "formato",
-        "editorial": "editoria",
-        "year": "ano",
-        "sort": "ordenar",
-        "all": "todos",
-        "countLabel": "itens",
-        "showMore": "mostrar mais"
-      },
-      "sort": {
-        "featured": "destaques",
-        "newest": "mais recentes",
-        "oldest": "mais antigos",
-        "az": "a–z",
-        "za": "z–a"
+      "title": "todos os trabalhos",
+      "origin": {
+        "freelance": "freelance",
+        "personal": "pessoal"
       }
     },
     "work": {
-      "title": "minha <em>carreira.</em>",
+      "title": "experiência",
       "description": "sete anos entregando. visto por milhões.",
       "award": "★ prêmio",
       "modes": {
@@ -70,7 +55,7 @@
       }
     },
     "skills": {
-      "title": "meu <em>arsenal.</em>",
+      "title": "stack",
       "description": "o stack: rápido, sem abrir mão do capricho.",
       "frontend": "frontend",
       "design": "design",
@@ -80,7 +65,7 @@
       "leadership": "liderança"
     },
     "contact": {
-      "title": "vamos <em>criar.</em>",
+      "title": "contato",
       "subtitle": "tem um projeto ou ideia? bora conversar.",
       "links": {
         "email": "enviar e-mail",

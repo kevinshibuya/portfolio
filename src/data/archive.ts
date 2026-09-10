@@ -1,6 +1,8 @@
 import { projects } from './projects'
-import { embeds, typeGradients } from './embeds'
-import type { ArchiveItem, EmbedType } from '../types/content'
+import { embeds } from './embeds'
+import type { ArchiveItem, Embed, Project } from '../types/content'
+
+type UnsortedArchiveItem = Omit<ArchiveItem, 'year' | 'serial'>
 
 function parseEditorialDate(ddmmyyyy: string): number {
   // Expect 'dd/mm/yyyy'. Returns epoch ms; falls back to 0 on malformed input
@@ -12,79 +14,64 @@ function parseEditorialDate(ddmmyyyy: string): number {
   return Number.isFinite(t) ? t : 0
 }
 
-function fromProjects(): ArchiveItem[] {
-  return projects.map((p) => ({
+function fromProjects(source: readonly Project[]): UnsortedArchiveItem[] {
+  return source.map((p) => ({
     id: `featured-${p.id}`,
-    kind: 'featured' as const,
     title: p.title,
+    origin: p.origin ?? 'professional',
+    caseStudy: { slug: p.slug },
     date: String(p.year),
     sortDate: new Date(`${p.year}-12-31T00:00:00Z`).getTime(),
     href: `/projects/${p.slug}`,
     internal: true,
-    gradient: p.gradient ?? 'linear-gradient(145deg, #D4E5F2, #6A8CAA)',
-    highlight: p.highlight,
-    highlightOrder: p.highlightOrder,
   }))
 }
 
-function fromEmbeds(): ArchiveItem[] {
-  return embeds.map((e, i) => ({
+function fromEmbeds(source: readonly Embed[]): UnsortedArchiveItem[] {
+  return source.map((e, i) => ({
     id: `editorial-${i}`,
-    kind: 'editorial' as const,
     title: e.title,
+    origin: 'professional',
     type: e.type,
     editorial: e.editorial,
     date: e.publicationDate,
     sortDate: parseEditorialDate(e.publicationDate),
     href: e.link,
     internal: false,
-    gradient: typeGradients[e.type],
   }))
 }
 
-export const archive: ArchiveItem[] = [...fromProjects(), ...fromEmbeds()].sort(
-  (a, b) => b.sortDate - a.sortDate
-)
+export function deriveArchive(
+  sourceProjects: readonly Project[],
+  sourceEmbeds: readonly Embed[],
+): ArchiveItem[] {
+  const items = [...fromProjects(sourceProjects), ...fromEmbeds(sourceEmbeds)]
+  return items
+    .map((item, sourceIndex) => ({ item, sourceIndex }))
+    .sort((a, b) =>
+      b.item.sortDate - a.item.sortDate ||
+      Number(b.item.caseStudy !== undefined) - Number(a.item.caseStudy !== undefined) ||
+      a.sourceIndex - b.sourceIndex
+    )
+    .map(({ item }, index) => ({
+      ...item,
+      year: new Date(item.sortDate).getUTCFullYear(),
+      serial: items.length - index,
+    }))
+}
 
-export const archiveTypes: EmbedType[] = [
-  ...new Set(
-    archive
-      .filter((i) => i.kind === 'editorial' && i.type)
-      .map((i) => i.type as EmbedType)
-  ),
-].sort() as EmbedType[]
+export const archive: ArchiveItem[] = deriveArchive(projects, embeds)
 
-export const archiveEditorials: string[] = [
-  ...new Set(
-    archive
-      .filter((i) => i.kind === 'editorial' && i.editorial)
-      .map((i) => i.editorial as string)
-  ),
-].sort()
-
-export const archiveYears: number[] = [
-  ...new Set(
-    archive
-      .map((i) => new Date(i.sortDate).getUTCFullYear())
-      // Skip the epoch-0 fallback (year 1970) and any NaN that slipped through.
-      .filter((y) => Number.isFinite(y) && y > 1970)
-  ),
-].sort((a, b) => b - a)
-
-export const archiveKinds: ArchiveItem['kind'][] = [
-  ...new Set(archive.map((i) => i.kind)),
-].sort()
-
-// Sort comparator for the new "featured" archive sort key.
-// Highlights first (by highlightOrder asc, missing order = 99),
-// then non-highlights interleaved by sortDate desc.
-export function byFeatured(a: ArchiveItem, b: ArchiveItem): number {
-  const aIsH = a.kind === 'featured' && a.highlight === true
-  const bIsH = b.kind === 'featured' && b.highlight === true
-  if (aIsH && bIsH) {
-    return (a.highlightOrder ?? 99) - (b.highlightOrder ?? 99)
+export function yearBlocks(
+  items: readonly ArchiveItem[],
+): { year: number; count: number; items: ArchiveItem[] }[] {
+  const byYear = new Map<number, ArchiveItem[]>()
+  for (const item of items) {
+    const block = byYear.get(item.year)
+    if (block) block.push(item)
+    else byYear.set(item.year, [item])
   }
-  if (aIsH) return -1
-  if (bIsH) return 1
-  return b.sortDate - a.sortDate
+  return [...byYear.entries()]
+    .sort(([a], [b]) => b - a)
+    .map(([year, pieces]) => ({ year, count: pieces.length, items: pieces }))
 }

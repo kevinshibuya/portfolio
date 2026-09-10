@@ -18,9 +18,25 @@ A day-to-day interactive published on GZH (`gauchazh.clicrbs.com.br`) with no pa
 (`src/types/content.ts`, `src/data/embeds.csv`, `docs/architecture.md#content-model`)
 _Avoid_: widget, interactive, article
 
+**Piece**:
+Any single thing Kevin shipped that the archive lists: a Project with a case study, or an editorial Embed. Reader-facing, there is no other split.
+(`src/types/content.ts`, `src/data/archive.ts`, ADR 0012)
+_Avoid_: item, entry, work item, project (when the piece is an embed)
+
 **Archive item**:
-The flattened, date-sorted union of everything the Archive section lists, tagged by `kind`: featured, editorial, personal, oss or freelance.
-(`src/types/content.ts`, `src/data/archive.ts`)
+The flattened, date-sorted union of every piece, carrying an origin, a serial and, for the nine, a case-study slug. It feeds both the wall and the stream.
+(`src/types/content.ts`, `src/data/archive.ts`, `docs/superpowers/specs/2026-09-08-archive-act-two-design.md`)
+_Avoid_: kind, featured, editorial (as a category name)
+
+**Origin**:
+Where a piece came from: `professional`, `freelance` or `personal`. The only classification the reader sees; freelance and personal pieces set their title in a fixed deep accent.
+(`src/types/content.ts`, ADR 0012)
+_Avoid_: kind, category, type (that word is the embed's format)
+
+**Serial**:
+A piece's position counted down from the total, so the newest piece carries the count itself.
+(`src/data/archive.ts`, `docs/superpowers/specs/2026-09-08-archive-act-two-design.md`)
+_Avoid_: index, number, id
 
 **highlightOrder**:
 The manual rank across projects. The Selected Work scene carries the projects matching `p.highlight && (p.highlightOrder ?? 99) <= 4`; both predicates count.
@@ -44,7 +60,7 @@ A row's accent, taken by index rotation through the tricolor via `accentFor()` a
 (`src/utils/palette.ts`, `docs/architecture.md#palette-and-tokens`)
 
 **WorkRow**:
-The shared open typographic row that section lists are built from: index, oversized lowercase title, dot-joined meta, arrow, hairline. Reused verbatim by Archive and WorkExperience rather than re-marked-up per section.
+The shared open typographic row that section lists are built from: index, oversized lowercase title, dot-joined meta, arrow, hairline. Used by WorkExperience and by the stream's case-study rows.
 (`src/components/ui/WorkRow.tsx`, `docs/architecture.md#workrow`)
 _Avoid_: card, list item, table row
 
@@ -92,6 +108,36 @@ _Avoid_: intro, lead-in
 The first 100svh of the approach, where a line in Kevin's voice stands in the corridor and the camera passes through it before the cards show.
 (`src/components/canvas/scene/SceneRig.tsx`, `docs/architecture.md#selected-work-scene`)
 _Avoid_: intro line, headline, eyebrow
+
+**Act two**:
+The second act of the Selected Work scene, after card four settles: release, approach, dolly and exit along the frieze. The archive as the reader meets it.
+(`src/utils/sceneMotion.ts`, ADR 0012, `docs/superpowers/specs/2026-09-08-archive-act-two-design.md`)
+_Avoid_: archive scene, wall section, part two
+
+**Frieze**:
+The wall built from every piece: year blocks side by side, newest on the left, each block as wide as its count needs, cells stacked a fixed number of rows high.
+(`src/utils/friezeLayout.ts`, ADR 0012)
+_Avoid_: wall (kept only as the everyday word in prose), grid, mosaic, tile wall
+
+**Year block**:
+One year's run of columns on the frieze, carrying the year string the title morphs to and the count for that year.
+(`src/utils/friezeLayout.ts`)
+_Avoid_: band, group, section
+
+**Cell**:
+One piece's place on the frieze: title, meta line and serial set on the wall surface, no slab or border. A case study spans 2×2 cells with the card object.
+(`src/utils/friezeLayout.ts`, `src/components/canvas/scene/`)
+_Avoid_: tile, plaque, slab, card (except for the nine)
+
+**Volume shot**:
+The release beat's frame, in which the whole frieze is visible before any cell is readable. The archive's claim of volume in one image.
+(`src/utils/sceneMotion.ts`, `docs/superpowers/specs/2026-09-08-archive-act-two-design.md`)
+_Avoid_: overview, wide shot, establishing shot
+
+**Stream**:
+The DOM twin of the frieze: the year-grouped list of every piece, focusable and visually hidden while the scene runs, the visible archive when WebGL is unavailable.
+(`src/components/sections/Projects.tsx`, ADR 0011, ADR 0012)
+_Avoid_: fallback list, hidden list, skip links (which it absorbs), archive list
 
 **Playhead**:
 Scroll progress through the scene, which is also the camera's position. Scroll owns sequence and position; time owns the ambient breath.

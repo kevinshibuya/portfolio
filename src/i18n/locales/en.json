@@ -1,9 +1,9 @@
 {
   "nav": {
     "work": "work",
-    "archive": "the archive",
+    "archive": "all work",
     "experience": "experience",
-    "skills": "skills",
+    "skills": "stack",
     "contact": "contact"
   },
   "lang": "EN",
@@ -19,7 +19,7 @@
     ]
   },
   "stats": {
-    "heading": "the work, in <em>numbers.</em>",
+    "heading": "numbers",
     "receipt": {
       "years": "years shipping interactives, from first commit to today.",
       "interactives": "interactives published across gauchazh.",
@@ -39,29 +39,14 @@
       }
     },
     "archive": {
-      "title": "the <em>archive.</em>",
-      "description": "everything i've shipped, searchable.",
-      "toolbar": {
-        "search": "search…",
-        "kind": "kind",
-        "type": "type",
-        "editorial": "editorial",
-        "year": "year",
-        "sort": "sort",
-        "all": "all",
-        "countLabel": "items",
-        "showMore": "show more"
-      },
-      "sort": {
-        "featured": "featured",
-        "newest": "newest first",
-        "oldest": "oldest first",
-        "az": "a–z",
-        "za": "z–a"
+      "title": "all work",
+      "origin": {
+        "freelance": "freelance",
+        "personal": "personal"
       }
     },
     "work": {
-      "title": "work <em>history.</em>",
+      "title": "experience",
       "description": "seven years shipping. seen by millions.",
       "award": "★ award",
       "modes": {
@@ -70,7 +55,7 @@
       }
     },
     "skills": {
-      "title": "skills &amp; <em>tools.</em>",
+      "title": "stack",
       "description": "my stack: fast, without cutting craft.",
       "frontend": "frontend",
       "design": "design",
@@ -80,7 +65,7 @@
       "leadership": "leadership"
     },
     "contact": {
-      "title": "let's <em>build.</em>",
+      "title": "contact",
       "subtitle": "got a project or rough idea? let's talk.",
       "links": {
         "email": "send mail",

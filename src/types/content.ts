@@ -39,6 +39,7 @@ export interface Project {
   slug: string
   title: Bilingual
   year: number
+  origin?: Origin
 
   // ranking
   highlight: boolean
@@ -87,21 +88,21 @@ export interface Embed {
   imagePreview?: string
 }
 
-export type ArchiveKind = 'featured' | 'editorial' | 'personal' | 'oss' | 'freelance'
+export type Origin = 'professional' | 'freelance' | 'personal'
 
 export interface ArchiveItem {
   id: string
-  kind: ArchiveKind
   title: string | Bilingual
+  origin: Origin
+  caseStudy?: { slug: string }
   type?: EmbedType
   editorial?: string
   date: string
   sortDate: number
+  year: number
   href: string
   internal: boolean
-  gradient: string
-  highlight?: boolean
-  highlightOrder?: number
+  serial: number
 }
 
 export function resolveTitle(item: ArchiveItem, lang: 'en' | 'pt'): string {

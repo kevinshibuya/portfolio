@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { scrollToPlayhead, scrollToActTwo } from './helpers/scene'
 import { inflateSync } from 'node:zlib'
 import sharp from 'sharp'
 import { sceneGeometry, frameRects } from '../../src/utils/sceneMotion'
@@ -65,15 +66,7 @@ test('the scene renders through the composer without shifting the cream', async 
     .locator('#projects canvas[data-canvas="selected-work-scene"][data-warm="true"]')
     .waitFor({ timeout: 120_000 })
 
-  await page.evaluate(() => {
-    const wrapper = document.querySelector('#projects .scene-scroll') as HTMLElement | null
-    if (!wrapper) return
-    const top = wrapper.getBoundingClientRect().top + window.scrollY
-    window.scrollTo({
-      top: top + 0.3333 * (wrapper.offsetHeight - window.innerHeight), // card 0 settled: (0 + 1.5) / 4.5
-      behavior: 'instant' as ScrollBehavior,
-    })
-  })
+  await scrollToPlayhead(page, 0) // card 0 settled
   await page.waitForTimeout(3000)
 
   const canvas = page.locator('#projects canvas[data-canvas="selected-work-scene"]')
@@ -111,6 +104,53 @@ test('the scene renders through the composer without shifting the cream', async 
   }
   expect(minLum, 'title ink present in the band').toBeLessThan(60)
   expect(maxLum, 'cream present in the band').toBeGreaterThan(200)
+
+  // Act two through the composer. This is the ONLY headless path that runs the
+  // composer at all, so it is the only place the DoF focus write in
+  // Environment — `cocMaterial.worldFocusDistance` off `sceneRefs.focus` — is
+  // exercised end to end.
+  await scrollToActTwo(page, 0.5)
+  await page.waitForTimeout(1500)
+  const sceneCanvas = page.locator('#projects canvas[data-canvas="selected-work-scene"]')
+  await expect(sceneCanvas).toHaveAttribute('data-act', '2')
+  await expect(sceneCanvas).toHaveAttribute('data-frieze', 'ready')
+  await page.waitForTimeout(900)
+
+  // The wall reaches the reader THROUGH the composer, and depth of field is a
+  // blur: it is exactly the effect that can leave a wall of small type legible
+  // in a screenshot-free suite while turning it to mush on screen. Sample the
+  // frieze deep enough to miss the year title, and require both real ink and
+  // real cream — a softened wall loses the ink floor first.
+  const actTwoBox = (await sceneCanvas.boundingBox())!
+  const band = await page.screenshot({
+    clip: {
+      x: actTwoBox.x,
+      y: actTwoBox.y + Math.round(actTwoBox.height * 0.55),
+      width: actTwoBox.width,
+      height: 40,
+    },
+  })
+  const wall = await sharp(band).raw().toBuffer({ resolveWithObject: true })
+  let wallMin = 255
+  let wallMax = 0
+  let wallSum = 0
+  let wallCount = 0
+  for (let i = 0; i < wall.data.length; i += wall.info.channels) {
+    const lum =
+      0.2126 * wall.data[i] + 0.7152 * wall.data[i + 1] + 0.0722 * wall.data[i + 2]
+    if (lum < wallMin) wallMin = lum
+    if (lum > wallMax) wallMax = lum
+    wallSum += lum
+    wallCount++
+  }
+  // Deliberately a tonal claim, not a glyph one: this band spans the frame, so
+  // its darks may come from a case-study cover as easily as from cell text.
+  // That is the right assertion HERE — the subject is what the composer does to
+  // the wall's range. `frieze-surface.spec.ts` is where glyph existence is
+  // proved, inside a single cover-free cell.
+  expect(wallMin, 'dark ink survives the composer in act two').toBeLessThan(40)
+  expect(wallMax, 'cream survives the composer in act two').toBeGreaterThan(200)
+  expect(wallSum / wallCount, 'the wall stays a light sheet').toBeGreaterThan(170)
 
   expect(errors).toEqual([])
 })
