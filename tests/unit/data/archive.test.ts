@@ -36,9 +36,13 @@ function piece(id: string, year: number, serial: number): ArchiveItem {
 }
 
 describe('archive', () => {
-  it('contains 171 pieces with nine case-study slugs and 162 external embeds', () => {
-    expect(archive).toHaveLength(171)
-    expect(archive.flatMap((item) => item.caseStudy ? [item.caseStudy.slug] : []).sort()).toEqual([
+  it('holds the nine case studies, and every other piece is an external embed', () => {
+    // Relations, never the census. 171 is today's count and it moves with every
+    // published piece; a test that hardcodes it fails on new content instead of
+    // on a defect. The frieze fixture is where cell drift is caught.
+    expect(archive.length).toBeGreaterThan(0)
+    const slugs = archive.flatMap((item) => (item.caseStudy ? [item.caseStudy.slug] : [])).sort()
+    expect(slugs).toEqual([
       'chat-da-hora',
       'enquetes-gzh',
       'fotos-do-ano-2024',
@@ -50,7 +54,7 @@ describe('archive', () => {
       'radar-legislativo',
     ])
     const external = archive.filter((item) => !item.internal)
-    expect(external).toHaveLength(162)
+    expect(external).toHaveLength(archive.length - slugs.length)
     for (const item of external) {
       expect(item).not.toHaveProperty('caseStudy')
       expect(item.href).toMatch(/^https?:\/\//)
@@ -67,11 +71,11 @@ describe('archive', () => {
     }
   })
 
-  it('sorts newest first and assigns every serial from 171 down to 1 exactly once', () => {
-    expect(archive[0].serial).toBe(171)
+  it('sorts newest first and counts down from archive.length to 1 exactly once', () => {
+    expect(archive[0].serial).toBe(archive.length)
     expect(archive.at(-1)?.serial).toBe(1)
-    expect(new Set(archive.map((item) => item.serial)).size).toBe(171)
-    expect(new Set(archive.map((item) => item.id)).size).toBe(171)
+    expect(new Set(archive.map((item) => item.serial)).size).toBe(archive.length)
+    expect(new Set(archive.map((item) => item.id)).size).toBe(archive.length)
     for (let i = 1; i < archive.length; i++) {
       expect(archive[i - 1].sortDate).toBeGreaterThanOrEqual(archive[i].sortDate)
       expect(archive[i - 1].serial - archive[i].serial).toBe(1)
@@ -80,20 +84,23 @@ describe('archive', () => {
 
   it('defaults to professional, with only hotmart-bunde marked freelance', () => {
     expect(archive.find((item) => item.id === 'featured-hotmart-bunde')?.origin).toBe('freelance')
-    expect(archive.filter((item) => item.origin === 'professional')).toHaveLength(170)
+    expect(archive.filter((item) => item.origin === 'freelance')).toHaveLength(1)
+    expect(archive.filter((item) => item.origin === 'professional')).toHaveLength(archive.length - 1)
     expect(archive.filter((item) => item.origin === 'personal')).toHaveLength(0)
     for (const item of archive.filter((item) => item.id !== 'featured-hotmart-bunde')) {
       expect(item.origin).toBe('professional')
     }
   })
 
-  it('derives UTC years with the four specified counts', () => {
-    const counts: Record<number, number> = {}
+  it('derives every year from its own sortDate, in UTC, newest first', () => {
+    const seen: number[] = []
     for (const item of archive) {
       expect(item.year).toBe(new Date(item.sortDate).getUTCFullYear())
-      counts[item.year] = (counts[item.year] ?? 0) + 1
+      if (seen.at(-1) !== item.year) seen.push(item.year)
     }
-    expect(counts).toEqual({ 2026: 3, 2025: 42, 2024: 118, 2023: 8 })
+    // Each year appears in exactly one run, and the runs descend.
+    expect(new Set(seen).size).toBe(seen.length)
+    for (let i = 1; i < seen.length; i++) expect(seen[i - 1]).toBeGreaterThan(seen[i])
   })
 
   it('omits the retired archive classification and presentation fields', () => {
@@ -189,15 +196,13 @@ describe('deriveArchive', () => {
 })
 
 describe('yearBlocks', () => {
-  it('groups all 171 pieces into the four newest-first year blocks', () => {
+  it('groups the whole archive into newest-first year blocks that lose nothing', () => {
     const blocks = yearBlocks(archive)
-    expect(blocks.map(({ year, count }) => ({ year, count }))).toEqual([
-      { year: 2026, count: 3 },
-      { year: 2025, count: 42 },
-      { year: 2024, count: 118 },
-      { year: 2023, count: 8 },
-    ])
-    expect(blocks.reduce((total, block) => total + block.count, 0)).toBe(171)
+    expect(blocks.length).toBeGreaterThan(0)
+    for (let i = 1; i < blocks.length; i++) {
+      expect(blocks[i - 1].year).toBeGreaterThan(blocks[i].year)
+    }
+    expect(blocks.reduce((total, block) => total + block.count, 0)).toBe(archive.length)
     expect(blocks.flatMap((block) => block.items)).toEqual(archive)
     for (const block of blocks) {
       expect(block.count).toBe(block.items.length)

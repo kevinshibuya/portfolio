@@ -359,8 +359,8 @@ The probe lives in the repo, not `/tmp`: a file under `/tmp` resolves `./src` re
 
 **Boundaries:** `src/data/archive.ts` and `src/types/content.ts` are pipeline 2's; no edit.
 
-- [ ] Rewrite the file per Work
-- [ ] `npx vitest run tests/unit/data/archive.test.ts` green; commit `test(data): archive items carry serial, origin, year blocks`
+- [x] Rewrite the file per Work
+- [x] `npx vitest run tests/unit/data/archive.test.ts` green; commit `test(data): archive items carry serial, origin, year blocks`
 
 ### Task 3: strings
 
