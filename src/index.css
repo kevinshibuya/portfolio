@@ -1875,11 +1875,6 @@ body[data-loader-state="loading"] {
   color: var(--text-faded);
 }
 
-.workrow-ornament {
-  flex: none;
-  color: var(--text-faded);
-  transition: color var(--dur-hover-in) var(--ease-house);
-}
 
 .workrow-arrow {
   flex: none;
@@ -1927,65 +1922,6 @@ body[data-loader-state="loading"] {
   outline: 2px solid var(--text);
   outline-offset: 4px;
   border-radius: 4px;
-}
-
-/* Inline touch thumbnail: rendered in DOM whenever a preview exists, but only
-   shown on no-hover (touch) devices — desktop uses the tracking float instead. */
-.workrow-thumb {
-  display: none;
-  flex: none;
-  width: 64px;
-  height: 44px;
-  border-radius: 8px;
-  overflow: hidden;
-  background-size: cover;
-  background-position: center;
-}
-.workrow-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Desktop hover float: fixed preview that tracks the pointer (JS-gated to
-   hover + fine pointer + motion-on; positioned via MotionValues). */
-.workrow-float {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 40;
-  pointer-events: none;
-}
-.workrow-float-inner {
-  translate: 28px -50%;
-  width: 300px;
-  height: 200px;
-  border-radius: 10px;
-  overflow: hidden;
-  background-size: cover;
-  background-position: center;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-  transform-origin: left center;
-  will-change: transform, opacity;
-}
-.workrow-float-inner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-@media (hover: none) {
-  .workrow-thumb {
-    display: block;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .workrow-float {
-    display: none;
-  }
 }
 
 /* THE exit veil (cream→ink): the single tonal bridge out of the light chapter,
@@ -2100,11 +2036,6 @@ body[data-loader-state="loading"] {
   background: rgba(11, 14, 20, 0.06);
   border-color: var(--accent-blue);
   color: var(--text);
-}
-
-/* 8. Black-alpha shadows read far heavier on cream than on ink. */
-.chapter-light .workrow-float-inner {
-  box-shadow: 0 24px 60px rgba(11, 14, 20, 0.22);
 }
 
 /* =========================================================================

@@ -398,9 +398,9 @@ The probe lives in the repo, not `/tmp`: a file under `/tmp` resolves `./src` re
 
 **Boundaries:** No change to `.workrow-title`, `.workrow-meta`, `.workrow-index`, `.workrow-arrow` rules, or the light-chapter hover lift.
 
-- [ ] Edit `WorkRow.tsx`; delete the float test; add the arrow case
-- [ ] Remove the CSS rules; `grep` shows 0
-- [ ] `npx vitest run tests/unit/WorkRow.test.tsx` green; commit `refactor(workrow): the float and the ornament go, the arrow points the way the link goes`
+- [x] Edit `WorkRow.tsx`; delete the float test; add the arrow case
+- [x] Remove the CSS rules; `grep` shows 0
+- [x] `npx vitest run tests/unit/WorkRow.test.tsx` green; commit `refactor(workrow): the float and the ornament go, the arrow points the way the link goes`
 
 ### Task 5: the Stream component and its CSS
 
