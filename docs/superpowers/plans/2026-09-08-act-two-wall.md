@@ -759,9 +759,9 @@ fallback.
 
 **Acceptance check:** PR targets `feat/act-two`, tests are green, evidence and manual checklist are reviewable; report the PR URL without claiming Kevin’s approval.
 
-- [ ] Run the full verification set and record results; expected: green integration branch.
-- [ ] Check trailers and commit the final evidence with `git commit -m 'docs: record wall implementation verification'`; apply the global tick-and-amend protocol.
-- [ ] Push and create the PR against `feat/act-two`; expected: PR URL and Kevin’s manual pass pending. Tick locally after success, amend the evidence commit and push the amend with `--force-with-lease` before handing off, checking that the remote has not advanced.
+- [x] Run the full verification set and record results; expected: green integration branch.
+- [x] Check trailers and commit the final evidence with `git commit -m 'docs: record wall implementation verification'`; apply the global tick-and-amend protocol.
+- [x] Push and create the PR against `feat/act-two`; expected: PR URL and Kevin’s manual pass pending. Tick locally after success, amend the evidence commit and push the amend with `--force-with-lease` before handing off, checking that the remote has not advanced.
 
 ## Task 10 record · measured evidence and the Access handoff
 
@@ -936,6 +936,36 @@ it. Flagged for Kevin's manual pass, deliberately not changed here.
 4. **No test measures volume-shot minification**, by the same amendment's request.
 5. **The `data-act-two-u` diagnostic hook** remains unfiled as an issue (Fable's standing ruling:
    do not add it in this pipeline).
+
+## Task 12 record · final verification
+
+PR: https://github.com/kevinshibuya/portfolio/pull/18 · `feat/act-two-wall` into `feat/act-two`.
+Kevin's manual pass and the three-leg review are pending; neither is claimed here.
+
+Run in one session on `feat/act-two-wall` at **`d908cdf`** · the tip after Task 10, with a clean
+working tree · in the `portfolio-wt-wall` worktree. Port 4173 and any orphaned `workerd` were
+killed before the browser run.
+
+| Command | Result |
+| --- | --- |
+| `npx tsc -b` | exit 0 |
+| `npx tsc -p tests/tsconfig.frieze-types.json --noEmit` | exit 0 |
+| `npm run lint` | 0 errors, **4** warnings · all pre-existing `react-refresh/only-export-components` |
+| `npx vitest run` | **429 passed**, 26 files |
+| `npx playwright test --workers=1` | **136 passed, 16 skipped, 0 failed** (15.9m) |
+
+The 16 skips are the documented set: five perf-harness specs behind `PERF_HARNESS=1` (issue #11)
+and the rest platform-gated. The four warnings are the branch's inherited count · a fifth would be
+new. These reproduce Task 9's figures at a tip one documentation commit further on, which is what
+"green integration branch" means here.
+
+Commit trailers were inspected across all 17 commits on the branch: each names its actual executor
+· `GPT-6 Astra via Codex` for the plan delivery, `Claude Fable 5.1` for Task 4, part of Task 5 and
+the warm-up fix, `Claude Opus 5` for the remainder · matching the execution-model history in this
+plan's header.
+
+**Not claimed by this record:** Kevin's manual pass, the three-leg PR review, the contrast
+recomputation and the Access pipeline. Each has its own box in the spec and none is ticked here.
 
 ## Acceptance map
 
