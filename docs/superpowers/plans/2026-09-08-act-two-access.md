@@ -487,13 +487,13 @@ CSS contract, all canonical tokens, every colour pair listed in Task 11:
 
 `scrollToItem(itemId)` is the one function both the wall click and the stream focus call: `playheadForItem(itemId, layout, extent)` (bail on `null`), then `wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY`, then `scrollTargetFor(playhead, wrapperTop, wrapper.offsetHeight, window.innerHeight, columns)` — **`columns` is always passed; its default of `0` maps the playhead through act one alone and would scroll the reader to a card slot, silently and without a type error.** `columns` comes from the same frieze extent the scene renders. Before issuing the move it cancels the one in flight (assumption 28, mechanism confirmed in Task 1), then `lenis.scrollTo(target, { duration: 1.2 })` or, with no Lenis, `window.scrollTo({ top: target, behavior: 'instant' })`. If pipeline 2's cell click already has this body, extract it and call it from both places; the two paths must be one function.
 
-**Acceptance check:** `npx tsc -b` and `npm run lint` clean; `grep -rn "scene-skiplink\|indexLabel\|sections/Archive" src` → no output; `grep -n "scrollTargetFor(" src/components/sections/Projects.tsx` → every call site passes five arguments; on the dev server `document.querySelector('#projects > #archive')` is non-null and `document.querySelector('.scene-sticky #archive')` is `null`, and `document.querySelectorAll('#archive li.stream-item').length === 171`; `getComputedStyle(document.querySelector('#archive')).position === 'fixed'` and its `zIndex` is `'120'`; `document.querySelector('#archive').getBoundingClientRect()` reads `x === innerWidth / 2, y === 16` both at `scrollY 0` and mid-scene (no ancestor re-parents the fixed box).
+**Acceptance check:** `npx tsc -b` and `npm run lint` clean; `grep -rn "scene-skiplink\|indexLabel\|sections/Archive" src` → no output; `grep -n "scrollTargetFor(" src/components/sections/Projects.tsx` → every call site passes five arguments; on the dev server `document.querySelector('#projects > #archive')` is non-null and `document.querySelector('.scene-sticky #archive')` is `null`, and `document.querySelectorAll('#archive li.stream-item').length === 171`; `getComputedStyle(document.querySelector('#archive')).position === 'fixed'` and its `zIndex` is `'120'`; `document.querySelector('#archive').getBoundingClientRect()` reads `y === 16` and `x` at the LAYOUT viewport's centre both at `scrollY 0` and mid-scene (no ancestor re-parents the fixed box). **Corrected 2026-09-10, measured:** the yardstick is `document.body.clientWidth / 2`, not `innerWidth / 2`. At a 1280 viewport an 11 px classic scrollbar makes the layout viewport 1269, so `left: 50%` resolves to **634.5**, and 640 would put the pill 5.5 px off the centre the reader actually sees. Task 10 test 12 takes the corrected form.
 
 **Boundaries:** No change to `SelectedWorkScene` props. No React state on focus. The `cards` memo and the scene subtree's identity are untouched (`data-registrations` stays `1`; Task 9 asserts it).
 
-- [ ] Edit `Projects.tsx`, `Home.tsx`; delete the skip-link CSS
-- [ ] Run the greps and the three console checks on the dev server
-- [ ] Commit `feat(scene): the stream lives in the scene section; the skip links are absorbed`
+- [x] Edit `Projects.tsx`, `Home.tsx`; delete the skip-link CSS
+- [x] Run the greps and the three console checks on the dev server
+- [x] Commit `feat(scene): the stream lives in the scene section; the skip links are absorbed`
 
 ### Task 7: the nav link lands on the volume shot
 
