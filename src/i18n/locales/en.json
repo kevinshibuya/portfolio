@@ -34,12 +34,14 @@
       "heading": "selected work",
       "overture": "a few things i've built",
       "stack": {
-        "viewProject": "view",
-        "indexLabel": "selected projects"
+        "viewProject": "view"
       }
     },
     "archive": {
       "title": "all work",
+      "pieces_one": "{{count}} piece",
+      "pieces_other": "{{count}} pieces",
+      "skipPast": "skip past all work",
       "origin": {
         "freelance": "freelance",
         "personal": "personal"

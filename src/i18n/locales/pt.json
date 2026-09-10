@@ -34,12 +34,14 @@
       "heading": "trabalhos selecionados",
       "overture": "algumas coisas que construí",
       "stack": {
-        "viewProject": "ver",
-        "indexLabel": "projetos selecionados"
+        "viewProject": "ver"
       }
     },
     "archive": {
       "title": "todos os trabalhos",
+      "pieces_one": "{{count}} peça",
+      "pieces_other": "{{count}} peças",
+      "skipPast": "pular todos os trabalhos",
       "origin": {
         "freelance": "freelance",
         "personal": "pessoal"

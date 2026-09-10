@@ -378,8 +378,8 @@ The probe lives in the repo, not `/tmp`: a file under `/tmp` resolves `./src` re
 
 **Boundaries:** No other key. No `SectionHeading` string. No edit to the origin keys pipeline 2 owns.
 
-- [ ] Edit both locale files
-- [ ] Run the check; commit `i18n(archive): year counts and the skip-past link arrive`
+- [x] Edit both locale files
+- [x] Run the check; commit `i18n(archive): year counts and the skip-past link arrive`
 
 ### Task 4: WorkRow loses the float and the ornament, learns the arrow direction
 
