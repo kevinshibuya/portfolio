@@ -22,7 +22,10 @@ const SETTLE_MS = 160
 const SETTLE_REDUCED_MS = 220
 
 /**
- * How long to allow for the warm-up, by project.
+ * How long to allow for a full raster of the wall, by project.
+ *
+ * It covers the warm-up and every later redraw (a language switch, a settled
+ * resize), because both rebuild all 171 cells across five panels.
  *
  * The warm-up compiles, uploads every texture and renders one off-screen frame,
  * and headless Chromium does all of it on SwiftShader. Its cost therefore scales
@@ -36,7 +39,7 @@ const SETTLE_REDUCED_MS = 220
  * project rather than the suite loosening for everyone. A genuine warm failure
  * still fails; it just fails later on the one project that legitimately needs it.
  */
-function warmTimeout(): number {
+export function rasterBudgetMs(): number {
   return test.info().project.name === 'desktop-hidpi' ? 120_000 : 30_000
 }
 
@@ -49,7 +52,7 @@ export async function openScene(page: Page): Promise<void> {
   // after the entrance, and only then is the scrub the steady state.
   await page
     .locator('#projects canvas[data-canvas="selected-work-scene"][data-warm="true"]')
-    .waitFor({ timeout: warmTimeout() })
+    .waitFor({ timeout: rasterBudgetMs() })
 }
 
 /** The wrapper's height in svh, as the page rendered it. */

@@ -234,9 +234,14 @@ export function Frieze({
         clearHover()
         return
       }
+      // `hover.current` outlives a panel plan: a resize that drops the wall
+      // from five panels to four leaves a stale index behind, and the reset
+      // effect only clears it once passive effects flush. Guard it the way
+      // `clearHover` already does rather than index into a shorter array.
       const previous = hover.current.panel
-      if (previous >= 0 && previous !== panel) {
-        setFriezeHover(materials[previous], null, layout.blocks[meshes[previous].panel.block], null)
+      const previousMesh = meshes[previous]
+      if (previous >= 0 && previous !== panel && materials[previous] && previousMesh) {
+        setFriezeHover(materials[previous], null, layout.blocks[previousMesh.panel.block], null)
       }
       restCardTitle(hover.current.itemId)
       const block = layout.blocks[meshes[panel].panel.block]

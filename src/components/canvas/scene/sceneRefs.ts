@@ -56,6 +56,16 @@ export interface SceneRefs {
      */
     prepare: (() => Promise<void>) | null
     /**
+     * The act the rig is currently in, as a boolean: true from the moment the
+     * playhead crosses into act two. The rig reports a CROSSING, and a crossing
+     * only happens once, so a wall that mounts after it would otherwise never
+     * hear about it: the outer Suspense holds Wall's effects until the
+     * corridor's covers resolve, and a reader who scrolls into act two inside
+     * that window would meet a wall that draws but never takes the pointer.
+     * The wall reads this when it registers and syncs itself.
+     */
+    active: boolean
+    /**
      * The masks the wall uploads. They live in shader uniforms, out of
      * `scene.traverse`'s reach, so the warm-up cannot find them on its own.
      */
@@ -96,7 +106,7 @@ export function createSceneRefs(): SceneRefs {
     titleTextures: [],
     titleMetrics: [],
     titleRedraw: null,
-    frieze: { prepare: null, textures: [], onActive: null },
+    frieze: { prepare: null, textures: [], onActive: null, active: false },
     energy: { value: 0 },
     tilt: { pitch: 0, yaw: 0 },
     pointer: { x: 0, y: 0 },

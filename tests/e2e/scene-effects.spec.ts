@@ -143,7 +143,12 @@ test('the scene renders through the composer without shifting the cream', async 
     wallSum += lum
     wallCount++
   }
-  expect(wallMin, 'frieze ink stays readable through the composer').toBeLessThan(40)
+  // Deliberately a tonal claim, not a glyph one: this band spans the frame, so
+  // its darks may come from a case-study cover as easily as from cell text.
+  // That is the right assertion HERE — the subject is what the composer does to
+  // the wall's range. `frieze-surface.spec.ts` is where glyph existence is
+  // proved, inside a single cover-free cell.
+  expect(wallMin, 'dark ink survives the composer in act two').toBeLessThan(40)
   expect(wallMax, 'cream survives the composer in act two').toBeGreaterThan(200)
   expect(wallSum / wallCount, 'the wall stays a light sheet').toBeGreaterThan(170)
 

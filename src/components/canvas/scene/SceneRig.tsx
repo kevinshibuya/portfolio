@@ -289,6 +289,9 @@ export function SceneRig({
       // The wall's hit testing rides the same crossing: act one must not take
       // the pointer through the wall standing behind it. A crossing is not a
       // frame, so this is the one place the loop may reach React at all.
+      // Recorded as well as reported: a wall that has not mounted yet cannot
+      // hear a crossing, and a crossing does not repeat.
+      sceneRefs.frieze.active = inActTwo
       sceneRefs.frieze.onActive?.(inActTwo)
     }
 

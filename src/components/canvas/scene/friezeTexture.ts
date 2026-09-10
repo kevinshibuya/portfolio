@@ -451,6 +451,16 @@ export function rasteriseFrieze(request: FriezeRasterRequest): FriezeRasterJob {
       await scheduler.fontReady()
       if (cancelled) return
       const plans = planPanels(recipe)
+      // An empty archive packs to no blocks, so there is nothing to draw. That
+      // is an empty wall, not a failed one: without this, `slice` would reach
+      // for `plans[0]`, throw on `undefined`, and settle the generation
+      // `'failed'` — a cream wall and `data-frieze="failed"` for a layout the
+      // packer documents as legal.
+      if (plans.length === 0) {
+        settled = true
+        resolve(masks)
+        return
+      }
       const total = plans.reduce((sum, plan) => sum + plan.units.length, 0)
       let drawn = 0
       const canvas = document.createElement('canvas')

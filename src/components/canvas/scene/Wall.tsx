@@ -75,8 +75,17 @@ export function Wall({
   // The generation on screen. Its own cleanup disposes it, which React runs
   // after the replacement has been committed.
   const [shown, setShown] = useState<FriezeGeneration | null>(null)
+  // Ownership transfers on COMMIT, not on settle. A generation that settles and
+  // is superseded before its transition commits would otherwise belong to
+  // nobody: the effect cleanup would see it in the ref and skip it, and the
+  // `[shown]` effect would never see it at all. The warm-up has already run
+  // `initTexture` over the first generation's masks by then, so those bytes are
+  // on the GPU and a skipped dispose leaks them.
   const shownRef = useRef<FriezeGeneration | null>(null)
-  useEffect(() => () => shown?.dispose(), [shown])
+  useEffect(() => {
+    shownRef.current = shown
+    return () => shown?.dispose()
+  }, [shown])
 
   // Permission is granted once, by the warm-up. A generation made after that
   // (a language switch, a settled resize) is born permitted, or it would park
@@ -105,7 +114,6 @@ export function Wall({
         generation.dispose()
         return
       }
-      shownRef.current = generation
       // A transition, so the nine covers loading below do not swap the wall
       // out for its fallback: React keeps the cream wall on screen until the
       // new generation can be committed whole.
@@ -125,15 +133,29 @@ export function Wall({
   // `pending` until a generation settles, then `ready` or `failed`. A failed
   // raster is a cream wall, never the permanent WebGL-unavailable path.
   const status = shown ? shown.status() : 'pending'
+  // `data-frieze` cannot witness a redraw. The wall swaps rather than blanks,
+  // so the attribute holds `'ready'` from the first generation until the last,
+  // and a test that waits for `'ready'` after a language switch is answered by
+  // the generation already on screen. A generation that parked forever would
+  // satisfy it. The counter is the honest witness: it moves only when a new
+  // generation is committed, so a test can assert that one actually landed.
+  const committed = useRef(0)
   useEffect(() => {
+    if (shown) committed.current += 1
     gl.domElement.dataset.frieze = status
-  }, [gl, status])
+    gl.domElement.dataset.friezeGen = String(committed.current)
+  }, [gl, status, shown])
 
   // Act one must not take the pointer through the wall standing behind it. The
   // rig reports the crossing; this is a boolean per pass, not per frame.
   const [active, setActive] = useState(false)
   useEffect(() => {
     sceneRefs.frieze.onActive = setActive
+    // The rig reports a crossing, and it crossed before this effect ran if the
+    // reader reached act two while the outer Suspense still held us for the
+    // corridor's covers. Read the act instead of waiting for a second crossing
+    // that only comes if they scroll all the way back and forward again.
+    setActive(sceneRefs.frieze.active)
     return () => {
       sceneRefs.frieze.onActive = null
     }

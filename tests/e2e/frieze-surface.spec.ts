@@ -1,14 +1,14 @@
 import { test, expect, type Page } from '@playwright/test'
 import { readFileSync } from 'node:fs'
 import sharp from 'sharp'
-import { openScene, scrollToActTwo, CANVAS } from './helpers/scene'
+import { openScene, scrollToActTwo, rasterBudgetMs, CANVAS } from './helpers/scene'
 import {
   actTwoProgress,
   actTwoPose,
   playheadForColumn,
   sceneGeometry,
 } from '../../src/utils/sceneMotion'
-import { cellPixel, wallEdgePoint, type CanvasBox } from './helpers/frieze'
+import { cellPixel, wallEdgePoint, type CanvasBox, type CellPixel } from './helpers/frieze'
 import type { FriezeFixture } from '../unit/friezeFixture.shared'
 
 /**
@@ -28,7 +28,13 @@ const fixture = JSON.parse(
 const extent = fixture.extent
 
 test.describe('act two · the wall as a rendered surface', () => {
-  test.describe.configure({ timeout: 90_000 })
+  // 90 s covers `desktop-chromium`, where a full raster is ~10 s. On
+  // `desktop-hidpi` the same redraw rebuilds all 171 cells at the 612.8
+  // texels/world ceiling — 27.16 MiB of masks against 6.00 — under a software
+  // rasteriser, and the language round trip does it twice on top of the
+  // warm-up. The budget is per-assertion (`rasterBudgetMs`); this is only the
+  // ceiling that stops a genuinely hung test from running forever.
+  test.describe.configure({ timeout: 240_000 })
 
   interface Luminance {
     min: number
@@ -55,6 +61,38 @@ test.describe('act two · the wall as a rendered surface', () => {
     return { min, max, mean: sum / n }
   }
 
+  /**
+   * Luminance INSIDE one cell's projected footprint.
+   *
+   * A full-width strip across the wall is not evidence of glyphs: at any
+   * playhead the frame also holds slivers of the nine case-study covers, which
+   * are photographic and carry plenty of sub-40 ink of their own. A strip would
+   * therefore stay green with `drawUnit` painting nothing at all — a mode this
+   * codebase has already seen once, when an unparseable `ctx.font` made
+   * `fillText` a silent no-op. An EMBED cell has no cover, so ink found inside
+   * its own footprint is the frieze's own text and nothing else.
+   */
+  async function cellInk(page: Page, box: CanvasBox, target: CellPixel): Promise<Luminance> {
+    const w = Math.max(8, Math.round(target.widthFrac * box.width))
+    const h = Math.max(8, Math.round(target.heightFrac * box.height))
+    const x = Math.round(Math.max(box.x, Math.min(target.px - w / 2, box.x + box.width - w)))
+    const y = Math.round(Math.max(box.y, Math.min(target.py - h / 2, box.y + box.height - h)))
+    const shot = await page.screenshot({ clip: { x, y, width: w, height: h } })
+    const { data, info } = await sharp(shot).raw().toBuffer({ resolveWithObject: true })
+    let min = 255
+    let max = 0
+    let sum = 0
+    let n = 0
+    for (let i = 0; i < data.length; i += info.channels) {
+      const lum = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]
+      if (lum < min) min = lum
+      if (lum > max) max = lum
+      sum += lum
+      n++
+    }
+    return { min, max, mean: sum / n }
+  }
+
   /** Every console error, page error and unhandled rejection, in order. */
   function watchErrors(page: Page): string[] {
     const errors: string[] = []
@@ -66,6 +104,12 @@ test.describe('act two · the wall as a rendered surface', () => {
   }
 
   const embedCell = fixture.cells.find((c) => c.kind === 'embed')!
+  // Same column, so it is in frame at `embedU`, but below row 1: the top of a
+  // block's first column carries the year count, whose band is deliberately
+  // non-interactive and whose ink is the count rather than a cell's own text.
+  const glyphCell =
+    fixture.cells.find((c) => c.kind === 'embed' && c.col === embedCell.col && c.row >= 2) ??
+    embedCell
   const embedU = actTwoProgress(
     playheadForColumn(embedCell.col + embedCell.span / 2, extent),
   )
@@ -100,14 +144,20 @@ test.describe('act two · the wall as a rendered surface', () => {
     await page.waitForTimeout(900)
     const box = (await page.locator(CANVAS).boundingBox())!
 
-    // Sampled DEEP in the wall, well below the act-two year title, so the ink
-    // found here is the frieze's own text and never the title's.
+    // One embed cell, sampled inside its own projected footprint: no cover can
+    // supply the ink, so this goes red if the rasteriser draws nothing.
+    const g = sceneGeometry(box.width, box.height)
+    const target = cellPixel(glyphCell, extent, g, actTwoPose(embedU, extent, g), box)
+    expect(target.inFrame, 'the sampled cell must be wholly in frame').toBe(true)
+    const cell = await cellInk(page, box, target)
+    expect(cell.min, 'glyph ink inside the cell').toBeLessThan(40)
+    expect(cell.max, 'cream inside the cell').toBeGreaterThan(200)
+
+    // And the wall at large stays a light surface: a black frame or a composer
+    // that swallowed the scene fails here rather than in the cell.
     for (const yFrac of [0.55, 0.85]) {
       const lum = await strip(page, box, yFrac)
-      expect(lum.min, `ink present at ${yFrac}`).toBeLessThan(40)
       expect(lum.max, `light present at ${yFrac}`).toBeGreaterThan(200)
-      // A wall that failed to raster would be uniform cream: bright mean, but
-      // no ink at all. A black frame would fail the mean instead.
       expect(lum.mean, `the wall stays predominantly light at ${yFrac}`).toBeGreaterThan(170)
     }
   })
@@ -154,12 +204,19 @@ test.describe('act two · the wall as a rendered surface', () => {
     await expect(canvas).toHaveAttribute('data-frieze', 'ready')
 
     for (const pass of [1, 2]) {
+      const before = await canvas.getAttribute('data-frieze-gen')
       await page.locator('.nav-lang').click()
-      // The generation is superseded and rebuilt; it must come back, not park.
-      await expect(canvas, `language pass ${pass} must redraw`).toHaveAttribute(
+      // `data-frieze` cannot witness this: the wall SWAPS rather than blanks, so
+      // it reads 'ready' throughout and a generation that parked forever would
+      // satisfy it. The committed-generation counter is what actually moves.
+      await expect(canvas, `language pass ${pass} must redraw`).not.toHaveAttribute(
+        'data-frieze-gen',
+        before!,
+        { timeout: rasterBudgetMs() },
+      )
+      await expect(canvas, `language pass ${pass} must land ready`).toHaveAttribute(
         'data-frieze',
         'ready',
-        { timeout: 30_000 },
       )
       await page.waitForTimeout(400)
     }
@@ -177,11 +234,17 @@ test.describe('act two · the wall as a rendered surface', () => {
     const canvas = page.locator(CANVAS)
     await expect(canvas).toHaveAttribute('data-frieze', 'ready')
 
+    const beforeGen = await canvas.getAttribute('data-frieze-gen')
     await page.setViewportSize({ width: 1100, height: 800 })
     await page.waitForTimeout(600)
-    await expect(canvas, 'a settled resize must redraw').toHaveAttribute('data-frieze', 'ready', {
-      timeout: 30_000,
-    })
+    // Same reason as the language pass: only the counter proves a new
+    // generation was committed rather than the old one still standing.
+    await expect(canvas, 'a settled resize must redraw').not.toHaveAttribute(
+      'data-frieze-gen',
+      beforeGen!,
+      { timeout: rasterBudgetMs() },
+    )
+    await expect(canvas, 'the resized wall lands ready').toHaveAttribute('data-frieze', 'ready')
 
     const box = (await canvas.boundingBox())!
     expect(box.width, 'the canvas follows the new viewport').toBeLessThan(1200)

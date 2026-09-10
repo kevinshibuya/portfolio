@@ -1035,6 +1035,114 @@ bridge would also have created a second owner for an id pipeline 3's plan alread
 `resolveNavTarget`, so it would have to be removed again. **Access must add, as an acceptance item:
 `#archive` lands on the element the nav link already targets.**
 
+## PR #18 review wave · 2026-09-10
+
+**Two legs of three completed.** `reviewer` on opus (xhigh) and `reviewer` on fable (xhigh) both
+returned. `codex-review` on gpt-6-astra hit the codex usage limit mid-run (registry
+`2026-09-09T23:45:01`, 297 s, exit 1) and was interrupted; per the ops rule a limit hit is a hard
+stop for every GPT lane, with no retry and no fallback to another GPT model. **The astra leg is
+owed.** It reset at 03:00; two reset credits exist and neither was spent.
+
+Neither Claude leg found a product defect on its own initiative. Fable's verdict: "the architecture
+is sound and honours the spec's intent · no Act-on finding is a product defect." Opus independently
+rebuilt the extent from the real archive and reproduced every figure in the Task 10 record (171
+items, four blocks, 35 columns, five panels, exact column coverage, 27.16 MiB at the ceiling). The
+product defects below came from Opus's lifetime review and from the astra leg's dying trace.
+
+### Fixed · source
+
+1. **The act-two crossing could be missed entirely.** `SceneRig` reports a crossing only when the
+   act CHANGES, and it runs outside the outer `<Suspense>`; `Wall` registers `onActive` from inside
+   it, behind the corridor's nine covers. A reader who reached act two while those covers were still
+   loading met a wall that drew normally and took no pointer at all · no hover, no cursor, no click ·
+   until they scrolled back to act one and forward again. The rig now records `sceneRefs.frieze.active`
+   alongside reporting it, and the wall reads it when it registers. *Found by the astra leg before it
+   died, confirmed here by tracing the mount order.*
+2. **A committed-but-uncommitted generation leaked its GPU textures.** Ownership transferred on
+   `shownRef.current = generation` at settle, but the disposer only exists once the `startTransition`
+   commits; a resize or unmount in that gap left the generation owned by nobody, and the effect
+   cleanup skipped it precisely because the ref pointed at it. Ownership now transfers on COMMIT.
+   **The legs disagreed here:** fable dismissed it on the grounds that such a generation "was never
+   bound to a material, so its DataTexture was never uploaded". That premise does not hold ·
+   `SelectedWorkScene.tsx:173` runs `gl.initTexture` over `sceneRefs.frieze.textures`, which
+   `prepare` fills from the first generation, so those bytes reach the GPU with no material involved.
+   Up to 27.16 MiB at the ceiling. Opus was right; the dismissal was checked, not taken on trust.
+3. **`setHover` indexed a stale panel.** `clearHover` guards `materials[panel]` and `meshes[panel]`;
+   `setHover` did not, and a resize from five panels to four leaves a stale index in a ref that only
+   clears when passive effects flush. Guarded to match.
+4. **An empty archive failed the wall instead of emptying it.** `friezeLayout([], rows)` is a
+   documented, tested contract returning no blocks; `slice` then reached for `plans[0]` and threw,
+   settling the generation `'failed'` · a cream wall and `data-frieze="failed"` for a legal layout.
+   It now resolves empty. Regression test added, and confirmed red without the guard.
+
+### Fixed · test honesty, each mutation-verified
+
+5. **The "must redraw" assertions could not go red.** The wall swaps rather than blanks, so
+   `data-frieze` holds `'ready'` from the first generation to the last, and both the language-switch
+   and resize tests were answered by the generation already on screen · a new generation that parked
+   forever satisfied them. `data-frieze-gen` now counts committed generations and the tests assert it
+   moved. **Mutation:** forcing post-warm-up generations to park makes both tests fail
+   ("language pass 1 must redraw"); before the fix they passed.
+6. **"Real glyphs" did not isolate glyphs.** The full-width strips at `yFrac` 0.55 and 0.85 include
+   slivers of the nine case-study covers, which are photographic and carry their own sub-40 ink, so
+   the assertion survived a rasteriser that drew nothing · a mode this codebase has hit once already,
+   when an unparseable `ctx.font` made `fillText` a silent no-op. It now samples inside one embed
+   cell's projected footprint, below the year-count band, where no cover can supply the ink.
+   **Mutation:** with `drawUnit` painting nothing the cell reads 242.2 · pure cream · and fails.
+   `scene-effects.spec.ts`'s band keeps its full-frame sample, which is right for a claim about the
+   composer's tonal range; its message no longer claims to prove glyphs.
+7. **`tests/tsconfig.frieze-types.json` was wired to nothing.** Root `tsconfig.json` referenced app
+   and node only, and no script ran it, so the assignability guard fired only when someone typed it
+   by hand. It is now a root reference and rides `npx tsc -b`.
+
+### Corrected in documentation rather than implemented
+
+**`actTwoTopClearFrac` has no consumer.** Both legs found it independently: the spec, this plan's
+amendment and `docs/architecture.md` all say pipeline 2 insets the top row's ink by it, and nothing
+does · every row takes the same `CELL_INSET_WORLD`. Fable's reading, adopted here, is that the
+requirement is incoherent rather than unimplemented: the clearance is air ABOVE the wall, and the
+title overprints the top row regardless, which ADR 0012 ratifies two lines later. Implementing an
+inset would be a visual change to the wall, which Kevin has deferred until the section revamp is
+finished. `docs/architecture.md` now states what the code does. **The spec still carries the promise
+and is the controller's file to amend** · that edit is not taken here.
+
+Both legs also found the year-count band is non-interactive in a 1×1 cell but not on 2026's card,
+whose count is drawn into the card's own caption and shares its 2×2 click target.
+`docs/architecture.md` now says so instead of claiming the count is never clickable.
+
+### Carried, not fixed
+
+Deliberately left, with reasons: the mixed-language frame during a language switch (cards repaint
+immediately, cells after the raster); captions drawn at the new density over cells at the old for the
+raster's duration; `hoveredCell` in `Projects.tsx` being a `MotionValue` nothing reads yet; the
+count-carrier fallback living in `Frieze.tsx` rather than beside `countCell`; `Frieze.tsx` reading
+cover URLs from `data/projects` as a second source beside `ArchiveItem`; and the absence of a
+`Wall.tsx` unit test over the ownership seam finding 2 lives in. Each is a quality or judgement item,
+none is a defect, and all of them touch surfaces Kevin has frozen until the revamp lands.
+
+### Verification after the fix pass
+
+`npx tsc -b` 0 (it now builds `tests/tsconfig.frieze-types.json` too) · `npm run lint` 0 errors and
+the branch's 4 inherited `react-refresh` warnings · `npx vitest run` **430 passed**, 26 files, up one
+for the empty-archive regression.
+
+**Playwright: 140 passed, 17 skipped, 0 failed**, across all three projects · desktop-chromium 69/7,
+mobile-chromium 67/9, desktop-hidpi 4/1.
+
+**Run in chunks, not as one command, and that is a real caveat.** This Mac killed two consecutive
+full-suite runs for low memory, with the second producing no output at all; the build survives (6 s)
+and the browser does not. Every spec was run post-fix and every one passed, but they were not run in
+a single process, so cross-spec ordering effects are unproven. One red appeared mid-chunk and was
+diagnosed rather than retried away: `frieze-click`'s case-study route took 1.7 m against the spec's
+90 s ceiling, a TIMEOUT rather than an assertion failure, and it passes in 24-27 s both alone and
+with its own spec. The machine, not the diff.
+
+**The `desktop-hidpi` raster budget grew during this pass.** The redraw assertions inherit the same
+project-aware budget as the warm-up (`rasterBudgetMs`), because a language round trip at the ceiling
+rebuilds all 171 cells twice at 27.16 MiB of masks rather than 6.00, and the describe ceiling moved
+to 240 s so a genuinely hung test still fails rather than running forever. That test is worth its
+cost at this regime: a redraw there is the 71.40 MiB peak-memory case, the only place it occurs.
+
 ## Acceptance map
 
 | Binding acceptance | Concrete check | Owner/task |

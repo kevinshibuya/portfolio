@@ -649,6 +649,27 @@ describe('rasteriseFrieze', () => {
     expect(countCell(layout, cell.block)?.itemId).not.toBe('featured-a')
   })
 
+  it('resolves empty for an empty archive instead of failing the wall', async () => {
+    // `friezeLayout([], rows)` is a documented contract: no blocks, no cells,
+    // zero columns. That must reach the wall as an EMPTY wall, not a failed
+    // one — a raster that threw on the missing first plan would settle
+    // `'failed'` and paint `data-frieze="failed"` for a legal layout.
+    const layout = friezeLayout([], FRIEZE_ROWS)
+    expect(layout.blocks).toHaveLength(0)
+    const scheduler = manualScheduler()
+    const job = rasteriseFrieze({
+      layout,
+      rows: FRIEZE_ROWS,
+      items: [],
+      lang: 'en',
+      density: DENSITY,
+      scheduler,
+    })
+    scheduler.resolveFont()
+    await scheduler.drain()
+    await expect(job.promise).resolves.toEqual([])
+  })
+
   it('draws serial digits one at a time at a fixed advance', async () => {
     const { items, layout } = twoBlockFixture()
     items[1].serial = 103
