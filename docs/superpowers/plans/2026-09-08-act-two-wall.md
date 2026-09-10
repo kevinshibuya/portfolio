@@ -921,7 +921,7 @@ it. Flagged for Kevin's manual pass, deliberately not changed here.
 - **Performance.** Act two's mask cost is the table above; the rig measurement and the recorded
   deltas are Access's, per the spec.
 
-### Still open · not resolved by this task
+### Still open at Task 10 · all five resolved later the same day, see the decision record below
 
 1. **Mipmaps for the volume shot**, on the measured 4.16–4.63× desktop and 14.25× phone
    minification. Kevin's call.
@@ -966,6 +966,74 @@ plan's header.
 
 **Not claimed by this record:** Kevin's manual pass, the three-leg PR review, the contrast
 recomputation and the Access pipeline. Each has its own box in the spec and none is ticked here.
+
+## Decision record · the five open items, resolved 2026-09-09
+
+Kevin asked for the open items to be decided rather than carried. One contract, with the measured
+evidence inline, went to two lanes independently: `reasoner` on Fable, and gpt-6-astra at xhigh
+through codex (registry `2026-09-09T23:09:54`, 86 s, exit 0). They agreed on three items and split
+on two. Every claim either lane made that could be checked was checked before it was adopted.
+
+**1 · Mipmaps for the wall masks: NO.** Both lanes, independently, on the budget. A full mip chain
+adds a third: steady 27.16 → 36.22 MiB and peak 71.40 → about 95 MiB, against the 86.45 MiB the
+plan review approved. Fable added the argument that settles it on craft as well: density is tuned so
+texels map 1:1 to device pixels **at the dolly**, so LOD 0 is exact only at the reading distance and
+the approach eases through fractional LOD, where a blended level softens the edges of a coverage
+mask the shader thresholds. That trades sharpness on the reading beat for sparkle on a beat nobody
+reads. If shimmer is ever judged a real defect on the rig, the first move is not mipmaps but a
+shader-side change at zero memory: take the screen-space texel footprint from the UV derivatives and
+output raw coverage as alpha where it exceeds about two texels, leaving the dolly untouched.
+
+**2 · The portrait volume shot: ACCEPT.** The lanes split. Astra proposed reframing portrait to 30 %
+of frame height, accepting a cropped wall. Fable showed the premise is wrong, and the arithmetic
+holds against this plan's own measurements: `VOLUME_FILL` fits both axes, and on an 8.07:1 wall the
+**width binds at every viewport**, so the desktop is a strip too · 0.1965 of frame height at
+1269×720 and 0.1971 at 1909×1080, measured. The thin band is a property of showing an 8:1 object
+whole, not a portrait bug, and Astra's reframing would defeat the beat's purpose while reopening
+`VOLUME_FILL`, which is pipeline 1's merged contract and not this pipeline's to change. Accepted as
+a taste call for Kevin's on-device pass; if the band reads as a rendering failure rather than "the
+whole archive, far away", the cheap lever is a shorter portrait dwell on the beat, not a reflow.
+
+**3 · The CI gap: a permanent third Playwright project, `desktop-hidpi`.** Both lanes: add a
+project, not a golden and not an issue. The pixel gate stays hero-only (ADR 0007), and a WebGL
+golden across machines is the flaky thing; these specs assert behaviour instead.
+
+Fable conditioned it on timing a run, and the timing changed the shape of the answer. At the
+proposed 1920×1080 the project went **13 of 22 red**, every failure the same: `data-warm="true"`
+never arrived inside `openScene`'s 30 s cap. Measured on an idle machine, warm lands at **21–25 s**
+at this regime, so the cap had seconds of headroom and none at all once earlier tests had loaded the
+machine. Two things followed:
+
+- **1280 wide, not 1920.** The mask set is byte-identical at every 1080-tall canvas · 27.16 MiB
+  across the same five panels, the 2024 split included · because density is height-driven once the
+  height term binds. Width buys no coverage, only backing store: 1904×1620 against 2864×1620, a
+  third less for a software rasteriser to paint.
+- **The warm cap follows the project**, 120 s on `desktop-hidpi` and 30 s everywhere else. This is a
+  rasteriser cost, not a product regression, so the suite does not loosen for everyone; a genuine
+  warm failure still fails, later, on the one project that legitimately needs the room.
+
+Scoped to `frieze-surface.spec.ts`, the spec that would actually catch a failure unique to this
+regime: it sweeps act two, reads real glyph and cream pixels, hovers and switches language, all
+against masks built at the ceiling. The hit geometry the click specs assert is DPR-independent and
+covered twice already. **Result: 4 passed, 1 skipped, 1.9 m.** The 612.8 ceiling and the landscape
+panel split now render in CI, which neither did before.
+
+**4 · `data-act-two-u`: DROPPED, and not filed.** Both lanes. Fable's reasoning is the one to keep:
+a DOM attribute could only be asserted against a reimplementation of the scroll map, which is the
+implementation testing itself, while a unit test on the pure scroll→u function pins every beat
+boundary with no DOM, no frame loop and no flakiness. The cost side is a per-frame `setAttribute` on
+an element under attribute selectors, mirroring scene state in the DOM, which is the shape ADR 0011
+refuses. An open issue for something the project has a rule against is a standing invitation to
+re-argue the rule. Recorded here rather than in the spec: the spec is the controller's file.
+
+**5 · The `#archive` nav link: ACCEPTED as transitional.** The lanes split. Astra wanted a static
+anchor now; Fable said accept **if** the click is silent, and record the dependency so the link and
+its target land together. That condition was unverified · no spec clicks the link, so the green
+suite proved nothing about it · so it was tested directly: the click raises **zero console errors
+and zero pageerrors**, does not scroll, and leaves `location.hash` empty. Condition met. Astra's
+bridge would also have created a second owner for an id pipeline 3's plan already claims through
+`resolveNavTarget`, so it would have to be removed again. **Access must add, as an acceptance item:
+`#archive` lands on the element the nav link already targets.**
 
 ## Acceptance map
 
