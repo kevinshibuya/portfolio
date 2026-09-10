@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('section enter on viewport', () => {
-  // Every listed section renders its title via SectionHeading as `.section-title`.
-  // Projects is EXCLUDED: its header is now the pinned gooey stage (no .section-title).
+  // Every listed section renders a `.section-title`: Work, Skills and Contact via
+  // SectionHeading, Stats directly. Projects is EXCLUDED (its header is the pinned
+  // gooey stage) and so is Archive, whose DOM rows are now the act-two wall.
   const titleSelectorFor = (id: string): string => `${id} .section-title`
 
-  for (const id of ['#archive', '#work', '#skills', '#contact']) {
+  for (const id of ['#work', '#stats', '#skills', '#contact']) {
     test(`${id} title transitions from hidden to visible on scroll`, async ({ page }) => {
       await page.goto('/')
       await page.waitForFunction(() => document.body.dataset.loaderState === 'done')

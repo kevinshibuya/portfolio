@@ -1,4 +1,4 @@
-import { CARD_W, CARD_H } from '../../../utils/sceneMotion'
+import { CARD_W, CARD_H, CARD_MAX_PX } from '../../../utils/sceneMotion'
 
 /**
  * The Shadway card, in world units — the same anatomy the DOM card stack used,
@@ -40,3 +40,14 @@ export const CAPTION_LINE_GAP_PX = 4
 export const CAPTION_ARROW_PX = 22
 /** Space kept between the caption text and the arrow. */
 export const CAPTION_GAP_PX = 12
+
+/** The caption's inset, in world units: where every caption plane starts. */
+export const CAPTION_INSET_WORLD = (CAPTION_INSET_PX / CARD_MAX_PX) * CARD_W
+
+/**
+ * Embedded in act two's wall the card's layers draw in this order rather than
+ * depth-testing against it: at the volume shot the wall and the card's frame
+ * quantise to the same depth, and a tested cover would be rejected in places
+ * (Q9). The caption draws last, over both.
+ */
+export const WALL_ORDER = { frame: 0, cover: 1, caption: 2 } as const

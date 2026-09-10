@@ -321,6 +321,7 @@ export const projects: Project[] = [
     slug: 'hotmart-bunde',
     title: { en: 'política essencial', pt: 'política essencial' },
     year: 2026,
+    origin: 'freelance',
     highlight: true,
     highlightOrder: 1,
     size: 'lg',

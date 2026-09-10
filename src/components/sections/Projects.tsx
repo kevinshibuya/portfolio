@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useScroll } from 'framer-motion'
+import { useMotionValue, useScroll } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMotion } from '../../context/MotionContext'
@@ -13,7 +13,7 @@ import {
   actOneSeg,
   sceneWrapperSvh,
 } from '../../utils/sceneMotion'
-import { provisionalFriezeExtent, FRIEZE_ROWS } from '../../utils/friezeLayout'
+import { friezeLayout, friezeExtent, FRIEZE_ROWS } from '../../utils/friezeLayout'
 import { archive } from '../../data/archive'
 
 /** Used until the nav has been measured, and if it is ever missing. */
@@ -29,9 +29,13 @@ export function Projects() {
   const lang = i18n.language.startsWith('pt') ? 'pt' : 'en'
 
   // The frieze's extent, and the wrapper height that follows from it. Static:
-  // eight rows in BOTH orientations (amended decision 15), so no aspect key
+  // six rows in BOTH orientations (amended decision 15), so no aspect key
   // here or in pipeline 2, and a resize never changes the wrapper's height.
-  const frieze = useMemo(() => provisionalFriezeExtent(archive, FRIEZE_ROWS), [])
+  // ONE packing: the wrapper's height, the camera's framing, the wall's raster
+  // and its hit test all read the same object, so they cannot disagree about
+  // how wide the archive is.
+  const layout = useMemo(() => friezeLayout(archive, FRIEZE_ROWS), [])
+  const frieze = useMemo(() => friezeExtent(layout, FRIEZE_ROWS), [layout])
   const svh = sceneWrapperSvh(frieze.columns)
 
   // Nothing here tracks the scroll. The scene's frame loop reads the scroll
@@ -113,6 +117,35 @@ export function Projects() {
   // Stable identity: the scene subtree must only ever re-render on `cards`.
   const handleCardClick = useCallback((index: number) => cardClick.current(index), [])
 
+  // Where a wall cell leads. A case study is a route; an Embed is the
+  // publisher's own page, opened SYNCHRONOUSLY — a popup opened after an await
+  // has lost the trusted click stack and the browser blocks it. An id the
+  // archive does not hold does nothing rather than guessing at one.
+  const cellClick = useRef<(itemId: string) => void>(() => {})
+  cellClick.current = (itemId: string) => {
+    const item = archive.find((piece) => piece.id === itemId)
+    if (!item) return
+    if (item.caseStudy) {
+      navigate(`/projects/${item.caseStudy.slug}`)
+      return
+    }
+    // The href goes out exactly as the archive stores it, `#:~:text=` and all.
+    window.open(item.href, '_blank', 'noopener')
+  }
+
+  // Hover rides a MotionValue, never state: the pointer crosses 171 cells, and
+  // a re-render per cell would drive the scene's whole subtree from the
+  // pointer (ADR 0010). Pipeline 3's stream reads its focus target from here.
+  const hoveredCell = useMotionValue<string | null>(null)
+
+  // Stable identities, as onCardClick already keeps: the scene subtree must
+  // only ever re-render on `cards`.
+  const handleCellClick = useCallback((itemId: string) => cellClick.current(itemId), [])
+  const handleCellHover = useCallback(
+    (itemId: string | null) => hoveredCell.set(itemId),
+    [hoveredCell],
+  )
+
   return (
     <section id="projects" className="section projects-scene-section">
       {/* Keyboard/SR path: visually-hidden-until-focused project index, no
@@ -177,6 +210,11 @@ export function Projects() {
                   navPx={navPx}
                   overture={t('sections.projects.overture')}
                   frieze={frieze}
+                  friezeLayout={layout}
+                  archive={archive}
+                  lang={lang}
+                  onCellClick={handleCellClick}
+                  onCellHover={handleCellHover}
                   allWork={t('sections.archive.title')}
                 />
               </div>

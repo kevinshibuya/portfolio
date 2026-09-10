@@ -53,6 +53,12 @@ export interface TextTexture {
 }
 
 export const TEXT_FAMILY = '"Plus Jakarta Sans"'
+/**
+ * How long a resize must be quiet before the scene's Jakarta textures redraw.
+ * Shared by the card captions and the frieze masks so one window setting
+ * settles every text rebuild together.
+ */
+export const RESIZE_DEBOUNCE_MS = 150
 const ARROW_FALLBACK_FAMILY = 'system-ui, sans-serif'
 const ELLIPSIS = '…'
 const DEFAULT_LINE_HEIGHT = 1.2
@@ -135,16 +141,115 @@ export function drawTextTexture(options: DrawTextOptions): TextTexture {
     top += box + gap
   })
 
+  return canvasTexture(canvas, options.anisotropy)
+}
+
+/** The one set of sampling settings every scene text texture is built with. */
+function canvasTexture(canvas: HTMLCanvasElement, anisotropy: number | undefined): TextTexture {
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
   texture.generateMipmaps = true
   texture.minFilter = THREE.LinearMipmapLinearFilter
   texture.magFilter = THREE.LinearFilter
   texture.premultiplyAlpha = false
-  if (options.anisotropy) texture.anisotropy = options.anisotropy
+  if (anisotropy) texture.anisotropy = anisotropy
   texture.needsUpdate = true
-
   return { texture, widthPx: canvas.width, heightPx: canvas.height }
+}
+
+/** The ink width of one line at its own font, in the caller's px. */
+export function measureLine(line: TextLine): number {
+  const ctx = context2d()
+  ctx.font = fontSpec(line)
+  return ctx.measureText(line.text).width
+}
+
+/** One run of text anchored to a row of a fixed-size box. */
+export interface BoxRun extends TextLine {
+  /** Zero-based row, indexing `rowEmPx`. */
+  row: number
+  align: 'left' | 'right'
+  /** Ellipsised to this width; defaults to the box's own. */
+  maxWidthPx?: number
+}
+
+export interface DrawBoxOptions {
+  runs: BoxRun[]
+  /** Em of each row, top to bottom; a row box is em x lineHeight. */
+  rowEmPx: number[]
+  /** Ink width of the box, in the caller's px. */
+  widthPx: number
+  /** The renderer's ratio, applied once. */
+  dpr: number
+  lineHeight?: number
+  /** Transparent margin so clamp-to-edge sampling never smears ink, default 2. */
+  padPx?: number
+  anisotropy?: number
+}
+
+export interface BoxLayout {
+  /** Per run, in input order: the text as drawn, and where it is drawn. */
+  runs: Array<{ text: string; x: number; y: number }>
+  widthPx: number
+  heightPx: number
+}
+
+/**
+ * Where each run lands in a box whose size comes from its rows and width ALONE,
+ * never from its runs.
+ *
+ * That is the point of it: the wall card's caption is two stacked planes — a
+ * white title the material tints, and a muted plane that is never tinted — and
+ * sized from their own ink they would come out different heights and the rows
+ * would drift apart. Built from the same geometry they are the same plane twice.
+ */
+export function layoutTextBox(options: DrawBoxOptions): BoxLayout {
+  const ctx = context2d()
+  const lineHeight = options.lineHeight ?? DEFAULT_LINE_HEIGHT
+  const pad = options.padPx ?? DEFAULT_PAD_PX
+
+  const tops: number[] = []
+  let top = pad
+  for (const em of options.rowEmPx) {
+    tops.push(top)
+    top += em * lineHeight
+  }
+
+  const runs = options.runs.map((run) => {
+    if (!(run.row >= 0 && run.row < options.rowEmPx.length)) {
+      throw new Error(`box run row ${run.row} outside its ${options.rowEmPx.length} rows`)
+    }
+    ctx.font = fontSpec(run)
+    return {
+      text: ellipsise(ctx, run.text, run.maxWidthPx ?? options.widthPx),
+      x: run.align === 'left' ? pad : pad + options.widthPx,
+      y: tops[run.row] + (options.rowEmPx[run.row] * lineHeight) / 2,
+    }
+  })
+
+  return { runs, widthPx: options.widthPx + 2 * pad, heightPx: top + pad }
+}
+
+export function drawTextBox(options: DrawBoxOptions): TextTexture {
+  const layout = layoutTextBox(options)
+  const { dpr } = options
+
+  const ctx = context2d()
+  const canvas = ctx.canvas
+  canvas.width = Math.ceil(layout.widthPx * dpr)
+  canvas.height = Math.ceil(layout.heightPx * dpr)
+
+  // Re-applied after the resize: it resets the whole 2D state.
+  ctx.scale(dpr, dpr)
+  ctx.textBaseline = 'middle'
+  options.runs.forEach((run, i) => {
+    ctx.font = fontSpec(run)
+    ctx.fillStyle = run.color
+    ctx.textAlign = run.align
+    ctx.fillText(layout.runs[i].text, layout.runs[i].x, layout.runs[i].y)
+  })
+
+  return canvasTexture(canvas, options.anisotropy)
 }
 
 /**
