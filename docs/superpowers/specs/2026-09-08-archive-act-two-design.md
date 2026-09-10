@@ -197,4 +197,4 @@ Absent by decision: eyebrows, description lines, stat strips, search, dropdowns,
 - [ ] `feat/act-two-access` merged into `feat/act-two`.
 - [ ] Contrast table recomputed and verified.
 - [x] Kevin's manual pass at desktop and phone widths: GREEN.
-- [ ] `feat/act-two` landed on `staging`.
+- [x] `feat/act-two` landed on `staging`.
