@@ -263,21 +263,54 @@ Filled by Task 1. Expected name, actual name, file, note.
 
 | Expected | Actual | File | Note |
 | --- | --- | --- | --- |
-| `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns = 0)` | | | numeric only; confirm the 5th parameter exists |
-| `playheadForItem(itemId, layout, extent)`, `cellFor(itemId, layout)` | | | `src/utils/friezeTargets.ts` |
-| `volumeShotPlayhead(columns)`, `playheadForColumn(col, frieze)` | | | |
-| `sceneWrapperSvh`, `actTwoSvh`, `actTwoBeats`, `ACT_TWO_RELEASE_SVH`, `ACT_TWO_APPROACH_SVH`, `ACT_TWO_SVH_PER_COLUMN` | | | |
-| `data-svh` on `.scene-scroll` | | | integer string; note the value on today's data |
-| `data-act` on the canvas | | | |
-| `archive`, `yearBlocks`, `resolveTitle` | | | |
-| `ArchiveItem.serial`, `.origin`, `.caseStudy`, `.year`, `.internal` | | | |
-| `friezeLayout`, `friezeExtent`, `FRIEZE_CELL_W`, `FRIEZE_CELL_H`, row constant (`FRIEZE_ROWS` after pipeline 2's rename, `FRIEZE_ROWS_LANDSCAPE` before) | | | record which name survived |
-| `CELL_TITLE_WORLD` | | | world units, `friezeText.ts`; there is no `CELL_TITLE_PX` |
-| origin locale keys `sections.archive.origin.freelance` / `.personal` (PT `pessoal`) | | | both files |
-| `tests/e2e/helpers/scene.ts`: `openScene`, `scrollToPlayhead`, `scrollToActTwo`, `readSvh`, `CANVAS` | | | |
-| `Projects.tsx` cell-click scroll path | | | one function or inlined; Task 6 extracts |
-| `actTwoPose`, `blockAt`, `blockIndexAt`, `actTwoProgress`, `playheadFor(progress, columns)` | | | |
-| Lenis `scrollTo` cancels the tween in flight | | | assumption 28's mechanism |
+| `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns = 0)` | as expected | `src/utils/sceneMotion.ts:634` | 5th parameter exists and defaults to `0`. Probe compiled both the 5-argument and the 4-argument call. |
+| `playheadForItem(itemId, layout, extent)`, `cellFor(itemId, layout)` | as expected | `src/utils/friezeTargets.ts:31`, `:19` | Both return `null` for an id the packing does not hold. Still no live consumer but the unit test. |
+| `volumeShotPlayhead(columns)`, `playheadForColumn(col, frieze)` | as expected | `src/utils/sceneMotion.ts:282`, `:1234` | `volumeShotPlayhead = actTwoPlayhead(actTwoBeats(columns).release)`. |
+| `sceneWrapperSvh`, `actTwoSvh`, `actTwoBeats`, `ACT_TWO_RELEASE_SVH`, `ACT_TWO_APPROACH_SVH`, `ACT_TWO_SVH_PER_COLUMN` | all as expected | `src/utils/sceneMotion.ts:196, 190, 227, 176, 178, 180` | `100 / 50 / 25`. `ACT_ONE_SVH = 550` (`:185`), so `sceneWrapperSvh(35) = 550 + (100 + 50 + 25×35) = 1575`. |
+| `data-svh` on `.scene-scroll` | as expected | `src/components/sections/Projects.tsx:194` | Value on today's data: **1575**. Written from `sceneWrapperSvh(frieze.columns)`, not a literal. |
+| `data-act` on the canvas | `dataset.act` | `src/components/canvas/scene/SceneRig.tsx:288` | `state.gl.domElement.dataset.act = String(act)`. |
+| `archive`, `yearBlocks`, `resolveTitle` | as expected | `src/data/archive.ts:63`, `:65`, `src/types/content.ts:108` | `resolveTitle(item, lang)` with `lang` narrowed to `'en'` or `'pt'`. Do not write a second resolver. |
+| `ArchiveItem.serial`, `.origin`, `.caseStudy`, `.year`, `.internal` | all present | `src/types/content.ts:93` | Plus `type?`, `editorial?`, `date`, `sortDate`, `href`. `Origin` is `'professional'`, `'freelance'` or `'personal'` (`:91`). |
+| `friezeLayout`, `friezeExtent`, `FRIEZE_CELL_W`, `FRIEZE_CELL_H`, row constant | **`FRIEZE_ROWS = 6`** survived | `src/utils/friezeLayout.ts:113, 181, 38, 39, 54` | No `FRIEZE_ROWS_LANDSCAPE` anywhere. `friezeExtent` returns `PackedFriezeExtent` (`:89`), a `FriezeExtent` superset. |
+| `CELL_TITLE_WORLD` | `= 0.06` | `src/components/canvas/scene/friezeText.ts:20` | World units, as expected; there is no `CELL_TITLE_PX`. Siblings: `CELL_META_WORLD 0.04`, `CELL_INSET_WORLD 0.03`. |
+| origin locale keys `sections.archive.origin.freelance` / `.personal` | present in both | `src/i18n/locales/en.json`, `pt.json` | EN `{ freelance, personal }`, PT `{ freelance, pessoal }`. |
+| `tests/e2e/helpers/scene.ts`: `openScene`, `scrollToPlayhead`, `scrollToActTwo`, `readSvh`, `CANVAS` | all present | `tests/e2e/helpers/scene.ts:46, 100, 120, 59, 18` | Also `beats(page)` (`:77`), `rasterBudgetMs()` (`:42`), and re-exported `SETTLE_REDUCED_MS`, `unitPx`. |
+| `Projects.tsx` cell-click scroll path | **it does not exist** | `src/components/sections/Projects.tsx:122-134` (cell), `:95-116` (card) | Confirms the amendment. `cellClick.current` navigates or `window.open`s and never travels the camera. The only numeric travel is the CARD path, inlined in `cardClick.current`: `wrapperTop` from `getBoundingClientRect().top + scrollY`, then `scrollTargetFor(index, wrapperTop, wrapper.offsetHeight, window.innerHeight, frieze.columns)`, then `lenis.scrollTo(target, { duration: 1.2 })` with a `window.scrollTo({ behavior: 'instant' })` fallback when Lenis is null. **Task 6 extracts THAT, and the cell click becomes its second consumer.** |
+| `actTwoPose`, `blockAt`, `blockIndexAt`, `actTwoProgress`, `playheadFor(progress, columns)` | all as expected | `src/utils/sceneMotion.ts:970, 1122, 1111, 263, 250` | `blockAt` returns a `FriezeBlockExtent` or `null`. |
+| Lenis `scrollTo` cancels the tween in flight | confirmed | `node_modules/lenis/dist/lenis.mjs` | `scrollTo` ends in `this.animate.fromTo(this.animatedScroll, target, ...)`, and `Animate.fromTo` overwrites `from`, `to` and `currentTime` on the ONE `Animate` instance. A second call therefore restarts from the live position; nothing queues. **Gotcha for the stream:** `scrollTo` returns early when `target === this.targetScroll`, so re-focusing a row already targeted is a silent no-op (harmless, and the year-block gate makes it the common case). |
+
+Read off the tree at the same time, for the tasks that need them: the frieze fixture carries **171 cells**
+in **35 columns**, **9** of them `caseStudy` cells, and `extent.blocks` is four years · 2026×3, 2025×42,
+2024×118, 2023×8.
+
+### Base verification, on the untouched merged base (`a44844d`)
+
+```
+npx tsc -b                    exit 0
+npm run lint                  ✖ 4 problems (0 errors, 4 warnings)   ← all pre-existing, react-refresh/only-export-components
+npx vitest run                Test Files 26 passed (26) · Tests 430 passed (430) · 6.14s
+```
+
+E2e chunked, per the amendment. Every chunk preceded by
+`lsof -ti:4173 | xargs -r kill -9; pkill -f "workerd serve"`.
+
+```
+A  contact-waves dark-tokens hero-dissolve hero-entrance hero-shader light-chapter loader
+   40 passed (2.0m)
+B  nav-on-light perf-budget perf-hooks pixel-gate reduced-motion rows-hover section-enters
+   1 flaky · 14 skipped · 57 passed (6.4m)
+   flaky: [desktop-chromium] perf-budget.spec.ts:54 "no long task > 200ms during scroll" — green on retry
+C  frieze-click frieze-surface scene-effects scene-no-webgl scene-scrub
+   1 failed · 3 skipped · 41 passed (23.8m)
+   failed: [mobile-chromium] scene-scrub.spec.ts:110 "scrubbing the corridor swaps the settled
+   slot, and reversing restores it" — "Test timeout of 30000ms exceeded", waiting on
+   `#projects .scene-title-sr`, i.e. the lazy Projects chunk never mounted inside the budget.
+   RERUN ALONE: 1 passed (31.7s). The red is the machine, not the tree — 45 tests took 23.8m in
+   that chunk, and a test that needs 31.7s cannot pass a 30s budget under that starvation.
+```
+
+**Base is green.** Both non-passes are the documented memory behaviour, not defects: neither
+survived a rerun, and neither touches a surface this pipeline changes.
 
 ---
 
@@ -298,15 +331,18 @@ The probe lives in the repo, not `/tmp`: a file under `/tmp` resolves `./src` re
 
 **Boundaries:** No source change that survives the task. No renaming of anything pipeline 1 or 2 shipped.
 
-- [ ] `git fetch origin && git switch feat/act-two-wall && git pull --ff-only && git switch -c feat/act-two-access` (if `feat/act-two-access` already exists with only this plan commit: `git rebase feat/act-two-wall` instead)
-- [ ] `grep -n "^export" src/utils/sceneMotion.ts | grep -iE "act_two|actTwo|actOne|sceneWrapperSvh|blockAt|blockIndexAt|playheadFor|scrollTargetFor|volumeShot|maxRowsInFrame"` and `grep -rn "dataset.act\b\|data-act\|dataset.svh\|data-svh" src/components` → fill the `scrollTargetFor`, `volumeShotPlayhead`, svh-constant, `data-svh`, `data-act` and pose rows
-- [ ] `grep -n "^export" src/data/archive.ts src/types/content.ts src/utils/friezeLayout.ts src/utils/friezeTargets.ts src/components/canvas/scene/friezeText.ts` and `grep -n "playheadForItem\|cellFor\|scrollTargetFor\|onCellClick\|lenis.scrollTo" src/components/sections/Projects.tsx` → fill the pipeline-2 rows
-- [ ] `node -e "const e=require('./src/i18n/locales/en.json'),p=require('./src/i18n/locales/pt.json');console.log(e.sections.archive.origin, p.sections.archive.origin)"` → the two keys in both files, PT `pessoal`; fill the locale row
-- [ ] `ls tests/e2e/helpers/scene.ts && grep -n "^export" tests/e2e/helpers/scene.ts` → fill the helper row
-- [ ] Probe the signature in-project: write `src/__seam-probe.ts` containing `import { scrollTargetFor, volumeShotPlayhead } from './utils/sceneMotion'` / `import { playheadForItem } from './utils/friezeTargets'` and one call of each with the expected arity (`scrollTargetFor(3.5, 0, 1000, 800, 26)` typed `number`; a four-argument call must still compile, since `columns` defaults to `0`); `npx tsc -b` → exit 0, or record the real signature; then `rm src/__seam-probe.ts`
-- [ ] `grep -rn "scrollTo\b" node_modules/lenis/dist/*.mjs | head` → confirm `scrollTo` replaces the tween in flight (assumption 28); record the mechanism or the fallback in the note column
-- [ ] `npx tsc -b && npm run lint && npx vitest run` and `lsof -ti:4173 | xargs -r kill -9; npx playwright test` on the untouched base; paste the summary lines under the table
-- [ ] Commit `docs(plan): act-two access seams reconciled`
+- [x] `git fetch origin && git switch feat/act-two-wall && git pull --ff-only && git switch -c feat/act-two-access` (if `feat/act-two-access` already exists with only this plan commit: `git rebase feat/act-two-wall` instead)
+      **Stale, satisfied another way:** `feat/act-two-access` already exists on the merged base
+      (`16e8cec`, `origin/feat/act-two` merged in), which is `feat/act-two-wall` plus PR #18 and #19.
+      No fork and no rebase; the branch is where this box wanted it.
+- [x] `grep -n "^export" src/utils/sceneMotion.ts | grep -iE "act_two|actTwo|actOne|sceneWrapperSvh|blockAt|blockIndexAt|playheadFor|scrollTargetFor|volumeShot|maxRowsInFrame"` and `grep -rn "dataset.act\b\|data-act\|dataset.svh\|data-svh" src/components` → fill the `scrollTargetFor`, `volumeShotPlayhead`, svh-constant, `data-svh`, `data-act` and pose rows
+- [x] `grep -n "^export" src/data/archive.ts src/types/content.ts src/utils/friezeLayout.ts src/utils/friezeTargets.ts src/components/canvas/scene/friezeText.ts` and `grep -n "playheadForItem\|cellFor\|scrollTargetFor\|onCellClick\|lenis.scrollTo" src/components/sections/Projects.tsx` → fill the pipeline-2 rows
+- [x] `node -e "const e=require('./src/i18n/locales/en.json'),p=require('./src/i18n/locales/pt.json');console.log(e.sections.archive.origin, p.sections.archive.origin)"` → the two keys in both files, PT `pessoal`; fill the locale row
+- [x] `ls tests/e2e/helpers/scene.ts && grep -n "^export" tests/e2e/helpers/scene.ts` → fill the helper row
+- [x] Probe the signature in-project: write `src/__seam-probe.ts` containing `import { scrollTargetFor, volumeShotPlayhead } from './utils/sceneMotion'` / `import { playheadForItem } from './utils/friezeTargets'` and one call of each with the expected arity (`scrollTargetFor(3.5, 0, 1000, 800, 26)` typed `number`; a four-argument call must still compile, since `columns` defaults to `0`); `npx tsc -b` → exit 0, or record the real signature; then `rm src/__seam-probe.ts`
+- [x] `grep -rn "scrollTo\b" node_modules/lenis/dist/*.mjs | head` → confirm `scrollTo` replaces the tween in flight (assumption 28); record the mechanism or the fallback in the note column
+- [x] `npx tsc -b && npm run lint && npx vitest run` and `lsof -ti:4173 | xargs -r kill -9; npx playwright test` on the untouched base; paste the summary lines under the table
+- [x] Commit `docs(plan): act-two access seams reconciled`
 
 ### Task 2: archive data test for the new item shape
 
