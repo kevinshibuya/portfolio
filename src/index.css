@@ -2181,8 +2181,9 @@ body[data-loader-state="loading"] {
 .stream .workrow-index {
   display: none;
 }
-/* Re-declared from the retired `#archive .workrow-title` rule, scoped by class
-   so the selector no longer trips the archive- audit. */
+/* Re-declared from the retired id-scoped rule, by class this time, so the
+   selector no longer carries the retired section's prefix and the deletion
+   audit in Task 8 stays a real audit. */
 .stream .workrow-title {
   font-size: clamp(20px, 2.6vw, 34px);
 }

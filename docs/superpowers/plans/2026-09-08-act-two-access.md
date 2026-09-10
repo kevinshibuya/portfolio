@@ -545,7 +545,13 @@ This task is the audit that nothing survived, run once after Task 7 so the whole
 
 **Boundaries:** No deletion here. `src/data/embeds.ts` (`typeGradients`) and the content types are pipeline 2's; if `typeGradients` is now unused, note it in the PR description, do not delete it. If the grep finds a survivor, it is `blocked:` to the controller — pipeline 2's PR was supposed to be green on the integration branch.
 
-- [ ] Run the grep and the three commands; record the output for the PR description (no commit if nothing changed)
+- [x] Run the grep and the three commands; record the output for the PR description (no commit if nothing changed)
+
+**Result, 2026-09-10.** Grep clean; nothing of the old Archive survived pipeline 2. The audit's one
+hit was a comment added by Task 5 that quoted the pattern itself (`the archive- audit`), reworded so
+the audit stays a real audit rather than matching its own description. `npx tsc -b` exit 0, lint 0
+errors, `npx vitest run` 441 passed. **`typeGradients` (`src/data/embeds.ts:63`) now has no consumer**
+— recorded for the PR description, not deleted: it is pipeline 2's.
 
 ### Task 9: existing e2e specs gain the stream's assertions
 
