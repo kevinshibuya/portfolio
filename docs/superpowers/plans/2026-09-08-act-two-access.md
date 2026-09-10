@@ -6,6 +6,100 @@
 **Plan review:** pending · one wave (`reviewer` on opus, `reviewer` on fable, `codex-review` on sol), one fix pass, no second wave.
 **Execution model:** opus. Every seam is named against both sibling plans, every acceptance is a command, and the one derivation this plan owns (the column count read back from `data-svh`) is written out below. It derives no beat arithmetic of its own: pipeline 1 exports `volumeShotPlayhead` and `scrollTargetFor`, and this plan composes them.
 
+## Amendment · after pipelines 1 and 2 shipped, 2026-09-10 (READ FIRST)
+
+This plan was written and reviewed BEFORE Motion and Wall landed. Both are now merged into
+`feat/act-two` and promoted to `staging` (PR #18 `c5c551f`, PR #19 `dfa2f57`). Kevin's manual pass is
+GREEN. **This branch is still forked from the old base and must be updated from `feat/act-two`
+before task 1.**
+
+Ruled by `reasoner` (fable) against the shipped reality, then hand-checked here. Where the ruling and
+this repo disagree, the correction is marked. **The design of this plan is sound; its numbers, two
+preconditions and one ownership claim are not.**
+
+### Corrections · apply without re-deriving
+
+- **35 columns, not 26. `data-svh` publishes 1575, not 1350.** `(1575 − 700) / 25 = 35`. The
+  `columnsFromSvh(1350) === 26` assertion is arithmetically self-consistent and therefore passes as a
+  pure-function test while being wrong against the live DOM — the trap is that it looks green. Every
+  DOM-reading assertion needs 1575 and 35.
+- **The stub's `offsetHeight` 12150 encoded `1350 × 9` at a 900 px viewport.** Write it as
+  `svh × viewportHeight / 100`, never a literal: 14175 at 900 px, 17010 at 1080 px.
+- **`FRIEZE_ROWS = 6`.** There is no `FRIEZE_ROWS_LANDSCAPE` and no rename to record; delete that
+  instruction. Audit every figure derived from eight rows — cells are taller now.
+- **Pipeline 2's deletions and the four e2e rewrites are DONE and green.** Keep the check as a
+  pre-flight gate marked expected-pass, not as work.
+- **`resolveTitle(item, lang)` already exists.** Do not write a second resolver. Editorial titles are
+  Portuguese only (ADR 0001), so their stream rows want `lang="pt"`.
+- **Contrast.** Rows 2 and 9 still name retired `.archive-*` selectors — rewrite or delete them.
+  Strike "aesthetic" from row 8: yellow `#7A6800` is now a functional hover on a 17.28 px title,
+  which is under the 18.67 px large-text line, so the 4.5:1 normal-text bar applies and 4.94 clears
+  it. Add the wall's rows at the measured sizes: title **17.28 CSS px**, meta and serial **11.52**,
+  embedded caption **12.08**, identical on desktop and phone because the 144 px cell floor binds on
+  both. `#646566` is not a new colour: it is `rgba(11,14,20,.62)` composited on cream, recomputed
+  independently twice as `(99.9, 100.6, 102.1)` → `#646566`, ratio **5.23:1**.
+- **Drop the "deep-accent ≥ 12 px at the approach end" assertion**, because the constant it projects
+  from moved with the row count and pipeline 2 has already measured the floor at the reading beat.
+  **Correction to the ruling:** it justified this partly by reading commit `81622e3`'s "act-two title
+  LOD" as type below a threshold not being drawn. That is wrong. The LOD in `SceneTitle.tsx` is a
+  texture-LOD blur sampling level (`textureLod`, `max(baseLod, log2(sigma))`) for the title's own
+  blur, not a culling threshold. Drop the assertion for the row-count reason alone.
+- **Waits key on state, not time:** `data-frieze="ready"`, `data-act="2"`, and `data-frieze-gen`
+  when a test crosses a language switch.
+- **Verification is chunked.** This machine reaches ~80 % memory with a browser or a game open and
+  killed two full-suite runs outright; single tests later took 15.5 minutes that had taken 25
+  seconds. Run specs in groups, and read durations before believing a red. Do not add new specs to
+  `desktop-hidpi` (120 s raster budget) unless they genuinely need 1.5× raster.
+
+### Unresolved · settle before task 1, do not let an executor silently pick
+
+- **Where the stream lives is now a genuine conflict, and BOTH sides have a real mechanism.** This
+  plan's reviewed decision puts it OUTSIDE the sticky pin, because a sticky element forms a stacking
+  context and a focused pill inside it paints under the nav. The ruling argues the opposite: a
+  keyboard user tabbing to a row makes the BROWSER scroll it into view (`preventScroll` covers only
+  programmatic `focus()`), and outside the pin that fights the camera scroll. Neither argument
+  refutes the other. Resolve it explicitly — the likely shape is the stream inside the pin with the
+  focus pill portalled or positioned out of the stacking trap — and record the reasoning.
+- **Where `layout` and `extent` come from at focus time.** `playheadForItem(itemId, layout, extent)`
+  needs both, and they must be the SAME values the scene used or the targets drift from the wall.
+  The plan does not say. Establish it in the pre-flight and write it down.
+- **The four corridor cards.** If the featured projects are act-one cards rather than wall cells,
+  `playheadForItem` has no answer for them. Decide what a case-study row does: the safe default is a
+  real `<a href>` to the project route with no camera travel, so the stream is a full archive
+  without WebGL rather than a camera remote.
+- **Which failures actually set `data-frieze="failed"`.** An R3F context-creation failure may never
+  reach it, so key the visible no-WebGL mode on `failed` OR the absence of the canvas.
+
+### Ordering
+
+Task 0 is a five-minute pre-flight, not work: confirm `FRIEZE_ROWS = 6`, `data-svh` reads 1575, no
+`#archive` exists, nothing imports `friezeTargets`, and how `extent` is computed. Then **restore the
+nav link first** — it is the smallest user-visible defect, the first real consumer of
+`friezeTargets`, and it exercises the exact Lenis + `scrollTargetFor` mechanism the stream's
+focus-to-camera depends on, with one target instead of 171. Then the stream DOM (order taken from
+the layout so DOM order equals the dolly's reading order, `pointer-events: none` so it never steals
+the canvas's hover), then focus-to-camera, then the no-WebGL mode, then contrast, then the rig.
+
+**After the stream lands, re-run the four rewritten e2e specs and scope their locators.** They were
+rewritten against a DOM with no stream; 171 rows plus year headings enter the accessibility tree
+permanently, and a clipped-but-visible element still matches, so `getByRole`/`getByText` that match
+one element today can throw a strict-mode violation tomorrow.
+
+### Not this plan's work
+
+- **The stale hover** (no `events.update()` anywhere; scrolling moves the wall under a stationary
+  pointer and the tint goes stale). It is a scene-event-layer defect, and reviewing an accessibility
+  PR should not also mean reviewing the R3F event path. File it as an issue and land it as its own
+  small commit **before** the focus task, because focus-to-camera moves the wall on every focus and
+  would trigger it constantly. **Design around it regardless: give the focused cell its own channel,
+  never a write into hover, and do not consume `onCellHover` in the stream at all** — mouse hover is
+  not an accessibility event and voicing a stale id through `aria-live` would be worse than silence.
+- **`actTwoTopClearFrac`.** It is exported "for pipeline 2 to inset the top row's ink by" and nothing
+  reads it; the code and `docs/architecture.md` agree the inset does not happen, and the title
+  overprinting the top row is ratified (ADR 0012). The spec is the odd one out. Withdraw the promise
+  in the spec explicitly rather than deleting it silently, and drop the dead export — one hygiene
+  commit, outside this plan. A live export whose comment describes pending work is a trap.
+
 ## Global constraints
 
 - `main` is FROZEN. This branch's PR targets `feat/act-two`, never `staging` or `main`. Merging into `feat/act-two` follows the spec's chain: only after PR 2 (`feat/act-two-wall`) is merged and closed, and after this branch rebases onto the new base.
