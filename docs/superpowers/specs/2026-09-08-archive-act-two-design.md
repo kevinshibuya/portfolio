@@ -193,7 +193,7 @@ Absent by decision: eyebrows, description lines, stat strips, search, dropdowns,
 - [x] Plan 2 · Wall written, reviewed, assumptions listed.
 - [x] Plan 3 · Access written, reviewed, assumptions listed.
 - [x] `feat/act-two-motion` merged into `feat/act-two`.
-- [ ] `feat/act-two-wall` merged into `feat/act-two`.
+- [x] `feat/act-two-wall` merged into `feat/act-two`.
 - [ ] `feat/act-two-access` merged into `feat/act-two`.
 - [ ] Contrast table recomputed and verified.
 - [ ] Kevin's manual pass at desktop and phone widths: GREEN.
