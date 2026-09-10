@@ -460,9 +460,9 @@ CSS contract, all canonical tokens, every colour pair listed in Task 11:
 
 **Boundaries:** No import from `src/components/canvas/`. No router hook (WorkRow's `Link` is fine). No React state. No Framer Motion in this file.
 
-- [ ] Write `Stream.tsx` to the contract
-- [ ] Add the STREAM CSS block with the re-declared `.stream .workrow-title` rule
-- [ ] `npx tsc -b` and `npm run lint` clean; commit `feat(stream): the archive's accessible twin, year by year`
+- [x] Write `Stream.tsx` to the contract
+- [x] Add the STREAM CSS block with the re-declared `.stream .workrow-title` rule
+- [x] `npx tsc -b` and `npm run lint` clean; commit `feat(stream): the archive's accessible twin, year by year`
 
 ### Task 6: the stream inside the scene section; the skip links go
 
