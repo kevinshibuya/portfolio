@@ -727,10 +727,10 @@ fallback.
 
 **Boundaries:** Access owns final stream/chapter documentation and contrast table. Do not claim those have landed or tick their spec TODOs.
 
-- [ ] Run `apply_patch` for architecture index/content/frieze sections; expected: documentation matches code and names dependency ownership.
-- [ ] Run `apply_patch` to record actual verification results, size/cap evidence and Access handoff in this plan; expected: no estimated value presented as measurement.
-- [ ] Run the acceptance commands and inspect this task for remaining `- [ ]`; expected: only not-yet-run commit step remains unchecked.
-- [ ] Stage this task's Files with completed ticks and run `git commit -m 'docs: describe act-two frieze architecture'`; expected: bounded architecture/handoff commit.
+- [x] Run `apply_patch` for architecture index/content/frieze sections; expected: documentation matches code and names dependency ownership.
+- [x] Run `apply_patch` to record actual verification results, size/cap evidence and Access handoff in this plan; expected: no estimated value presented as measurement.
+- [x] Run the acceptance commands and inspect this task for remaining `- [ ]`; expected: only not-yet-run commit step remains unchecked.
+- [x] Stage this task's Files with completed ticks and run `git commit -m 'docs: describe act-two frieze architecture'`; expected: bounded architecture/handoff commit.
 
 ### Task 11: Controller records plan review approval
 
@@ -762,6 +762,180 @@ fallback.
 - [ ] Run the full verification set and record results; expected: green integration branch.
 - [ ] Check trailers and commit the final evidence with `git commit -m 'docs: record wall implementation verification'`; apply the global tick-and-amend protocol.
 - [ ] Push and create the PR against `feat/act-two`; expected: PR URL and Kevin’s manual pass pending. Tick locally after success, amend the evidence commit and push the amend with `--force-with-lease` before handing off, checking that the remote has not advanced.
+
+## Task 10 record · measured evidence and the Access handoff
+
+**How these numbers were produced.** Every figure below comes from running the shipped
+functions against the real 171-piece archive · `friezeLayout`, `friezeExtent`, `friezeDensity`,
+`panelsFor`, `maskSize`, `friezeHeightFill`, `dollyDistance`, `volumeDistance` · and from
+screenshots taken against a production preview build at `74dc58b`. Nothing here is scaled from an
+earlier table by eye. Geometry is built from **the canvas box the browser reports**, not from
+`window.innerWidth`: the canvas is 1269 px wide inside a 1280 px viewport because of the
+scrollbar, and Playwright's Pixel 5 is a 393×727 viewport, not 393×851. Feeding `sceneGeometry`
+the window instead skews every projected pixel while nothing looks broken.
+
+### The shipped extent
+
+35 columns at six rows: `2026 @0 ×2` (3 pieces), `2025 @2 ×9` (42), `2024 @11 ×22` (118),
+`2023 @33 ×2` (8); 17.5 × 2.1677419 world units; `data-svh="1575"`, confirmed on the running page
+at all four viewports below.
+
+### Density, panels and mask cost
+
+| Canvas box | DPR | Density | Meshes | Largest panel | Cap scale | Steady | Peak |
+| --- | ---: | ---: | ---: | --- | ---: | ---: | ---: |
+| 1269×720 (Playwright desktop) | 1 | 288.0 | 4 | 3168×624 | 1.000000 | 5.9985 MiB | 19.5381 MiB |
+| 393×727 (Playwright mobile) | 1.5 | 432.0 | 5 | 2376×936 | 1.000000 | 13.4967 MiB | 35.4771 MiB |
+| 1429×900 | 1.5 | 510.6696 | 5 | 2809×1107 | 1.000000 | 18.8720 MiB | 49.6061 MiB |
+| 1909×1080 and taller | 1.5 | 612.8 (ceiling) | 5 | 3370×1328 | 1.000000 | 27.1635 MiB | 71.3990 MiB |
+
+**The 4096 cap never binds, at any viewport.** `scale` is exactly 1 in every row, because
+`panelsFor` splits before `maskSize` measures. The spec's prediction · "the cap therefore never
+reduces raster detail; the ceiling does, uniformly" · is confirmed, not assumed. 2024 splits into
+two 11-column panels at every density above 4096 / (22 · `FRIEZE_CELL_W`) = 372.36 texels/world,
+which is every case except DPR 1 at 720 px tall, where 22 columns still fit in 3168 px.
+
+**The ceiling's peak is 71.3990 MiB**, against the 71.4 MiB the second amendment predicted at
+`RGFormat` and the 86.45 MiB the plan review approved. Steady at the ceiling is 27.1635 MiB
+against the amendment's 27.2. Both land where the amendment said they would. Lookups are 840 B per
+generation. Covers, captions, render targets and driver overhead are outside these totals.
+
+### Minimum drawn type · what Access audits against
+
+The 144 px cell floor binds on both Playwright projects, so **the desktop and phone minima are the
+same**, and they are the smallest sizes act two ever draws:
+
+| | CSS px | Device px @ DPR 1 | Device px @ DPR 1.5 |
+| --- | ---: | ---: | ---: |
+| Cell title (`CELL_TITLE_WORLD`, weight 600) | 17.280 | 17.280 | 25.920 |
+| Cell meta and serial (`CELL_META_WORLD`, weight 500) | 11.520 | 11.520 | 17.280 |
+| Wall card caption name (`WALL_TITLE_WORLD`) | 12.077 | 12.077 | 18.116 |
+
+Larger canvases only grow these: 20.427 / 13.618 CSS px at 1429×900, 24.512 / 16.341 at
+1909×1080. The caption name stays above `CAPTION_MIN_NAME_PX` (12) at its minimum, by 0.077 px.
+
+### Colours · no new pairs, only new sizes
+
+The wall draws the light chapter's existing tokens and invents nothing: professional `#0B0E14`
+(ink, 17.29:1 on cream), freelance `#B22B47` (pink-deep, 5.64:1), personal `#2A54B5` (blue-deep,
+6.20:1), hover through `hoverColorFor`'s index rotation including `#7A6800` (yellow, 4.94:1).
+Meta and serial use `#646566`, which is **not a new colour**: it is `rgba(11,14,20,.62)` · the
+muted step, 5.23:1 · already composited on cream `#F5F2EC`, because a shader cannot alpha-blend
+against the wall the way CSS does. Verified componentwise: `0.62·11 + 0.38·245 = 99.9 → 0x64`,
+`0.62·14 + 0.38·242 = 100.6 → 0x65`, `0.62·20 + 0.38·236 = 102.1 → 0x66`.
+
+Those five ratios are **existing reference values carried over, not an audit**. Access recomputes
+`docs/contrast.md` as a unit and confirms them at the minimum drawn sizes above.
+
+### What the screenshots show
+
+Production preview build, four canvases, at mid-release, the volume shot, the 2025|2024 block
+boundary and the 2024 panel seam. `data-frieze` read `ready` and `data-warm` read `true` at every
+one · including at deviceScaleFactor 1.5 and at 1080 px, which no committed test exercises.
+
+- **The panel seam is invisible.** At 1429×900 DPR 1.5, parked on column 22 where 2024's two
+  panels meet, type is uniformly sharp across the seam with no step in weight or sharpness. This
+  was the second amendment's central worry and it does not materialise · consistent with the
+  measured cap scale of 1.
+- **The reading beat is crisp** at DPR 1.5: titles, meta and tabular serials all resolve cleanly.
+- **Two cosmetic artifacts, recorded and left alone** (Kevin's 2026-09-09 standing instruction:
+  visual fixes come after the section revamp plans, not during them). A three-digit serial
+  beginning with `1` reads with a visible gap · `135` renders as `1 35` · because `digitAdvance`
+  places every digit on the widest digit's advance and the `1` sits left in its slot. And at least
+  one 2024 cell ellipsises to `…` alone, the documented behaviour for a title whose first token
+  cannot fit.
+
+### Volume-shot minification · measured, and the earlier estimate corrected
+
+The second amendment estimated "~9×" minification at the 1280×720 volume shot and left the
+mipmap decision to Kevin. **That estimate does not reproduce.** It compared the 612.8 ceiling
+against CSS pixels, but at 720 px tall the ceiling does not bind (density is 432 at DPR 1.5), and
+the comparison must be against *device* pixels. Measured, as texels per rendered device pixel:
+
+| Canvas | Density | CSS px/world at the volume shot | Minification |
+| --- | ---: | ---: | ---: |
+| 1269×720 DPR 1 | 288.0 | 65.26 | **4.41×** |
+| 1429×900 DPR 1.5 | 510.7 | 73.49 | **4.63×** |
+| 1909×1080 DPR 1.5 | 612.8 | 98.18 | **4.16×** |
+| 393×727 DPR 1.5 | 432.0 | 20.21 | **14.25×** |
+
+So the desktop case is roughly half as severe as estimated, and **the phone, not the desktop, is
+the worst case by 3×**. A still frame cannot settle the question either way: shimmer is temporal,
+and what a screenshot can show is whether minified text stays coherent, which on desktop it does
+and on the phone it does not · at 1.213 CSS px per title em the wall reads as grey noise. The
+decision stays Kevin's.
+
+### The portrait volume shot · re-derived
+
+At 393×727 the frieze fills **0.0603 of canvas height** (0.9 of width, which is what
+`VOLUME_FILL` binds on for a wall of aspect 8.07). The prior handoff's "~0.092 of frame height"
+does not reproduce from the shipped functions at any of the four canvases; 0.0603 is the measured
+figure. Composition, not correctness: the wall is a thin band with a large empty cream field below
+it. Flagged for Kevin's manual pass, deliberately not changed here.
+
+### Records superseded by measurement
+
+- **This plan's body says "fixed eight rows" and 26 columns.** Six rows and 35 columns is settled
+  (controller amendment). Every extent number in the body below that amendment is stale; the
+  amendment's table governs. Task 10 documents six.
+- **Task 1's mask table (the 70.49 / 93.53 MiB figures) is superseded.** It was computed at RGBA8
+  (`w · h · 4`) with 2024 capped to 4096×807 at scale 0.862. The second amendment replaced both
+  halves of that basis · `RGFormat` at two bytes, and a column-aligned panel split instead of a
+  cap · so those numbers describe a design that does not ship. The table above replaces them. The
+  amendment's own prediction is what the code reproduces.
+- **The Motion plan's worked values are eight-row values** (`dDolly 4.956`, fill `0.925` and ten
+  columns visible at 1440×900; fill `0.978` and 2.7 columns at 393×851; wrapper 1350 svh,
+  `sceneWrapperSvh(26)`). Measured on the merged base: fill is `0.820` at 1429×900 and `0.859` at
+  393×727, `dDolly` is `4.1922` and `4.0030`, and the wrapper is 1575 svh. `docs/architecture.md`
+  carried the same stale fill and clearance figures and is corrected in this task. The Motion plan
+  is not edited here.
+- **The Motion plan's `FRIEZE_ROWS = 8` and the Access plan's rename story are both moot.** The
+  merged base ships `FRIEZE_ROWS = 6` under that name; there is no `FRIEZE_ROWS_LANDSCAPE` and no
+  portrait constant, so Access Task 1 has no rename to record.
+- **Pipeline 2's deletions are done** (Task 2): the Archive section, its dropdown, the `.archive-*`
+  rules, the toolbar and sort strings, Home's lazy import and the first rewrite of the four
+  old-Archive e2e specs. Access deletes none of them and inherits a green suite.
+
+### Handoff to Access (pipeline 3)
+
+- **Seam.** `friezeTargets.playheadForItem(itemId, layout, extent)` returns the playhead for a
+  piece, composing `playheadForColumn` at the cell's centre column, and `null` for an unknown id.
+  Feed it to `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns)`.
+  `volumeShotPlayhead(columns)` is what the `#archive` nav link lands on. Nothing in `src/`
+  imports `friezeTargets` yet · Access is its first consumer.
+- **Read the column count from the page, never recompute it.** `columnsFromSvh` on the live
+  wrapper's `data-svh`. **The Access plan's acceptance values are stale**: it asserts
+  `columnsFromSvh(1350) === 26` and stubs a wrapper at `data-svh="1350"` with `offsetHeight`
+  12150. On the merged base those become **1575 and 35**. Written as `(svh − 700) / 25` the
+  helper is correct; only the literals in its checks need updating.
+- **Contrast.** `docs/contrast.md` rows 2 and 9 still list retired `.archive-*` selectors
+  (`.archive-chip`, `.archive-count`, the dropdown, the Archive load-more `.btn--ghost`). Recompute
+  the light-chapter table as a unit, drop the dead selectors, and add the wall's rows at the
+  minimum drawn sizes above.
+- **The yellow hover.** Row 8's note calls the yellow-slot substitution at small text "aesthetic".
+  On the wall the spec puts yellow on a 17.28 px hovered title deliberately, so it is now a
+  functional use at small size; at 4.94:1 it clears the 4.5:1 normal-text threshold, but the note
+  should say so rather than describe the choice as taste. No token changes here.
+- **`resolveTitle(item, lang)` already exists** in `src/types/content.ts`; the stream reads titles
+  through it, and the origin words are locale strings shared with the wall.
+- **Performance.** Act two's mask cost is the table above; the rig measurement and the recorded
+  deltas are Access's, per the spec.
+
+### Still open · not resolved by this task
+
+1. **Mipmaps for the volume shot**, on the measured 4.16–4.63× desktop and 14.25× phone
+   minification. Kevin's call.
+2. **The portrait volume shot's composition** at 0.0603 of canvas height. Kevin's call.
+3. **No committed test covers deviceScaleFactor 1.5.** The second amendment asked Task 9 for a
+   screenshot fixture at DPR 1.5 and at least 900 px tall on the 2025|2024 boundary; Task 9's
+   suite has none, and both Playwright projects miss it (`Desktop Chrome` is DPR 1, `Pixel 5` is
+   DPR 2.75 capped to 1.5 but only 727 px tall). The panel split therefore renders in CI only on
+   the mobile project, and the 612.8 ceiling never renders in CI at all. This task took that
+   evidence by hand and it is clean; making it a standing guard is a Task 9 reopening and is
+   Kevin's call, not this task's to take.
+4. **No test measures volume-shot minification**, by the same amendment's request.
+5. **The `data-act-two-u` diagnostic hook** remains unfiled as an issue (Fable's standing ruling:
+   do not add it in this pipeline).
 
 ## Acceptance map
 

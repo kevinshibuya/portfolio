@@ -15,8 +15,8 @@ Read the section for the surface you are about to touch. The rules you obey ever
 | Hero | `src/components/sections/Hero.tsx` | [Hero](#hero) |
 | Nav | `src/components/layout/Header.tsx` | [Nav](#nav) |
 | Light chapter | `src/pages/Home.tsx`, `src/index.css` | [Light chapter](#light-chapter) |
-| Selected Work | `src/components/sections/Projects.tsx`, `src/components/canvas/scene/`, `src/utils/sceneMotion.ts`, `src/utils/friezeLayout.ts` | [Selected Work scene](#selected-work-scene) |
-| Archive, Work Experience rows | `src/components/ui/WorkRow.tsx` | [WorkRow](#workrow) |
+| Selected Work | `src/components/sections/Projects.tsx`, `src/components/canvas/scene/`, `src/utils/sceneMotion.ts`, `src/utils/friezeLayout.ts`, `src/utils/friezeTargets.ts` | [Selected Work scene](#selected-work-scene) |
+| Work Experience rows | `src/components/ui/WorkRow.tsx` | [WorkRow](#workrow) |
 | Contact, Footer | `src/components/sections/Contact.tsx`, `src/components/layout/Footer.tsx` | [Contact and Footer stage](#contact-and-footer-stage) |
 | Animation | any | [Animation lanes](#animation-lanes) |
 | Sections, tonal rhythm | `src/pages/Home.tsx`, `src/index.css` | [Layout and section flow](#layout-and-section-flow) |
@@ -162,9 +162,9 @@ Past card four the same playhead reads the archive as a wall. The geometry is de
 
 **The reading distance and its floor.** `dollyDistance = min(dHeight, dLegible)`, where `dLegible` keeps a cell at or above `FRIEZE_CELL_MIN_PX = ceil(CARD_MIN_PX / 2) = 144` CSS px · half of the card floor, because a cell is half a card, so an embedded 2×2 case study is never narrower than `CARD_MIN_PX` and its caption never drops under 12px. That legibility term binds on most viewports.
 
-`DOLLY_HEIGHT_FILL = 0.82` is a **floor on the wall's vertical fill, not a ceiling**: `min()` picks the nearer distance and a nearer camera fills MORE frame, so nothing in the expression caps the fill. It measures 0.925 at 1440×900 and 0.978 at 393×851. Asserting `fill ≤ 1` would be vacuous; the real invariants are `friezeHeightFill ≥ DOLLY_HEIGHT_FILL` and `actTwoTopClearFrac` at its per-viewport value.
+`DOLLY_HEIGHT_FILL = 0.82` is a **floor on the wall's vertical fill, not a ceiling**: `min()` picks the nearer distance and a nearer camera fills MORE frame, so nothing in the expression caps the fill. It measures 0.820 at 1440×900 and at 393×851, where the height term binds exactly, and 0.867 at 1280×720, where the 144 px cell floor pulls the camera nearer than the height fit would. Asserting `fill ≤ 1` would be vacuous; the real invariants are `friezeHeightFill ≥ DOLLY_HEIGHT_FILL` and `actTwoTopClearFrac` at its per-viewport value.
 
-**The dolly camera is bottom-anchored.** `dollyY` lands the wall's bottom edge on the frame's bottom edge, so every spare pixel of frame height sits ABOVE the wall rather than being split between top and bottom. `actTwoTopClearFrac = 1 − friezeHeightFill` is that air · 0.0751 at 1440×900, 0.0218 at 393×851, roughly double what a wall-centred camera would leave · and it is exported so pipeline 2 can inset the top row's cell ink under the title band.
+**The dolly camera is bottom-anchored.** `dollyY` lands the wall's bottom edge on the frame's bottom edge, so every spare pixel of frame height sits ABOVE the wall rather than being split between top and bottom. `actTwoTopClearFrac = 1 − friezeHeightFill` is that air · 0.180 at 1440×900 and at 393×851, 0.133 at 1280×720, roughly double what a wall-centred camera would leave · and it is exported so pipeline 2 can inset the top row's cell ink under the title band.
 
 **The title reads over the wall's top row, and that is settled.** Clearing act one's title band would need a fill of 0.679, i.e. a 106px cell, which breaks the 144px floor. Six rows lift the clearance to 0.13–0.18 of the frame against a band reaching 0.32, so the overlap survives the row change: the cell floor and a reserved title band remain mutually infeasible. The camera work buys the largest clearance the constraint set allows and stops there. **No scrim, halo or darkening is added to make the overlap read** · that is the site's standing NO, and the fix belongs to the wall's own typography. ADR 0012.
 
@@ -183,6 +183,49 @@ Past card four the same playhead reads the archive as a wall. The geometry is de
 **Scroll seams.** Pipeline 1 exports COLUMN targets only: `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns)` · a number, never an item id · plus `playheadForColumn`, `playheadForBlock` and `volumeShotPlayhead` (what the `#archive` nav link lands on), and `data-svh` on the wrapper. The item lookup belongs to pipeline 2's `src/utils/friezeTargets.ts`, whose `playheadForItem(itemId, layout, extent)` imports both modules and composes `playheadForColumn(cell.col + cell.span / 2, extent)`. Pipeline 3 calls `playheadForItem` for stream focus and the wall click, and feeds the number to `scrollTargetFor`. `sceneMotion.ts` stays pure and ignorant of the content model, which is the whole reason the split exists.
 
 **Bounds pipeline 2 must respect:** `maxRowsInFrame(g)` (the tallest frieze that still fits at the reading distance) and `actTwoTopClearFrac(frieze, g)` (the air over the top row, which the top row's ink must be inset by). Neither is a constant: `maxRowsInFrame` falls with viewport height · 10 at 1920×1080, 8 at 1440×900, 7 at 820×821, 6 at 1280×720 · which is why `FRIEZE_ROWS` is 6 and why both are asserted across the whole viewport matrix rather than at one or two fixtures. Eight rows overflowed the frame on every viewport shorter than ~833 CSS px, and because the wall is bottom-anchored with no vertical camera travel, the overflow was off the top permanently.
+
+### The wall
+
+Act two's surface: all 171 archive pieces as one frieze. Pipeline 1 decides where the wall stands and how the camera moves over it; this section is what the wall is made of. The grid comes from `src/utils/friezeLayout.ts`, everything drawn comes from `src/components/canvas/scene/frieze*.ts` with `Frieze.tsx` and `Wall.tsx`.
+
+**Packing.** `friezeLayout(items, rows)` groups the archive by year, newest first, and packs each year independently into its own block: case studies first as 2×2 spans, then the editorial pieces as 1×1 cells, filling column-major · down a column before moving right. A block's width is `max(col + span)` over its own cells, and the frieze's `columns` is the sum of the block widths. `friezeExtent(layout, rows)` adds each block's `count` and the world `width` and `height`. At six rows today that packs to **35 columns**: `2026 @0 ×2` holding 3 pieces, `2025 @2 ×9` holding 42, `2024 @11 ×22` holding 118, `2023 @33 ×2` holding 8, over 17.5 × 2.168 world units. None of it is configured · the column count falls out of the data, and the wrapper's height follows it.
+
+**What a cell says.** `friezeText.ts` turns a piece into three strings (`cellText`): a title of at most two lines (`wrapTitle`, whole words only, an ellipsis for the overflow · and an ellipsis alone when a single indivisible token cannot fit), a one-line meta (`fitMeta`, whole-word ellipsis) and the serial. The sizes are world units, not pixels · `CELL_TITLE_WORLD` 0.06, `CELL_META_WORLD` 0.04, `CELL_INSET_WORLD` 0.03, line-height 1.2, weights 600 and 500 · so the text scales with the wall and its drawn size is a fact about the camera rather than the texture. Serial digits are drawn one at a time at the widest measured digit advance (`digitAdvance`), because Canvas2D font-feature settings are not assumed to exist: that is what makes the figures tabular, and it is why a narrow `1` sits in a slot as wide as a `0`.
+
+**One mask per panel, never one canvas per cell.** 171 cells cannot each own a canvas and a texture, so a whole year block rasterises into a single coverage mask · the technique `titleTexture.ts` already uses for the scene title. Three steps size it, in this order:
+
+1. `friezeDensity(frieze, g, dpr)` asks for the density the dolly actually needs · the wall's CSS pixels per world unit at the reading distance, times the renderer's DPR · and ceilings it at `FRIEZE_DENSITY_CEILING = 612.8` texels per world unit. The ceiling is the only thing that reduces detail, and it does so uniformly, from roughly 1080 CSS px of canvas height upwards.
+2. `panelsFor(block, cells, density, cap)` splits any block whose mask would exceed `FRIEZE_MASK_MAX_PX = 4096` into `ceil(needed / cap)` column-aligned panels of near-equal width, moving each boundary to the nearest column no 2×2 span bridges. It throws rather than cut a case study in half.
+3. `maskSize(columns, rows, density, cap)` sizes each panel.
+
+Because the split runs *before* the sizing, **the cap never binds and so never costs detail**: measured from 1269×720 to 1909×1080 and on the phone, every panel's `scale` is exactly 1. The 2024 block is two 11-column panels at any density above ~372 texels/world, which is every case except DPR 1 at 720 px tall · there its 22 columns still fit in 3168 px as one panel. So the wall is five meshes on a DPR-1.5 renderer and four at DPR 1.
+
+**Two channels.** Each mask is an `RGFormat` `DataTexture`: two bytes per texel, no mipmaps, `LinearFilter`, `NoColorSpace`, and `flipY = false` so row 0 is the wall's top. **R is title coverage; G is meta and serial together**, because both are drawn in one muted ink and hover changes only the title. The two never overlap inside a cell · `packPanel` counts the texels where they would (`overlapTexels`) and the contract is zero.
+
+**Colour lives in a lookup, not in the mask.** `createFriezeLookup` builds one `DataTexture` per *block* · slot to ink, a 2×2 writing its ink into all four of its slots · and the shader reads each cell's colour from it. The inks are the light chapter's own tokens: professional `#0B0E14`, freelance `#B22B47`, personal `#2A54B5`, on the cream `#F5F2EC` wall. Meta and serial take `#646566`, which is not a new colour but `rgba(11,14,20,.62)` · the muted step · already composited on cream, because a shader cannot alpha-blend against the wall the way CSS does. A panel is a column offset into its block's lookup (`uPanelOffset`, `uPanelColumns`). Hover writes three uniforms and nothing else (`setFriezeHover`), taking its tint from the same index rotation `WorkRow` uses inside the light chapter (`hoverColorFor`).
+
+**Meshes and the swap.** `panelMeshes` is one plane per panel, and it computes the same plan with or without masks · so the cream wall before rasterisation and the lettered wall after it have identical geometry, and the arrival of the text is a uniform write rather than a remount. `panelKey` is the identity the materials are keyed on.
+
+**Hit testing is arithmetic, not raycasting.** `blockOccupancy` flattens each block into an `Int32Array` of `columns × rows` slots holding an index into `layout.cells`, column-major, a 2×2 filling all four of its own. `cellAtUv` turns a UV hit on a panel into a cell by index, flipping `v`, half-open on both axes, and returning `null` inside the year-count band so the count itself is never clickable. One raycast against a handful of panel planes replaces a raycast over 171 meshes.
+
+**Pointer and callbacks.** `Frieze.tsx` owns the pointer. Hover lives in a ref and in uniforms, never React state (ADR 0010), and its only observable sign in the shipped build is `gl.domElement.style.cursor` going to `pointer`. A pointer that travelled more than `TAP_MAX_DELTA_PX = 6` is a scroll gesture and is rejected, so dragging across the wall opens nothing. `onCellClick(itemId)` and `onCellHover(itemId | null)` leave the canvas as props and `Projects.tsx` decides: a case study navigates to `/projects/<slug>`, anything else opens its `href` in a new tab with `noopener`, **synchronously** · a popup opened after an `await` has lost the trusted click stack and the browser blocks it. An unknown id does nothing. The whole path stays inert until the wall is active and its masks exist.
+
+**The nine cards are the corridor's cards.** Each case study's 2×2 span carries the same card object the corridor uses, through a shared resource cache, and the rasteriser skips span-2 cells because the card draws its own title and caption. The cards mount with the wall instead of waiting for the masks: gating them on the raster cost 855 ms against a 300 ms budget.
+
+**Warm-up, redraw and failure.** `Wall.tsx` registers `sceneRefs.frieze.prepare`, so rasterisation happens inside the scene's existing warm-up window · behind the entrance, after the fonts are ready, sliced `FRIEZE_RASTER_SLICE = 4` draw units per idle callback with a 32 ms timeout so it never blocks a frame. `prepare` resolves whether the raster succeeds or fails: one that never resolved would leave the canvas permanently un-warm. A language switch and the resize debounce build a new generation, and the old one is disposed only once the new one has rendered, so the wall never blinks. `data-frieze` reads `pending`, then `ready` or `failed`; a failed raster is a blank cream wall with act one still working, never the permanent WebGL-unavailable path.
+
+**What the masks cost.** Two bytes per texel, no mipmaps, measured from the shipped sizing against the canvas boxes the browser actually reports:
+
+| Canvas | Density | Meshes | Largest panel | Steady | Peak |
+| --- | ---: | ---: | --- | ---: | ---: |
+| 1269×720, DPR 1 | 288.0 | 4 | 3168×624 | 6.00 MiB | 19.54 MiB |
+| 393×727 phone, DPR 1.5 | 432.0 | 5 | 2376×936 | 13.50 MiB | 35.48 MiB |
+| 1429×900, DPR 1.5 | 510.7 | 5 | 2809×1107 | 18.87 MiB | 49.61 MiB |
+| 1909×1080 and taller, DPR 1.5 | 612.8 | 5 | 3370×1328 | 27.16 MiB | 71.40 MiB |
+
+Steady is the resident panels; peak is a redraw holding both generations plus two CPU-side copies of the largest panel. The ceiling is what bounds the bottom row · without it the peak would keep climbing with canvas height. The four lookup textures come to 840 bytes per generation. Covers, captions, render targets and driver overhead sit outside these figures.
+
+**Seams out.** `src/utils/friezeTargets.ts` is the only module that holds both a cell and a playhead: `playheadForItem(itemId, layout, extent)` finds the cell and composes pipeline 1's `playheadForColumn` at the cell's centre column. `friezeLayout.ts` imports nothing but the content types, and nothing in the frieze chain imports a canvas component.
 
 ### Frame loop
 
@@ -261,16 +304,17 @@ The scene reports its state on the real canvas element as data attributes, writt
 - `data-act`, `"1"` or `"2"`. Act two begins STRICTLY after playhead 3, so at 3 exactly · card four settled, `u = 0` · it still reads `"1"`
 - `data-overture`, `"true"` or `"false"`
 - `data-registrations`, how many times the corridor registered its objects: `"1"` on a production build across a full scrub, `"2"` on the dev server under StrictMode
+- `data-frieze`, the wall's rasterisation state: `"pending"`, then `"ready"` or `"failed"`. A `"failed"` wall is blank cream with act one intact, never the WebGL-unavailable path
 
 ## WorkRow
 
-The section-list primitive, in `src/components/ui/WorkRow.tsx`, used by Archive and Work Experience. Selected Work does not use it; that is the pinned R3F scene.
+The section-list primitive, in `src/components/ui/WorkRow.tsx`. Work Experience is its only consumer: the Archive section is retired, and Selected Work does not use it either · that is the pinned R3F scene, which now carries the archive itself.
 
 An open typographic row, no card. Anatomy: `.workrow-index` (zero-padded, faded, tabular-nums), `.workrow-title` (oversized lowercase, `clamp(28px,4.6vw,64px)`, weight 550, cream, tinting to `--row-tint` on hover and focus), `.workrow-meta` (faded spans joined by `·`), `.workrow-arrow` (`↗` on a link, `+` rotating 45° when expanded). A bottom hairline per row; the list owner adds the top hairline.
 
 On desktop hover, a pointer-tracking `.workrow-float` preview runs on Framer's `useMotionValue` and `useSpring`, never `setState` above the list. On touch and no-hover pointers, an inline `.workrow-thumb` stands in instead. The expandable variant swaps the row for a real `<button aria-expanded>` with an `AnimatePresence` panel. Every variant carries a visible cream `:focus-visible` ring.
 
-Archive and Work Experience reuse it verbatim, Work Experience in the expandable variant. Neither has bespoke row markup.
+Work Experience reuses it verbatim, in the expandable variant, with no bespoke row markup. The `preview` float and the `ornament` slot lost their only consumer with the Archive list and are unreferenced in the current tree.
 
 **Inside the light chapter** WorkRow inverts through the token scope alone; its `.workrow-*` rules are never edited. The hover title tint reads `--row-tint-deep-large`, `.workrow-index` takes the faded on-light step, and the Work Experience panel's `.work-*` marks read the deep channels. `.workrow-arrow` stays on the muted step: it is the expandable row's only open/closed cue, so WCAG 1.4.11 applies (`docs/contrast.md` row 3b).
 
@@ -312,9 +356,11 @@ Two distinct work categories. The TypeScript shapes live in `src/types/content.t
 
 An embed's `title` is Portuguese only, because it is editorial content.
 
-**Embeds have no surface of their own.** `src/data/archive.ts` flattens them into archive items alongside projects, tagged `kind: 'editorial'`, and Archive renders them as paginated `WorkRow` rows. There is no gallery component and no embed page.
+**Embeds have no surface of their own.** `src/data/archive.ts` flattens them into archive items alongside the projects; there is no gallery component and no embed page. `deriveArchive(projects, embeds)` builds the union, and the module exports `archive`, the single derived list, plus `yearBlocks(items)` for the per-year counts.
 
-**Archive items** are that flattened, date-sorted union, tagged by `kind`: featured, editorial, personal, oss or freelance. Archive filters on `kind`, `type`, `editorial` and `year`, plus a debounced search and a sort (`src/components/sections/Archive.tsx`); `type` and `editorial` are disabled unless `kind` is `all` or `editorial`.
+**Archive items** are that flattened union, newest first, each carrying a `serial`: 171 at the newest piece down to 1 at the oldest, contiguous. There is no `kind` tag any more. Two fields replace it · `origin`, one of `professional`, `freelance` or `personal`, which the wall reads as the cell's title ink, and an optional `caseStudy: { slug }`, which is what makes a piece one of the nine with a route of its own. `resolveTitle(item, lang)` resolves a title that may be a plain string or a `{ en, pt }` pair, because an editorial title is Portuguese only.
+
+**The archive has no list surface.** There is no toolbar, no filtering, no search, no sort and no pagination anywhere in the tree: the archive is rendered by the Selected Work scene's second act ([The wall](#the-wall)), and the retired list's components, styles and strings are gone with it.
 
 A row with no preview image falls back to a type-keyed CSS gradient (`typeGradients` in `src/data/embeds.ts`, carried onto the item as `gradient`), not to a badge. The `imagePreview` field on `Embed` is declared but currently has no consumer.
 
