@@ -669,9 +669,24 @@ Then audit the WHOLE table, not only the rows this pipeline adds: every existing
 
 **Boundaries:** No hex changes anywhere. No token added.
 
-- [ ] Write the legibility test; green; note the smallest size
-- [ ] Edit `docs/contrast.md`; run the one-liner and the grep
-- [ ] Commit `docs(contrast): the wall and the stream join the light-chapter table`
+- [x] Write the legibility test; green; note the smallest size
+- [x] Edit `docs/contrast.md`; run the one-liner and the grep
+- [x] Commit `docs(contrast): the wall and the stream join the light-chapter table`
+
+**Measured, 2026-09-10** (`tests/unit/friezeLegibility.test.ts`, at the approach's end):
+
+```
+320×568  (phone)    title 17.28 px · meta/serial 11.52 px
+390×844  (phone)    title 19.16 px · meta/serial 12.77 px
+1440×900 (desktop)  title 20.43 px · meta/serial 13.62 px
+1920×1080(desktop)  title 24.51 px · meta/serial 16.34 px
+```
+
+The amendment's 17.28 / 11.52 are the 320×568 figures; they are the SMALLEST of the four, not a
+figure "identical on desktop and phone" — the approach-end size does vary with viewport, and the
+desktop title at 20.43 px is above the 18.67 px large-text line rather than below it. Neither moves
+a verdict: `#7A6800` at 4.94 clears the 4.5 bar, which is the stricter of the two. Row 9 is retired
+rather than renumbered, and its note is worded to avoid the audit's own pattern.
 
 ### Task 12: measured on the rig
 
