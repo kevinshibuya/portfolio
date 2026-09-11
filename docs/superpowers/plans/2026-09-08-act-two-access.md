@@ -713,10 +713,10 @@ The `perf/baseline.json` edit is a **hand edit, and it is a feature delta by des
 
 **Boundaries:** No `--update-baseline`. No change to `scroll-transition.mjs` (issue #15). No numbers copied from memory; every cell comes from a report file named in the entry.
 
-- [ ] Write the probe; `--runs 3` exits 0
-- [ ] Measure base and after; fill the entry and "## Measured"
-- [ ] Update the three chunk keys; run the dormant byte-ceiling test under `PERF_HARNESS=1`
-- [ ] Commit `perf: act two measured on the rig, chunk ceilings follow the tree`
+- [x] Write the probe; `--runs 3` exits 0
+- [x] Measure base and after; fill the entry and "## Measured"
+- [x] Update the three chunk keys; run the dormant byte-ceiling test under `PERF_HARNESS=1`
+- [x] Commit `perf: act two measured on the rig, chunk ceilings follow the tree`
 
 ### Task 13: the records
 
@@ -773,21 +773,33 @@ The `perf/baseline.json` edit is a **hand edit, and it is a feature delta by des
 
 Filled by Task 12. Every cell names its report file in `perf/decisions.md`.
 
-| metric | base (`staging` @ sha) | after (`feat/act-two-access` @ sha) | delta | source |
+| metric | base (`staging` @ `dfa2f57`) | after (`feat/act-two-access` @ `0726882`) | delta | source |
 | --- | --- | --- | --- | --- |
-| idle-hero `frame.p50Ms` | | | | |
-| load-entrance `lcp` / `tbt` | | | | |
-| battery-proxy (its gating metric) | | | | |
-| Lighthouse desktop performance / LCP | | | | |
-| Lighthouse mobile performance / LCP | | | | |
-| probe `warmMs` 1440×900 | | | | |
-| probe `maxLongTaskMs` 1440×900 | | | | |
-| probe `frameP50Ms` / `frameP95Ms` dolly 1440×900 | n/a | | | |
-| probe `warmMs` / `maxLongTaskMs` 390×844 @3 | | | | |
-| probe `domNodes` of `#archive` | n/a | | | |
-| `Projects.js` bytes | | | | |
-| `WorkRow.js` bytes | | | | |
-| `Archive.js` bytes | | removed | | |
+| idle-hero `frame.p50Ms` | 16.70 ms | 16.70 ms | 0 · agree | `02-52-08-687Z` → `03-06-24-590Z` |
+| idle-hero `main.heapUsedMb` | 11.6324 | 14.5141 | **+2.8817 · DISAGREE** (band 2) | same |
+| idle-hero `main.taskMsPerSec` | 35.3936 | 40.2466 | **+4.8530 · DISAGREE** (band 4.02) | same |
+| ~~load-entrance `lcp` / `tbt`~~ · **corrected: that scenario measures neither.** LCP and TBT are Lighthouse's and have their own rows below. Its own gating metrics: | | | | |
+| load-entrance `entrance.settledMs` | 3604.2 ms | 3607.7 ms | +3.5 ms · agree | `02-56-27-999Z` → `03-10-12-336Z` |
+| load-entrance `window.longTasks.totalMs` | 0 ms | 0 ms | 0 · agree | same |
+| load-entrance `load.main.taskMs` | 602.039 ms | 631.048 ms | +29.0 ms · agree (band 63.1) | same |
+| battery-proxy `cpu.totalMsPerSec` | 179.3554 | 217.3995 | **+38.0441 · DISAGREE** (band 21.74) | `02-57-14-627Z` → `03-10-59-111Z` |
+| battery-proxy `cpu.rendererMsPerSec` | 62.0921 | 77.1507 | **+15.0586 · DISAGREE** (band 7.72) | same |
+| battery-proxy `cpu.gpuProcessMsPerSec` | 116.143 | 138.9771 | **+22.8341 · DISAGREE** (band 13.90) | same |
+| battery-proxy `main.taskMsPerSec` | 27.2009 | 34.8818 | **+7.6809 · DISAGREE** (band 3.49) | same |
+| Lighthouse desktop performance / LCP | 88 / 1896.4 ms | 88 / 1932.2 ms | 0 / +35.8 ms | `03-04-10-918Z` → `03-24-20-196Z` |
+| Lighthouse mobile performance / LCP | 63 / 10878.4 ms | 63 / 10881.1 ms | 0 / +2.7 ms | `03-04-52-299Z` → `03-24-20-196Z` (mobile) |
+| probe `warmMs` 1440×900 | 12547.8 ms | 13610.0 ms | **+1062.2 ms** | `act-two-probe`, 5 runs each |
+| probe `maxLongTaskMs` 1440×900 | 163 ms | 146 ms | −17 ms | same |
+| probe `frameP50Ms` / `frameP95Ms` dolly 1440×900 | 83.3 / 107.8 ms | 83.3 / 103.64 ms | 0 / −4.16 ms | same · the base HAS act two (`staging` is PR #19), so this is a real comparison, not `n/a` |
+| probe `warmMs` / `maxLongTaskMs` 390×844 @3 | 6605.8 ms / 0 ms | 6676.0 ms / 53 ms | +70.2 ms / +53 ms | same, `--phone` |
+| probe `domNodes` of `#archive` | n/a | 1705 | +1705 | same · the stream is what is new |
+| `Projects.js` bytes | 1 085 370 | 1 081 064 | −4 306 | `dist/assets`, both worktrees |
+| `WorkRow.js` bytes | (inlined into `Projects.js`) | 1 951 | +1 951 | same · now shared, so Rollup splits it |
+| `Archive.js` bytes | (already absent on the base) | removed | 0 | same |
+| **`index.js` bytes** | 110 669 | 120 026 | **+9 357**, of which **9 146 is `navTarget` → `sceneMotion`** reaching the eager chunk · proved by removing both imports (110 880) | same |
+| `index.css` bytes | 44 382 | 46 995 | +2 613 · the STREAM block | same |
+| net JS across `Projects`/`WorkRow`/`Archive` | 1 085 370 | 1 083 015 | −2 355 | same |
+
 
 ## Self-review
 

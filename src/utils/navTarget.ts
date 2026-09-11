@@ -1,3 +1,7 @@
+// From the LEAF, never from `./sceneMotion`. This module is reached from
+// `Header.tsx` and `Home.tsx`, both eager, and importing these names through
+// `sceneMotion`'s re-exports would drag the whole motion module back into
+// `index.js` — which is the 9 146 B the split exists to undo.
 import {
   ACT_ONE_SVH,
   ACT_TWO_APPROACH_SVH,
@@ -5,7 +9,7 @@ import {
   ACT_TWO_SVH_PER_COLUMN,
   scrollTargetFor,
   volumeShotPlayhead,
-} from './sceneMotion'
+} from './playhead'
 
 /**
  * Where the nav's "all work" link goes.

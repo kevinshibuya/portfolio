@@ -15,7 +15,7 @@ Read the section for the surface you are about to touch. The rules you obey ever
 | Hero | `src/components/sections/Hero.tsx` | [Hero](#hero) |
 | Nav | `src/components/layout/Header.tsx` | [Nav](#nav) |
 | Light chapter | `src/pages/Home.tsx`, `src/index.css` | [Light chapter](#light-chapter) |
-| Selected Work | `src/components/sections/Projects.tsx`, `src/components/sections/Stream.tsx`, `src/components/canvas/scene/`, `src/utils/sceneMotion.ts`, `src/utils/friezeLayout.ts`, `src/utils/friezeTargets.ts`, `src/utils/navTarget.ts` | [Selected Work scene](#selected-work-scene) |
+| Selected Work | `src/components/sections/Projects.tsx`, `src/components/sections/Stream.tsx`, `src/components/canvas/scene/`, `src/utils/playhead.ts`, `src/utils/sceneMotion.ts`, `src/utils/friezeLayout.ts`, `src/utils/friezeTargets.ts`, `src/utils/navTarget.ts` | [Selected Work scene](#selected-work-scene) |
 | Work Experience rows, stream case-study rows | `src/components/ui/WorkRow.tsx` | [WorkRow](#workrow) |
 | Contact, Footer | `src/components/sections/Contact.tsx`, `src/components/layout/Footer.tsx` | [Contact and Footer stage](#contact-and-footer-stage) |
 | Animation | any | [Animation lanes](#animation-lanes) |
@@ -136,6 +136,8 @@ Inside: `nav.scene-skiplinks` (the keyboard and screen-reader path into a projec
 No eyebrow, no overlay, and no DOM element tracks the settled card: the card carries its own caption and is pressable.
 
 ### Corridor and playhead
+
+**The playhead axis lives in `src/utils/playhead.ts`, a leaf that imports nothing.** It holds the svh extents, the playhead itself, act two's beats as positions on it, and `scrollTargetFor`, the inverse back to a document `scrollY`. `sceneMotion.ts` imports it and re-exports every one of those names, so nothing that already imported them had to move · but **eager code must import from the leaf**. The split exists because `navTarget.ts` is reached from `Header.tsx` and `Home.tsx`, both in the main chunk, and taking that arithmetic from `sceneMotion` pulled the whole 1250-line motion module into `index.js` (measured: 9 146 B) when it had only ever arrived through the lazy `Projects.tsx`. The bytes were the symptom; the guard that matters is that a lazy-only module must not become eager-reachable, which is what the chunk-byte ceiling in `perf/baseline.json` exists to catch. Nothing may be added to the leaf for symmetry: whatever is in it is eager whether or not the scene is ever scrolled to.
 
 The four featured projects (`highlightOrder ≤ 4`) stand along a corridor in depth, alternating side and yaw; scroll dollies the camera through it. Past them the playhead runs on into act two, the archive frieze.
 

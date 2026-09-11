@@ -141,7 +141,7 @@ _Avoid_: fallback list, hidden list, skip links (which it absorbs), archive list
 
 **Playhead**:
 Scroll progress through the scene, which is also the camera's position. Scroll owns sequence and position; time owns the ambient breath.
-(`src/utils/sceneMotion.ts`, ADR 0010, `docs/architecture.md#selected-work-scene`)
+(`src/utils/playhead.ts` · the axis itself, a leaf; `src/utils/sceneMotion.ts` · what the scene looks like at a given playhead, ADR 0010, `docs/architecture.md#corridor-and-playhead`)
 _Avoid_: scrub position, progress value
 
 **FluidWaves**:

@@ -26,7 +26,12 @@
 //
 // USAGE
 //
-//   node perf/act-two-probe.mjs [--runs 5] [--no-build] [--phone]
+//   node perf/act-two-probe.mjs [--runs 5] [--root <dir>] [--serve-off] [--phone]
+//
+// `--root` serves ANOTHER worktree's `dist/`, which is how the base and the
+// after are measured on one rig without rebuilding either: the base is a
+// separate worktree with its own `npm ci`, because chunk bytes and compile
+// time both move with the lockfile.
 //
 // Prints one JSON line: the median over runs of `warmMs`, `maxLongTaskMs`,
 // `frameP50Ms`, `frameP95Ms` and `domNodes`.
@@ -43,7 +48,7 @@ import {
 import { collect, framesIn, longTasksIn, now } from './lib/instrument.mjs'
 import { INIT_SCRIPT } from './lib/instrument.mjs'
 import { frameStats, median, round } from './lib/stats.mjs'
-import { startPreview } from './lib/server.mjs'
+import { startPreview, distFingerprint } from './lib/server.mjs'
 import { collectRig, rigMismatches } from './lib/rig.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -57,7 +62,8 @@ const flag = (name, fallback) => {
   return i === -1 ? fallback : args[i + 1]
 }
 const RUNS = Number(flag('--runs', 5))
-const NO_BUILD = args.includes('--no-build')
+const SERVE_OFF = args.includes('--serve-off')
+const TARGET_ROOT = resolve(flag('--root', ROOT))
 const PHONE = args.includes('--phone')
 const FORCE = args.includes('--force')
 
@@ -215,9 +221,12 @@ async function main() {
   }
 
   let stop = () => {}
-  if (!NO_BUILD) {
-    const server = await startPreview(ROOT, log)
+  let fingerprint = null
+  if (!SERVE_OFF) {
+    fingerprint = await distFingerprint(TARGET_ROOT)
+    const server = await startPreview(TARGET_ROOT, log)
     stop = server.stop ?? (() => {})
+    log(`serving ${TARGET_ROOT} (${fingerprint.distIndexHash.slice(0, 19)}…)`)
   }
 
   const viewport = PHONE ? { width: 390, height: 844 } : VIEWPORT
@@ -249,11 +258,13 @@ async function main() {
     discarded: runs.length - ready.length,
     columns: ready[0].columns,
     svh: ready[0].svh,
+    root: TARGET_ROOT,
+    dist: fingerprint?.distIndexHash ?? null,
     warmMs: round(median(ready.map((r) => r.warmMs))),
     maxLongTaskMs: round(median(ready.map((r) => r.maxLongTaskMs))),
     frameP50Ms: round(median(ready.map((r) => r.frameP50Ms))),
     frameP95Ms: round(median(ready.map((r) => r.frameP95Ms))),
-    domNodes: round(median(ready.map((r) => r.domNodes))),
+    domNodes: ready[0].domNodes === null ? null : round(median(ready.map((r) => r.domNodes))),
     rig,
   }
   console.log(JSON.stringify(out))

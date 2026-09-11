@@ -1,3 +1,55 @@
+import {
+  ACT_ONE_SVH,
+  ACT_TWO_APPROACH_SVH,
+  ACT_TWO_RELEASE_SVH,
+  ACT_TWO_START,
+  ACT_TWO_SVH_PER_COLUMN,
+  CARD_COUNT,
+  OVERTURE_START,
+  actTwoBeats,
+  actTwoPlayhead,
+  actTwoSvh,
+  clamp,
+  scrollTargetFor,
+  sceneWrapperSvh,
+  volumeShotPlayhead,
+  // Private to this module before the split, and deliberately NOT re-exported
+  // below: the public surface is unchanged.
+  ACT_ONE_SCRUB_SVH,
+  MAX_SEG,
+  PLAYHEAD_SPAN,
+} from './playhead'
+
+/**
+ * The playhead axis lives in `./playhead`, a LEAF that imports nothing.
+ *
+ * It was split out because `navTarget.ts` — reached from `Header.tsx` and
+ * `Home.tsx`, both eager — needs `scrollTargetFor` and `volumeShotPlayhead`,
+ * and importing them from here dragged this whole module into `index.js`
+ * (measured: 9 146 B). `./playhead` is the canonical home; **eager code must
+ * import from there, not from here.**
+ *
+ * These are explicit named re-exports rather than `export *` on purpose: a
+ * later duplicate definition then fails typecheck instead of silently shadowing.
+ * Every existing importer of these names from `sceneMotion` keeps working.
+ */
+export {
+  ACT_ONE_SVH,
+  ACT_TWO_APPROACH_SVH,
+  ACT_TWO_RELEASE_SVH,
+  ACT_TWO_START,
+  ACT_TWO_SVH_PER_COLUMN,
+  CARD_COUNT,
+  OVERTURE_START,
+  actTwoBeats,
+  actTwoPlayhead,
+  actTwoSvh,
+  clamp,
+  scrollTargetFor,
+  sceneWrapperSvh,
+  volumeShotPlayhead,
+}
+
 /**
  * Pure motion and framing helpers for the selected-work scene.
  *
@@ -18,9 +70,6 @@ import {
   type FriezeBlockExtent,
 } from './friezeLayout'
 
-/** Featured projects in the corridor; the wrapper height is coupled to this. */
-export const CARD_COUNT = 4
-
 /** Card plane in world units — the Shadway frame, 620 × 448 px equivalent. */
 export const CARD_W = 1
 export const CARD_H = 448 / 620
@@ -35,8 +84,6 @@ export const FOV_DEG = 35
 /** Camera pitch, negative = looking down at the corridor. */
 export const CAM_PITCH_DEG = -8
 
-/** Playhead where the scene begins: the overture line stands alone in cream. */
-export const OVERTURE_START = -1.5
 /** First playhead where the cards read in the distance (the overture is gone). */
 export const APPROACH_START = -0.5
 /**
@@ -134,12 +181,6 @@ export const SEAM_SIGMA_EM = 0.1
 export const SEAM_POWER = 0.5
 
 const DEG = Math.PI / 180
-const MAX_SEG = CARD_COUNT - 1
-
-export function clamp(value: number, lo: number, hi: number): number {
-  return value < lo ? lo : value > hi ? hi : value
-}
-
 /** Classic Hermite smoothstep on [0,1]. Expects t already clamped to [0,1]. */
 export function smoothstep(t: number): number {
   return t * t * (3 - 2 * t)
@@ -164,41 +205,7 @@ export function settleFrac(frac: number): number {
   return smoothstep(clamp((frac - 0.15) / 0.7, 0, 1))
 }
 
-/** Playhead units the wrapper spans: 1 overture + 0.5 approach + 3 card segments. */
-const PLAYHEAD_SPAN = MAX_SEG - OVERTURE_START
-
 /* ── Act two · the scroll budget past card four ──────────────────────────── */
-
-/** Where act one ends and act two begins: card four settled in its slot. */
-export const ACT_TWO_START = MAX_SEG
-
-/** The camera pulls back and up off card four's slot over this much scroll. */
-export const ACT_TWO_RELEASE_SVH = 100
-/** …then moves in and left toward the newest block over this much. */
-export const ACT_TWO_APPROACH_SVH = 50
-/** …then reads the frieze laterally, one column at a time, at this rate. */
-export const ACT_TWO_SVH_PER_COLUMN = 25
-
-/**
- * Act one's scrub, in svh — the retired `.scene-scroll` CSS literal, now
- * derived: 4.5 playhead units at 100 svh each, plus the one viewport the pin
- * itself occupies.
- */
-export const ACT_ONE_SVH = (PLAYHEAD_SPAN + 1) * 100
-
-/** Act two's own scrub. No frieze, no act two — and no zero divisor. */
-export function actTwoSvh(columns: number): number {
-  if (columns <= 0) return 0
-  return ACT_TWO_RELEASE_SVH + ACT_TWO_APPROACH_SVH + ACT_TWO_SVH_PER_COLUMN * columns
-}
-
-/** The whole wrapper: act one's 550 svh plus whatever the frieze asks for. */
-export function sceneWrapperSvh(columns: number): number {
-  return ACT_ONE_SVH + actTwoSvh(columns)
-}
-
-/** Act one's scrub range, in svh: the wrapper less the viewport the pin holds. */
-const ACT_ONE_SCRUB_SVH = ACT_ONE_SVH - 100
 
 /**
  * What the rig multiplies the raw scroll velocity by before deriving energy.
@@ -217,20 +224,6 @@ const ACT_ONE_SCRUB_SVH = ACT_ONE_SVH - 100
  */
 export function actOneVelocityScale(columns: number): number {
   return (sceneWrapperSvh(columns) - 100) / ACT_ONE_SCRUB_SVH
-}
-
-/**
- * Where the release and the approach end, in act-two progress `u`. Derived from
- * the svh budget, so a different column count moves them and nothing else has
- * to be told.
- */
-export function actTwoBeats(columns: number): { release: number; approach: number } {
-  const span = actTwoSvh(columns)
-  if (span <= 0) return { release: 0, approach: 0 }
-  return {
-    release: ACT_TWO_RELEASE_SVH / span,
-    approach: (ACT_TWO_RELEASE_SVH + ACT_TWO_APPROACH_SVH) / span,
-  }
 }
 
 /**
@@ -274,15 +267,6 @@ export function actOneSeg(playhead: number): number {
 }
 
 /** …and back: act-two progress → the playhead that carries it. */
-export function actTwoPlayhead(u: number): number {
-  return ACT_TWO_START + clamp(u, 0, 1)
-}
-
-/** The playhead the `#archive` nav link lands on: the whole frieze in frame. */
-export function volumeShotPlayhead(columns: number): number {
-  return actTwoPlayhead(actTwoBeats(columns).release)
-}
-
 /**
  * Playhead → the camera's eased position along the corridor, in card units.
  *
@@ -631,25 +615,6 @@ export function titleBand(
  * `playheadForItem(itemId, layout, extent)` composes this with
  * `playheadForColumn`; see the plan's "Scroll seams".
  */
-export function scrollTargetFor(
-  playhead: number,
-  wrapperTop: number,
-  wrapperHeight: number,
-  viewportHeight: number,
-  columns = 0,
-): number {
-  const scrub = wrapperHeight - viewportHeight
-  if (columns <= 0) {
-    return wrapperTop + ((playhead - OVERTURE_START) / PLAYHEAD_SPAN) * scrub
-  }
-  const span = actTwoSvh(columns)
-  const svh =
-    playhead <= ACT_TWO_START
-      ? (playhead - OVERTURE_START) * 100
-      : ACT_ONE_SCRUB_SVH + (playhead - ACT_TWO_START) * span
-  return wrapperTop + (svh / (ACT_ONE_SCRUB_SVH + span)) * scrub
-}
-
 /**
  * How settled the scene is, 0..1 — the weight behind the overlay's opacity and
  * the pointer tilt. Fully settled within 0.15 of a card, fully released by
