@@ -731,8 +731,8 @@ The `perf/baseline.json` edit is a **hand edit, and it is a feature delta by des
 
 **Boundaries:** No ADR edit (ADR 0012 already records the decision). No spec edit except by Task 15.
 
-- [ ] Write the sections and the index rows; update CONTEXT
-- [ ] Run the three greps; commit `docs: the archive is act two and the stream`
+- [x] Write the sections and the index rows; update CONTEXT
+- [x] Run the three greps; commit `docs: the archive is act two and the stream`
 
 ### Task 14: verification, phone pass, PR
 
