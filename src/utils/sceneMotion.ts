@@ -870,10 +870,16 @@ export function friezeHeightFill(frieze: FriezeExtent, g: SceneGeometry): number
 
 /**
  * The air above the wall's top row at the dolly, as a frame fraction — every
- * pixel of spare height, because the camera is bottom-anchored. Exported so
- * pipeline 2 can inset the top row's ink under the title band: at eight rows
- * and a 144 px cell the title reads OVER the top row and no camera work
- * recovers the rest (Assumption 23).
+ * pixel of spare height, because the camera is bottom-anchored.
+ *
+ * A LEGIBILITY BOUND, not a pending inset. The wall insets every row by the
+ * same `CELL_INSET_WORLD` and the top row gets no extra reservation: the title
+ * reads OVER it, which ADR 0012 ratifies rather than defers. The promise of an
+ * inset was withdrawn from the spec on 2026-09-10.
+ *
+ * What keeps this exported is `tests/unit/sceneMotion.test.ts`, which asserts
+ * it non-negative across the whole viewport matrix — the assertion that goes
+ * red at eight rows, and therefore the guard on `FRIEZE_ROWS = 6`.
  */
 export function actTwoTopClearFrac(frieze: FriezeExtent, g: SceneGeometry): number {
   return 1 - friezeHeightFill(frieze, g)
