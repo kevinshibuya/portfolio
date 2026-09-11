@@ -1977,11 +1977,16 @@ body[data-loader-state="loading"] {
   pointer-events: none;
 }
 
-/* Wrappers carry no box of their own, so the rule below reaches the rows. */
+/* Wrappers carry no box of their own, so the rule below reaches the rows.
+   `.workrow` belongs in this list and is easy to miss: it is `position:
+   relative`, so a WorkRow row left inside it anchors its `top: 0` to the
+   WORKROW rather than to the fixed container, and the pill lands a few pixels
+   lower for every row already stacked above it — 16, then 19, then 22. */
 .stream--hidden .stream-header,
 .stream--hidden .stream-year,
 .stream--hidden .stream-list,
-.stream--hidden .stream-item {
+.stream--hidden .stream-item,
+.stream--hidden .workrow {
   display: contents;
 }
 
