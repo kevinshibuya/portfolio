@@ -744,7 +744,23 @@ The `perf/baseline.json` edit is a **hand edit, and it is a feature delta by des
 - `npx tsc -b` → exit 0, no output.
 - `npm run lint` → exit 0.
 - `npx vitest run` → all files passed (no `WorkRow.float.test.tsx` in the list; `archive.test.ts`, `navTarget.test.ts`, `friezeLegibility.test.ts` present).
-- `lsof -ti:4173 | xargs -r kill -9; npx playwright test` → the final line reports `N passed` and `0 failed`; the five `PERF_HARNESS` skips are visible and nothing else skips.
+- ~~`npx playwright test` in one run~~ **Corrected 2026-09-11: the full suite is not runnable on this machine** — it was killed for memory, which is the failure the amendment already documents. Same single pass, CHUNKED, which is the protocol here rather than a fallback:
+
+```
+A  contact-waves dark-tokens hero-dissolve hero-entrance hero-shader light-chapter loader   40 passed
+B  nav-on-light perf-budget perf-hooks pixel-gate rows-hover section-enters                 54 passed · 14 skipped
+C  reduced-motion scene-effects scene-no-webgl scene-reduced-motion frieze-click            17 passed ·  1 skipped
+D  scene-scrub stream                                                                       39 passed ·  3 skipped
+E  frieze-surface (also desktop-hidpi)                                                      13 passed ·  2 skipped
+                                                                                           163 passed ·  0 failed
+```
+
+  **All 20 skips named, none unexpected.** 14 are `PERF_HARNESS`, from the 5 declaration sites the
+  plan means, expanded across two projects: `perf-budget` :157, :242, :273, `perf-hooks` :56, and
+  `pixel-gate` :386 at three seeds. 3 are project-scope guards that predate this pipeline
+  (`frieze-surface` :230 skips off `desktop-chromium`, `scene-effects` :38 the same). 3 are the
+  stream's own documented conditions: test 3's `personal` half on both projects, and test 5 on
+  `mobile-chromium`.
 - `grep -rn "pieces_\|skipPast\|origin" src/i18n/locales/en.json` and `grep -rn "sections.archive" src --include='*.tsx'` agree: every key added in Task 3 is read somewhere, and the origin keys pipeline 2 added are read by both the wall and the stream; delete the ones that are read by neither (both locales, one commit).
 - The `codex-computer-use` pass: invoke the skill against `npx vite preview --port 4173` (after `npm run build`), at 390×844 and 1440×900, with the brief: walk every beat (overture, four cards, release, approach, dolly to the last year, exit), Tab into the stream from the hero and confirm the skip-past link comes first, that each pill paints ABOVE the nav rather than behind it, that the camera moves on a year change and holds within a year, and that Shift+Tab leaves the stream cleanly from both ends; disable WebGL2 via the init script (`chrome://flags` is not needed: run with `--disable-webgl2` or the DevTools override) and confirm the visible stream with 171 rows and no horizontal overflow at 390 px. The run counts only with its registry line and a readable log. A finding goes back to its owning task.
 - `git push -u origin feat/act-two-access`; `gh pr create --base feat/act-two` with: the measured table from "## Measured", the codex registry line, what was verified by command, the manual steps for Kevin (desktop and phone: the nav link lands on the volume shot; Tab from the hero reaches the skip-past link first, then rows, each as a pill ABOVE the nav; the camera moves on a year change and stays put within a year; Shift+Tab exits cleanly from both ends; no WebGL shows the stream; a freelance row shows the word in both languages; the count lines sum), and the one item still flagged from "Spec conflicts", item 4 (the tonal rhythm). Then stop: the three-leg review is Kevin's to trigger.
