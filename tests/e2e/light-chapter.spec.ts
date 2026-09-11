@@ -57,6 +57,11 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
     )
     expect(ids).toEqual(['projects', 'work', 'stats', 'skills'])
 
+    // The stream is a DESCENDANT of #projects, never a fifth chapter child.
+    // Hoisting it would take it out of the scene's section and out of the
+    // token scope with it.
+    await expect(page.locator('#projects #archive')).toHaveCount(1)
+
     // The veil is the wrapper's NEXT SIBLING, never a child: its gradient ends
     // in var(--bg), which the wrapper's token scope would turn cream.
     await expect(page.locator('#chapter-light + .chapter-exit-veil')).toHaveCount(1)
