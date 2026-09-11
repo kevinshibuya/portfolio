@@ -58,5 +58,29 @@ test('no webgl2 falls back to a plain project list with no pin', async ({ page }
   // ordinary content and there is nothing to skip.
   await expect(page.locator('#archive a.stream-skip')).toHaveCount(0)
 
+  // Cream on cream. The light chapter inverts TOKENS, not inherited colour, so
+  // a stream element with no `color` of its own keeps `body`'s cream and
+  // disappears into the background. The hidden state cannot show it (the pill
+  // sets its own colour) and a count assertion cannot see it — every row was
+  // present and correct, and 162 of them were invisible. Found by a real
+  // browser pass, guarded here.
+  const paint = await page.evaluate(() => {
+    const bg = getComputedStyle(document.querySelector('#chapter-light')!).backgroundColor
+    const titles = Array.from(document.querySelectorAll('#archive .stream-row-title'))
+    const colourOf = (sel: string) => {
+      const el = document.querySelector(sel)
+      return el ? getComputedStyle(el).color : 'ABSENT'
+    }
+    return {
+      bg,
+      streamTitle: colourOf('#archive .stream-title'),
+      yearLabel: colourOf('#archive .stream-year-label'),
+      invisibleTitles: titles.filter((t) => getComputedStyle(t).color === bg).length,
+    }
+  })
+  expect(paint.invisibleTitles, 'no row title may match the chapter background').toBe(0)
+  expect(paint.streamTitle, 'the heading must not be the background').not.toBe(paint.bg)
+  expect(paint.yearLabel, 'a year label must not be the background').not.toBe(paint.bg)
+
   expect(errors).toEqual([])
 })
