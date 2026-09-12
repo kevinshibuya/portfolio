@@ -1812,8 +1812,8 @@ body[data-loader-state="loading"] {
 
 /* =========================================================================
    WORKROW — shared tinted typographic row primitive
-   (Projects / Archive / Embeds / WorkExperience adopt this in Tasks 6–8.)
-   Open editorial rows: index · [touch thumb] · oversized lowercase title ·
+   (WorkExperience, and the stream's case-study rows.)
+   Open editorial rows: index · oversized lowercase title ·
    ·-joined meta · trailing ↗ / + arrow. Per-row shader tint via --row-tint
    (set inline by the component). The list OWNER draws the top hairline; the
    primitive only draws row bottoms.
@@ -1875,11 +1875,6 @@ body[data-loader-state="loading"] {
   color: var(--text-faded);
 }
 
-.workrow-ornament {
-  flex: none;
-  color: var(--text-faded);
-  transition: color var(--dur-hover-in) var(--ease-house);
-}
 
 .workrow-arrow {
   flex: none;
@@ -1929,65 +1924,6 @@ body[data-loader-state="loading"] {
   border-radius: 4px;
 }
 
-/* Inline touch thumbnail: rendered in DOM whenever a preview exists, but only
-   shown on no-hover (touch) devices — desktop uses the tracking float instead. */
-.workrow-thumb {
-  display: none;
-  flex: none;
-  width: 64px;
-  height: 44px;
-  border-radius: 8px;
-  overflow: hidden;
-  background-size: cover;
-  background-position: center;
-}
-.workrow-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Desktop hover float: fixed preview that tracks the pointer (JS-gated to
-   hover + fine pointer + motion-on; positioned via MotionValues). */
-.workrow-float {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 40;
-  pointer-events: none;
-}
-.workrow-float-inner {
-  translate: 28px -50%;
-  width: 300px;
-  height: 200px;
-  border-radius: 10px;
-  overflow: hidden;
-  background-size: cover;
-  background-position: center;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-  transform-origin: left center;
-  will-change: transform, opacity;
-}
-.workrow-float-inner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-@media (hover: none) {
-  .workrow-thumb {
-    display: block;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .workrow-float {
-    display: none;
-  }
-}
-
 /* THE exit veil (cream→ink): the single tonal bridge out of the light chapter,
    between Skills' bottom and the Contact/Footer stage. Owned by Home.tsx, where
    it is deliberately a SIBLING of #chapter-light and not a child — its gradient
@@ -2003,6 +1939,305 @@ body[data-loader-state="loading"] {
      purpose is not having one. light-chapter.spec.ts test 5 asserts the two
      agree, so a reorder of the chapter's last section cannot silently re-break it. */
   background: linear-gradient(to bottom, var(--color-surface-light-tonal) 0%, var(--bg) 100%);
+}
+
+/* =========================================================================
+   STREAM — the archive's accessible twin (Stream.tsx)
+   Where the two ARCHIVE blocks were. Two states of one component: `hidden`
+   runs beside the scene, every row focusable and clipped to a pixel; `visible`
+   is the whole archive in normal flow when there is no WebGL.
+   Canonical tokens only — the light chapter's scope inverts them.
+   ========================================================================= */
+
+/* ── hidden: focusable, clipped, and a pill on focus ─────────────────────── */
+
+/* The CONTAINER is fixed, and that is the whole trick. Every descendant's
+   clipped 1px box then sits inside the viewport at every size, so the
+   browser's focus-scroll — which runs BEFORE :focus-visible applies, and reads
+   the clipped box — has nothing to do, and the gated Lenis travel is the only
+   scroll. An absolutely-positioned container at the section's top would put
+   every row at playhead 0 and native-scroll the window there on every Tab.
+
+   The z-index lives HERE, not on the row: `position: fixed` always establishes
+   a stacking context, so a row's own z-index cannot leave this container. That
+   is also why the stream is a sibling of .scene-scroll and not a child of
+   .scene-sticky, whose sticky stacking context would trap the pill under the
+   nav at z-index 100.
+
+   overflow stays `visible` and there is no clip-path here, or the pill is
+   re-clipped by its own parent. */
+.stream--hidden {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  z-index: 120;
+  pointer-events: none;
+}
+
+/* Wrappers carry no box of their own, so the rule below reaches the rows.
+   `.workrow` belongs in this list and is easy to miss: it is `position:
+   relative`, so a WorkRow row left inside it anchors its `top: 0` to the
+   WORKROW rather than to the fixed container, and the pill lands a few pixels
+   lower for every row already stacked above it — 16, then 19, then 22. */
+.stream--hidden .stream-header,
+.stream--hidden .stream-year,
+.stream--hidden .stream-list,
+.stream--hidden .stream-item,
+.stream--hidden .workrow {
+  display: contents;
+}
+
+/* clip-path, never overflow: hidden — that would make every row its own scroll
+   container, and a focused child inside one shifts the stage. */
+.stream--hidden :is(
+    .stream-skip,
+    .stream-row,
+    .workrow-link,
+    .stream-title,
+    .stream-total,
+    .stream-year-label,
+    .stream-serial
+  ) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* :focus-visible is keyboard-only, so a mouse user never sees the pill and the
+   canvas keeps its hover. pointer-events stays inherited-none, pill included.
+   No transition: this is a focus indicator, not an animation. */
+.stream--hidden :is(.stream-skip, .stream-row, .workrow-link):focus-visible {
+  width: auto;
+  height: auto;
+  clip-path: none;
+  transform: translateX(-50%);
+  max-width: min(90vw, 720px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  color: var(--text);
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+  font-size: 14px;
+  text-transform: lowercase;
+}
+
+/* A WorkRow brings a full-width flex box, 34px padding and a 64px title into
+   the pill. Reset it to a line of text; only the title shows. The padding is
+   restated rather than zeroed: `padding: 0` also removed the PILL's own 8px,
+   which made a case-study pill 23px tall against 39px for every other one. */
+.stream--hidden .workrow-link:focus-visible {
+  display: block;
+  width: auto;
+  padding: 8px 16px;
+  gap: 0;
+}
+.stream--hidden .workrow-link:focus-visible .workrow-title,
+.stream--hidden .stream-row:focus-visible .stream-row-title {
+  /* Out of the two-line -webkit-box clamp: the pill is one line, and the
+     ellipsis is the pill's own. */
+  display: inline;
+  font-size: inherit;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: normal;
+}
+.stream--hidden :is(.workrow-link, .stream-row):focus-visible :is(
+    .workrow-meta,
+    .workrow-arrow,
+    .stream-row-meta,
+    .stream-row-arrow,
+    .stream-serial
+  ) {
+  display: none;
+}
+.stream--hidden .stream-row:focus-visible {
+  display: block;
+}
+
+/* ── visible: the archive in normal flow, no WebGL ───────────────────────── */
+.stream--visible {
+  width: min(1440px, 100% - 160px);
+  margin: 96px auto 0;
+}
+
+.stream-title {
+  /* EXPLICIT, and the muted siblings below are why this is easy to miss: the
+     light chapter inverts TOKENS, not inherited colour, so an element with no
+     `color` of its own keeps `body`'s cream and renders cream on cream. The
+     hidden state hid the bug — the pill sets its own colour — and only the
+     no-WebGL state shows it. */
+  color: var(--text);
+  font-size: clamp(56px, 11.6vw, 168px);
+  font-weight: 550;
+  letter-spacing: -0.035em;
+  line-height: 0.86;
+  text-transform: lowercase;
+}
+.stream-total {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.stream-year {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 0 40px;
+  margin-top: 56px;
+  padding-top: 34px;
+  border-top: 1px solid var(--hairline);
+}
+.stream-year-label {
+  color: var(--text);
+  position: sticky;
+  top: 120px;
+  align-self: start;
+  font-size: 34px;
+  font-weight: 300;
+  line-height: 1;
+}
+.stream-year-count {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.stream-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* The dense row: everything that is not a case study. */
+.stream-row {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(16px, 2.4vw, 34px);
+  padding: 15px 0;
+  border-bottom: 1px solid var(--hairline);
+  text-decoration: none;
+  color: inherit;
+}
+.stream-serial {
+  flex: none;
+  width: 48px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.stream-body {
+  min-width: 0;
+  flex: 1;
+}
+.stream-row-title {
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.25;
+  transition: color var(--dur-hover-in) var(--ease-house);
+}
+.stream-row-meta {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: lowercase;
+}
+.stream-row-meta-item + .stream-row-meta-item::before {
+  content: "·";
+  margin: 0 0.55em;
+  color: var(--text-faded);
+}
+.stream-row-arrow {
+  flex: none;
+  margin-left: auto;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  transition: color var(--dur-hover-in) var(--ease-house);
+}
+
+/* Mirrors the chapter's WorkRow hover: the title takes the row's deep-large
+   tint, the arrow comes up to full ink. */
+.stream--visible .stream-row:hover .stream-row-title,
+.stream--visible .stream-row:focus-within .stream-row-title {
+  color: var(--row-tint-deep-large);
+}
+.stream--visible .stream-row:hover .stream-row-arrow,
+.stream--visible .stream-row:focus-within .stream-row-arrow {
+  color: var(--text);
+}
+.stream--visible .stream-row:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* The serial is rendered once per row, so WorkRow's own ordinal — which counts
+   position, not serial — would be a second, wrong number. */
+.stream .workrow-index {
+  display: none;
+}
+/* Re-declared from the retired id-scoped rule, by class this time, so the
+   selector no longer carries the retired section's prefix and the deletion
+   audit in Task 8 stays a real audit. */
+.stream .workrow-title {
+  font-size: clamp(20px, 2.6vw, 34px);
+}
+
+@media (max-width: 900px) {
+  /* One inline row: the label and its count side by side, no sticky column. */
+  .stream-year {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .stream-year-label {
+    position: static;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 28px;
+  }
+  .stream-year-count {
+    display: inline;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .stream--visible {
+    width: calc(100% - 40px);
+  }
+  .stream-serial {
+    width: 32px;
+    font-size: 11px;
+  }
+  .stream-row-title {
+    font-size: 16px;
+  }
+  .stream-row-meta {
+    font-size: 12px;
+  }
+  .stream .workrow-link {
+    padding: 22px 0;
+  }
 }
 
 /* =========================================================================
@@ -2102,11 +2337,6 @@ body[data-loader-state="loading"] {
   color: var(--text);
 }
 
-/* 8. Black-alpha shadows read far heavier on cream than on ink. */
-.chapter-light .workrow-float-inner {
-  box-shadow: 0 24px 60px rgba(11, 14, 20, 0.22);
-}
-
 /* =========================================================================
    SELECTED WORK — SCENE (R3F corridor, scroll-driven camera dolly)
    Replaces the retired pinned card stack. The card, the title and the
@@ -2156,29 +2386,6 @@ body[data-loader-state="loading"] {
 .scene-canvas-wrap[data-ready='true'] { opacity: 1; }
 .scene-canvas-wrap canvas { display: block; width: 100%; height: 100%; }
 
-/* Skip-link project index — visually hidden until focused */
-.scene-skiplinks { position: absolute; }
-.scene-skiplink { position: absolute; left: -9999px; }
-.scene-skiplink:focus-visible {
-  position: fixed;
-  left: 50%; top: 16px;
-  transform: translateX(-50%);
-  /* ABOVE the nav (z-index 100). Both are fixed in the root stacking context
-     and the pill lands at 16-52px, inside the nav's own band — at z-index 50 it
-     was a smudge behind the scrolled nav's background, colliding with the
-     centre links. ADR 0011 removed the DOM card link, so these skiplinks are
-     now the ONLY keyboard path into a project; they cannot be the thing that
-     hides. */
-  z-index: 120;
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: 1px solid var(--hairline);
-  background: var(--bg);
-  color: var(--text);
-  text-transform: lowercase;
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
-}
 
 /* No-WebGL fallback — the four projects as framed cards in normal flow.
    Same anatomy as the in-scene card, so losing the scene loses the motion,

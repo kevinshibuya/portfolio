@@ -80,7 +80,9 @@ Act one is untouched: overture, approach, four card slots, playhead clamped at `
 
 The claim this replaces read "eight rows is exactly what fits". It was checked at 1440×900 and 393×851 only, the two viewports where it happens to hold; `maxRowsInFrame` is not a constant but falls with viewport height, to 7 at 820×821 and 6 at 1280×720. The unit suite now asserts `maxRowsInFrame(g) >= FRIEZE_ROWS`, `friezeHeightFill <= 1` and a non-negative `actTwoTopClearFrac` across the whole matrix plus the short viewports it does not name, and those assertions go red at eight rows.
 
-**The title still overprints the top row during the dolly.** Six rows lift the clearance to 0.13–0.18 of the frame, and the title band reaches 0.32 from the top, so the year title still reads over the top row's ink, as type over type. That remains the ratified reading, not a defect; `actTwoTopClearFrac` is what pipeline 2 insets by.
+**The title still overprints the top row during the dolly.** Six rows lift the clearance to 0.13–0.18 of the frame, and the title band reaches 0.32 from the top, so the year title still reads over the top row's ink, as type over type. That remains the ratified reading, not a defect (ADR 0012).
+
+**The inset is WITHDRAWN, 2026-09-10.** This spec promised that pipeline 2 would inset the top row's ink by `actTwoTopClearFrac`. It did not, and it should not: the wall insets every row by the same `CELL_INSET_WORLD`, the top row gets no extra reservation, and the overprint is the ratified reading rather than something waiting on a fix. The code and `docs/architecture.md` already agreed; this spec was the odd one out. `actTwoTopClearFrac` stays exported, but as a LEGIBILITY BOUND, not as pending work: `tests/unit/sceneMotion.test.ts` asserts it non-negative across the whole viewport matrix, and that assertion is what goes red at eight rows. Deleting it would delete the guard on decision 15.
 
 Seams pipeline 1 exports and the others consume:
 

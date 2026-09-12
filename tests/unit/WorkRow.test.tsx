@@ -30,6 +30,29 @@ describe('WorkRow', () => {
     expect(link).toHaveAttribute('rel', expect.stringContaining('noreferrer'))
   })
 
+  it('the arrow points the way the link goes', () => {
+    // `→` stays on this site, `↗` leaves it, `+` opens in place. The stream's
+    // case-study rows are internal and its embed rows are not, so the glyph is
+    // the row's only signal of which is which.
+    const { unmount } = wrap(<WorkRow index={0} title="internal" href="/projects/x" />)
+    expect(screen.getByRole('link').querySelector('.workrow-arrow')).toHaveTextContent('→')
+    unmount()
+
+    const external = wrap(<WorkRow index={0} title="external" href="https://example.com/x" />)
+    expect(screen.getByRole('link').querySelector('.workrow-arrow')).toHaveTextContent('↗')
+    external.unmount()
+
+    wrap(<WorkRow index={0} title="expandable" expandable onToggle={vi.fn()} />)
+    expect(screen.getByRole('button').querySelector('.workrow-arrow')).toHaveTextContent('+')
+  })
+
+  it('explicit `internal` beats the href-prefix heuristic', () => {
+    // The stream passes `item.internal`; a case study's href is a route but an
+    // embed's is absolute, and the flag is what the archive actually knows.
+    wrap(<WorkRow index={0} title="flagged" href="https://example.com/x" internal />)
+    expect(screen.getByRole('link').querySelector('.workrow-arrow')).toHaveTextContent('→')
+  })
+
   it('expandable variant is a button with aria-expanded and shows children when open', () => {
     wrap(
       <WorkRow index={2} title="grupo rbs" expandable expanded onToggle={vi.fn()}>

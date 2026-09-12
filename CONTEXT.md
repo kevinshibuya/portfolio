@@ -136,12 +136,12 @@ _Avoid_: overview, wide shot, establishing shot
 
 **Stream**:
 The DOM twin of the frieze: the year-grouped list of every piece, focusable and visually hidden while the scene runs, the visible archive when WebGL is unavailable.
-(`src/components/sections/Projects.tsx`, ADR 0011, ADR 0012)
+(`src/components/sections/Stream.tsx`, `src/components/sections/Projects.tsx`, `docs/architecture.md#the-stream`, ADR 0011, ADR 0012)
 _Avoid_: fallback list, hidden list, skip links (which it absorbs), archive list
 
 **Playhead**:
 Scroll progress through the scene, which is also the camera's position. Scroll owns sequence and position; time owns the ambient breath.
-(`src/utils/sceneMotion.ts`, ADR 0010, `docs/architecture.md#selected-work-scene`)
+(`src/utils/playhead.ts` · the axis itself, a leaf; `src/utils/sceneMotion.ts` · what the scene looks like at a given playhead, ADR 0010, `docs/architecture.md#corridor-and-playhead`)
 _Avoid_: scrub position, progress value
 
 **FluidWaves**:

@@ -15,8 +15,8 @@ Read the section for the surface you are about to touch. The rules you obey ever
 | Hero | `src/components/sections/Hero.tsx` | [Hero](#hero) |
 | Nav | `src/components/layout/Header.tsx` | [Nav](#nav) |
 | Light chapter | `src/pages/Home.tsx`, `src/index.css` | [Light chapter](#light-chapter) |
-| Selected Work | `src/components/sections/Projects.tsx`, `src/components/canvas/scene/`, `src/utils/sceneMotion.ts`, `src/utils/friezeLayout.ts`, `src/utils/friezeTargets.ts` | [Selected Work scene](#selected-work-scene) |
-| Work Experience rows | `src/components/ui/WorkRow.tsx` | [WorkRow](#workrow) |
+| Selected Work | `src/components/sections/Projects.tsx`, `src/components/sections/Stream.tsx`, `src/components/canvas/scene/`, `src/utils/playhead.ts`, `src/utils/sceneMotion.ts`, `src/utils/friezeLayout.ts`, `src/utils/friezeTargets.ts`, `src/utils/navTarget.ts` | [Selected Work scene](#selected-work-scene) |
+| Work Experience rows, stream case-study rows | `src/components/ui/WorkRow.tsx` | [WorkRow](#workrow) |
 | Contact, Footer | `src/components/sections/Contact.tsx`, `src/components/layout/Footer.tsx` | [Contact and Footer stage](#contact-and-footer-stage) |
 | Animation | any | [Animation lanes](#animation-lanes) |
 | Sections, tonal rhythm | `src/pages/Home.tsx`, `src/index.css` | [Layout and section flow](#layout-and-section-flow) |
@@ -103,7 +103,7 @@ It is toggled by an `IntersectionObserver` on `#chapter-light` with `rootMargin:
 
 ## Light chapter
 
-One wrapper element `#chapter-light` in `src/pages/Home.tsx` holds, in order, `#projects`, `#archive`, `#work`, `#stats` and `#skills`. It paints `--color-surface-light` and carries a scoped re-declaration of the canonical tokens: the nine shorthands (`--bg`, `--bg-tonal`, `--text`, `--text-muted`, `--text-faded`, `--hairline`, `--accent-pink`, `--accent-blue`, `--accent-yellow`) **and eight `--color-*` mirrors**, seventeen declarations in all. Add a token to the chapter and you set both halves, or the inversion is partial. So every descendant rule that already reads a canonical token inverts with zero per-rule edits.
+One wrapper element `#chapter-light` in `src/pages/Home.tsx` holds, in order, `#projects`, `#work`, `#stats` and `#skills` · four children. `#archive` is no longer among them: it is the stream, and it lives INSIDE `#projects` as a sibling of `.scene-scroll` ([The stream](#the-stream)). It paints `--color-surface-light` and carries a scoped re-declaration of the canonical tokens: the nine shorthands (`--bg`, `--bg-tonal`, `--text`, `--text-muted`, `--text-faded`, `--hairline`, `--accent-pink`, `--accent-blue`, `--accent-yellow`) **and eight `--color-*` mirrors**, seventeen declarations in all. Add a token to the chapter and you set both halves, or the inversion is partial. So every descendant rule that already reads a canonical token inverts with zero per-rule edits.
 
 **The wrapper is a plain block on purpose: it carries no `overflow` and no `position`.** The `position: sticky` stage inside `#projects` needs the viewport as its scroll container, and either property on an ancestor silently breaks the pin.
 
@@ -113,7 +113,7 @@ One wrapper element `#chapter-light` in `src/pages/Home.tsx` holds, in order, `#
 
 **The one thing the scope cannot reach is an inline custom property.** `--row-tint*` are set on the `.workrow` style attribute (`src/components/ui/WorkRow.tsx`), and an inline value beats any ancestor declaration. So every raw-tint consumer in the chapter is overridden explicitly: the `.work-*` panel marks (`.work-mode-dot`, `.work-bullets li::before`, the `.work-highlight` border), `.work-highlight-label`, and the WorkRow title hover tint.
 
-**Tonal rhythm:** Selected Work cream, Archive tonal, Work Experience cream, Stats cream, Skills tonal. Archive and Skills carry `.section--sand` and inherit the tonal step through the scope. Stats is not a `.section` at all: it is `.stats`, painted `var(--bg)`, which the scope resolves to cream. Nothing here is composed separately for cream.
+**Tonal rhythm:** Selected Work cream, Work Experience cream, Stats cream, Skills tonal. Skills alone carries `.section--sand` and inherits the tonal step through the scope; the retired Archive section was the other one. Stats is not a `.section` at all: it is `.stats`, painted `var(--bg)`, which the scope resolves to cream. Nothing here is composed separately for cream.
 
 **Exit veil** (`.chapter-exit-veil`): 30svh, `--color-surface-light-tonal` to `--bg`, `aria-hidden`, a pure gradient. The first stop must equal the background of the chapter's LAST child, and Skills carries `.section--sand`; starting it on plain cream puts a 1.08:1 hard edge at the one seam whose purpose is not having one. `tests/e2e/light-chapter.spec.ts` asserts the two agree. It is a sibling placed after `#chapter-light`, never a child: its gradient ends in `var(--bg)`, which the scope resolves to cream, so nesting it would erase the fade. No text ever sits in a veil band.
 
@@ -136,6 +136,8 @@ Inside: `nav.scene-skiplinks` (the keyboard and screen-reader path into a projec
 No eyebrow, no overlay, and no DOM element tracks the settled card: the card carries its own caption and is pressable.
 
 ### Corridor and playhead
+
+**The playhead axis lives in `src/utils/playhead.ts`, a leaf that imports nothing.** It holds the svh extents, the playhead itself, act two's beats as positions on it, and `scrollTargetFor`, the inverse back to a document `scrollY`. `sceneMotion.ts` imports it and re-exports every one of those names, so nothing that already imported them had to move · but **eager code must import from the leaf**. The split exists because `navTarget.ts` is reached from `Header.tsx` and `Home.tsx`, both in the main chunk, and taking that arithmetic from `sceneMotion` pulled the whole 1250-line motion module into `index.js` (measured: 9 146 B) when it had only ever arrived through the lazy `Projects.tsx`. The bytes were the symptom; the guard that matters is that a lazy-only module must not become eager-reachable, which is what the chunk-byte ceiling in `perf/baseline.json` exists to catch. Nothing may be added to the leaf for symmetry: whatever is in it is eager whether or not the scene is ever scrolled to.
 
 The four featured projects (`highlightOrder ≤ 4`) stand along a corridor in depth, alternating side and yaw; scroll dollies the camera through it. Past them the playhead runs on into act two, the archive frieze.
 
@@ -164,7 +166,7 @@ Past card four the same playhead reads the archive as a wall. The geometry is de
 
 `DOLLY_HEIGHT_FILL = 0.82` is a **floor on the wall's vertical fill, not a ceiling**: `min()` picks the nearer distance and a nearer camera fills MORE frame, so nothing in the expression caps the fill. It measures 0.820 at 1440×900 and at 393×851, where the height term binds exactly, and 0.867 at 1280×720, where the 144 px cell floor pulls the camera nearer than the height fit would. Asserting `fill ≤ 1` would be vacuous; the real invariants are `friezeHeightFill ≥ DOLLY_HEIGHT_FILL` and `actTwoTopClearFrac` at its per-viewport value.
 
-**The dolly camera is bottom-anchored.** `dollyY` lands the wall's bottom edge on the frame's bottom edge, so every spare pixel of frame height sits ABOVE the wall rather than being split between top and bottom. `actTwoTopClearFrac = 1 − friezeHeightFill` is that air · 0.180 at 1440×900 and at 393×851, 0.133 at 1280×720, roughly double what a wall-centred camera would leave · and it is exported for pipeline 2. **Nothing reads it today:** the wall insets every row's ink by the same `CELL_INSET_WORLD`, and the top row gets no extra reservation, so the year title overprints it exactly as ADR 0012 ratified. The bound is available if that is ever revisited; it is not a behaviour the code currently has.
+**The dolly camera is bottom-anchored.** `dollyY` lands the wall's bottom edge on the frame's bottom edge, so every spare pixel of frame height sits ABOVE the wall rather than being split between top and bottom. `actTwoTopClearFrac = 1 − friezeHeightFill` is that air · 0.180 at 1440×900 and at 393×851, 0.133 at 1280×720, roughly double what a wall-centred camera would leave · and it is exported as a legibility BOUND. **No rendering reads it:** the wall insets every row's ink by the same `CELL_INSET_WORLD`, and the top row gets no extra reservation, so the year title overprints it exactly as ADR 0012 ratified. The promised inset was withdrawn from the spec on 2026-09-10. What keeps the export is `tests/unit/sceneMotion.test.ts`, which asserts it non-negative across the viewport matrix · the assertion that goes red at eight rows, and so the guard on `FRIEZE_ROWS = 6`.
 
 **The title reads over the wall's top row, and that is settled.** Clearing act one's title band would need a fill of 0.679, i.e. a 106px cell, which breaks the 144px floor. Six rows lift the clearance to 0.13–0.18 of the frame against a band reaching 0.32, so the overlap survives the row change: the cell floor and a reserved title band remain mutually infeasible. The camera work buys the largest clearance the constraint set allows and stops there. **No scrim, halo or darkening is added to make the overlap read** · that is the site's standing NO, and the fix belongs to the wall's own typography. ADR 0012.
 
@@ -182,7 +184,7 @@ Past card four the same playhead reads the archive as a wall. The geometry is de
 
 **Scroll seams.** Pipeline 1 exports COLUMN targets only: `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns)` · a number, never an item id · plus `playheadForColumn`, `playheadForBlock` and `volumeShotPlayhead` (what the `#archive` nav link lands on), and `data-svh` on the wrapper. The item lookup belongs to pipeline 2's `src/utils/friezeTargets.ts`, whose `playheadForItem(itemId, layout, extent)` imports both modules and composes `playheadForColumn(cell.col + cell.span / 2, extent)`. Pipeline 3 calls `playheadForItem` for stream focus and the wall click, and feeds the number to `scrollTargetFor`. `sceneMotion.ts` stays pure and ignorant of the content model, which is the whole reason the split exists.
 
-**Bounds pipeline 2 must respect:** `maxRowsInFrame(g)` (the tallest frieze that still fits at the reading distance) and `actTwoTopClearFrac(frieze, g)` (the air over the top row, offered to pipeline 2 as an inset and currently unused). Neither is a constant: `maxRowsInFrame` falls with viewport height · 10 at 1920×1080, 8 at 1440×900, 7 at 820×821, 6 at 1280×720 · which is why `FRIEZE_ROWS` is 6 and why both are asserted across the whole viewport matrix rather than at one or two fixtures. Eight rows overflowed the frame on every viewport shorter than ~833 CSS px, and because the wall is bottom-anchored with no vertical camera travel, the overflow was off the top permanently.
+**Bounds pipeline 2 must respect:** `maxRowsInFrame(g)` (the tallest frieze that still fits at the reading distance) and `actTwoTopClearFrac(frieze, g)` (the air over the top row; the inset it was offered for is withdrawn, and it stands as a bound). Neither is a constant: `maxRowsInFrame` falls with viewport height · 10 at 1920×1080, 8 at 1440×900, 7 at 820×821, 6 at 1280×720 · which is why `FRIEZE_ROWS` is 6 and why both are asserted across the whole viewport matrix rather than at one or two fixtures. Eight rows overflowed the frame on every viewport shorter than ~833 CSS px, and because the wall is bottom-anchored with no vertical camera travel, the overflow was off the top permanently.
 
 ### The wall
 
@@ -306,15 +308,37 @@ The scene reports its state on the real canvas element as data attributes, writt
 - `data-registrations`, how many times the corridor registered its objects: `"1"` on a production build across a full scrub, `"2"` on the dev server under StrictMode
 - `data-frieze`, the wall's rasterisation state: `"pending"`, then `"ready"` or `"failed"`. A `"failed"` wall is blank cream with act one intact, never the WebGL-unavailable path
 
+### The stream
+
+The archive's accessible twin, `src/components/sections/Stream.tsx`. The wall is 171 cells drawn on a canvas, which is nothing at all to a keyboard or a screen reader; the stream is the same 171 pieces as real DOM, year by year, in the wall's reading order. One component, two states, mounted by `Projects.tsx`.
+
+**`stream--hidden` runs beside the scene.** It is a SIBLING of `.scene-scroll` inside `#projects`, in the slot the four skip links used to hold. **It is not a child of `.scene-sticky`, and that is load-bearing rather than tidy:** `position: sticky` establishes a stacking context, so a `z-index: 120` inside it is scoped to the sticky element and the focused pill paints UNDER the nav at 100. The sticky box is also programmatically scrollable, so focusing a clipped child inside it shifts the stage.
+
+**The container is `position: fixed` at the viewport's top centre, zero-size, `overflow: visible`, and it holds the `z-index`.** That is the whole technique. Every row's clipped 1 px box is then inside the viewport at every size, so the browser's focus-scroll · which runs BEFORE `:focus-visible` applies, and reads the clipped box · has nothing to do, and the gated Lenis travel is the only scroll. The `z-index` lives on the container because a fixed element always establishes a stacking context and a row's own `z-index` cannot leave it. The premise is that no ancestor carries `transform`, `filter`, `perspective`, `backdrop-filter` or `contain: paint`; `tests/e2e/stream.spec.ts` test 12 guards it.
+
+Rows, year headings and the serial clip with `clip-path: inset(50%)`, never `overflow: hidden` · that would make each row its own scroll container. Wrappers, `.workrow` included, are `display: contents`, because `.workrow` is `position: relative` and would otherwise anchor a row's `top: 0` to itself and walk the pill down the screen. On `:focus-visible` the row un-clips into a pill at the viewport's top centre, and the pill RESETS what a `WorkRow` drags into it · full-width flex, 34 px padding, a 64 px title · so only the title shows. `pointer-events` stays `none` throughout, so the canvas keeps its hover and a mouse user never sees the pill at all.
+
+**`a.stream-skip` is the first focusable in the section**, an in-page link to `#work`. A reader who does not want 171 rows meets the way out before the first of them. It renders in the hidden state only.
+
+**Focus travels the camera.** `Projects.tsx` resolves the row through `playheadForItem(itemId, layout, extent)` and composes it with `scrollTargetFor(playhead, wrapperTop, wrapperHeight, viewportHeight, columns)` over Lenis, in one local `scrollToItem` that the wall's non-navigating cell click also calls. **`columns` is always passed:** its default of `0` maps the playhead through act one alone and would scroll the reader to a card slot, silently and without a type error. The move is GATED on the year block · `cell.block === blockIndexAt(actTwoProgress(playhead), extent)` returns without scrolling · so holding Tab through 171 rows does not queue a move per keystroke, and a row inside the block already in frame is one the reader can see. Lenis replaces the tween in flight rather than queueing, so a fast traversal re-aims one move. Focus is its own channel and never writes into hover; the stream does not consume `onCellHover` at all. `data-focus-target` on `#archive` is a debugging affordance, **not a contract** · the acceptance is the applied scroll position.
+
+**The nav link** resolves `#archive` through `resolveNavTarget(id, doc, viewportHeight)` (`src/utils/navTarget.ts`), which reads the column count back off `.scene-scroll`'s `data-svh` with `columnsFromSvh` and composes `volumeShotPlayhead(columns)` with `scrollTargetFor`. It reads the DOM rather than recomputing the packing: the wrapper's height is what the scene actually set. With no wrapper at all the target is `'#archive'`, the stream in flow; with a wrapper whose `data-svh` is not yet readable it is `'#projects'`, because the hidden stream is a 0×0 box a selector scroll cannot move to. The nav's centre links are `display: none` under 720 px, so this is a desktop affordance.
+
+**`stream--visible` is the archive**, in normal flow, when `webglUnavailable` is set · a missing WebGL2 context or a lost one, never `data-frieze="failed"`, which is the wall TEXTURE's status. The skip-past link does not render: the rows are ordinary content and there is nothing to skip.
+
+**Semantics.** `section#archive[aria-labelledby]` with an `h2`, a total, an `h3` per year carrying that year's count, and an `ol` of `li.stream-item[data-item-id][data-serial][data-origin]`. A case study renders a `WorkRow` · a real `<a>` to its route · and everything else a dense `a.stream-row` with serial, title, meta (`type · editorial · dd.mm`) and an `↗`. The serial is rendered once per row and read, on the muted step; `WorkRow`'s own ordinal counts POSITION rather than serial, so it is hidden here. Tints come from the item's position in the whole stream, so the tricolor rotates down the list instead of restarting inside every year. The origin word is `t('sections.archive.origin.<origin>')`, never `item.origin` verbatim · PT `personal` is `pessoal` · and `professional` renders no meta at all. Editorial titles carry `lang="pt"` (ADR 0001).
+
+**Reduced motion** changes how the scene moves, never what the stream contains: the same rows, the same skip link, and every travel applied in one step because Lenis is null.
+
 ## WorkRow
 
-The section-list primitive, in `src/components/ui/WorkRow.tsx`. Work Experience is its only consumer: the Archive section is retired, and Selected Work does not use it either · that is the pinned R3F scene, which now carries the archive itself.
+The section-list primitive, in `src/components/ui/WorkRow.tsx`. Two consumers: Work Experience, and the stream's case-study rows ([The stream](#the-stream)).
 
-An open typographic row, no card. Anatomy: `.workrow-index` (zero-padded, faded, tabular-nums), `.workrow-title` (oversized lowercase, `clamp(28px,4.6vw,64px)`, weight 550, cream, tinting to `--row-tint` on hover and focus), `.workrow-meta` (faded spans joined by `·`), `.workrow-arrow` (`↗` on a link, `+` rotating 45° when expanded). A bottom hairline per row; the list owner adds the top hairline.
+An open typographic row, no card. Anatomy: `.workrow-index` (zero-padded, faded, tabular-nums), `.workrow-title` (oversized lowercase, `clamp(28px,4.6vw,64px)`, weight 550, cream, tinting to `--row-tint` on hover and focus), `.workrow-meta` (faded spans joined by `·`), `.workrow-arrow`, whose glyph says where the link goes · `+` opens in place, `→` stays on this site, `↗` leaves it. A bottom hairline per row; the list owner adds the top hairline.
 
-On desktop hover, a pointer-tracking `.workrow-float` preview runs on Framer's `useMotionValue` and `useSpring`, never `setState` above the list. On touch and no-hover pointers, an inline `.workrow-thumb` stands in instead. The expandable variant swaps the row for a real `<button aria-expanded>` with an `AnimatePresence` panel. Every variant carries a visible cream `:focus-visible` ring.
+The row carries no imagery. The expandable variant swaps the row for a real `<button aria-expanded>` with an `AnimatePresence` panel. Every variant carries a visible cream `:focus-visible` ring.
 
-Work Experience reuses it verbatim, in the expandable variant, with no bespoke row markup. The `preview` float and the `ornament` slot lost their only consumer with the Archive list and are unreferenced in the current tree.
+Work Experience reuses it verbatim, in the expandable variant, with no bespoke row markup. The pointer-tracking preview float, the touch thumbnail and the trailing ornament went with the retired list: the archive's pictures are the wall's now, drawn on the canvas, and a DOM row that also tried to show one would be a second, worse copy of it.
 
 **Inside the light chapter** WorkRow inverts through the token scope alone; its `.workrow-*` rules are never edited. The hover title tint reads `--row-tint-deep-large`, `.workrow-index` takes the faded on-light step, and the Work Experience panel's `.work-*` marks read the deep channels. `.workrow-arrow` stays on the muted step: it is the expandable row's only open/closed cue, so WCAG 1.4.11 applies (`docs/contrast.md` row 3b).
 
@@ -338,13 +362,13 @@ Every animation honours `prefers-reduced-motion`: a static hero frame, no float,
 
 ## Layout and section flow
 
-Containers cap at 1440 with 80 px side padding on desktop. The hero is a full-bleed canvas stage. Selected Work is the pinned R3F scene stage. Archive and Work Experience converge on the WorkRow row language, and Skills has its own `.skills-*` list.
+Containers cap at 1440 with 80 px side padding on desktop. The hero is a full-bleed canvas stage. Selected Work is the pinned R3F scene stage, and it carries the stream inside it. Work Experience and the stream's case-study rows converge on the WorkRow row language, and Skills has its own `.skills-*` list.
 
 Shapes are open typographic rows, no cards or containers. The one exception is the Selected Work scene's framed cards, the sanctioned centerpiece. Rounded-full pills, chips and buttons survive where already used, on filters and tags.
 
-**Tonal sections.** On ink, `--bg-tonal` `#131722` marks alternate sections and base sections sit on `--bg` `#0B0E14`. Inside the light chapter the same rhythm runs on cream: `--color-surface-light-tonal` `#EDE9E0` for Archive and Skills, `--color-surface-light` `#F5F2EC` for Selected Work, Work Experience and Stats.
+**Tonal sections.** On ink, `--bg-tonal` `#131722` marks alternate sections and base sections sit on `--bg` `#0B0E14`. Inside the light chapter the same rhythm runs on cream: `--color-surface-light-tonal` `#EDE9E0` for Skills, `--color-surface-light` `#F5F2EC` for Selected Work, Work Experience and Stats.
 
-**Section flow:** Hero, Projects, Archive, Work Experience (expandable), Stats, Skills, Contact, Footer. Work first.
+**Section flow:** Hero, Projects (with the stream), Work Experience (expandable), Stats, Skills, Contact, Footer. Work first.
 
 ## Content model
 
@@ -362,7 +386,7 @@ An embed's `title` is Portuguese only, because it is editorial content.
 
 **The archive has no list surface.** There is no toolbar, no filtering, no search, no sort and no pagination anywhere in the tree: the archive is rendered by the Selected Work scene's second act ([The wall](#the-wall)), and the retired list's components, styles and strings are gone with it.
 
-A row with no preview image falls back to a type-keyed CSS gradient (`typeGradients` in `src/data/embeds.ts`, carried onto the item as `gradient`), not to a badge. The `imagePreview` field on `Embed` is declared but currently has no consumer.
+Neither `typeGradients` (`src/data/embeds.ts`) nor `Embed.imagePreview` has a consumer: both served the retired list's row previews. `Project.gradient` is a project field and was never carried onto an archive item.
 
 ## Performance harness
 

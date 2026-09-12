@@ -1,4 +1,12 @@
 import { test, expect } from '@playwright/test'
+import { projects } from '../../src/data/projects'
+
+// `src/data/projects` imports only a type, so Playwright CAN read it — unlike
+// `src/data/archive`, which reaches `embeds.csv?raw`. Same filter and sort as
+// Projects.tsx, so index 0 here is the card in the slot at playhead 0.
+const FEATURED = projects
+  .filter((p) => p.highlight && (p.highlightOrder ?? 99) <= 4)
+  .sort((a, b) => (a.highlightOrder ?? 99) - (b.highlightOrder ?? 99))
 import { openScene, scrollToPlayhead, scrollToActTwo, beats, CANVAS } from './helpers/scene'
 import {
   CARD_H,
@@ -173,7 +181,12 @@ test('the overture line stands at the top and is gone once the cards read', asyn
 test('clicking the settled card opens its project', async ({ page }) => {
   await openScene(page)
   await scrollToPlayhead(page, 0)
-  const href = (await page.locator('#projects .scene-skiplink').first().getAttribute('href'))!
+  // The stream runs newest-first over the WHOLE archive, so its first row is
+  // not the settled card. Ask for the row that belongs to the card in the slot
+  // at playhead 0, which is `featured[0]` — the same order Projects.tsx builds
+  // `cards` in.
+  const href = `/projects/${FEATURED[0].slug}`
+  await expect(page.locator(`#archive .stream-item a.workrow-link[href="${href}"]`)).toHaveCount(1)
 
   // The settled card's projected rect, from the same geometry the scene uses.
   const { width, height } = page.viewportSize()!
@@ -207,11 +220,13 @@ test('clicking a distant card scrolls it into the slot', async ({ page }) => {
   await expect(page).toHaveURL(/\/$/)
 })
 
-test('the project index skip-link navigates to its project', async ({ page }) => {
+test('a stream row navigates to its project', async ({ page }) => {
   await openScene(page)
   await scrollToPlayhead(page, 0)
 
-  const link = page.locator('#projects .scene-skiplink').first()
+  // The stream absorbed the skip links: a case-study row IS the keyboard route
+  // into a project now, and it is a real link, clipped rather than hidden.
+  const link = page.locator('#archive .stream-item .workrow-link').first()
   const href = (await link.getAttribute('href'))!
   expect(href).toMatch(/^\/projects\//)
   await link.focus()
