@@ -767,9 +767,9 @@ E  frieze-surface (also desktop-hidpi)                                          
 
 **Boundaries:** No merge. No `ALLOW_MAIN_MERGE`.
 
-- [ ] Verification set green, output kept for the PR description
-- [ ] Codex phone pass done, registry line noted, findings routed
-- [ ] Push, open the PR against `feat/act-two`, stop
+- [x] Verification set green, output kept for the PR description
+- [x] Codex phone pass done, registry line noted, findings routed
+- [x] Push, open the PR against `feat/act-two`, stop
 
 ### Task 15: spec boxes, after review
 
