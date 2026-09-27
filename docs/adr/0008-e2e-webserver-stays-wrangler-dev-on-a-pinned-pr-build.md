@@ -14,6 +14,12 @@ Two things were settled. First, `wrangler dev` stays as the web server — that 
 
 Because `npm run preview` is wrangler rather than a static server, Lighthouse and ad-hoc preview work use `npx vite preview --port 4173` instead (`CONTEXT.md`).
 
+## Pin reverted, 2026-09-27
+
+The revert condition is met. #15252 merged on 2026-09-07 and first shipped in wrangler 4.129.1, so `package.json` is back on a plain `wrangler@^4.142.0`. The first decision stands: `wrangler dev` is still the e2e web server. What goes is the URL pin, and with it the npm audit findings it held in place (7 high, wrangler → miniflare → sharp), which `npm audit fix` could not reach because the pin gave npm no newer version to move to.
+
+Verified on 4.142.0: the full e2e suite in five chunks, 140 passed, 0 failed, with no dev-server exit and no `ERR_CONNECTION_REFUSED`.
+
 ## Source
 
 `package.json`, `playwright.config.ts`, `CONTEXT.md`
