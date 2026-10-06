@@ -20,6 +20,10 @@ let cell: {
 }
 let sceneRenders = 0
 
+// jsdom has no WebGL2, and Projects reads the probe before it mounts the scene.
+vi.mock('../../src/components/canvas/webglProbe', () => ({
+  webglProbe: () => ({ supported: true, software: false }),
+}))
 vi.mock('../../src/components/canvas/SelectedWorkScene', () => ({
   SelectedWorkScene: (props: {
     onCellClick: (itemId: string) => void

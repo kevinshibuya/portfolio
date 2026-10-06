@@ -24,7 +24,10 @@ test('nav flips to on-light over the cream chapter (Projects → Skills) and bac
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(0)
 
   // Deep inside the pinned cream stage: nav flips on-light.
-  await scrollIntoSection(page, 'projects', 0.4)
+  // Playhead 0 is card one settled in the slot — inside #projects and inside
+  // the light chapter. It replaced a 0.4 fraction of the wrapper, which now
+  // means somewhere in act two's dolly rather than 'the projects section'.
+  await scrollToPlayhead(page, 0)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
 
   // The whole light chapter holds the flip: the nav stays on-light all the way
@@ -55,15 +58,15 @@ test('nav re-arms on-light after SPA back-nav from a project page', async ({ pag
   await page.locator('#projects').waitFor()
 
   // Scrub into the cream Selected Work stage: nav flips on-light.
-  await scrollIntoSection(page, 'projects', 0.4)
+  await scrollToPlayhead(page, 0)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
 
   // Follow the first project to its page (SPA nav, Header stays mounted)
-  // through the keyboard path: the skip-link index is the DOM's only route
-  // into a project; the cards themselves live on the canvas (ADR 0011).
+  // through the keyboard path: the stream's case-study rows are the DOM's only
+  // route into a project; the cards themselves live on the canvas (ADR 0011).
   // Playhead 0: card 0 settled in the slot.
   await scrollToPlayhead(page, 0)
-  const link = page.locator('#projects .scene-skiplink').first()
+  const link = page.locator('#archive .stream-item .workrow-link').first()
   const href = await link.getAttribute('href')
   await link.focus()
   await page.keyboard.press('Enter')
@@ -84,7 +87,7 @@ test('nav re-arms on-light after SPA back-nav from a project page', async ({ pag
   // Re-arm check: the observer watches #chapter-light, which remounts with the
   // lazy chunk; scrubbing back into #projects (still the wrapper's first child)
   // must flip the nav on-light again, not stay stuck dark on a detached observer.
-  await scrollIntoSection(page, 'projects', 0.4)
+  await scrollToPlayhead(page, 0)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
   await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#F5F2EC')
 })

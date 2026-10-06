@@ -24,6 +24,11 @@ export function useLenis(): {
       const { duration = 1.2, offset = 0, immediate = false, force = false } = opts
 
       if (lenis) {
+        // Lenis caches its scroll limit and refreshes it on a debounce. A
+        // programmatic scroll fired as lazy sections mount would clamp to the
+        // page as it was before they grew: an off-route nav to the archive
+        // stopped at the old document's bottom, thousands of px short.
+        lenis.resize()
         lenis.scrollTo(target, { duration, offset, immediate, force })
         return
       }
