@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useVelocity, type MotionValue } from 'framer-motion'
 import * as THREE from 'three'
 import {
@@ -135,6 +135,29 @@ export function SceneRig({
     quaternion: new THREE.Quaternion(),
   })
   const velocity = useVelocity(progress)
+
+  // R3F's `update()` replays the last pointermove even after the pointer has
+  // left: pointerleave cancels the hover but keeps the event. A camera move
+  // with the pointer resting on the nav would then re-hover the cell beneath
+  // it. Listened on the canvas element itself, the only DOM this rig touches.
+  const pointerInside = useRef(false)
+  const canvasElement = useThree((state) => state.gl.domElement)
+  useEffect(() => {
+    const inside = (): void => {
+      pointerInside.current = true
+    }
+    const outside = (): void => {
+      pointerInside.current = false
+    }
+    canvasElement.addEventListener('pointermove', inside)
+    canvasElement.addEventListener('pointerleave', outside)
+    canvasElement.addEventListener('pointercancel', outside)
+    return () => {
+      canvasElement.removeEventListener('pointermove', inside)
+      canvasElement.removeEventListener('pointerleave', outside)
+      canvasElement.removeEventListener('pointercancel', outside)
+    }
+  }, [canvasElement])
 
   // The DEV-only handle the smokes read to sample live object state. Stripped
   // from the production build, which is why those smokes run on the dev server.
@@ -422,7 +445,7 @@ export function SceneRig({
       pointerCam.current.position.copy(camera.position)
       pointerCam.current.quaternion.copy(camera.quaternion)
       camera.updateMatrixWorld()
-      state.events.update?.()
+      if (pointerInside.current) state.events.update?.()
     }
   })
 

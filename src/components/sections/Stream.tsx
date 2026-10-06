@@ -142,10 +142,10 @@ function StreamItem({ item, lang, onRowFocus }: StreamItemProps): React.ReactEle
           <span className="stream-serial" aria-hidden="true">
             {serial}
           </span>
-          <span className="stream-body">
-            {/* Editorial titles are Portuguese only (ADR 0001), so the row
-                declares the language its own text is actually in. */}
-            <span className="stream-row-title" lang="pt">
+          {/* Editorial titles, types and outlets are Portuguese only (ADR
+              0001), so the body declares the language its text is actually in. */}
+          <span className="stream-body" lang="pt">
+            <span className="stream-row-title">
               {title}
             </span>
             <span className="stream-row-meta">

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { readFileSync } from 'node:fs'
 import type { FriezeFixture } from '../unit/friezeFixture.shared'
 
@@ -10,16 +10,12 @@ const ROWS = (
   JSON.parse(readFileSync('tests/e2e/fixtures/frieze-cells.json', 'utf8')) as FriezeFixture
 ).cells.length
 
-test('no webgl2 falls back to a plain project list with no pin', async ({ page }) => {
-  const errors: string[] = []
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text())
-  })
-  page.on('pageerror', (error) => errors.push(String(error)))
-
-  // Refuse only webgl2. WebGL1 is untouched, so the hero's shader keeps
-  // working and this isolates the scene's own probe — launching Chromium with
-  // WebGL disabled would kill the hero too.
+/**
+ * Refuse only webgl2. WebGL1 is untouched, so the hero's shader keeps working
+ * and this isolates the scene's own probe — launching Chromium with WebGL
+ * disabled would kill the hero too.
+ */
+async function refuseWebgl2(page: Page): Promise<void> {
   await page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext
     HTMLCanvasElement.prototype.getContext = function (
@@ -35,6 +31,16 @@ test('no webgl2 falls back to a plain project list with no pin', async ({ page }
       )
     } as typeof HTMLCanvasElement.prototype.getContext
   })
+}
+
+test('no webgl2 falls back to a plain project list with no pin', async ({ page }) => {
+  const errors: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text())
+  })
+  page.on('pageerror', (error) => errors.push(String(error)))
+
+  await refuseWebgl2(page)
 
   await page.goto('/')
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
@@ -83,4 +89,29 @@ test('no webgl2 falls back to a plain project list with no pin', async ({ page }
   expect(paint.yearLabel, 'a year label must not be the background').not.toBe(paint.bg)
 
   expect(errors).toEqual([])
+})
+
+test('the nav reaches the visible archive from another route', async ({ page }, testInfo) => {
+  // The centre links are `display: none` under 720 px; there is no mobile menu.
+  test.skip((testInfo.project.use.viewport?.width ?? 0) <= 720, 'nav links are desktop only')
+  await refuseWebgl2(page)
+
+  // With no wrapper, `resolveNavTarget` answers `'#archive'` and never a
+  // number. Home used to wait for the number until its timeout and then
+  // scroll nowhere, leaving the reader at the top of the page.
+  await page.goto('/projects/radar-legislativo')
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+  await page.locator('.nav-link[href="#archive"]').click()
+
+  await page.locator('#archive.stream--visible').waitFor()
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => {
+          const r = document.querySelector('#archive')!.getBoundingClientRect()
+          return r.top < window.innerHeight && r.bottom > 0
+        }),
+      { timeout: 5000, message: 'the archive never scrolled into view' },
+    )
+    .toBe(true)
 })

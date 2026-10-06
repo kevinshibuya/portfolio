@@ -266,7 +266,6 @@ export function actOneSeg(playhead: number): number {
   return Math.min(playhead, ACT_TWO_START)
 }
 
-/** …and back: act-two progress → the playhead that carries it. */
 /**
  * Playhead → the camera's eased position along the corridor, in card units.
  *
@@ -605,16 +604,6 @@ export function titleBand(
   return { top: (navPx + 16) / visibleH, bottom: cardTopFrac - clearance }
 }
 
-/**
- * The document `scrollY` at which `playheadFor` returns exactly `playhead`, for
- * a wrapper starting at `wrapperTop` whose scrub range is `height − viewport`.
- *
- * The exact inverse of `playheadFor` on BOTH pieces, and today's function when
- * `columns = 0`. It takes a number and never an item id: `sceneMotion` has no
- * cells and must not import the content model. Pipeline 2's
- * `playheadForItem(itemId, layout, extent)` composes this with
- * `playheadForColumn`; see the plan's "Scroll seams".
- */
 /**
  * How settled the scene is, 0..1 — the weight behind the overlay's opacity and
  * the pointer tilt. Fully settled within 0.15 of a card, fully released by

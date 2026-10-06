@@ -13,6 +13,7 @@ import { Wall } from './scene/Wall'
 import { SceneTitle } from './scene/SceneTitle'
 import { Overture } from './scene/Overture'
 import { Environment } from './scene/Environment'
+import { webglProbe } from './webglProbe'
 
 /** The cream the scene shares with the section, the fog and the floor. */
 const CREAM = '#F5F2EC'
@@ -69,37 +70,6 @@ export interface SelectedWorkSceneProps {
 function hasDesktopEffects(): boolean {
   if (typeof window === 'undefined') return false
   return window.matchMedia('(pointer: fine)').matches && window.innerWidth >= 768
-}
-
-/**
- * Software rasterisers, by the renderer strings they actually report.
- * Deliberately narrow: absence of evidence is treated as hardware, because a
- * wider pattern ('angle', 'mesa', 'google') would silently strip depth of
- * field from real GPUs.
- */
-const SOFTWARE_RENDERER = /swiftshader|llvmpipe|softpipe|software|basic render/i
-
-/**
- * One throwaway context answers both questions we have about the GPU:
- * whether WebGL2 exists at all (three r185 has no WebGL1 path), and whether
- * we are on a software rasteriser.
- */
-function probeWebgl(): { supported: boolean; software: boolean } {
-  if (typeof document === 'undefined') return { supported: false, software: false }
-  try {
-    const gl = document.createElement('canvas').getContext('webgl2')
-    if (!gl) return { supported: false, software: false }
-    const info = gl.getExtension('WEBGL_debug_renderer_info')
-    const name = String(
-      info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
-    )
-    const software = SOFTWARE_RENDERER.test(name)
-    // Hand the probe's context straight back; contexts are a scarce resource.
-    gl.getExtension('WEBGL_lose_context')?.loseContext()
-    return { supported: true, software }
-  } catch {
-    return { supported: false, software: false }
-  }
 }
 
 /**
@@ -243,7 +213,7 @@ export function SelectedWorkScene({
     () => [...cards.map((c) => c.title), allWork, ...frieze.blocks.map((b) => String(b.year))],
     [cards, allWork, frieze],
   )
-  const [{ supported, software }] = useState(probeWebgl)
+  const [{ supported, software }] = useState(webglProbe)
   const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null)
   const [inView, setInView] = useState(false)
   // Reduced motion mounts no composer: spec 2026-09-03 Q9 is explicit that it

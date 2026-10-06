@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useMotion } from '../../context/MotionContext'
 import { useLenisContext } from '../layout/SmoothScroll'
 import { SelectedWorkScene, type SceneCard } from '../canvas/SelectedWorkScene'
+import { webglProbe } from '../canvas/webglProbe'
 import { projects } from '../../data/projects'
 import {
   playheadFor,
@@ -86,7 +87,9 @@ export function Projects() {
   }, [])
 
   const [ready, setReady] = useState(false)
-  const [webglUnavailable, setWebglUnavailable] = useState(false)
+  // Seeded from the probe, not discovered by the scene a commit later: a wrapper
+  // mounted for one commit is one Home's nav handoff can scroll to (webglProbe.ts).
+  const [webglUnavailable, setWebglUnavailable] = useState(() => !webglProbe().supported)
   const handleReady = useCallback(() => setReady(true), [])
   const handleWebglUnavailable = useCallback(() => setWebglUnavailable(true), [])
 
@@ -157,6 +160,27 @@ export function Projects() {
     window.open(item.href, '_blank', 'noopener')
   }
 
+  /**
+   * The year block the wall is showing, or heading to: -1 when none is.
+   *
+   * Read from where the page is GOING, not where it is: a travel in flight has
+   * already chosen its block, and a Shift+Tab mid-tween must be judged against
+   * that block or the tween lands on a year the focus has left. And only while
+   * the pin holds: past the wrapper `scrollYProgress` clamps to 1, which names
+   * the last block while the wall is off-screen above.
+   */
+  function blockInFrame(): number {
+    const wrapper = wrapperRef.current
+    if (!wrapper) return -1
+    const range = wrapper.offsetHeight - window.innerHeight
+    if (range <= 0) return -1
+    const wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY
+    const y = lenis ? lenis.targetScroll : window.scrollY
+    const progress = (y - wrapperTop) / range
+    if (progress < 0 || progress > 1) return -1
+    return blockIndexAt(actTwoProgress(playheadFor(progress, frieze.columns)), frieze)
+  }
+
   // Focus is its own channel and never writes into hover: hovering is a mouse
   // idea, and voicing a stale id through aria-live would be worse than silence
   // (issue #20). The stream does not consume `onCellHover` at all.
@@ -169,8 +193,7 @@ export function Projects() {
     // Only a DIFFERENT year moves the camera. Holding Tab through 171 rows
     // otherwise queues a move per keystroke, and every row inside the block
     // already in frame is one the reader can see.
-    const playhead = playheadFor(scrollYProgress.get(), frieze.columns)
-    if (cell.block === blockIndexAt(actTwoProgress(playhead), frieze)) return
+    if (cell.block === blockInFrame()) return
     scrollToItem(itemId)
   }
   const handleRowFocus = useCallback((itemId: string) => rowFocus.current(itemId), [])

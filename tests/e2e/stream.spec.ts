@@ -423,6 +423,20 @@ test.describe('the stream', () => {
       () => (document.activeElement?.closest('li.stream-item') as HTMLElement | null)?.dataset.itemId ?? null,
     )
     expect(back).toBe(ids.at(-1))
+
+    // And the camera came back for it. Below the wrapper the scroll progress
+    // clamps to 1, which names the last block, so a gate that read it would
+    // leave the reader at Work Experience under a 2023 pill.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const r = document.querySelector('.scene-scroll')!.getBoundingClientRect()
+            return r.top <= 1 && r.bottom >= window.innerHeight - 1
+          }),
+        { timeout: 4000, message: 'Shift+Tab into the last row did not travel back into the pin' },
+      )
+      .toBe(true)
   })
 
   test('12 · the fixed container is why nothing else scrolls', async ({ page }) => {
