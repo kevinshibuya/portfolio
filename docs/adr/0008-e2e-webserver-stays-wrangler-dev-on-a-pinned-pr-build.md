@@ -22,7 +22,7 @@ The pin had also left `@cloudflare/kv-asset-handler` resolved from pkg.pr.new in
 
 Amended 2026-10-06, on review: `wrangler@^4.148.0` (with `@cloudflare/vite-plugin@^1.63.0`, which peers on it) clears the undici advisories published after the revert. miniflare still pins `sharp` to exactly 0.35.4, below the librsvg fix in 0.35.5, so `overrides` sends it to the direct `sharp` range (`"sharp": "$sharp"`). Drop that override once miniflare's own pin reaches 0.35.5.
 
-Verified on 4.148.0: Verified on 4.148.0: a clean `npm ci` from the registry alone, `npm audit` at 0, and the full e2e suite in five chunks, 138 passed, 0 failed on rerun, with no dev-server exit and no `ERR_CONNECTION_REFUSED` or `ECONNRESET`. Two timing tests wobbled under load (`perf-budget` long tasks, the loader's text) and passed on rerun; the built site is byte-identical to the 4.142 build's, so neither can come from this change.
+Verified on 4.148.0: a clean `npm ci` from the registry alone, `npm audit` at 0, and the full e2e suite in five chunks, 138 passed, 0 failed on rerun, with no dev-server exit and no `ERR_CONNECTION_REFUSED` or `ECONNRESET`. Two timing tests wobbled under load (`perf-budget` long tasks, the loader's text) and passed on rerun; the built site is byte-identical to `staging`'s build before this change, so neither can come from this change.
 
 ## Source
 
