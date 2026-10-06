@@ -634,7 +634,7 @@ happen is a camera travel, so the assertion is that the newly focused element is
 **Boundaries:** No change to app code from this task; a red here that needs app code goes back to the task that owns the file. No local helper: import from `tests/e2e/helpers/scene.ts`.
 
 - [x] Write the twelve tests; observe test 4 red against a build without Task 6 (or with `onRowFocus` stubbed) at least once, then green
-- [x] Kill 4173, run, `24 passed`; commit `test(e2e): the stream is the accessible twin`
+- [x] Kill 4173, run, `21 passed, 3 skipped` (the corrected acceptance above); commit `test(e2e): the stream is the accessible twin`
 
 ### Task 11: contrast, recomputed as a unit
 
