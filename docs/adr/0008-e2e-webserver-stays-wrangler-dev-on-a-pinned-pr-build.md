@@ -14,6 +14,16 @@ Two things were settled. First, `wrangler dev` stays as the web server — that 
 
 Because `npm run preview` is wrangler rather than a static server, Lighthouse and ad-hoc preview work use `npx vite preview --port 4173` instead (`CONTEXT.md`).
 
+## Pin reverted, 2026-09-27
+
+The revert condition is met. #15252 merged on 2026-09-07 and first shipped in wrangler 4.129.1, so `package.json` is back on a plain registry `wrangler`. The first decision stands: `wrangler dev` is still the e2e web server. What goes is the URL pin, and with it the npm audit findings it held in place (7 high, wrangler → miniflare → sharp), which `npm audit fix` could not reach because the pin gave npm no newer version to move to.
+
+The pin had also left `@cloudflare/kv-asset-handler` resolved from pkg.pr.new in the lockfile: the PR build already called itself 0.5.0, the version wrangler asks for, so npm kept the entry instead of re-resolving it. That entry was deleted and re-resolved from the registry; `grep pkg.pr.new package-lock.json` must stay empty.
+
+Amended 2026-10-06, on review: `wrangler@^4.148.0` (with `@cloudflare/vite-plugin@^1.63.0`, which peers on it) clears the undici advisories published after the revert. miniflare still pins `sharp` to exactly 0.35.4, below the librsvg fix in 0.35.5, so `overrides` sends it to the direct `sharp` range (`"sharp": "$sharp"`). Drop that override once miniflare's own pin reaches 0.35.5.
+
+Verified on 4.148.0: a clean `npm ci` from the registry alone, `npm audit` at 0, and the full e2e suite in five chunks, 138 passed, 0 failed on rerun, with no dev-server exit and no `ERR_CONNECTION_REFUSED` or `ECONNRESET`. Two timing tests wobbled under load (`perf-budget` long tasks, the loader's text) and passed on rerun; the built site is byte-identical to `staging`'s build before this change, so neither can come from this change.
+
 ## Source
 
 `package.json`, `playwright.config.ts`, `CONTEXT.md`
