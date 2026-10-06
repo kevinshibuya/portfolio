@@ -16,9 +16,13 @@ Because `npm run preview` is wrangler rather than a static server, Lighthouse an
 
 ## Pin reverted, 2026-09-27
 
-The revert condition is met. #15252 merged on 2026-09-07 and first shipped in wrangler 4.129.1, so `package.json` is back on a plain `wrangler@^4.142.0`. The first decision stands: `wrangler dev` is still the e2e web server. What goes is the URL pin, and with it the npm audit findings it held in place (7 high, wrangler → miniflare → sharp), which `npm audit fix` could not reach because the pin gave npm no newer version to move to.
+The revert condition is met. #15252 merged on 2026-09-07 and first shipped in wrangler 4.129.1, so `package.json` is back on a plain registry `wrangler`. The first decision stands: `wrangler dev` is still the e2e web server. What goes is the URL pin, and with it the npm audit findings it held in place (7 high, wrangler → miniflare → sharp), which `npm audit fix` could not reach because the pin gave npm no newer version to move to.
 
-Verified on 4.142.0: the full e2e suite in five chunks, 140 passed, 0 failed, with no dev-server exit and no `ERR_CONNECTION_REFUSED`.
+The pin had also left `@cloudflare/kv-asset-handler` resolved from pkg.pr.new in the lockfile: the PR build already called itself 0.5.0, the version wrangler asks for, so npm kept the entry instead of re-resolving it. That entry was deleted and re-resolved from the registry; `grep pkg.pr.new package-lock.json` must stay empty.
+
+Amended 2026-10-06, on review: `wrangler@^4.148.0` (with `@cloudflare/vite-plugin@^1.63.0`, which peers on it) clears the undici advisories published after the revert. miniflare still pins `sharp` to exactly 0.35.4, below the librsvg fix in 0.35.5, so `overrides` sends it to the direct `sharp` range (`"sharp": "$sharp"`). Drop that override once miniflare's own pin reaches 0.35.5.
+
+Verified on 4.148.0: Verified on 4.148.0: a clean `npm ci` from the registry alone, `npm audit` at 0, and the full e2e suite in five chunks, 138 passed, 0 failed on rerun, with no dev-server exit and no `ERR_CONNECTION_REFUSED` or `ECONNRESET`. Two timing tests wobbled under load (`perf-budget` long tasks, the loader's text) and passed on rerun; the built site is byte-identical to the 4.142 build's, so neither can come from this change.
 
 ## Source
 
