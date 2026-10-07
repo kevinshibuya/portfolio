@@ -15,7 +15,8 @@
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test:e2e": "playwright test",
+    "test:e2e": "scripts/e2e.sh full",
+    "test:e2e:quick": "scripts/e2e.sh quick",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {

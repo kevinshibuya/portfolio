@@ -165,13 +165,13 @@ Red state: the script does not exist.
 
 **Boundaries:** Do not edit `playwright.config.ts`'s `webServer`; a bare `npx playwright test` must keep building as before. Do not add a dependency.
 
-- [ ] Write the script; `chmod +x`
-- [ ] Wire the two npm scripts
-- [ ] Run `scripts/e2e.sh bogus`, then `scripts/e2e.sh quick`; record its wall time
-- [ ] Confirm 4173 is free afterwards
-- [ ] Run the two `--grep zzz-no-such-test` checks
-- [ ] Run `scripts/e2e.sh full`; record wall time and the per-chunk lines
-- [ ] Commit `test(e2e): one build and one server per run`
+- [x] Write the script; `chmod +x`
+- [x] Wire the two npm scripts
+- [x] Run `scripts/e2e.sh bogus`, then `scripts/e2e.sh quick`; record its wall time
+- [x] Confirm 4173 is free afterwards
+- [x] Run the two `--grep zzz-no-such-test` checks
+- [x] Run `scripts/e2e.sh full`; record wall time and the per-chunk lines
+- [x] Commit `test(e2e): one build and one server per run`
 
 ---
 
@@ -244,10 +244,10 @@ The ADR's "one server" line is corrected to match.
 
 **Boundaries:** No other CLAUDE.md section changes.
 
-- [ ] Edit CLAUDE.md "Verification"
-- [ ] Amend ADR 0013
-- [ ] Check README for an e2e how-to
-- [ ] Run the greps; compare the lists
+- [x] Edit CLAUDE.md "Verification"
+- [x] Amend ADR 0013
+- [x] Check README for an e2e how-to
+- [x] Run the greps; compare the lists
 - [ ] Commit `docs: the quick and full suites in CLAUDE.md; ADR 0013 amendments`
 
 ---
@@ -282,3 +282,13 @@ _Filled in during execution._
 **Task 1 (2026-10-07).** `expect(` before: dark-tokens 3 + hero-shader 4 + contact-waves 7 = 14. After: smoke 11 + hero-shader 2 + contact-waves 1 = 14. Acceptance run: 6 passed.
 
 **Task 2 (2026-10-07).** `--list` before: 185. After: full 155, `PERF_HARNESS=1` 162, quick 48 (7 files, every line `[desktop-chromium]`). `E2E_SUITE=nope` exits 1 with the message. `perf-budget` on mobile: 7 under the harness, 0 without. All as expected.
+
+**Task 4 (2026-10-07).** `scripts/e2e.sh bogus` exits 2 with usage. `quick`: exit 0, wall **541 s** (44 passed, 4 skipped, 8.9 min of test time), load average 2.2, reuse line present, 4173 free afterwards. `quick --grep zzz-no-such-test` exits 1 (`No tests found`); `full` with the same grep exits 0 through `--pass-with-no-tests`, all six chunks reusing the server. `full`: exit 0, wall **1427 s** (23.8 min), one build, load average 6 to 7 throughout. Drift: 21 spec files in chunks of 4 make **six** chunks, not five; the chunk size is the ADR's, so six it is. Per chunk:
+- contact-waves, frieze-click, frieze-surface, hero-dissolve · 26 passed, 2 skipped · 6.4 min
+- hero-entrance, hero-shader, light-chapter, loader · 20 passed · 1.0 min
+- nav-on-light, perf-budget, perf-hooks, pixel-gate · 34 passed, 11 skipped · 2.6 min
+- reduced-motion, rows-hover, scene-effects, scene-no-webgl · 6 passed, 1 skipped · 0.8 min
+- scene-reduced-motion, scene-scrub, section-enters, smoke · 31 passed · 5.5 min
+- stream · 21 passed, 3 skipped · 7.0 min
+
+155 tests, matching `--list`; 23.3 min of test time against 27.7 at baseline.
