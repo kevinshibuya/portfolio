@@ -11,8 +11,9 @@ How it works: `docs/architecture.md`. Before editing a surface, read its section
 **A push or merge to `main` auto-deploys to production at https://kevinshibuya.com.** The deploy is wired through Cloudflare Workers Builds, connected to this repository directly, **not** through a GitHub Actions workflow. There is no `.github/workflows` directory, and **its absence is not evidence that nothing ships.** "No CI, so merging is safe" is the exact reasoning that caused a production incident.
 
 - **STANDING RULE (Kevin, 2026-09-03): `main` is FROZEN until the portfolio revamp is complete.** Until Kevin says the revamp is finished, nothing merges into `main`: not a feature, not a fix, not a "sync". `main` is not a decision to make in the meantime, no matter how green or how small the change.
-- **Branch flow:** feature branch, then PR into **`staging`**. `staging` is the integration branch and deploys nothing. It is expected to run far ahead of `main`; a large `main..staging` count is the NORMAL state here, not drift to be tidied up.
-- **`staging` sits behind `~/.claude/bin/block-merge-to-main.sh` together with `main`.** Merging a PR into it needs Kevin's per-action say-so, and the one authorised command is prefixed `ALLOW_MAIN_MERGE=1`. That token is re-authorised per command, and a say-so for a `staging` merge never carries to `main`. Feature-branch commits, pushes and PR creation need no permission.
+- **Branch order (Kevin, 2026-10-07):** `main` is production. `staging` is the human test environment for production. `ai-staging` is the agents' playground before a human tests anything. Neither `staging` nor `ai-staging` deploys anything, and both are expected to run far ahead of `main`; a large `main..staging` count is the NORMAL state here, not drift to be tidied up.
+- **Branch flow:** feature branch, then PR into **`ai-staging`**. Merging an approved, GREEN PR into `ai-staging` needs no permission; the merge hook leaves it open by design. Feature-branch commits, pushes and PR creation need no permission either.
+- **Promoting `ai-staging` to `staging` is Kevin's call, after he validates `ai-staging`.** `staging` sits behind `~/.claude/bin/block-merge-to-main.sh` together with `main`. Merging into it needs Kevin's per-action say-so, and the one authorised command is prefixed `ALLOW_MAIN_MERGE=1`. That token is re-authorised per command, and a say-so for a `staging` merge never carries to `main`.
 - **Promoting `staging` to `main` is a PRODUCTION RELEASE, not a branch sync.** It needs an explicit, per-action decision from Kevin *for that release*; blanket earlier permission to "merge" does not cover it.
 - **`npm run deploy` (`npm run build && wrangler deploy`) ships production directly, without a merge, a push or a PR.** The merge hook inspects git and `gh pr merge` only, so it never sees this. It is Kevin's command; an agent does not run it, frozen `main` or not.
 - If a merge's real scope differs from what was asked for (say "merge my feature" would actually promote 153 accumulated commits), **stop and confirm before acting.** Noting the discrepancy and proceeding anyway is the failure.
@@ -27,7 +28,7 @@ How it works: `docs/architecture.md`. Before editing a surface, read its section
    `curl -s https://kevinshibuya.com/ | grep -oE 'theme-color" content="[^"]*"'`
    The pre-redesign site is `#F6F9FC`; the dark redesign is `#0B0E14`. `loader-ks` and `portfolio · 2026` appear only in the redesign. **While `main` is frozen, `#F6F9FC` is the CORRECT production state**, not a regression: production does not yet serve the site this file describes.
 
-Nothing was lost in that incident because `staging` retained every commit. Keep it that way: **never roll back by deleting work from `staging`.**
+Nothing was lost in that incident because `staging` retained every commit. Keep it that way: **never roll back by deleting work from `staging` or `ai-staging`.**
 
 ## Verification
 
@@ -35,7 +36,7 @@ Nothing was lost in that incident because `staging` retained every commit. Keep 
 - **Kill port 4173 before a direct `npx playwright test` run:** `lsof -ti:4173 | xargs -r kill -9` (bare `xargs kill -9` runs with no argument and exits non-zero when the port is free, breaking an `&&` chain). `playwright.config.ts` sets `reuseExistingServer: !process.env.CI`, so a stale preview server survives and the suite tests the previous build.
 - **A runtime error inside a canvas is invisible to DOM assertions.** The canvas keeps its element and its attributes while the frame loop throws. `tests/e2e/scene-scrub.spec.ts` is the only guard that catches it.
 - **A rendered surface also needs a headless browser smoke:** it loads, the root renders, zero console errors. Typecheck and lint alone do not cover a surface.
-- **The set:** `npx tsc -b`, `npm run lint`, `npx vitest run`, then e2e in two suites (ADR 0013): `npm run test:e2e:quick` in a PR's fix loop, and `npm run test:e2e` (the full suite) once on the final head before asking for the `staging` merge. Both run through `scripts/e2e.sh`, which frees 4173, builds once and owns the server. A surface change adds the smoke.
+- **The set:** `npx tsc -b`, `npm run lint`, `npx vitest run`, then e2e in two suites (ADR 0013): `npm run test:e2e:quick` in a PR's fix loop, and `npm run test:e2e` (the full suite) once on the final head before the `ai-staging` merge. Both run through `scripts/e2e.sh`, which frees 4173, builds once and owns the server. A surface change adds the smoke.
 
 ## Standing rules
 
