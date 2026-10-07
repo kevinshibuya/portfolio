@@ -52,6 +52,7 @@ test.describe('long tasks', () => {
   test.describe.configure({ retries: 2 })
 
   test('no long task > 200ms during scroll', async ({ page }) => {
+    test.skip(!HARNESS, STARVED)
     await page.goto('/')
     await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
 

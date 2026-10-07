@@ -117,8 +117,8 @@ nothing outside this list
 
 **Boundaries:** No threshold changes anywhere in the file.
 
-- [ ] Gate the test
-- [ ] Run the check; commit `test(perf): long-task timing runs under the harness only`
+- [x] Gate the test
+- [x] Run the check; commit `test(perf): long-task timing runs under the harness only`
 
 ---
 
