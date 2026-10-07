@@ -112,6 +112,7 @@ const isEmbed = (cell: FixtureCell): boolean => cell.kind === 'embed'
 /** The canvas's inline cursor — the only hit signal the shipped build exposes. */
 async function cursorAt(page: Page, x: number, y: number): Promise<string> {
   await page.mouse.move(x, y)
+  // window: one frame-loop tick for the hit test to write the cursor; the cursor is the measurement
   await page.waitForTimeout(40)
   return page.locator(CANVAS).evaluate((el) => (el as HTMLElement).style.cursor)
 }
@@ -144,6 +145,7 @@ async function settleAt(page: Page, frame: Frame): Promise<void> {
         const hit = await cursorAt(page, inside.x, inside.y)
         const miss = await cursorAt(page, outside.x, outside.y)
         agreed = hit === 'pointer' && miss !== 'pointer' ? agreed + 1 : 0
+        // window: the first agreement must still hold after a gap before it counts
         if (agreed === 1) await page.waitForTimeout(100)
         return agreed
       },
@@ -253,6 +255,7 @@ test.describe('act two · clicking the wall', () => {
     await page.mouse.down()
     await page.mouse.move(target.px, target.py, { steps: 8 })
     await page.mouse.up()
+    // window: absence check
     await page.waitForTimeout(500)
     context.off('page', watch)
     expect(opened, 'a 20px drag must not count as a tap').toBe(false)

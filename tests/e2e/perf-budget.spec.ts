@@ -37,6 +37,7 @@ test('CLS is zero across loader handoff and section enters', async ({ page }) =>
 
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
   await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' as ScrollBehavior }))
+  // window: CLS is measured across this interval
   await page.waitForTimeout(500)
 
   expect(cls).toBeLessThan(0.001)
@@ -158,9 +159,10 @@ test.describe('harness Layer 1', () => {
   test('hero GL work is exactly one draw + one uniform upload per frame, from one loop', async ({ page }) => {
     test.skip(!HARNESS, STARVED)
     await settle(page, 'perf-seed=0.5&perf-counters&perf-role=0')
-    await page.waitForTimeout(400) // past mount-time setup draws
+    await page.waitForTimeout(400) // window: past mount-time setup draws
 
     const a = await readCounters(page)
+    // window: the counters are sampled across one second
     await page.waitForTimeout(1000)
     const b = await readCounters(page)
 
@@ -207,6 +209,7 @@ test.describe('harness Layer 1', () => {
     await page.waitForSelector('[data-canvas="fluid-waves"][data-paused="true"]', { timeout: 15_000 })
 
     const before = (await readCounters(page))['fluid-waves']
+    // window: absence check: a paused canvas must draw nothing
     await page.waitForTimeout(500)
     const after = (await readCounters(page))['fluid-waves']
     expect(after.frames - before.frames, 'a paused canvas must draw nothing').toBe(0)
@@ -216,9 +219,10 @@ test.describe('harness Layer 1', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await settle(page, 'perf-seed=0.5&perf-counters&perf-role=0')
     await page.waitForSelector('[data-canvas="fluid-waves"][data-static="true"]')
-    await page.waitForTimeout(500) // let the startup draws land before sampling
+    await page.waitForTimeout(500) // window: let the startup draws land before sampling
 
     const before = (await readCounters(page))['fluid-waves']
+    // window: absence check: the frame count must stay frozen
     await page.waitForTimeout(1000)
     const after = (await readCounters(page))['fluid-waves']
 
@@ -246,7 +250,7 @@ test.describe('harness Layer 1 · dormant', () => {
     // present too, then measure every mounted canvas in one pass.
     await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' as ScrollBehavior }))
     await page.waitForSelector('[data-canvas="fluid-waves-backdrop"]')
-    await page.waitForTimeout(300) // let any resize() settle before sampling
+    await page.waitForTimeout(300) // window: let any resize() settle before sampling
 
     const measured = await page.evaluate((cap: number) => {
       const dpr = Math.min(window.devicePixelRatio || 1, cap)

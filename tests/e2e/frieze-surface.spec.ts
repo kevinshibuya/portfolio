@@ -130,6 +130,7 @@ test.describe('act two · the wall as a rendered surface', () => {
 
     for (const u of [0, 0.25, 0.5, 0.75, 1]) {
       await scrollToActTwo(page, u)
+      // window: absence check: each stop runs the frame loop long enough for an error to surface
       await page.waitForTimeout(220)
     }
     await expect(canvas).toHaveAttribute('data-act', '2')
@@ -141,6 +142,7 @@ test.describe('act two · the wall as a rendered surface', () => {
     await openScene(page)
     await scrollToActTwo(page, embedU)
     await expect(page.locator(CANVAS)).toHaveAttribute('data-frieze', 'ready')
+    // window: the ready raster reaches the screen before pixels are sampled
     await page.waitForTimeout(900)
     const box = (await page.locator(CANVAS).boundingBox())!
 
@@ -166,6 +168,7 @@ test.describe('act two · the wall as a rendered surface', () => {
     await openScene(page)
     await scrollToActTwo(page, embedU)
     await expect(page.locator(CANVAS)).toHaveAttribute('data-frieze', 'ready')
+    // window: the ready raster reaches the screen before pixels are sampled
     await page.waitForTimeout(900)
     const box = (await page.locator(CANVAS).boundingBox())!
     const g = sceneGeometry(box.width, box.height)
@@ -180,10 +183,12 @@ test.describe('act two · the wall as a rendered surface', () => {
     // Park the pointer OFF the wall first, so the baseline is genuinely unhovered.
     const edge = wallEdgePoint(extent, g, actTwoPose(embedU, extent, g), box, 'top', 0.5)
     await page.mouse.move(edge.px, box.y + 2)
+    // window: absence check: the unhovered baseline of a before/after pair
     await page.waitForTimeout(250)
     const before = await page.screenshot({ clip })
 
     await page.mouse.move(target.px, target.py)
+    // window: absence check: the hovered half of a before/after pair
     await page.waitForTimeout(300)
     const after = await page.screenshot({ clip })
 
@@ -218,6 +223,7 @@ test.describe('act two · the wall as a rendered surface', () => {
         'data-frieze',
         'ready',
       )
+      // window: the ready raster reaches the screen before pixels are sampled
       await page.waitForTimeout(400)
     }
     const box = (await canvas.boundingBox())!
@@ -236,7 +242,6 @@ test.describe('act two · the wall as a rendered surface', () => {
 
     const beforeGen = await canvas.getAttribute('data-frieze-gen')
     await page.setViewportSize({ width: 1100, height: 800 })
-    await page.waitForTimeout(600)
     // Same reason as the language pass: only the counter proves a new
     // generation was committed rather than the old one still standing.
     await expect(canvas, 'a settled resize must redraw').not.toHaveAttribute(

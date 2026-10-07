@@ -11,6 +11,7 @@ test('reduced motion: titles never scroll-fade', async ({ page }) => {
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
   await page.locator('#work').scrollIntoViewIfNeeded()
   await page.evaluate(() => window.scrollBy({ top: -50, behavior: 'instant' as ScrollBehavior }))
+  // window: absence check: under reduced motion the title must never have started a fade
   await page.waitForTimeout(120)
   const op = await page.locator('#work .section-title').first().evaluate((el) =>
     parseFloat(getComputedStyle(el as HTMLElement).opacity)

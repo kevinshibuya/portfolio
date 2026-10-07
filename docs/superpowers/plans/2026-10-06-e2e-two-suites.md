@@ -202,11 +202,11 @@ Do not add `data-*` attributes to app code to create a condition; app code is ou
 
 **Boundaries:** No threshold, selector or assertion changes beyond the wait being replaced. If a replacement makes a test flaky across two runs, revert that one site and keep the wait with a comment saying why.
 
-- [ ] Record the before count
-- [ ] Replace waits spec by spec, running each touched spec on desktop as you go (`npx playwright test <file> --project=desktop-chromium`)
-- [ ] Record the after count
-- [ ] Typecheck (the Global constraints command, plus `npx tsc -b`), `npm run lint`
-- [ ] `scripts/e2e.sh full` green; commit `test(e2e): condition waits where a condition exists`
+- [x] Record the before count
+- [x] Replace waits spec by spec, running each touched spec on desktop as you go (`npx playwright test <file> --project=desktop-chromium`)
+- [x] Record the after count
+- [x] Typecheck (the Global constraints command, plus `npx tsc -b`), `npm run lint`
+- [x] `scripts/e2e.sh full` green; commit `test(e2e): condition waits where a condition exists`
 
 ---
 
@@ -292,3 +292,18 @@ _Filled in during execution._
 - stream · 21 passed, 3 skipped · 7.0 min
 
 155 tests, matching `--list`; 23.3 min of test time against 27.7 at baseline.
+
+**Task 5 (2026-10-07).** `waitForTimeout` across `tests/e2e/*.spec.ts`: before **50**, after **41**. `scene-scrub` (6) untouched. Replaced sites, as `file:line · old wait · condition now awaited` (lines are the pre-task ones):
+- `light-chapter.spec.ts:188` · 600 ms · `expect.poll` on the row title's computed colour reaching its hover tint (5 s)
+- `section-enters.spec.ts:32` · 900 ms · `expect.poll` on the title's opacity passing 0.99 (5 s)
+- `frieze-surface.spec.ts:239` · 600 ms · the `not.toHaveAttribute('data-frieze-gen', before)` that already followed (`rasterBudgetMs()`)
+- `stream.spec.ts:202` · 600 ms · the stream region's PT accessible name, `todos os trabalhos` (`waitFor`)
+- `stream.spec.ts:305` · 1200 ms · `location.hash === '#work'` (5 s), then `settledScrollY` (10 still frames, up to 4 s)
+- `stream.spec.ts:414` · 1200 ms · the same pair
+- `stream.spec.ts:421` · 400 ms · `expect.poll` on the focused row's id equalling the last row's (5 s)
+- `stream.spec.ts:447` · 600 ms · the auto-retrying `toHaveCount` pair that already followed (region 1, rows `ROWS`)
+- `stream.spec.ts:489` · 1600 ms · `settledScrollY` (up to 4 s)
+
+Kept, each with a `// window:` comment: 32 sites, sampling windows and windows before an absence assertion. Two traps found while classifying: `nav-on-light`'s 200 ms scroll helper looks like a plain settle, but two of its callers assert the nav *stays* on-light, which is already true before the scroll lands. And `stream:588/611`'s 100 ms bounds the reduced-motion claim "at once", so a poll would weaken it. Kept with `// TODO(e2e-waits)`: `light-chapter.spec.ts:13` (its callers read colours and layout once, without retrying), `scene-effects.spec.ts:70` and `:113` (the composer and dolly settling in software; `data-slot` names the front card, not a settled pose).
+
+Desktop runs of the four specs with replacements, `--repeat-each=2`: `stream` test 3 timed out twice on my first condition, `getByRole('region', …).waitFor()`, because the region is visually hidden outside act two. Fixed with `state: 'attached'`, then reran twice: it reaches its own runtime skip (no `personal` piece yet), as it did before the task. `stream` test 4 failed once in that run and once in a rerun, both times `Tab did not land on row 163` with load averages of 7 to 13. That test is untouched by this diff, so it is the dropped-Tab flake the handoff names, not a regression. Gate: `scripts/e2e.sh full` exit 0, wall 1502 s, 155 tests, load average 7.6 to 9.8, every chunk green.

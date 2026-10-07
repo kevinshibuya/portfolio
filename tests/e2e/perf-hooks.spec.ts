@@ -56,9 +56,11 @@ test('different perf-seed produces different paint', async ({ page }) => {
 test('perf-counters exposes exact per-frame GL work; freeze halts everything', async ({ page }) => {
   test.skip(!HARNESS, STARVED)
   await settle(page, 'perf-seed=0.5&perf-counters&perf-role=0')
+  // window: past mount-time setup before the first sample
   await page.waitForTimeout(1000)
   type C = Record<string, { drawCalls: number; uniformUploads: number; frames: number; resizes: number; rafLoopStarts: number }>
   const s1 = await page.evaluate(() => (window as unknown as { __PERF_GL__: C }).__PERF_GL__)
+  // window: the counters are sampled across one second
   await page.waitForTimeout(1000)
   const s2 = await page.evaluate(() => (window as unknown as { __PERF_GL__: C }).__PERF_GL__)
   const h1 = s1['fluid-waves']; const h2 = s2['fluid-waves']
@@ -75,6 +77,7 @@ test('perf-counters exposes exact per-frame GL work; freeze halts everything', a
   await settle(page, 'perf-seed=0.5&perf-freeze=2&perf-counters&perf-role=0')
   await page.waitForSelector('[data-canvas="fluid-waves"][data-perf-frozen="true"]')
   const f1 = await page.evaluate(() => (window as unknown as { __PERF_GL__: C }).__PERF_GL__)
+  // window: absence check: a frozen canvas must not redraw
   await page.waitForTimeout(800)
   const f2 = await page.evaluate(() => (window as unknown as { __PERF_GL__: C }).__PERF_GL__)
   expect(f2['fluid-waves'].frames).toBe(f1['fluid-waves'].frames)

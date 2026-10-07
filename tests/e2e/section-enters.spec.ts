@@ -29,12 +29,15 @@ test.describe('section enter on viewport', () => {
       ).catch(() => null)
       // Scroll to section
       await page.locator(id).scrollIntoViewIfNeeded()
-      await page.waitForTimeout(900)
-      const after = await page.locator(titleSel).first().evaluate((el) =>
-        parseFloat(getComputedStyle(el as HTMLElement).opacity)
-      )
       // Title eventually fully visible
-      expect(after).toBeGreaterThan(0.99)
+      await expect
+        .poll(
+          () => page.locator(titleSel).first().evaluate((el) =>
+            parseFloat(getComputedStyle(el as HTMLElement).opacity)
+          ),
+          { timeout: 5_000 },
+        )
+        .toBeGreaterThan(0.99)
       void before
     })
   }

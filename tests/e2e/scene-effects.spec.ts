@@ -67,6 +67,7 @@ test('the scene renders through the composer without shifting the cream', async 
     .waitFor({ timeout: 120_000 })
 
   await scrollToPlayhead(page, 0) // card 0 settled
+  // TODO(e2e-waits): the composer settling on card 0 in software? data-slot names the front card but not a settled pose
   await page.waitForTimeout(3000)
 
   const canvas = page.locator('#projects canvas[data-canvas="selected-work-scene"]')
@@ -110,10 +111,12 @@ test('the scene renders through the composer without shifting the cream', async 
   // Environment — `cocMaterial.worldFocusDistance` off `sceneRefs.focus` — is
   // exercised end to end.
   await scrollToActTwo(page, 0.5)
+  // TODO(e2e-waits): the eased dolly into act two? data-act and data-frieze below already await their own conditions
   await page.waitForTimeout(1500)
   const sceneCanvas = page.locator('#projects canvas[data-canvas="selected-work-scene"]')
   await expect(sceneCanvas).toHaveAttribute('data-act', '2')
   await expect(sceneCanvas).toHaveAttribute('data-frieze', 'ready')
+  // window: the composer settles before pixels are sampled
   await page.waitForTimeout(900)
 
   // The wall reaches the reader THROUGH the composer, and depth of field is a
