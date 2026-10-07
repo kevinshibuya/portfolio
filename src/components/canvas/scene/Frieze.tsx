@@ -56,7 +56,7 @@ interface FriezeProps {
 /** Nothing hovered: no panel, no item. */
 const NO_HOVER = { panel: -1, itemId: null as string | null }
 
-/** The card stands just proud of the wall; renderOrder does the real sorting. */
+/** The card stands just proud of the wall; renderOrder and polygonOffset do the real sorting. */
 const CARD_Z = 0.001
 
 /** One Project's card, resolved once from the layout, the archive and the data. */

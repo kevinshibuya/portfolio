@@ -298,7 +298,10 @@ test.describe('act one · the wall never paints over a settled card', () => {
     }
     // Measured 2026-10-07 on a ~17 400 px band: the cutouts painted 1543 and
     // 1015 cream pixels; the fixed build reads 0 and at most 110, card 3's
-    // cover antialiasing as it breathes. 400 sits between the two.
+    // cover antialiasing as it breathes. 400 sits between the two. Card 1 is the
+    // dependable red: the wall is fully fogged there whatever the fog's drift,
+    // while card 3's wall is only partly fogged. The band is the card's top, so
+    // it guards the covers; a caption-only regression would land lower.
     for (const [i, cream] of creamPixels.entries()) {
       expect(cream, `cream pixels inside settled card ${i === 0 ? 1 : 3}`).toBeLessThan(400)
     }
