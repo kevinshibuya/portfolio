@@ -188,7 +188,7 @@ test.describe('act two · the wall as a rendered surface', () => {
     const before = await page.screenshot({ clip })
 
     await page.mouse.move(target.px, target.py)
-    // window: absence check: the hovered half of a before/after pair
+    // window: the hover repaint lands before the after-shot of the pair
     await page.waitForTimeout(300)
     const after = await page.screenshot({ clip })
 

@@ -342,7 +342,7 @@ test.describe('the stream', () => {
     // "does not move" half: Shift+Tab through rows re-focuses them, and a
     // focused row is entitled to travel. Leaving is the part that must be inert.
     for (let i = 0; i < 4; i++) await page.keyboard.press('Shift+Tab')
-    // window: absence check: the baseline for a "does not move" pair
+    // window: the Shift+Tab travel settles before the "does not move" baseline is read
     await page.waitForTimeout(1500)
     const before = await settledScrollY(page)
 

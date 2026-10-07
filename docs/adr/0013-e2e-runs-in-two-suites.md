@@ -25,7 +25,7 @@ The full mobile list is therefore `scene-scrub`, `stream`, `scene-no-webgl`, `fr
 
 ## Considered and rejected
 
-- **Deleting specs as duplicates of unit tests.** Read closely, `nav-on-light` guards the nav flip and back-nav re-arm, `contact-waves` guards the canvas budget behind the no-fourth-canvas rule, and `rows-hover` guards the accordion's single-open behaviour. None is covered elsewhere. Only the console-clean mount checks were true duplicates, and those merge into the smoke.
+- **Deleting specs as duplicates of unit tests.** Read closely, `nav-on-light` guards the nav flip and back-nav re-arm, `contact-waves` guarded the canvas budget behind the no-fourth-canvas rule (that test now lives in `smoke`), and `rows-hover` guards the accordion's single-open behaviour. None is covered elsewhere. Only the console-clean mount checks were true duplicates, and those merge into the smoke.
 - **One reduced-motion spec.** Each reduced-motion test checks a different surface's static frame; merged, they save no page loads and blur which surface broke. They stay per surface and lose their mobile runs instead.
 - **A bare run meaning the quick suite.** Faster by default, but the full suite would then depend on someone remembering it.
 - **More workers.** The pixel gate is calibrated at one and asserts it.
