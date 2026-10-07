@@ -45,9 +45,11 @@ export const CAPTION_GAP_PX = 12
 export const CAPTION_INSET_WORLD = (CAPTION_INSET_PX / CARD_MAX_PX) * CARD_W
 
 /**
- * Embedded in act two's wall the card's layers draw in this order rather than
- * depth-testing against it: at the volume shot the wall and the card's frame
- * quantise to the same depth, and a tested cover would be rejected in places
- * (Q9). The caption draws last, over both.
+ * Embedded in act two's wall the card's layers blend in this order: the frame,
+ * which writes depth, then the cover and caption, which do not. All three
+ * depth-test. At the volume shot the wall and the frame quantise to the same
+ * depth (Q9), so the cover and caption are biased toward the camera with
+ * `polygonOffset` rather than exempt from the test; exempt, they painted the
+ * fogged wall's cream over act one's cards (PR #27).
  */
 export const WALL_ORDER = { frame: 0, cover: 1, caption: 2 } as const

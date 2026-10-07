@@ -1,10 +1,11 @@
 import { test, expect, type Page } from '@playwright/test'
 import { readFileSync } from 'node:fs'
 import sharp from 'sharp'
-import { openScene, scrollToActTwo, rasterBudgetMs, CANVAS } from './helpers/scene'
+import { openScene, scrollToActTwo, scrollToPlayhead, rasterBudgetMs, CANVAS } from './helpers/scene'
 import {
   actTwoProgress,
   actTwoPose,
+  frameRects,
   playheadForColumn,
   sceneGeometry,
 } from '../../src/utils/sceneMotion'
@@ -256,5 +257,53 @@ test.describe('act two · the wall as a rendered surface', () => {
     const lum = await strip(page, box, 0.55)
     expect(lum.min, 'glyphs survive the resize').toBeLessThan(40)
     expect(errors, 'a resize must be silent').toEqual([])
+  })
+})
+
+// The wall stands behind the corridor in act one, fogged to the background's
+// cream. Its cards' covers and captions once skipped the depth test, so at
+// 1440x900 they painted cream rectangles over settled cards 1 and 3 wherever a
+// wall card sat behind them on screen. One viewport, one project: this guards
+// the depth contract, not a layout.
+test.describe('act one · the wall never paints over a settled card', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('a band under each settled card top edge carries no cream', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop-chromium', 'one viewport is enough for a depth contract')
+    test.setTimeout(120_000)
+    await openScene(page)
+    // The canvas is pinned, so its box is only on screen once the scene is.
+    await scrollToPlayhead(page, 0)
+    const box = (await page.locator(CANVAS).boundingBox())!
+    const { card } = frameRects(sceneGeometry(box.width, box.height))
+    const h = (card.bottom - card.top) * box.height
+    const clip = {
+      x: Math.round(box.x + (card.left + 0.1 * (card.right - card.left)) * box.width),
+      y: Math.round(box.y + card.top * box.height + 0.015 * h),
+      width: Math.round(0.8 * (card.right - card.left) * box.width),
+      height: Math.round(0.08 * h),
+    }
+    const creamPixels: number[] = []
+    // frameRects is the LEFT slot, where cards 1 and 3 settle; 2 and 4 settle right.
+    for (const playhead of [0, 2]) {
+      await scrollToPlayhead(page, playhead, { settle: 2000 }) // window: the card settles into the slot
+      const { data, info: raw } = await sharp(await page.screenshot({ clip }))
+        .raw()
+        .toBuffer({ resolveWithObject: true })
+      let cream = 0
+      for (let i = 0; i < data.length; i += raw.channels) {
+        if (Math.abs(data[i] - 0xf5) <= 6 && Math.abs(data[i + 1] - 0xf2) <= 6 && Math.abs(data[i + 2] - 0xec) <= 6) cream++
+      }
+      creamPixels.push(cream)
+    }
+    // Measured 2026-10-07 on a ~17 400 px band: the cutouts painted 1543 and
+    // 1015 cream pixels; the fixed build reads 0 and at most 110, card 3's
+    // cover antialiasing as it breathes. 400 sits between the two. Card 1 is the
+    // dependable red: the wall is fully fogged there whatever the fog's drift,
+    // while card 3's wall is only partly fogged. The band is the card's top, so
+    // it guards the covers; a caption-only regression would land lower.
+    for (const [i, cream] of creamPixels.entries()) {
+      expect(cream, `cream pixels inside settled card ${i === 0 ? 1 : 3}`).toBeLessThan(400)
+    }
   })
 })

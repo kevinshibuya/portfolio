@@ -83,9 +83,12 @@ function captionMaterial(wall: boolean): THREE.MeshBasicMaterial {
   return new THREE.MeshBasicMaterial({
     transparent: true,
     depthWrite: false,
-    // A wall caption draws in order over the frieze rather than testing
-    // against it, exactly as the card's frame and cover do (Q9).
-    depthTest: !wall,
+    // A wall caption sits a hair in front of its card, so on the wall it is
+    // biased toward the camera rather than exempt from the depth test, like
+    // the cover: exempt, it painted fogged cream over act one's cards.
+    polygonOffset: wall,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -4,
     fog: true,
     toneMapped: false,
   })

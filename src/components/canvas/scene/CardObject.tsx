@@ -88,7 +88,13 @@ function CardCover({ url, mode, materials }: CardCoverProps) {
         fog
         toneMapped={false}
         depthWrite={mode !== 'wall'}
-        depthTest={mode !== 'wall'}
+        // On the wall the cover sits 0.001 in front of its frame, too thin for
+        // the depth buffer at the volume shot, so it is biased toward the camera
+        // instead of skipping the test. Skipping it let the wall's fogged-cream
+        // covers paint over act one's cards wherever the two overlapped on screen.
+        polygonOffset={mode === 'wall'}
+        polygonOffsetFactor={-1}
+        polygonOffsetUnits={-4}
       />
     </mesh>
   )
