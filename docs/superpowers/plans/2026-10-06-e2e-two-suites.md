@@ -248,7 +248,7 @@ The ADR's "one server" line is corrected to match.
 - [x] Amend ADR 0013
 - [x] Check README for an e2e how-to
 - [x] Run the greps; compare the lists
-- [ ] Commit `docs: the quick and full suites in CLAUDE.md; ADR 0013 amendments`
+- [x] Commit `docs: the quick and full suites in CLAUDE.md; ADR 0013 amendments`
 
 ---
 
@@ -307,3 +307,5 @@ _Filled in during execution._
 Kept, each with a `// window:` comment: 32 sites, sampling windows and windows before an absence assertion. Two traps found while classifying: `nav-on-light`'s 200 ms scroll helper looks like a plain settle, but two of its callers assert the nav *stays* on-light, which is already true before the scroll lands. And `stream:588/611`'s 100 ms bounds the reduced-motion claim "at once", so a poll would weaken it. Kept with `// TODO(e2e-waits)`: `light-chapter.spec.ts:13` (its callers read colours and layout once, without retrying), `scene-effects.spec.ts:70` and `:113` (the composer and dolly settling in software; `data-slot` names the front card, not a settled pose).
 
 Desktop runs of the four specs with replacements, `--repeat-each=2`: `stream` test 3 timed out twice on my first condition, `getByRole('region', …).waitFor()`, because the region is visually hidden outside act two. Fixed with `state: 'attached'`, then reran twice: it reaches its own runtime skip (no `personal` piece yet), as it did before the task. `stream` test 4 failed once in that run and once in a rerun, both times `Tab did not land on row 163` with load averages of 7 to 13. That test is untouched by this diff, so it is the dropped-Tab flake the handoff names, not a regression. Gate: `scripts/e2e.sh full` exit 0, wall 1502 s, 155 tests, load average 7.6 to 9.8, every chunk green.
+
+**Task 6 (2026-10-07).** `CLAUDE.md` "Verification" names the two npm scripts and ADR 0013; the kill-4173 rule is scoped to direct Playwright runs. ADR 0013 carries the dated amendment and its "one build per run" line is corrected. README's command block gains `test:e2e:quick`. ADR lists against `QUICK_SPECS` and `MOBILE_SPECS`: **match**.

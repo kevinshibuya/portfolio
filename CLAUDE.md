@@ -32,10 +32,10 @@ Nothing was lost in that incident because `staging` retained every commit. Keep 
 ## Verification
 
 - **Typecheck with `npx tsc -b`** (or `npm run build`, which runs `tsc -b && vite build`). A bare `npx tsc --noEmit` is a no-op in this repo: the root `tsconfig.json` is `"files": []` plus project references, so it exits 0 on code that does not compile.
-- **Kill port 4173 before an e2e run:** `lsof -ti:4173 | xargs -r kill -9` (bare `xargs kill -9` runs with no argument and exits non-zero when the port is free, breaking an `&&` chain). `playwright.config.ts` sets `reuseExistingServer: !process.env.CI`, so a stale preview server survives and the suite tests the previous build.
+- **Kill port 4173 before a direct `npx playwright test` run:** `lsof -ti:4173 | xargs -r kill -9` (bare `xargs kill -9` runs with no argument and exits non-zero when the port is free, breaking an `&&` chain). `playwright.config.ts` sets `reuseExistingServer: !process.env.CI`, so a stale preview server survives and the suite tests the previous build.
 - **A runtime error inside a canvas is invisible to DOM assertions.** The canvas keeps its element and its attributes while the frame loop throws. `tests/e2e/scene-scrub.spec.ts` is the only guard that catches it.
 - **A rendered surface also needs a headless browser smoke:** it loads, the root renders, zero console errors. Typecheck and lint alone do not cover a surface.
-- **The set:** `npx tsc -b`, `npm run lint`, `npx vitest run`, `npx playwright test`. A surface change adds the smoke.
+- **The set:** `npx tsc -b`, `npm run lint`, `npx vitest run`, then e2e in two suites (ADR 0013): `npm run test:e2e:quick` in a PR's fix loop, and `npm run test:e2e` (the full suite) once on the final head before asking for the `staging` merge. Both run through `scripts/e2e.sh`, which frees 4173, builds once and owns the server. A surface change adds the smoke.
 
 ## Standing rules
 

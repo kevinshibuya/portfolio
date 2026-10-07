@@ -8,8 +8,20 @@ Kevin's ruling, 2026-10-06, over a grilling round:
 - **The full suite** runs everything, once on a PR's final head before the `staging` merge, and before any release. A bare `npx playwright test` is the full suite: the config comment's rule stands that the default is what handoffs and agents actually type, so the default must be the safe one.
 - **Mobile runs only where the viewport changes behaviour:** `scene-scrub`, `stream`, `frieze-surface`, `frieze-click`, `light-chapter`, `nav-on-light`, `hero-dissolve` and `pixel-gate`. `desktop-hidpi` stays scoped to `frieze-surface`.
 - **Perf timing assertions** (long tasks, frame times) move behind `PERF_HARNESS`. The deterministic perf checks stay in the full suite.
-- **One build per run:** `scripts/e2e.sh quick|full` kills 4173, builds once, starts one server, runs the chunks against it, and stops it.
+- **One build per run:** `scripts/e2e.sh quick|full` kills 4173, builds once, and serves that build to each chunk of 4 spec files through its own server, restarted between chunks (amended below).
 - **`workers: 1` stays.** Both reasons in the config comment still hold; the savings come from running less, not from running in parallel.
+
+## Amended in planning, 2026-10-06
+
+Kevin approved these with the plan (`docs/superpowers/plans/2026-10-06-e2e-two-suites.md`). The lists in `playwright.config.ts` are the source of truth.
+
+- **`scene-no-webgl` joins the mobile list.** The no-WebGL archive is a normal-flow layout that changes at phone width, and nothing else renders it on a phone.
+- **`smoke` joins the mobile list.** The canvas budget depends on IntersectionObserver against the viewport, and no other mobile spec checks it.
+- **`perf-budget` runs on mobile under `PERF_HARNESS`.** Its dormant DPR test needs Pixel 5's capped path.
+- **One build per run; the server restarts per chunk of 4.** A server held open for a whole full run is the untested memory case, so each chunk gets a fresh one serving the same build.
+- **Fixed waits become condition waits** wherever the app already exposes the condition. Three kinds keep their fixed wait, each marked with a comment: sampling windows (frames, draws or CLS counted over an interval), windows before an absence assertion (a condition already true would make the check pass for nothing), and all of `scene-scrub`, whose waits are the windows in which canvas runtime errors happen.
+
+The full mobile list is therefore `scene-scrub`, `stream`, `scene-no-webgl`, `frieze-surface`, `frieze-click`, `light-chapter`, `nav-on-light`, `hero-dissolve`, `pixel-gate` and `smoke`, plus `perf-budget` under the harness.
 
 ## Considered and rejected
 
