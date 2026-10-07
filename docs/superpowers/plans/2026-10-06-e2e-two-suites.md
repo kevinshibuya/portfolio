@@ -96,10 +96,10 @@ Red state: before the task, `E2E_SUITE=quick` is ignored and lists all 185.
 
 **Boundaries:** No spec file changes. If a spec in either list does not exist on disk, stop: `blocked: <name> missing`.
 
-- [ ] Record `npx playwright test --list | tail -1` before the change
-- [ ] Add the lists, the `E2E_SUITE` switch and per-project `testMatch`
-- [ ] Typecheck (the Global constraints command, plus `npx tsc -b`), `npm run lint`
-- [ ] Run the `--list` checks; record the counts in this plan's Record section
+- [x] Record `npx playwright test --list | tail -1` before the change
+- [x] Add the lists, the `E2E_SUITE` switch and per-project `testMatch`
+- [x] Typecheck (the Global constraints command, plus `npx tsc -b`), `npm run lint`
+- [x] Run the `--list` checks; record the counts in this plan's Record section
 - [ ] Commit `test(e2e): quick and full suites; mobile only where the viewport matters`
 
 ---
@@ -278,3 +278,7 @@ The ADR's "one server" line is corrected to match.
 ## Record
 
 _Filled in during execution._
+
+**Task 1 (2026-10-07).** `expect(` before: dark-tokens 3 + hero-shader 4 + contact-waves 7 = 14. After: smoke 11 + hero-shader 2 + contact-waves 1 = 14. Acceptance run: 6 passed.
+
+**Task 2 (2026-10-07).** `--list` before: 185. After: full 155, `PERF_HARNESS=1` 162, quick 48 (7 files, every line `[desktop-chromium]`). `E2E_SUITE=nope` exits 1 with the message. `perf-budget` on mobile: 7 under the harness, 0 without. All as expected.
