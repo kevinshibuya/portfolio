@@ -268,10 +268,10 @@ The ADR's "one server" line is corrected to match.
 
 **Acceptance check:** both runs exit 0; the PR exists.
 
-- [ ] Quick suite: time and counts recorded
-- [ ] Full suite: time and counts recorded
-- [ ] Grep this file for remaining `- [ ]` outside Task 7; none
-- [ ] Push and open the PR
+- [x] Quick suite: time and counts recorded
+- [x] Full suite: time and counts recorded
+- [x] Grep this file for remaining `- [ ]` outside Task 7; none
+- [x] Push and open the PR
 
 ---
 
@@ -309,3 +309,8 @@ Kept, each with a `// window:` comment: 32 sites, sampling windows and windows b
 Desktop runs of the four specs with replacements, `--repeat-each=2`: `stream` test 3 timed out twice on my first condition, `getByRole('region', …).waitFor()`, because the region is visually hidden outside act two. Fixed with `state: 'attached'`, then reran twice: it reaches its own runtime skip (no `personal` piece yet), as it did before the task. `stream` test 4 failed once in that run and once in a rerun, both times `Tab did not land on row 163` with load averages of 7 to 13. That test is untouched by this diff, so it is the dropped-Tab flake the handoff names, not a regression. Gate: `scripts/e2e.sh full` exit 0, wall 1502 s, 155 tests, load average 7.6 to 9.8, every chunk green.
 
 **Task 6 (2026-10-07).** `CLAUDE.md` "Verification" names the two npm scripts and ADR 0013; the kill-4173 rule is scoped to direct Playwright runs. ADR 0013 carries the dated amendment and its "one build per run" line is corrected. README's command block gains `test:e2e:quick`. ADR lists against `QUICK_SPECS` and `MOBILE_SPECS`: **match**.
+
+**Task 7 (2026-10-07), on the final tree.** The runs themselves drive the load average to about 9 (SwiftShader on every core), so "quiet" here means nothing else was running; `uptime` was taken before each run.
+- `npm run test:e2e:quick`: load 2.2 at start. Exit 0, wall **536 s (8.9 min)**, 44 passed, 4 skipped, 8.8 min of test time, one build.
+- `npm run test:e2e`: load 9.7 at start, carried over from the quick run. Exit 0, wall **1434 s (23.9 min)**, 155 tests, 23.4 min of test time, one build. Chunks: 6.6 / 1.0 / 2.6 / 0.8 / 5.5 / 7.0 min.
+- Against the baseline, 27.7 min of test time plus five builds and five server starts: the full suite is about 16% shorter in test time and builds once. The fix loop drops from the full suite to 8.9 min wall, about 3x faster. Most of the quick suite's time goes to `stream`, `scene-scrub` and `frieze-surface`, the guards ADR 0013 chose to keep in it.
