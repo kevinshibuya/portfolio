@@ -9,6 +9,7 @@ async function scrollIntoSection(page: import('@playwright/test').Page, id: stri
     const top = el.getBoundingClientRect().top + window.scrollY
     window.scrollTo({ top: top + el.offsetHeight * args.frac, behavior: 'instant' as ScrollBehavior })
   }, { id, frac })
+  // window: absence check: two callers assert the nav STAYS on-light, already true before the scroll lands
   await page.waitForTimeout(200)
 }
 
@@ -20,6 +21,7 @@ test('nav flips to on-light over the cream chapter (Projects → Skills) and bac
 
   // Hero (dark): nav is not on-light.
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }))
+  // window: absence check: the nav is already dark at the top
   await page.waitForTimeout(200)
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(0)
 

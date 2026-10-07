@@ -1,4 +1,24 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices, type Project } from '@playwright/test'
+
+// Suites and mobile scope, ADR 0013. `E2E_SUITE=quick` is the PR fix loop:
+// desktop only, QUICK_SPECS only. Unset (or `full`) runs everything, so a bare
+// `npx playwright test` stays the safe default. Mobile runs only the specs whose
+// behaviour changes with the viewport; a new viewport-dependent surface joins
+// MOBILE_SPECS in the PR that adds it.
+const QUICK_SPECS = ['scene-scrub', 'stream', 'scene-no-webgl', 'frieze-surface', 'pixel-gate', 'scene-reduced-motion', 'smoke']
+const MOBILE_SPECS = ['scene-scrub', 'stream', 'scene-no-webgl', 'frieze-surface', 'frieze-click', 'light-chapter', 'nav-on-light', 'hero-dissolve', 'pixel-gate', 'smoke']
+// perf-budget's dormant DPR test needs Pixel 5's capped path, so the harness
+// adds it to mobile.
+const mobileSpecs = process.env.PERF_HARNESS === '1' ? [...MOBILE_SPECS, 'perf-budget'] : MOBILE_SPECS
+
+const specs = (names: string[]): RegExp => new RegExp(`/(${names.join('|')})\\.spec\\.ts$`)
+
+const suite = process.env.E2E_SUITE ?? 'full'
+if (suite !== 'quick' && suite !== 'full') {
+  throw new Error(`E2E_SUITE must be 'quick' or 'full' (or unset for full), got '${suite}'`)
+}
+
+const desktop: Project = { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'] } }
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -38,9 +58,9 @@ export default defineConfig({
     baseURL: 'http://localhost:4173',
     trace: 'retain-on-failure',
   },
-  projects: [
-    { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile-chromium', use: { ...devices['Pixel 5'] } },
+  projects: suite === 'quick' ? [{ ...desktop, testMatch: specs(QUICK_SPECS) }] : [
+    desktop,
+    { name: 'mobile-chromium', testMatch: specs(mobileSpecs), use: { ...devices['Pixel 5'] } },
     // The act-two wall sizes its coverage masks from the canvas box times the
     // renderer DPR, and the two projects above leave a whole sizing regime with
     // no rendered coverage: Desktop Chrome is deviceScaleFactor 1, and Pixel 5

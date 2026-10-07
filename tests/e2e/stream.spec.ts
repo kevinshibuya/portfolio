@@ -157,6 +157,7 @@ test.describe('the stream', () => {
     expect(await page.locator('#root').innerHTML()).not.toBe('')
 
     await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }))
+    // window: absence check
     await page.waitForTimeout(1200)
     expect(errors).toEqual([])
   })
@@ -199,7 +200,9 @@ test.describe('the stream', () => {
     await expect(page.locator('#archive li[data-origin="professional"] .workrow-meta')).toHaveCount(0)
 
     await page.locator('.nav-lang').click()
-    await page.waitForTimeout(600)
+    // The switch has landed once the stream's own region carries its PT name.
+    // Attached, not visible: the region is visually hidden outside act two.
+    await page.getByRole('region', { name: /todos os trabalhos/i }).waitFor({ state: 'attached' })
     // PT `freelance` is also `freelance`, so this half only proves the switch
     // did not erase the meta. The word that actually differs is `personal`.
     await expect(freelance.first().locator('.workrow-meta')).toContainText('freelance')
@@ -251,6 +254,7 @@ test.describe('the stream', () => {
     // frame, so it is already visible and must not move the camera.
     const before = await settledScrollY(page)
     await page.keyboard.press('Tab')
+    // window: absence check: the camera must not move
     await page.waitForTimeout(1400)
     const sameBlock = await page.evaluate(
       () => !!document.activeElement?.closest('li.stream-item'),
@@ -302,7 +306,8 @@ test.describe('the stream', () => {
     expect(pill.clipPath).toBe('none')
 
     await page.keyboard.press('Enter')
-    await page.waitForTimeout(1200)
+    await page.waitForFunction(() => location.hash === '#work', null, { timeout: 5_000 })
+    await settledScrollY(page)
     const landed = await page.evaluate(() => {
       const work = document.querySelector('#work')!.getBoundingClientRect()
       return { top: work.top, hash: location.hash, ih: window.innerHeight }
@@ -337,6 +342,7 @@ test.describe('the stream', () => {
     // "does not move" half: Shift+Tab through rows re-focuses them, and a
     // focused row is entitled to travel. Leaving is the part that must be inert.
     for (let i = 0; i < 4; i++) await page.keyboard.press('Shift+Tab')
+    // window: the Shift+Tab travel settles before the "does not move" baseline is read
     await page.waitForTimeout(1500)
     const before = await settledScrollY(page)
 
@@ -348,6 +354,7 @@ test.describe('the stream', () => {
     ).toBeLessThan(4)
 
     await page.keyboard.press('Shift+Tab') // out of the stream
+    // window: absence check: no pill left painted
     await page.waitForTimeout(900)
     expect(await page.locator('#archive :focus-visible').count()).toBe(0)
     // The page DOES move here, and should: focus landed on a real element far
@@ -366,6 +373,7 @@ test.describe('the stream', () => {
     // And out of the far end, forward into the rest of the page.
     await tabToRow(page, ids.length - 1)
     await page.keyboard.press('Tab')
+    // window: absence check: nothing pulls focus back into the stream
     await page.waitForTimeout(400)
     expect(await page.evaluate(() => !!document.activeElement?.closest('#archive'))).toBe(false)
   })
@@ -411,18 +419,23 @@ test.describe('the stream', () => {
     expect(await page.evaluate(() => document.activeElement?.className)).toContain('stream-skip')
 
     await page.keyboard.press('Enter')
-    await page.waitForTimeout(1200)
+    await page.waitForFunction(() => location.hash === '#work', null, { timeout: 5_000 })
+    await settledScrollY(page)
     expect(await page.evaluate(() => location.hash)).toBe('#work')
 
     // Shift+Tab from the first control after the stream returns to the LAST
     // row, not the first: the exit moved focus, not the document.
     await page.evaluate(() => (document.querySelector('#work button, #work a') as HTMLElement)?.focus())
     await page.keyboard.press('Shift+Tab')
-    await page.waitForTimeout(400)
-    const back = await page.evaluate(
-      () => (document.activeElement?.closest('li.stream-item') as HTMLElement | null)?.dataset.itemId ?? null,
-    )
-    expect(back).toBe(ids.at(-1))
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () => (document.activeElement?.closest('li.stream-item') as HTMLElement | null)?.dataset.itemId ?? null,
+          ),
+        { timeout: 5_000 },
+      )
+      .toBe(ids.at(-1))
 
     // And the camera came back for it. Below the wrapper the scroll progress
     // clamps to 1, which names the last block, so a gate that read it would
@@ -444,7 +457,6 @@ test.describe('the stream', () => {
     test.setTimeout(240_000)
     await openScene(page)
     await scrollToPlayhead(page, 1)
-    await page.waitForTimeout(600)
 
     // The premise the whole placement rests on: a 0x0 fixed container did not
     // prune the accessibility tree, and no ancestor re-parented the fixed box.
@@ -461,6 +473,7 @@ test.describe('the stream', () => {
         return { dx: r.x - document.body.clientWidth / 2, y: r.y }
       })
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+    // window: absence check: the fixed container must not move with the scroll
     await page.waitForTimeout(300)
     let at = await centred()
     expect(Math.abs(at.dx)).toBeLessThan(1)
@@ -486,7 +499,7 @@ test.describe('the stream', () => {
 
     expect(boundary).toBe(BLOCK_STARTS[1] - 1)
     await tabToRow(page, boundary)
-    await page.waitForTimeout(1600)
+    await settledScrollY(page)
 
     // The NEXT row's clipped box is already on screen, so the browser's own
     // focus-scroll has nothing to do — shape A ruled out before a key is pressed.
@@ -585,6 +598,7 @@ test.describe('the stream · reduced motion', () => {
     if (wide) {
       await page.locator('header .nav-link[href="#archive"]').click()
       // No Lenis under reduced motion: the target applies at once.
+      // window: the reduced-motion claim is 'at once', so this bounds it; a poll would weaken it
       await page.waitForTimeout(100)
       const y = await page.evaluate(() => window.scrollY)
       const want = scrollTargetFor(
@@ -608,6 +622,7 @@ test.describe('the stream · reduced motion', () => {
       return -1
     })
     await tabToRow(page, boundary)
+    // window: the reduced-motion claim is 'at once', so this bounds it; a poll would weaken it
     await page.waitForTimeout(100)
     const y2 = await page.evaluate(() => window.scrollY)
     expect(Math.abs(y2 - targetFor(ids[boundary], m))).toBeLessThan(4)

@@ -214,6 +214,18 @@ The sole visual arbiter over the optimization campaign: committed goldens across
 One hypothesis, implemented and then kept or reverted on the measurement alone.
 (`docs/superpowers/specs/2026-08-16-hero-perf-harness-design.md`)
 
+### Verification
+
+**Quick suite**:
+The desktop-only slice of the e2e suite that guards what nothing else can see: canvas runtime errors, the stream, the no-WebGL state, the wall's rendered surface, the hero's pixels, and one smoke over load, tokens and the canvas budget. Run in a PR's fix loop.
+(`docs/adr/0013-e2e-runs-in-two-suites.md`)
+_Avoid_: PR tier, fast tier, smoke suite
+
+**Full suite**:
+Every e2e spec, on every project it is scoped to. Run once on a PR's final head before the `staging` merge, and before any release.
+(`docs/adr/0013-e2e-runs-in-two-suites.md`)
+_Avoid_: release tier, full tier
+
 ## Invariants
 
 - Every reader-facing string exists in both `en` and `pt`, except embed titles (Portuguese only, editorial source) and the loader's two corner labels in `index.html` (English only, painted before i18n loads). (`src/types/content.ts`, `index.html`, ADR 0001)

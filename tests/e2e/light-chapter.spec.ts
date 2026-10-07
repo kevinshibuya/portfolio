@@ -10,6 +10,7 @@ async function scrollIntoSection(page: import('@playwright/test').Page, id: stri
     const top = el.getBoundingClientRect().top + window.scrollY
     window.scrollTo({ top: top + el.offsetHeight * args.frac, behavior: 'instant' as ScrollBehavior })
   }, { id, frac })
+  // TODO(e2e-waits): scroll-driven section state settling? The callers read computed colours and layout once, without retrying
   await page.waitForTimeout(200)
 }
 
@@ -185,11 +186,12 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
       for (let i = 0; i < expected.length; i++) {
         const row = page.locator('#work .workrow').nth(i)
         await row.locator('.workrow-link, .workrow-toggle').first().hover()
-        await page.waitForTimeout(600)
-        const color = await row.locator('.workrow-title').first().evaluate(
-          (el) => getComputedStyle(el).color,
-        )
-        expect(color, 'row ' + i + ' hover tint').toBe(expected[i])
+        await expect
+          .poll(
+            () => row.locator('.workrow-title').first().evaluate((el) => getComputedStyle(el).color),
+            { message: 'row ' + i + ' hover tint', timeout: 5_000 },
+          )
+          .toBe(expected[i])
       }
     }
   })
