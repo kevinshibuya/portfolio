@@ -3473,3 +3473,90 @@ measurement question.
   `--update-baseline` does not touch it.
 - `main.taskMsPerSec`'s band may be too tight for its noise (it flaked once at IQR 8.7x). It is a
   candidate for the same measured-band treatment Step 5b gave the shader metric.
+
+## Act two · access (pipeline 3), measured 2026-09-11
+
+**Base** `staging` `dfa2f57`, built in its own worktree (`../portfolio-wt-perf-base`) with its own
+`npm ci` — chunk bytes and compile time both move with the lockfile, so the base is never this
+worktree's `dist` or a rebuild of `staging`'s source against this branch's `node_modules`.
+**After** `feat/act-two-access` `0726882`. Same rig, same viewport, same run count, AC confirmed,
+`rigMismatches` empty. Every figure below names its report.
+
+**The base already HAS act two.** `staging` is PR #19, so this compares the wall with the stream
+against the wall without it. The plan expected an act-one base and marked the dolly range and the
+frame figures `n/a`; they are real comparisons instead.
+
+**`baseline.json` is stale against both legs** and neither `result:` line should be read as this
+pipeline's. It predates act two: it records `Projects.js` at 6 929 bytes against a real 1.08 MB, and
+`perf/decisions.md` already carries the open item that its `lighthouse` key is headed data awaiting
+re-recording. The base leg reports `REGRESSION` on `idle-hero` and `load-entrance` for that reason
+alone. **The verdicts that count are the base-vs-after `--compare` runs**, which resolve per-metric
+bands from the baseline rather than from the reports' own.
+
+| scenario | verdict | report (base → after) |
+| --- | --- | --- |
+| `idle-hero` | 2 disagreements | `02-52-08-687Z` → `03-06-24-590Z` |
+| `load-entrance` | ✓ agree within bands | `02-56-27-999Z` → `03-10-12-336Z` |
+| `battery-proxy` | 4 disagreements | `02-57-14-627Z` → `03-10-59-111Z` |
+| Lighthouse desktop | perf flat, LCP +35.8 ms | `03-04-10-918Z` → `03-24-20-196Z` |
+| Lighthouse mobile | perf flat, LCP +2.7 ms, TBT −5.5 ms | `03-04-52-299Z` → `03-24-20-196Z` (mobile) |
+
+**What moved, and it is one thing wearing six hats: the stream is 1 705 live DOM nodes.**
+
+```
+idle-hero      main.heapUsedMb      11.6324 → 14.5141   +2.8817   band 2       DISAGREE
+               main.taskMsPerSec    35.3936 → 40.2466   +4.8530   band 4.02    DISAGREE
+battery-proxy  cpu.totalMsPerSec   179.3554 → 217.3995  +38.0441  band 21.74   DISAGREE
+               cpu.gpuProcessMsPerSec 116.143 → 138.9771 +22.8341 band 13.90   DISAGREE
+               cpu.rendererMsPerSec 62.0921 → 77.1507   +15.0586  band 7.72    DISAGREE
+               main.taskMsPerSec    27.2009 → 34.8818   +7.6809   band 3.49    DISAGREE
+```
+
+Four metrics past their bands in the same direction, on the scenario built to stand in for battery
+draw. Clipped is not free: a `clip-path`ed 1 px box is still an element the browser styles, lays out
+and keeps alive, and `#projects` renders from first paint rather than on approach, so the nodes
+exist during `idle-hero` too — which is why the hero-only scenario sees it at all.
+
+**Not blamed on the rig, but recorded:** Spotify held ~26 % CPU across both legs and the runner
+stamped `foreign CPU 10% of machine` into each report. It accepted the load under its own gate, and
+both legs carry it, so the DELTA stands; the absolute figures would read better on a quiet machine.
+
+**What did not move.** `frame.p50Ms` is 16.70 ms on both legs of `idle-hero` and `load-entrance`
+(nominal 16.667), `window.longTasks.totalMs` is 0 on both, entrance settle is 3 604.2 → 3 607.7 ms,
+and both Lighthouse profiles hold their score exactly (desktop 88, mobile 63). The dolly's own frame
+time is flat: `frameP50Ms` 83.3 on both, `frameP95Ms` 107.8 → 103.64.
+
+**Chunk ceilings: a FEATURE DELTA, not an optimisation.** The ratchet is not invoked and
+`--update-baseline` was not run; the three keys are typed from the measured `dist/assets` listing and
+the dormant byte-ceiling test is what proves them.
+
+```
+Projects.js   1 085 370 → 1 081 064   −4 306
+WorkRow.js    (inlined) →     1 951   +1 951    now shared by Projects and the stream, so Rollup splits it
+Archive.js    already absent on the base — the key is removed
+net                                  −2 355
+```
+
+The stream added no net JavaScript. That is not the stream being free: Task 4 deleted
+`WorkRowFloat`, two springs and three MotionValues, and that more than paid for the new component.
+
+**A second finding, and the one with a fix: `index.js` grew 9 146 B and the bytes MOVED rather than
+appeared.** `navTarget.ts` imports `scrollTargetFor` and `volumeShotPlayhead` from `sceneMotion.ts`,
+and `Header.tsx` and `Home.tsx` both import `navTarget` — so the whole scene-maths module, reachable
+only through the lazy `Projects.tsx` before, landed in the eager chunk. `Projects.js` fell 4 306 B by
+the same move.
+
+```
+index.js    110 669 → 120 026   (+9 357 total)
+            110 880             with BOTH navTarget imports removed → 9 146 B attributable
+Projects.js 1 085 370 → 1 081 064   (−4 306, the same code leaving the lazy chunk)
+```
+
+Desktop Lighthouse LCP moved 1896.4 → 1932.2 ms with the score flat at 88. This is the failure mode
+the plan warned about for a NEIGHBOURING import — it says not to pull `archive` and the layout packer
+into the header's chunk — and `sceneMotion` walked in through the door next to it.
+
+**Open, for Kevin.** +2.88 MB of heap and ~21 % CPU on the battery proxy buys the archive a keyboard
+and a screen reader, which it had no form of before. If that trade is not wanted, the levers are
+mounting the hidden stream only as the scene approaches, or virtualising it — both are design
+changes beyond this plan, and neither is a fix to make silently.

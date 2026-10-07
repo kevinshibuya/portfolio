@@ -5,16 +5,21 @@ import { useTranslation } from 'react-i18next'
 import { useMotion } from '../../context/MotionContext'
 import { useLenisContext } from '../layout/SmoothScroll'
 import { SelectedWorkScene, type SceneCard } from '../canvas/SelectedWorkScene'
+import { webglProbe } from '../canvas/webglProbe'
 import { projects } from '../../data/projects'
 import {
   playheadFor,
   frontIndexFor,
   scrollTargetFor,
   actOneSeg,
+  actTwoProgress,
+  blockIndexAt,
   sceneWrapperSvh,
 } from '../../utils/sceneMotion'
 import { friezeLayout, friezeExtent, FRIEZE_ROWS } from '../../utils/friezeLayout'
+import { cellFor, playheadForItem } from '../../utils/friezeTargets'
 import { archive } from '../../data/archive'
+import { Stream } from './Stream'
 
 /** Used until the nav has been measured, and if it is ever missing. */
 const NAV_FALLBACK_PX = 66
@@ -82,7 +87,9 @@ export function Projects() {
   }, [])
 
   const [ready, setReady] = useState(false)
-  const [webglUnavailable, setWebglUnavailable] = useState(false)
+  // Seeded from the probe, not discovered by the scene a commit later: a wrapper
+  // mounted for one commit is one Home's nav handoff can scroll to (webglProbe.ts).
+  const [webglUnavailable, setWebglUnavailable] = useState(() => !webglProbe().supported)
   const handleReady = useCallback(() => setReady(true), [])
   const handleWebglUnavailable = useCallback(() => setWebglUnavailable(true), [])
 
@@ -101,11 +108,24 @@ export function Projects() {
       navigate(`/projects/${cards[index].slug}`)
       return
     }
+    travelTo(index)
+  }
+
+  // The ONE numeric travel. Every caller hands it a playhead and it resolves
+  // the wrapper, so a clicked card, a clicked cell and a focused stream row
+  // cannot land in different places. `columns` is ALWAYS passed: its default of
+  // 0 maps the playhead through act one alone, which would scroll the reader to
+  // a card slot, silently and without a type error.
+  //
+  // Lenis replaces the tween in flight rather than queueing (`Animate.fromTo`
+  // overwrites from/to/currentTime on one instance), so a reader tabbing
+  // quickly re-aims the same move instead of stacking 171 of them.
+  function travelTo(playhead: number): void {
     const wrapper = wrapperRef.current
     if (!wrapper) return
     const wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY
     const target = scrollTargetFor(
-      index,
+      playhead,
       wrapperTop,
       wrapper.offsetHeight,
       window.innerHeight,
@@ -113,6 +133,13 @@ export function Projects() {
     )
     if (lenis) lenis.scrollTo(target, { duration: 1.2 })
     else window.scrollTo({ top: target, behavior: 'instant' })
+  }
+
+  /** Park the reading cursor on an archive item. Unknown id: do nothing. */
+  function scrollToItem(itemId: string): void {
+    const playhead = playheadForItem(itemId, layout, frieze)
+    if (playhead === null) return
+    travelTo(playhead)
   }
   // Stable identity: the scene subtree must only ever re-render on `cards`.
   const handleCardClick = useCallback((index: number) => cardClick.current(index), [])
@@ -133,6 +160,44 @@ export function Projects() {
     window.open(item.href, '_blank', 'noopener')
   }
 
+  /**
+   * The year block the wall is showing, or heading to: -1 when none is.
+   *
+   * Read from where the page is GOING, not where it is: a travel in flight has
+   * already chosen its block, and a Shift+Tab mid-tween must be judged against
+   * that block or the tween lands on a year the focus has left. And only while
+   * the pin holds: past the wrapper `scrollYProgress` clamps to 1, which names
+   * the last block while the wall is off-screen above.
+   */
+  function blockInFrame(): number {
+    const wrapper = wrapperRef.current
+    if (!wrapper) return -1
+    const range = wrapper.offsetHeight - window.innerHeight
+    if (range <= 0) return -1
+    const wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY
+    const y = lenis ? lenis.targetScroll : window.scrollY
+    const progress = (y - wrapperTop) / range
+    if (progress < 0 || progress > 1) return -1
+    return blockIndexAt(actTwoProgress(playheadFor(progress, frieze.columns)), frieze)
+  }
+
+  // Focus is its own channel and never writes into hover: hovering is a mouse
+  // idea, and voicing a stale id through aria-live would be worse than silence
+  // (issue #20). The stream does not consume `onCellHover` at all.
+  const rowFocus = useRef<(itemId: string) => void>(() => {})
+  rowFocus.current = (itemId: string) => {
+    // Debugging only. The acceptance is the scroll position, not this.
+    document.getElementById('archive')?.setAttribute('data-focus-target', itemId)
+    const cell = cellFor(itemId, layout)
+    if (!cell) return
+    // Only a DIFFERENT year moves the camera. Holding Tab through 171 rows
+    // otherwise queues a move per keystroke, and every row inside the block
+    // already in frame is one the reader can see.
+    if (cell.block === blockInFrame()) return
+    scrollToItem(itemId)
+  }
+  const handleRowFocus = useCallback((itemId: string) => rowFocus.current(itemId), [])
+
   // Hover rides a MotionValue, never state: the pointer crosses 171 cells, and
   // a re-render per cell would drive the scene's whole subtree from the
   // pointer (ADR 0010). Pipeline 3's stream reads its focus target from here.
@@ -148,19 +213,12 @@ export function Projects() {
 
   return (
     <section id="projects" className="section projects-scene-section">
-      {/* Keyboard/SR path: visually-hidden-until-focused project index, no
-          scroll-jacking. Suppressed in the no-WebGL fallback, which puts the
-          same four projects in the flow as real links — rendering both gives
-          keyboard and SR users every project twice. */}
-      {webglUnavailable ? null : (
-      <nav className="scene-skiplinks" aria-label={t('sections.projects.stack.indexLabel')}>
-        {featured.map((p) => (
-          <Link key={p.id} className="scene-skiplink" to={`/projects/${p.slug}`}>
-            {p.title[lang]}
-          </Link>
-        ))}
-      </nav>
-      )}
+      {/* The keyboard/SR path, in the slot the four skip links used to hold: a
+          SIBLING of .scene-scroll, never inside .scene-sticky, whose sticky
+          stacking context would paint the focused pill under the nav. It
+          absorbs the skip links — the four projects are archive items too, so
+          they are rows here like everything else. */}
+      {webglUnavailable ? null : <Stream mode="hidden" onRowFocus={handleRowFocus} />}
 
       {webglUnavailable ? (
         /* No WebGL2, or the context was lost: the four projects in normal
@@ -186,7 +244,10 @@ export function Projects() {
             </article>
           ))}
         </div>
-      ) : (
+      ) : null}
+      {webglUnavailable ? <Stream mode="visible" /> : null}
+
+      {webglUnavailable ? null : (
         <div
           className="scene-scroll"
           ref={wrapperRef}

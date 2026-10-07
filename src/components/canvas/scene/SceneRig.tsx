@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useVelocity, type MotionValue } from 'framer-motion'
 import * as THREE from 'three'
 import {
@@ -129,7 +129,35 @@ export function SceneRig({
     poseZ: 0 | number
   }>({ inActTwo: false, u: 0, still: null, poseZ: 0 })
   const lastOverture = useRef<boolean | null>(null)
+  // The camera pose the pointer was last raycast against; see the frame loop.
+  const pointerCam = useRef({
+    position: new THREE.Vector3(Number.NaN, 0, 0),
+    quaternion: new THREE.Quaternion(),
+  })
   const velocity = useVelocity(progress)
+
+  // R3F's `update()` replays the last pointermove even after the pointer has
+  // left: pointerleave cancels the hover but keeps the event. A camera move
+  // with the pointer resting on the nav would then re-hover the cell beneath
+  // it. Listened on the canvas element itself, the only DOM this rig touches.
+  const pointerInside = useRef(false)
+  const canvasElement = useThree((state) => state.gl.domElement)
+  useEffect(() => {
+    const inside = (): void => {
+      pointerInside.current = true
+    }
+    const outside = (): void => {
+      pointerInside.current = false
+    }
+    canvasElement.addEventListener('pointermove', inside)
+    canvasElement.addEventListener('pointerleave', outside)
+    canvasElement.addEventListener('pointercancel', outside)
+    return () => {
+      canvasElement.removeEventListener('pointermove', inside)
+      canvasElement.removeEventListener('pointerleave', outside)
+      canvasElement.removeEventListener('pointercancel', outside)
+    }
+  }, [canvasElement])
 
   // The DEV-only handle the smokes read to sample live object state. Stripped
   // from the production build, which is why those smokes run on the dev server.
@@ -395,6 +423,29 @@ export function SceneRig({
     if (overture.visible !== lastOverture.current) {
       lastOverture.current = overture.visible
       state.gl.domElement.dataset.overture = String(overture.visible)
+    }
+
+    // A stationary pointer over a moving scene fires no pointer event, so the
+    // hover stays on whatever was under the cursor when it last moved: scroll
+    // the wall and the tinted cell is no longer the cell beneath the pointer.
+    // Re-run the raycast from the last pointer position whenever the CAMERA
+    // moved — not the playhead, which lands instantly on a jump while the
+    // camera goes on easing toward it for another second, so a playhead
+    // trigger stops firing long before the image stops moving.
+    //
+    // Last in the frame, once the pose is written, and the matrix is brought
+    // forward because `setFromCamera` reads `matrixWorld`, which three would
+    // not refresh until render. R3F's `update()` replays the stored
+    // pointermove and returns early until the pointer has been over the canvas
+    // at least once, so a reader who never points at the scene pays nothing.
+    if (
+      camera.position.distanceToSquared(pointerCam.current.position) > 1e-8 ||
+      camera.quaternion.angleTo(pointerCam.current.quaternion) > 1e-4
+    ) {
+      pointerCam.current.position.copy(camera.position)
+      pointerCam.current.quaternion.copy(camera.quaternion)
+      camera.updateMatrixWorld()
+      if (pointerInside.current) state.events.update?.()
     }
   })
 

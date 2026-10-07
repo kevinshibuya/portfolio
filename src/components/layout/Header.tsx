@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useLenis } from "../../hooks/useLenis";
+import { resolveNavTarget } from "../../utils/navTarget";
 import { useMotion } from "../../context/MotionContext";
 
 const NAV_ITEMS = [
@@ -116,7 +117,12 @@ export function Header() {
   const go = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     if (location.pathname === "/") {
-      scrollTo(`#${id}`, { duration: 1.2 });
+      // `#archive` names no scroll box any more — the archive is act two of the
+      // scene — so the target resolves to a document scrollY instead. Every
+      // other id still resolves to its own selector.
+      scrollTo(resolveNavTarget(id, document, window.innerHeight), {
+        duration: 1.2,
+      });
     } else {
       // Off-home (e.g. /projects/:slug): the target section isn't in the DOM,
       // so route home and hand the target to Home via location.state.

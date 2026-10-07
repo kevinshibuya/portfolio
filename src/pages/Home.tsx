@@ -4,6 +4,7 @@ import { Hero } from '../components/sections/Hero'
 import { useLenis } from '../hooks/useLenis'
 import { useMotion } from '../context/MotionContext'
 import { resetPageMeta } from '../utils/pageMeta'
+import { resolveNavTarget } from '../utils/navTarget'
 
 // Below-the-fold sections lazy-load so the main JS chunk only carries Hero
 // (the LCP target). After Hero mounts, an idle callback warms the chunks so
@@ -80,7 +81,11 @@ export function Home() {
     // saved scrollY so it doesn't fight us.
     const targetId = navTargetRef.current
     if (targetId) {
-      navTargetRef.current = undefined
+      // The ref is cleared only once the target is applied or the wait gives
+      // up, never on entry: this effect re-runs when `scrollTo` or
+      // `bypassEntrance` changes identity, and that re-run's cleanup cancels
+      // the observer. Cleared on entry, the re-run found no target and the
+      // nav landed nowhere whenever its section had not mounted yet.
       sessionStorage.removeItem(STORAGE_KEY)
       bypassEntrance()
 
@@ -93,28 +98,46 @@ export function Home() {
         observer?.disconnect()
         if (timeoutId !== null) window.clearTimeout(timeoutId)
       }
+      const finish = (): void => {
+        navTargetRef.current = undefined
+        cleanup()
+      }
 
       const apply = (): boolean => {
         if (cancelled) return false
+        const target = resolveNavTarget(targetId, document, window.innerHeight)
+        // `archive` waits for the NUMBER, not for the element. The stream is a
+        // sibling of `.scene-scroll`, so `#archive` can exist a frame before
+        // the wrapper publishes a usable `data-svh`; gating on the element
+        // would stop the observer on the selector fallback. The observer
+        // retries until the 1500 ms timeout, and its expiry scrolls nowhere.
+        // The one selector that IS final is the visible stream: no WebGL, no
+        // wrapper, so no number will ever come and the archive is in flow.
+        if (targetId === 'archive') {
+          const visible = target === '#archive' && document.querySelector('#archive.stream--visible')
+          if (typeof target !== 'number' && !visible) return false
+          scrollTo(target, { duration: 0.8 })
+          return true
+        }
         const el = document.getElementById(targetId)
         if (!el) return false
-        scrollTo(`#${targetId}`, { duration: 0.8 })
+        scrollTo(target, { duration: 0.8 })
         return true
       }
 
       if (apply()) {
-        cleanup()
+        finish()
         return
       }
 
       if (typeof ResizeObserver !== 'undefined') {
         observer = new ResizeObserver(() => {
           if (cancelled) return
-          if (apply()) cleanup()
+          if (apply()) finish()
         })
         observer.observe(document.documentElement)
       }
-      timeoutId = window.setTimeout(cleanup, 1500)
+      timeoutId = window.setTimeout(finish, 1500)
       return cleanup
     }
 
