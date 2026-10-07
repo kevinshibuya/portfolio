@@ -51,11 +51,11 @@ Red state before the task: `smoke.spec.ts` does not exist.
 
 **Boundaries:** Do not change an assertion's threshold, selector or timeout. Do not touch `loader.spec.ts`: its in-flight timing test stays in the full suite as it is.
 
-- [ ] Create `smoke.spec.ts` with the three moved tests
-- [ ] Remove them from `hero-shader.spec.ts` and `contact-waves.spec.ts`; delete `dark-tokens.spec.ts`
-- [ ] Count `expect(` before and after; they match
-- [ ] Typecheck (the Global constraints command, plus `npx tsc -b`), `npx eslint tests/e2e`
-- [ ] Run the acceptance check; commit `test(e2e): one smoke spec for the console-clean mount checks`
+- [x] Create `smoke.spec.ts` with the three moved tests
+- [x] Remove them from `hero-shader.spec.ts` and `contact-waves.spec.ts`; delete `dark-tokens.spec.ts`
+- [x] Count `expect(` before and after; they match
+- [x] Typecheck (the Global constraints command, plus `npx tsc -b`), `npx eslint tests/e2e`
+- [x] Run the acceptance check; commit `test(e2e): one smoke spec for the console-clean mount checks`
 
 ---
 
