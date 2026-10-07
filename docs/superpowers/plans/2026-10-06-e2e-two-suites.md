@@ -100,7 +100,7 @@ Red state: before the task, `E2E_SUITE=quick` is ignored and lists all 185.
 - [x] Add the lists, the `E2E_SUITE` switch and per-project `testMatch`
 - [x] Typecheck (the Global constraints command, plus `npx tsc -b`), `npm run lint`
 - [x] Run the `--list` checks; record the counts in this plan's Record section
-- [ ] Commit `test(e2e): quick and full suites; mobile only where the viewport matters`
+- [x] Commit `test(e2e): quick and full suites; mobile only where the viewport matters`
 
 ---
 
