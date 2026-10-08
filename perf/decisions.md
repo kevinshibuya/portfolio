@@ -3589,3 +3589,72 @@ of reporting numbers for the wrong stretch of the page.
 
 **Open.** Re-recording `scroll-transition` (and re-measuring the probe) is #11's rig work: AC
 power and a quiet machine.
+
+## The re-baseline, measured 2026-10-08 (#11, PR #30)
+
+Rig: the M1, AC power, headless, Chrome 147.0.7727.15, **macOS 15.8**. The rig block's `macos` was
+hand-updated from 15.7.3, because the baseline writer only fills MISSING rig keys and would
+otherwise leave every later run flagging a mismatch. Every run below was gated on a 1-min load
+under 1.5 before it started, and its own before/after load lines are quoted.
+
+**`scenarios`**, re-recorded with `node perf/run.mjs all --update-baseline --force` (5 runs plus
+warm-up each; load 0.17/core before, 0.33/core after, no BUSY flag). `--force` was unavoidable:
+every entry it replaced was stale by construction (the retired DOM stack, half-length gestures,
+another macOS), so the run reports REGRESSION against them.
+
+**`lighthouse`**, re-recorded on the THIRD attempt (load 0.17/core before, 0.37/core after).
+The first two finished BUSY (macOS `deleted`/`triald`, then `mediaanalysisd` and another
+session's `pnpm`) and were discarded rather than recorded under `--force`. All three agreed
+anyway, and with the 2026-09-11 access measurement:
+
+| preset | performance | LCP |
+| --- | --- | --- |
+| desktop | 87 | 1977 ms |
+| mobile | 63 | 10 868 ms |
+
+**`exact.chunkBytesCeiling`**: `Projects.js` 1 088 222 → 1 088 965 B, measured from this head's
+build. Bytes, not timing.
+
+### The stream A/B (PR #21's open item)
+
+Leg B unmounted the hidden stream (`{false && <Stream …/>}`, never committed); leg A is the tree
+as shipped. Both legs ran `node perf/run.mjs all` on a quiet rig (B 0.18 → 0.35/core,
+A 0.17 → 0.31/core). An earlier B leg was void: the Mac slept between its scenarios. Reports:
+A `2026-10-08T11-5*`, B `2026-10-08T12-4*` (plus `12-38-22` for idle-hero).
+Beyond the declared bands (`--compare`):
+
+| scenario | metric | unmounted | mounted |
+| --- | --- | --- | --- |
+| load-entrance | `load.main.taskMs` | 565.6 ms | **720.3 ms** |
+| scroll-transition | `frame.dropped` | 49 | **66** |
+| scroll-transition | `gpu.busyMsPerFrame` | 11.24 | 12.71 |
+| idle-hero | `gpu.busyMsPerFrame` | 1.37 | 1.69 |
+
+`battery-proxy` agrees within its bands, and its mounted leg ran LOWER (209.5 → 145.9 ms/s
+total CPU). The "+38 ms/s CPU" this file attributed to the stream on 2026-09-11 is therefore NOT
+confirmed in isolation. What the stream measurably costs is about 155 ms of main-thread task
+time at load and some scroll smoothness. One A/B pass at n = 5; read it as evidence, not as a
+settled number.
+
+Open and unexplained: `gpu.shaderMsPerFrame` (the hero shader's own timer) reads about 2 ms
+LOWER with the stream mounted, in both idle-hero and scroll-transition. Nothing the stream does
+touches the hero shader, so this is not read as a stream effect.
+
+### The act-two probe, re-measured with full-length gestures
+
+`node perf/act-two-probe.mjs --runs 5` (and `--phone`), serving a build whose `#archive` count
+(1705) proves the stream is mounted. The same probe served the unmounted build by accident
+first (domNodes null); those runs are kept as its B leg.
+
+| probe | warmMs | maxLongTaskMs | dolly frameP50 / P95 |
+| --- | --- | --- | --- |
+| 1440×900@2 mounted | 11 513 | 117 | 66.7 / 89.6 ms |
+| 1440×900@2 unmounted | 11 585 | 119 | 66.7 / 85.0 ms |
+| 390×844@3 mounted | 6 426 | 51 | 16.7 / 33.4 ms |
+| 390×844@3 unmounted | 6 472 | 0 | 16.7 / 33.4 ms |
+
+These replace the 2026-09-11 access figures, whose gestures covered half (desktop) or a third
+(phone) of their labelled stretch.
+
+**Still open on #11:** the long-task budget during scroll stays behind `PERF_HARNESS` (a throughput
+assertion), and `stage-arrival` waits on a scene freeze hook, which gets its own issue.

@@ -392,50 +392,50 @@
   "lighthouse": {
     "desktop": {
       "lh.performance": {
-        "median": 95,
-        "iqr": 1,
+        "median": 87,
+        "iqr": 5,
         "band": 3,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate",
+        "source": "lighthouse@13.5.0:simulate",
         "maxBand": 3
       },
       "lh.lcpMs": {
-        "median": 1033.5943,
-        "iqr": 23.6612,
-        "band": 103.3594,
+        "median": 1977.3189,
+        "iqr": 22.5961,
+        "band": 197.7319,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       },
       "lh.tbtMs": {
         "median": 0,
         "iqr": 0,
         "band": 25,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       },
       "lh.cls": {
         "median": 0,
         "iqr": 0,
         "band": 0.005,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       },
       "lh.fcpMs": {
-        "median": 925.7849,
-        "iqr": 3.649,
-        "band": 92.5785,
+        "median": 872.9734,
+        "iqr": 454.1471,
+        "band": 454.1471,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       },
       "lh.speedIndexMs": {
-        "median": 1773.3097,
-        "iqr": 6.0704,
-        "band": 177.331,
+        "median": 1730.6956,
+        "iqr": 394.4847,
+        "band": 394.4847,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       },
       "lh.transferBytes": {
-        "median": 946047,
+        "median": 2189908,
         "iqr": 0,
         "band": 2048,
         "n": 5,
@@ -443,58 +443,58 @@
         "maxBand": 2048
       },
       "lh.runMs": {
-        "median": 5333.15,
-        "iqr": 39.49,
-        "band": 533.315,
+        "median": 5791.78,
+        "iqr": 87,
+        "band": 579.178,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       }
     },
     "mobile": {
       "lh.performance": {
-        "median": 67,
-        "iqr": 0,
-        "band": 6.7,
+        "median": 63,
+        "iqr": 1,
+        "band": 6.3,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       },
       "lh.lcpMs": {
-        "median": 6111.3023,
-        "iqr": 10.8959,
-        "band": 611.1302,
+        "median": 10867.6991,
+        "iqr": 293.2397,
+        "band": 1086.7699,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       },
       "lh.tbtMs": {
-        "median": 0,
-        "iqr": 4,
+        "median": 97.5,
+        "iqr": 14,
         "band": 25,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       },
       "lh.cls": {
         "median": 0,
         "iqr": 0,
         "band": 0.005,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       },
       "lh.fcpMs": {
-        "median": 4479.6586,
-        "iqr": 2.7405,
-        "band": 447.9659,
+        "median": 4371.3731,
+        "iqr": 4.5068,
+        "band": 437.1373,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       },
       "lh.speedIndexMs": {
-        "median": 4479.6586,
-        "iqr": 2.7405,
-        "band": 447.9659,
+        "median": 4371.3731,
+        "iqr": 4.5068,
+        "band": 437.1373,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       },
       "lh.transferBytes": {
-        "median": 946047,
+        "median": 2189908,
         "iqr": 0,
         "band": 2048,
         "n": 5,
@@ -502,11 +502,11 @@
         "maxBand": 2048
       },
       "lh.runMs": {
-        "median": 5087.15,
-        "iqr": 41.37,
-        "band": 508.715,
+        "median": 5500.45,
+        "iqr": 34.56,
+        "band": 550.045,
         "n": 5,
-        "source": "lighthouse@12.8.2:simulate"
+        "source": "lighthouse@13.5.0:simulate"
       }
     }
   },
