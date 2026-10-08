@@ -51,3 +51,15 @@ test('backdrop mounts lazily on approach; canvas budget is exactly 2', async ({ 
   ).toHaveAttribute('data-paused', 'true')
   expect(errors).toEqual([])
 })
+
+// #26: screen readers, hyphenation and spellcheck read the document's declared
+// language, so it follows i18n both at first paint and after the header toggle.
+test('<html lang> follows the active language', async ({ page }) => {
+  await page.goto('/?lang=pt')
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+  await expect(page.locator('html')).toHaveAttribute('lang', 'pt')
+  await page.locator('.nav-lang').click()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+  await page.locator('.nav-lang').click()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'pt')
+})
