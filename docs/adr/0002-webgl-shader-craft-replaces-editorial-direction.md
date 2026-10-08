@@ -9,7 +9,7 @@ The replacement is stated plainly: "The editorial/newsroom direction is abandone
 - Every prior MVP-era visual system was retired at once — light cream/sand theme, bento cards, ink-draw hero entrance, the R3F hero accent (`docs/superpowers/plans/2026-07-19-webgl-pivot.md`).
 - Sections converge on one open typographic row primitive: "no cards/containers ... Projects, embeds, and work experience all use this one row primitive" (`docs/architecture.md#workrow`).
 - Selected Work is the single sanctioned carve-out from the no-cards rule; its framed cards are now the scene's, not a stack (`docs/architecture.md#layout-and-section-flow`, ADR 0009).
-- The press-revamp vocabulary on the branch `design/work-first-press-revamp` is historical. It is kept for the record, not its design.
+- The press-revamp vocabulary on the tag `archive/design/work-first-press-revamp` (the branch, deleted 2026-10-07) is historical. It is kept for the record, not its design.
 - React Three Fiber was removed with this pivot, then returned for the Selected Work scene only (ADR 0009); the hero and backdrop stay raw WebGL.
 
 ## Source

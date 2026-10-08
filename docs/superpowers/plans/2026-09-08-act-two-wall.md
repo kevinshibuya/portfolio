@@ -208,6 +208,7 @@ The design tree is data → packing → framing/rasterisation → resource lifet
 ❓ **Q9** - **Embedded card placement**: Flatten covers, clone the corridor controller, or reuse its object anatomy?
 
 ➡️ Assumption 9 is overturned. Exact 2×2 CARD_W×CARD_H footprint, no inset and no blob shadow (amended decision 4). Preserve COVER_Z/CAPTION_Z relative to the frame at local z=0.01. Reserve serial space inside the existing caption band rather than outside the full card. For volume-shot depth precision choose ordered layers: wall, frame, cover, caption; wall-card cover and caption have `depthWrite=false`, `depthTest=false` and increasing `renderOrder` so quantised frame depth cannot reject them. Apply these overrides only to wall cards and verify the ordered overlap through the composer. Reuse anatomy, not the four-slot SceneRefs indexing.
+➡️ **Amended 2026-10-07 (PR #27):** the wall-card cover and caption depth-test again, biased toward the camera with `polygonOffset` (factor −1, units −4). With the test disabled, the wall, fogged to cream behind the corridor in act one, painted cream rectangles over settled desktop cards 1 and 3. `depthWrite=false` and the ordered layers stand.
 
 ---
 

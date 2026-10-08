@@ -29,7 +29,8 @@ npm run dev      # vite dev server
 npm run build    # tsc -b && vite build
 npm run preview  # build, then wrangler dev (the Workers runtime)
                  # npx vite preview --port 4173 for a static preview
-npm run test     # unit (vitest) + e2e (playwright)
+npm run test     # unit (vitest) + the full e2e suite
+npm run test:e2e:quick  # the quick e2e suite, for a PR's fix loop (ADR 0013)
 ```
 
 ## structure

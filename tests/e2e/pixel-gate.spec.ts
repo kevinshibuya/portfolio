@@ -279,6 +279,7 @@ async function settleFrame(page: Page): Promise<void> {
         requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
       }),
   )
+  // window: the settle the golden was calibrated against
   await page.waitForTimeout(400)
   await waitForAnimationsIdle(page)
 }
