@@ -7,8 +7,8 @@ import { defineConfig, devices, type Project } from '@playwright/test'
 // MOBILE_SPECS in the PR that adds it.
 const QUICK_SPECS = ['scene-scrub', 'stream', 'scene-no-webgl', 'frieze-surface', 'pixel-gate', 'scene-reduced-motion', 'smoke']
 const MOBILE_SPECS = ['scene-scrub', 'stream', 'scene-no-webgl', 'frieze-surface', 'frieze-click', 'light-chapter', 'nav-on-light', 'hero-dissolve', 'pixel-gate', 'smoke']
-// perf-budget's dormant DPR test needs Pixel 5's capped path, so the harness
-// adds it to mobile.
+// perf-budget's DPR test only exercises the 1.5 cap on Pixel 5's capped path,
+// so the harness adds it to mobile; the default suite checks the rule at DPR 1.
 const mobileSpecs = process.env.PERF_HARNESS === '1' ? [...MOBILE_SPECS, 'perf-budget'] : MOBILE_SPECS
 
 const specs = (names: string[]): RegExp => new RegExp(`/(${names.join('|')})\\.spec\\.ts$`)

@@ -1,11 +1,18 @@
-// SYMPTOM: jank scrolling from the hero, through the shader's cream dissolve,
-// into the pinned Selected Work card stack.
+// SYMPTOM: jank scrolling from the hero, through the shader's cream dissolve
+// and the scene's overture, until card one settles in its slot.
 //
-// From the settled hero, one CDP-synthesized scroll gesture at a FIXED speed
-// covering a distance derived from LIVE geometry — the same derivation the
-// pixel gate uses for its `stage-arrival` golden — then a settle. A hardcoded
-// pixel distance would silently re-aim at a different part of the page the
-// first time a section's height changes.
+// From the settled hero and a warm scene, one CDP-synthesized scroll gesture at
+// a FIXED speed covering a distance derived from LIVE geometry, then a settle.
+// The target is a PLAYHEAD, read off the scene wrapper the way
+// `tests/e2e/helpers/scene.ts` reads it: `.scene-scroll` carries its height in
+// svh as `data-svh`, one playhead unit is 100 svh, and act one starts at
+// OVERTURE_START. A hardcoded pixel distance, or a fraction of the wrapper,
+// would silently re-aim the first time the frieze's column count or a
+// section's height changes.
+//
+// The scene compiles and uploads at idle after the entrance. The window opens
+// only once the canvas reports `data-warm="true"`, so it measures the scrub's
+// steady state and not the warm-up (that one is `perf/act-two-probe.mjs`).
 //
 // The gesture is a real wheel stream (`gestureSourceType: 'mouse'`), so it
 // goes through Lenis exactly as a user's scroll does. Lenis then keeps easing
@@ -30,13 +37,18 @@ import { frameStats } from '../lib/stats.mjs'
 import { gpuFromProcessCpu, gpuFromTrace, sampleChromeProcesses, startTrace } from '../lib/trace.mjs'
 
 export const name = 'scroll-transition'
-export const description = 'settled hero → fixed-speed scroll into the card stack → settle'
+export const description = 'settled hero, warm scene → fixed-speed scroll until card one settles → settle'
 
 const PRE_DWELL_MS = 2000
 /** Fixed gesture speed in px/s. Distance is derived; speed never is. */
 const SCROLL_SPEED = 1200
-/** Matches the pixel gate's STAGE_ARRIVAL_PROGRESS — the first card segment. */
-const STAGE_ARRIVAL_PROGRESS = 0.04
+/** Card one settled in its slot (`src/utils/playhead.ts`: segment 0). */
+const ARRIVAL_PLAYHEAD = 0
+/** Where act one starts on the playhead axis; mirrors `OVERTURE_START`. */
+const OVERTURE_START = -1.5
+const WARM_TIMEOUT_MS = 30_000
+/** How far the settled scroll may sit from the arrival before the run is void. */
+const ARRIVAL_TOLERANCE_PX = 50
 const SETTLE_STABLE_MS = 500
 const SETTLE_TIMEOUT_MS = 6000
 
@@ -80,30 +92,25 @@ export async function run(ctx) {
   try {
     await session.page.goto(scenarioUrl('/'), { waitUntil: 'commit' })
     await waitForSettledHero(session, ctx.log)
+    await session.page
+      .locator('#projects canvas[data-canvas="selected-work-scene"][data-warm="true"]')
+      .waitFor({ state: 'attached', timeout: WARM_TIMEOUT_MS })
     await sleep(PRE_DWELL_MS)
 
-    const geometry = await session.page.evaluate((progress) => {
-      const wrap = document.querySelector('#projects .stack-scroll')
-      if (!(wrap instanceof HTMLElement)) return null
-      const start = wrap.getBoundingClientRect().top + window.scrollY
-      const range = wrap.offsetHeight - window.innerHeight
-      return {
-        target: start + range * progress,
-        from: window.scrollY,
-        cards: document.querySelectorAll('#projects .stack-card').length,
-      }
-    }, STAGE_ARRIVAL_PROGRESS)
+    const geometry = await session.page.evaluate(
+      ({ playhead, start }) => {
+        const wrap = document.querySelector('#projects .scene-scroll')
+        if (!(wrap instanceof HTMLElement)) return null
+        const svh = Number(wrap.dataset.svh)
+        if (!(svh > 0)) return null
+        const top = wrap.getBoundingClientRect().top + window.scrollY
+        const unit = wrap.offsetHeight / (svh / 100)
+        return { target: top + (playhead - start) * unit, from: window.scrollY, dpr: window.devicePixelRatio }
+      },
+      { playhead: ARRIVAL_PLAYHEAD, start: OVERTURE_START },
+    )
 
-    if (!geometry) throw new Error('#projects .stack-scroll not found — cannot derive the scroll distance')
-    // Same silent coupling the pixel gate documents: the settle plateau is
-    // `p <= 0.15 / (n - 1)`. At n = 4 that is 0.05 and 0.04 fits; a fifth
-    // featured project would move the target without any other symptom.
-    if (geometry.cards !== 4) {
-      throw new Error(
-        `scroll-transition is calibrated for 4 featured cards; found ${geometry.cards}. ` +
-          'Recompute STAGE_ARRIVAL_PROGRESS against 0.15 / (n - 1) before trusting this scenario.',
-      )
-    }
+    if (!geometry) throw new Error('#projects .scene-scroll[data-svh] not found — cannot derive the scroll distance')
     const distance = Math.round(geometry.target - geometry.from)
     if (distance <= 0) throw new Error(`derived a non-positive scroll distance (${distance}px) — page geometry is unexpected`)
 
@@ -117,12 +124,24 @@ export async function run(ctx) {
       y: 450,
       xDistance: 0,
       // CDP: positive yDistance scrolls UP. Down the page is negative.
-      yDistance: -distance,
-      speed: SCROLL_SPEED,
+      // Distance and speed are in DEVICE pixels here, not CSS pixels: at the
+      // harness's deviceScaleFactor 2 an unscaled gesture travelled exactly
+      // half its distance (2756 → 1378, and 1514 → 757 in the old baseline),
+      // and stopped short of the scene it was meant to reach.
+      yDistance: -distance * geometry.dpr,
+      speed: SCROLL_SPEED * geometry.dpr,
       gestureSourceType: 'mouse',
       repeatCount: 0,
     })
     const endY = await waitForScrollSettle(session.page)
+    // A gesture that lands short measures a different stretch of the page and
+    // still reports numbers, so the miss fails the run instead.
+    if (Math.abs(endY - geometry.target) > ARRIVAL_TOLERANCE_PX) {
+      throw new Error(
+        `the scroll settled at ${Math.round(endY)}px, ${Math.round(endY - geometry.target)}px from ` +
+          `card one's arrival at ${Math.round(geometry.target)}px — the gesture no longer reaches the scene`,
+      )
+    }
 
     const windowEnd = await now(session.page)
     const metricsAfter = await perfMetrics(session.client)

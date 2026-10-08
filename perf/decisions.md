@@ -3560,3 +3560,101 @@ into the header's chunk — and `sceneMotion` walked in through the door next to
 and a screen reader, which it had no form of before. If that trade is not wanted, the levers are
 mounting the hidden stream only as the scene approaches, or virtualising it — both are design
 changes beyond this plan, and neither is a fix to make silently.
+
+## Every scroll gesture travelled 1/DPR of its distance, found 2026-10-07 (PR #29)
+
+**The defect.** CDP's `Input.synthesizeScrollGesture` reads `yDistance` and `speed` in DEVICE
+pixels. The harness runs at deviceScaleFactor 2 (3 for the probe's `--phone`) and passed CSS
+pixels, so every gesture covered half its distance (a third on phone) at half its speed. Nothing
+checked where the scroll settled. The evidence is `baseline.json`'s own `scroll-transition`
+entry: `scroll.distancePx` 1514, `scroll.endY` 757.
+
+**What it voids.**
+
+- `scroll-transition` in `baseline.json`. It was recorded on the retired DOM card stack, over half
+  the intended distance, at 600 CSS px/s. Since #15 the scenario scrolls from the settled hero to
+  card one's arrival (playhead 0) at 1200 CSS px/s, a different workload, so every run reports
+  `REGRESSION` against that entry until it is re-recorded under #11. Read those verdicts as
+  "no baseline", not as a slowdown. Two on-battery runs of the new scenario gave
+  `frame.dropped` 41 and `gpu.busyMsPerFrame` 9.7 to 11.0; they are not rig numbers and decide
+  nothing.
+- The `act-two-probe` figures in the access table above (`frameP50Ms` / `frameP95Ms` for the
+  dolly, `maxLongTaskMs` for the scrub). The scrub covered half the wrapper and the dolly half of
+  approach → 1, at half speed. The base and after legs shared the defect, so the comparison holds
+  as a comparison, but the labels "full scrub" and "the dolly" overstate what was measured.
+
+**The fix.** Both scripts multiply distance and speed by the page's device scale, and both throw
+when a gesture settles more than 50 px from its target. A short gesture now voids the run instead
+of reporting numbers for the wrong stretch of the page.
+
+**Open.** Re-recording `scroll-transition` (and re-measuring the probe) is #11's rig work: AC
+power and a quiet machine.
+
+## The re-baseline, measured 2026-10-08 (#11, PR #30)
+
+Rig: the M1, AC power, headless, Chrome 147.0.7727.15, **macOS 15.8**. The rig block's `macos` was
+hand-updated from 15.7.3, because the baseline writer only fills MISSING rig keys and would
+otherwise leave every later run flagging a mismatch. Every run below was gated on a 1-min load
+under 1.5 before it started, and its own before/after load lines are quoted.
+
+**`scenarios`**, re-recorded with `node perf/run.mjs all --update-baseline --force` (5 runs plus
+warm-up each; load 0.17/core before, 0.33/core after, no BUSY flag). `--force` was unavoidable:
+every entry it replaced was stale by construction (the retired DOM stack, half-length gestures,
+another macOS), so the run reports REGRESSION against them.
+
+**`lighthouse`**, re-recorded on the THIRD attempt (load 0.17/core before, 0.37/core after).
+The first two finished BUSY (macOS `deleted`/`triald`, then `mediaanalysisd` and another
+session's `pnpm`) and were discarded rather than recorded under `--force`. All three agreed
+anyway, and with the 2026-09-11 access measurement:
+
+| preset | performance | LCP |
+| --- | --- | --- |
+| desktop | 87 | 1977 ms |
+| mobile | 63 | 10 868 ms |
+
+**`exact.chunkBytesCeiling`**: `Projects.js` 1 088 222 → 1 088 965 B, measured from this head's
+build. Bytes, not timing.
+
+### The stream A/B (PR #21's open item)
+
+Leg B unmounted the hidden stream (`{false && <Stream …/>}`, never committed); leg A is the tree
+as shipped. Both legs ran `node perf/run.mjs all` on a quiet rig (B 0.18 → 0.35/core,
+A 0.17 → 0.31/core). An earlier B leg was void: the Mac slept between its scenarios. Reports:
+A `2026-10-08T11-5*`, B `2026-10-08T12-4*` (plus `12-38-22` for idle-hero).
+Beyond the declared bands (`--compare`):
+
+| scenario | metric | unmounted | mounted |
+| --- | --- | --- | --- |
+| load-entrance | `load.main.taskMs` | 565.6 ms | **720.3 ms** |
+| scroll-transition | `frame.dropped` | 49 | **66** |
+| scroll-transition | `gpu.busyMsPerFrame` | 11.24 | 12.71 |
+| idle-hero | `gpu.busyMsPerFrame` | 1.37 | 1.69 |
+
+`battery-proxy` agrees within its bands, and its mounted leg ran LOWER (209.5 → 145.9 ms/s
+total CPU). The "+38 ms/s CPU" this file attributed to the stream on 2026-09-11 is therefore NOT
+confirmed in isolation. What the stream measurably costs is about 155 ms of main-thread task
+time at load and some scroll smoothness. One A/B pass at n = 5; read it as evidence, not as a
+settled number.
+
+Open and unexplained: `gpu.shaderMsPerFrame` (the hero shader's own timer) reads about 2 ms
+LOWER with the stream mounted, in both idle-hero and scroll-transition. Nothing the stream does
+touches the hero shader, so this is not read as a stream effect.
+
+### The act-two probe, re-measured with full-length gestures
+
+`node perf/act-two-probe.mjs --runs 5` (and `--phone`), serving a build whose `#archive` count
+(1705) proves the stream is mounted. The same probe served the unmounted build by accident
+first (domNodes null); those runs are kept as its B leg.
+
+| probe | warmMs | maxLongTaskMs | dolly frameP50 / P95 |
+| --- | --- | --- | --- |
+| 1440×900@2 mounted | 11 513 | 117 | 66.7 / 89.6 ms |
+| 1440×900@2 unmounted | 11 585 | 119 | 66.7 / 85.0 ms |
+| 390×844@3 mounted | 6 426 | 51 | 16.7 / 33.4 ms |
+| 390×844@3 unmounted | 6 472 | 0 | 16.7 / 33.4 ms |
+
+These replace the 2026-09-11 access figures, whose gestures covered half (desktop) or a third
+(phone) of their labelled stretch.
+
+**Still open on #11:** the long-task budget during scroll stays behind `PERF_HARNESS` (a throughput
+assertion), and `stage-arrival` waits on a scene freeze hook, which gets its own issue.

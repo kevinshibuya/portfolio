@@ -94,6 +94,19 @@ async function waitForScrollSettle(page) {
 }
 
 /** The wrapper's scrub geometry, from `data-svh` — never a 550 svh literal. */
+/** How far a settled gesture may sit from its target before the run is void. */
+const ARRIVAL_TOLERANCE_PX = 50
+
+/** A gesture that lands short measures a different stretch and still reports numbers. */
+function assertArrived(leg, endY, target) {
+  if (Math.abs(endY - target) > ARRIVAL_TOLERANCE_PX) {
+    throw new Error(
+      `the ${leg} settled at ${Math.round(endY)}px, ${Math.round(endY - target)}px from its target ` +
+        `${Math.round(target)}px — the gesture no longer covers the stretch it is labelled with`,
+    )
+  }
+}
+
 async function wrapperGeometry(page) {
   return page.evaluate(() => {
     const w = document.querySelector('#projects .scene-scroll')
@@ -146,13 +159,16 @@ async function oneRun(url, viewport, deviceScaleFactor) {
       y: Math.round(viewport.height / 2),
       xDistance: 0,
       // CDP: positive yDistance scrolls UP. Down the page is negative.
-      yDistance: -(geo.height - geo.innerHeight),
-      speed: SCROLL_SPEED,
+      // Distance and speed are in DEVICE pixels, so both scale by the DPR;
+      // unscaled, the gesture covered half the wrapper (a third on --phone).
+      yDistance: -(geo.height - geo.innerHeight) * deviceScaleFactor,
+      speed: SCROLL_SPEED * deviceScaleFactor,
       gestureSourceType: 'mouse',
       repeatCount: 0,
     })
-    await waitForScrollSettle(page)
+    const scrubEndY = await waitForScrollSettle(page)
     const scrubEnd = await now(page)
+    assertArrived('scrub', scrubEndY, geo.top + geo.height - geo.innerHeight)
 
     // ── the dolly only: u from the approach's end to 1 ────────────────────
     const beats = await page.evaluate(() => {
@@ -170,13 +186,14 @@ async function oneRun(url, viewport, deviceScaleFactor) {
       x: Math.round(viewport.width / 2),
       y: Math.round(viewport.height / 2),
       xDistance: 0,
-      yDistance: -(uToTop(1) - uToTop(beats.approach)),
-      speed: SCROLL_SPEED,
+      yDistance: -(uToTop(1) - uToTop(beats.approach)) * deviceScaleFactor,
+      speed: SCROLL_SPEED * deviceScaleFactor,
       gestureSourceType: 'mouse',
       repeatCount: 0,
     })
-    await waitForScrollSettle(page)
+    const dollyEndY = await waitForScrollSettle(page)
     const dollyEnd = await now(page)
+    assertArrived('dolly', dollyEndY, uToTop(1))
 
     const domNodes = await page.evaluate(
       () => document.querySelector('#archive')?.querySelectorAll('*').length ?? null,

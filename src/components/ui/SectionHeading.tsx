@@ -1,5 +1,5 @@
 interface SectionHeadingProps {
-  /** Title accepts HTML with <em> for blue-accent italic (e.g. "selected <em>work.</em>") */
+  /** Rendered as HTML. Titles are plain lowercase nouns with no italic word and no period (spec decision 16, e.g. "experience"). */
   title: string
   description?: string
 }
