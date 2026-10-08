@@ -3560,3 +3560,32 @@ into the header's chunk — and `sceneMotion` walked in through the door next to
 and a screen reader, which it had no form of before. If that trade is not wanted, the levers are
 mounting the hidden stream only as the scene approaches, or virtualising it — both are design
 changes beyond this plan, and neither is a fix to make silently.
+
+## Every scroll gesture travelled 1/DPR of its distance, found 2026-10-07 (PR #29)
+
+**The defect.** CDP's `Input.synthesizeScrollGesture` reads `yDistance` and `speed` in DEVICE
+pixels. The harness runs at deviceScaleFactor 2 (3 for the probe's `--phone`) and passed CSS
+pixels, so every gesture covered half its distance (a third on phone) at half its speed. Nothing
+checked where the scroll settled. The evidence is `baseline.json`'s own `scroll-transition`
+entry: `scroll.distancePx` 1514, `scroll.endY` 757.
+
+**What it voids.**
+
+- `scroll-transition` in `baseline.json`. It was recorded on the retired DOM card stack, over half
+  the intended distance, at 600 CSS px/s. Since #15 the scenario scrolls from the settled hero to
+  card one's arrival (playhead 0) at 1200 CSS px/s, a different workload, so every run reports
+  `REGRESSION` against that entry until it is re-recorded under #11. Read those verdicts as
+  "no baseline", not as a slowdown. Two on-battery runs of the new scenario gave
+  `frame.dropped` 41 and `gpu.busyMsPerFrame` 9.7 to 11.0; they are not rig numbers and decide
+  nothing.
+- The `act-two-probe` figures in the access table above (`frameP50Ms` / `frameP95Ms` for the
+  dolly, `maxLongTaskMs` for the scrub). The scrub covered half the wrapper and the dolly half of
+  approach → 1, at half speed. The base and after legs shared the defect, so the comparison holds
+  as a comparison, but the labels "full scrub" and "the dolly" overstate what was measured.
+
+**The fix.** Both scripts multiply distance and speed by the page's device scale, and both throw
+when a gesture settles more than 50 px from its target. A short gesture now voids the run instead
+of reporting numbers for the wrong stretch of the page.
+
+**Open.** Re-recording `scroll-transition` (and re-measuring the probe) is #11's rig work: AC
+power and a quiet machine.
