@@ -3,10 +3,11 @@ import { fileURLToPath } from 'node:url'
 import { test, expect, type Page } from '@playwright/test'
 
 const HARNESS = process.env.PERF_HARNESS === '1'
-const DORMANT =
-  'dormant for a structural reason, not a stale number · issue #11; run with PERF_HARNESS=1'
 const STARVED =
   'throughput assertion, starved in the full suite; run with PERF_HARNESS=1 on a quiet rig'
+// 11, so the wait keeps the old `> 10` liveness bar exactly (ADR 0007).
+const LIVENESS_FRAMES = 11
+const LIVENESS_TIMEOUT_MS = 15_000
 
 // These two assertions measure wall-clock work, so they are sensitive to what
 // else is on the CPU. Measured 2026-09-04 on the scene build: isolated, the
@@ -157,13 +158,20 @@ const settle = async (page: Page, query = ''): Promise<void> => {
 test.describe('harness Layer 1', () => {
 
   test('hero GL work is exactly one draw + one uniform upload per frame, from one loop', async ({ page }) => {
-    test.skip(!HARNESS, STARVED)
     await settle(page, 'perf-seed=0.5&perf-counters&perf-role=0')
     await page.waitForTimeout(400) // window: past mount-time setup draws
 
     const a = await readCounters(page)
-    // window: the counters are sampled across one second
-    await page.waitForTimeout(1000)
+    expect(a['fluid-waves']).toBeDefined()
+    // Liveness by waiting for frames, not by counting them over a wall-clock
+    // second: the count starved under a loaded suite (#11, same as perf-hooks).
+    await page.waitForFunction(
+      (target) =>
+        (window as unknown as { __PERF_GL__: Record<string, { frames: number }> }).__PERF_GL__['fluid-waves']
+          .frames >= target,
+      a['fluid-waves'].frames + LIVENESS_FRAMES,
+      { timeout: LIVENESS_TIMEOUT_MS },
+    )
     const b = await readCounters(page)
 
     const h1 = a['fluid-waves']
@@ -180,7 +188,7 @@ test.describe('harness Layer 1', () => {
     expect(h2.resizes - h1.resizes, 'fixed viewport: window is resize-free').toBe(0)
 
     const frames = h2.frames - h1.frames
-    expect(frames, 'rAF loop is running').toBeGreaterThan(10)
+    expect(frames, 'rAF loop is running').toBeGreaterThanOrEqual(LIVENESS_FRAMES)
 
     const ceiling = JSON.parse(readFileSync(baselinePath, 'utf8')) as {
       exact: { uniformUploadsPerFrame: number }
@@ -240,9 +248,9 @@ test.describe('harness Layer 1', () => {
 
 })
 
-// Dormant: a golden-less structural gap and a measured ceiling. Issue #11.
-test.describe('harness Layer 1 · dormant', () => {
-  test.skip(!HARNESS, DORMANT)
+// Back in the default suite since #11: the backing-store contract now covers
+// the scene's canvas, and the chunk ceilings were re-recorded on the rig.
+test.describe('harness Layer 1 · structure', () => {
 
   test('canvas backing stores match the capped-DPR contract exactly', async ({ page }) => {
     await settle(page, 'perf-seed=0.5&perf-role=0')
@@ -250,14 +258,34 @@ test.describe('harness Layer 1 · dormant', () => {
     // present too, then measure every mounted canvas in one pass.
     await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' as ScrollBehavior }))
     await page.waitForSelector('[data-canvas="fluid-waves-backdrop"]')
+    // R3F tags the scene's canvas in onCreated, after it measures and configures.
+    await page.waitForSelector('[data-canvas="selected-work-scene"]', { state: 'attached' })
     await page.waitForTimeout(300) // window: let any resize() settle before sampling
 
+    // Each canvas is held to ITS renderer's sizing rule, under the one shared
+    // 1.5 cap. The two shader canvases size themselves: round(clientWidth · dpr).
+    // The scene is R3F: `dpr={[1, 1.5]}` clamps the ratio, R3F measures the
+    // container with getBoundingClientRect, and three's setSize floors
+    // (`canvas.width = Math.floor(width * pixelRatio)`).
     const measured = await page.evaluate((cap: number) => {
-      const dpr = Math.min(window.devicePixelRatio || 1, cap)
+      const raw = window.devicePixelRatio || 1
       return [...document.querySelectorAll('canvas[data-canvas]')].map((el) => {
         const c = el as HTMLCanvasElement
+        const id = c.dataset.canvas ?? '(unnamed)'
+        if (id === 'selected-work-scene') {
+          const dpr = Math.min(Math.max(1, raw), cap)
+          const rect = c.getBoundingClientRect()
+          return {
+            id,
+            width: c.width,
+            height: c.height,
+            expectedWidth: Math.floor(rect.width * dpr),
+            expectedHeight: Math.floor(rect.height * dpr),
+          }
+        }
+        const dpr = Math.min(raw, cap)
         return {
-          id: c.dataset.canvas ?? '(unnamed)',
+          id,
           width: c.width,
           height: c.height,
           expectedWidth: Math.max(1, Math.round(c.clientWidth * dpr)),
@@ -266,9 +294,9 @@ test.describe('harness Layer 1 · dormant', () => {
       })
     }, DPR_CAP)
 
-    // Both canvases must exist — a zero-length list would make every assertion
-    // below vacuously true.
-    expect(measured.map((m) => m.id).sort()).toEqual(['fluid-waves', 'fluid-waves-backdrop'])
+    // All three canvases must exist: a shorter list would make every assertion
+    // below vacuously true for the missing one.
+    expect(measured.map((m) => m.id).sort()).toEqual(['fluid-waves', 'fluid-waves-backdrop', 'selected-work-scene'])
     for (const m of measured) {
       expect(m.width, `${m.id} backing store width`).toBe(m.expectedWidth)
       expect(m.height, `${m.id} backing store height`).toBe(m.expectedHeight)

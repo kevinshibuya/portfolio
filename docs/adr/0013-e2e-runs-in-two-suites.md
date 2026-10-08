@@ -17,7 +17,7 @@ Kevin approved these with the plan (`docs/superpowers/plans/2026-10-06-e2e-two-s
 
 - **`scene-no-webgl` joins the mobile list.** The no-WebGL archive is a normal-flow layout that changes at phone width, and nothing else renders it on a phone.
 - **`smoke` joins the mobile list.** The canvas budget depends on IntersectionObserver against the viewport, and no other mobile spec checks it.
-- **`perf-budget` runs on mobile under `PERF_HARNESS`.** Its dormant DPR test needs Pixel 5's capped path.
+- **`perf-budget` runs on mobile under `PERF_HARNESS`.** Its DPR test only exercises the 1.5 cap on Pixel 5's capped path; the default suite checks the rule at DPR 1.
 - **One build per run; the server restarts per chunk of 4.** A server held open for a whole full run is the untested memory case, so each chunk gets a fresh one serving the same build.
 - **Fixed waits become condition waits** wherever the app already exposes the condition. Three kinds keep their fixed wait, each marked with a comment: sampling windows (frames, draws or CLS counted over an interval), windows before an absence assertion (a condition already true would make the check pass for nothing), and all of `scene-scrub`, whose waits are the windows in which canvas runtime errors happen.
 

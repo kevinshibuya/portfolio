@@ -213,6 +213,12 @@ export function Projects() {
 
   return (
     <section id="projects" className="section projects-scene-section">
+      {/* Static: the section's name for assistive tech. The card in the slot
+          is on the canvas, never in the DOM (ADR 0011). First in the section,
+          so the stream's "all work" h3 sits under it in the outline, and the
+          no-WebGL fallback is named too. */}
+      <h2 className="scene-title-sr sr-only">{t('sections.projects.heading')}</h2>
+
       {/* The keyboard/SR path, in the slot the four skip links used to hold: a
           SIBLING of .scene-scroll, never inside .scene-sticky, whose sticky
           stacking context would paint the focused pill under the nav. It
@@ -279,10 +285,6 @@ export function Projects() {
                   allWork={t('sections.archive.title')}
                 />
               </div>
-
-              {/* Static: the section's name for assistive tech. The card in
-                  the slot is on the canvas, never in the DOM (ADR 0011). */}
-              <h2 className="scene-title-sr sr-only">{t('sections.projects.heading')}</h2>
             </div>
           </div>
         </div>
