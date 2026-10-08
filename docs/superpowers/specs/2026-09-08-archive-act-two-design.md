@@ -190,7 +190,7 @@ Absent by decision: eyebrows, description lines, stat strips, search, dropdowns,
 
 ## TODO
 
-- [ ] Section titles renamed in both locales, italic and periods removed (decision 16), on this branch.
+- [x] Section titles renamed in both locales, italic and periods removed (decision 16), on this branch.
 - [x] Plan 1 · Motion written, reviewed, assumptions listed.
 - [x] Plan 2 · Wall written, reviewed, assumptions listed.
 - [x] Plan 3 · Access written, reviewed, assumptions listed.
