@@ -66,12 +66,12 @@ export function Stream({ mode, onRowFocus }: StreamProps): React.ReactElement {
 
       {BLOCKS.map((block) => (
         <div className="stream-year" data-year={block.year} key={block.year}>
-          <h3 className="stream-year-label">
+          <h4 className="stream-year-label">
             {block.year}
             <span className="stream-year-count">
               {t('sections.archive.pieces', { count: block.count })}
             </span>
-          </h3>
+          </h4>
           <ol className="stream-list">
             {block.items.map((item) => (
               <StreamItem key={item.id} item={item} lang={lang} onRowFocus={onRowFocus} />

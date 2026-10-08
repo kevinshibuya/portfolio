@@ -10,7 +10,8 @@ import { test, expect } from '@playwright/test'
 // alone, and loosening it is what ADR 0007 forbids. Waiting for N frames
 // asserts the same liveness without depending on how fast the machine is, and
 // the exact draw and uniform ratios hold over whatever window results (#11).
-const LIVENESS_FRAMES = 10
+// 11, so the wait keeps the old `> 10` liveness bar exactly (ADR 0007).
+const LIVENESS_FRAMES = 11
 const LIVENESS_TIMEOUT_MS = 15_000
 
 // Acceptance for the determinism hooks (spec: "App instrumentation").

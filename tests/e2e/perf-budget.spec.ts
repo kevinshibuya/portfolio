@@ -5,7 +5,8 @@ import { test, expect, type Page } from '@playwright/test'
 const HARNESS = process.env.PERF_HARNESS === '1'
 const STARVED =
   'throughput assertion, starved in the full suite; run with PERF_HARNESS=1 on a quiet rig'
-const LIVENESS_FRAMES = 10
+// 11, so the wait keeps the old `> 10` liveness bar exactly (ADR 0007).
+const LIVENESS_FRAMES = 11
 const LIVENESS_TIMEOUT_MS = 15_000
 
 // These two assertions measure wall-clock work, so they are sensitive to what
@@ -257,6 +258,8 @@ test.describe('harness Layer 1 · structure', () => {
     // present too, then measure every mounted canvas in one pass.
     await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' as ScrollBehavior }))
     await page.waitForSelector('[data-canvas="fluid-waves-backdrop"]')
+    // R3F tags the scene's canvas in onCreated, after it measures and configures.
+    await page.waitForSelector('[data-canvas="selected-work-scene"]', { state: 'attached' })
     await page.waitForTimeout(300) // window: let any resize() settle before sampling
 
     // Each canvas is held to ITS renderer's sizing rule, under the one shared
