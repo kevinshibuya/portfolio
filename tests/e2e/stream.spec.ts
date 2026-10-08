@@ -199,10 +199,13 @@ test.describe('the stream', () => {
     // `professional` is the default and says nothing worth a line.
     await expect(page.locator('#archive li[data-origin="professional"] .workrow-meta')).toHaveCount(0)
 
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en')
     await page.locator('.nav-lang').click()
     // The switch has landed once the stream's own region carries its PT name.
     // Attached, not visible: the region is visually hidden outside act two.
     await page.getByRole('region', { name: /todos os trabalhos/i }).waitFor({ state: 'attached' })
+    // The document declares the language it now speaks (#26).
+    await expect(page.locator('html')).toHaveAttribute('lang', 'pt')
     // PT `freelance` is also `freelance`, so this half only proves the switch
     // did not erase the meta. The word that actually differs is `personal`.
     await expect(freelance.first().locator('.workrow-meta')).toContainText('freelance')

@@ -17,6 +17,13 @@ function getInitialLang(): 'en' | 'pt' {
   return 'en'
 }
 
+// The document's language follows i18n, so screen readers, hyphenation and
+// spellcheck read PT copy as Portuguese. Registered before init so the
+// initial language is covered too, not only the header toggle.
+i18n.on('languageChanged', (lng) => {
+  if (typeof document !== 'undefined') document.documentElement.lang = lng
+})
+
 i18n.use(initReactI18next).init({
   resources: {
     en: { translation: en },
