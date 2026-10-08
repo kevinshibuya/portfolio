@@ -58,9 +58,9 @@ export function Stream({ mode, onRowFocus }: StreamProps): React.ReactElement {
       )}
 
       <header className="stream-header">
-        <h2 id="stream-title" className="stream-title">
+        <h3 id="stream-title" className="stream-title">
           {t('sections.archive.title')}
-        </h2>
+        </h3>
         <p className="stream-total">{t('sections.archive.pieces', { count: archive.length })}</p>
       </header>
 
