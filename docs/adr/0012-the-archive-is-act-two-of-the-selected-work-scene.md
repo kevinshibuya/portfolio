@@ -1,5 +1,7 @@
 # The archive is act two of the Selected Work scene
 
+Superseded by ADR 0014: the scene ends at the corridor and the archive moved to its own page.
+
 Kevin asked for the archive (every shipped piece, 171 today) to feel cinematic and three-dimensional like the Selected Work scene, and rejected a flat list. Two rules closed the obvious routes: ADR 0009 forbids a fourth canvas, and ADR 0002 forbids cards outside the scene. So the archive became a second act of the same scene: after the fourth card settles the camera pulls back to a frieze built from every piece, then travels along it year by year, in the scene's own canvas, fog, floor and title object. Pieces are typography on the wall; only the nine case studies keep the card object. A DOM stream of the same data is the accessible twin and the no-WebGL archive.
 
 ## Considered options

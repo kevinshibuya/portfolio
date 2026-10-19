@@ -14,17 +14,17 @@ A piece of work with its own detail route at `/projects/:slug`, carrying an edit
 _Avoid_: case study, portfolio piece, work item
 
 **Embed**:
-A day-to-day interactive published on GZH (`gauchazh.clicrbs.com.br`) with no page of its own, shown only inside a filterable gallery. Its title is Portuguese-only, because the source material is editorial.
+A day-to-day interactive published on GZH (`gauchazh.clicrbs.com.br`) with no page of its own, listed on All work among every other piece. Its title is Portuguese-only, because the source material is editorial.
 (`src/types/content.ts`, `src/data/embeds.csv`, `docs/architecture.md#content-model`)
 _Avoid_: widget, interactive, article
 
 **Piece**:
-Any single thing Kevin shipped that the archive lists: a Project with a case study, or an editorial Embed. Reader-facing, there is no other split.
+Any single thing Kevin shipped that All work lists: a Project with a case study, or an editorial Embed. Reader-facing, there is no other split.
 (`src/types/content.ts`, `src/data/archive.ts`, ADR 0012)
 _Avoid_: item, entry, work item, project (when the piece is an embed)
 
 **Archive item**:
-The flattened, date-sorted union of every piece, carrying an origin, a serial and, for the nine, a case-study slug. It feeds both the wall and the stream.
+The flattened, date-sorted union of every piece, carrying an origin, a serial and, for the nine, a case-study slug. It feeds the Stream.
 (`src/types/content.ts`, `src/data/archive.ts`, `docs/superpowers/specs/2026-09-08-archive-act-two-design.md`)
 _Avoid_: kind, featured, editorial (as a category name)
 
@@ -60,7 +60,7 @@ A row's accent, taken by index rotation through the tricolor via `accentFor()` a
 (`src/utils/palette.ts`, `docs/architecture.md#palette-and-tokens`)
 
 **WorkRow**:
-The shared open typographic row that section lists are built from: index, oversized lowercase title, dot-joined meta, arrow, hairline. Used by WorkExperience and by the stream's case-study rows.
+The shared open typographic row that section lists are built from: index, oversized lowercase title, dot-joined meta, arrow, hairline. Used by WorkExperience, More work and the Stream's case-study rows.
 (`src/components/ui/WorkRow.tsx`, `docs/architecture.md#workrow`)
 _Avoid_: card, list item, table row
 
@@ -113,31 +113,51 @@ _Avoid_: intro line, headline, eyebrow
 The second act of the Selected Work scene, after card four settles: release, approach, dolly and exit along the frieze. The archive as the reader meets it.
 (`src/utils/sceneMotion.ts`, ADR 0012, `docs/superpowers/specs/2026-09-08-archive-act-two-design.md`)
 _Avoid_: archive scene, wall section, part two
+_Retiring_: ADR 0014 ends the scene at the corridor; this entry goes when the wall's code does.
 
 **Frieze**:
 The wall built from every piece: year blocks side by side, newest on the left, each block as wide as its count needs, cells stacked a fixed number of rows high.
 (`src/utils/friezeLayout.ts`, ADR 0012)
 _Avoid_: wall (kept only as the everyday word in prose), grid, mosaic, tile wall
+_Retiring_: ADR 0014 ends the scene at the corridor; this entry goes when the wall's code does.
 
 **Year block**:
 One year's run of columns on the frieze, carrying the year string the title morphs to and the count for that year.
 (`src/utils/friezeLayout.ts`)
 _Avoid_: band, group, section
+_Retiring_: ADR 0014 ends the scene at the corridor; this entry goes when the wall's code does.
 
 **Cell**:
 One piece's place on the frieze: title, meta line and serial set on the wall surface, no slab or border. A case study spans 2×2 cells with the card object.
 (`src/utils/friezeLayout.ts`, `src/components/canvas/scene/`)
 _Avoid_: tile, plaque, slab, card (except for the nine)
+_Retiring_: ADR 0014 ends the scene at the corridor; this entry goes when the wall's code does.
 
 **Volume shot**:
 The release beat's frame, in which the whole frieze is visible before any cell is readable. The archive's claim of volume in one image.
 (`src/utils/sceneMotion.ts`, `docs/superpowers/specs/2026-09-08-archive-act-two-design.md`)
 _Avoid_: overview, wide shot, establishing shot
+_Retiring_: ADR 0014 ends the scene at the corridor; this entry goes when the wall's code does.
 
 **Stream**:
-The DOM twin of the frieze: the year-grouped list of every piece, focusable and visually hidden while the scene runs, the visible archive when WebGL is unavailable.
-(`src/components/sections/Stream.tsx`, `src/components/sections/Projects.tsx`, `docs/architecture.md#the-stream`, ADR 0011, ADR 0012)
-_Avoid_: fallback list, hidden list, skip links (which it absorbs), archive list
+The year-grouped DOM list of every piece, shown on All work. Until ADR 0014's build lands it also runs hidden beside the scene and stands in as the no-WebGL archive.
+(`src/components/sections/Stream.tsx`, ADR 0014, `docs/architecture.md#the-stream`)
+_Avoid_: fallback list, hidden list, archive list
+
+**More work**:
+The list under the corridor of every project the scene does not carry, in highlightOrder, closed by the volume sentence.
+(ADR 0014)
+_Avoid_: archive, other projects, gallery, wall
+
+**Volume sentence**:
+The one line closing More work that claims the editorial volume in the CV's figure and links to All work.
+(ADR 0014)
+_Avoid_: stat, counter, numbers, CTA
+
+**All work**:
+The page that lists every piece through the Stream, off the homepage, reached from the volume sentence.
+(ADR 0014)
+_Avoid_: archive (a record of a retired system), wall, gallery
 
 **Playhead**:
 Scroll progress through the scene, which is also the camera's position. Scroll owns sequence and position; time owns the ambient breath.
@@ -230,6 +250,7 @@ _Avoid_: release tier, full tier
 
 - Every reader-facing string exists in both `en` and `pt`, except embed titles (Portuguese only, editorial source) and the loader's two corner labels in `index.html` (English only, painted before i18n loads). (`src/types/content.ts`, `index.html`, ADR 0001)
 - No spaced em-dash (` — `) in reader-facing prose; use `·`. Date ranges, code comments and quoted wordmarks are exempt. (`CLAUDE.md`)
+- The site voice is lowercase; project and company names keep their own capitals wherever they appear. Full sentence case was tried and declined (2026-10-18). (ADR 0014, `docs/architecture.md`)
 - Every animation honours `prefers-reduced-motion`. (`CLAUDE.md`)
 - At most two canvases live at once, three mounted (hero, Selected Work scene, backdrop); a fourth is forbidden. Off-screen canvases pause. (ADR 0009, `docs/architecture.md#canvases`)
 - GSAP and Framer Motion never drive the same animation. (`CLAUDE.md`, `docs/architecture.md#animation-lanes`)
