@@ -97,14 +97,34 @@ async function tabToStreamEdge(page: Page): Promise<void> {
 }
 
 /**
+ * Tab from the stream's edge onto the skip link, its first focusable.
+ *
+ * The edge is the hero's role line, and the role swaps itself every 5 s through
+ * `AnimatePresence mode="wait"`: when a swap lands between the edge's focus and
+ * the press, the focused span is removed and the Tab stops on its replacement,
+ * one stop short of the stream. Pressed again while focus is still outside the
+ * stream, at most twice, so every caller counts its rows from the skip link.
+ */
+async function tabIntoStream(page: Page): Promise<void> {
+  await tabToStreamEdge(page)
+  const inStream = (): Promise<boolean> =>
+    page.evaluate(() => !!document.activeElement?.closest('#archive'))
+  for (let tries = 0; tries < 3; tries++) {
+    await page.keyboard.press('Tab')
+    if (await inStream()) break
+  }
+  expect(await inStream(), 'Tab from the edge did not enter the stream').toBe(true)
+}
+
+/**
  * Reach a row with REAL Tab presses. `:focus-visible` is what turns a row into
  * the pill, and a scripted `.focus()` does not reliably match it, so a
  * `.focus()`-driven test can pass on a pill nobody can see.
  */
 async function tabToRow(page: Page, index: number): Promise<string> {
-  await tabToStreamEdge(page)
-  // One Tab into the skip link, then one per row.
-  for (let i = 0; i <= index + 1; i++) await page.keyboard.press('Tab')
+  await tabIntoStream(page)
+  // On the skip link; one Tab per row from here.
+  for (let i = 0; i <= index; i++) await page.keyboard.press('Tab')
   const id = await page.evaluate(
     () => (document.activeElement?.closest('li.stream-item') as HTMLElement | null)?.dataset.itemId ?? null,
   )
@@ -290,8 +310,7 @@ test.describe('the stream', () => {
     await openScene(page)
     await scrollToActTwo(page, 0)
 
-    await tabToStreamEdge(page)
-    await page.keyboard.press('Tab')
+    await tabIntoStream(page)
     const first = await page.evaluate(() => ({
       cls: document.activeElement?.className,
       text: document.activeElement?.textContent,
@@ -321,8 +340,7 @@ test.describe('the stream', () => {
     await scrollToActTwo(page, 0)
     const ids = await rowIds(page)
 
-    await tabToStreamEdge(page)
-    await page.keyboard.press('Tab') // skip link
+    await tabIntoStream(page) // skip link
     const seen: string[] = []
     for (let i = 0; i < 5; i++) {
       await page.keyboard.press('Tab')
@@ -390,10 +408,10 @@ test.describe('the stream', () => {
     expect(target, 'the burst must cross at least two year boundaries').toBeGreaterThan(40)
     const ids = await rowIds(page)
 
-    await tabToStreamEdge(page)
+    await tabIntoStream(page)
     // No wait between presses: Lenis must replace the tween in flight, never
     // queue one per keystroke (assumption 28).
-    for (let i = 0; i <= target + 1; i++) await page.keyboard.press('Tab')
+    for (let i = 0; i <= target; i++) await page.keyboard.press('Tab')
 
     const focused = await page.evaluate(
       () => (document.activeElement?.closest('li.stream-item') as HTMLElement | null)?.dataset.itemId ?? null,
