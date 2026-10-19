@@ -52,6 +52,24 @@ test('backdrop mounts lazily on approach; canvas budget is exactly 2', async ({ 
   expect(errors).toEqual([])
 })
 
+// The two routes off the homepage, so the quick suite mounts all three surfaces.
+test('a project detail page mounts with zero console errors', async ({ page }) => {
+  const errors = collectConsoleErrors(page)
+  await page.goto('/projects/radar-legislativo')
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+  await expect(page.locator('h1.project-detail-title')).toBeVisible()
+  expect(errors).toEqual([])
+})
+
+test('all work mounts with zero console errors', async ({ page }) => {
+  const errors = collectConsoleErrors(page)
+  await page.goto('/all-work')
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+  await expect(page.locator('h1.stream-title')).toBeVisible()
+  await expect(page.locator('li.stream-item').first()).toBeVisible()
+  expect(errors).toEqual([])
+})
+
 // #26: screen readers, hyphenation and spellcheck read the document's declared
 // language, so it follows i18n both at first paint and after the header toggle.
 test('<html lang> follows the active language', async ({ page }) => {

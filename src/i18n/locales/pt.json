@@ -96,5 +96,11 @@
     "notFound": "projeto não encontrado",
     "notFoundDescription": "o projeto que você está procurando não existe.",
     "scroll": "rolar"
+  },
+  "allWork": {
+    "meta": {
+      "title": "todos os trabalhos · kevin shibuya",
+      "description": "todas as peças que kevin shibuya publicou, ano a ano: estudos de caso e as peças interativas publicadas na GZH."
+    }
   }
 }

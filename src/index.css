@@ -2175,10 +2175,15 @@ body[data-loader-state="loading"] {
   transition: color var(--dur-hover-in) var(--ease-house);
 }
 
-/* Mirrors the chapter's WorkRow hover: the title takes the row's deep-large
-   tint, the arrow comes up to full ink. */
+/* Mirrors WorkRow's hover: the title takes the row's tint, the arrow comes up
+   to full text. On ink (All work) that is the raw tricolor; the light chapter
+   re-points it at the deep-large channel, as it does for WorkRow. */
 .stream--visible .stream-row:hover .stream-row-title,
 .stream--visible .stream-row:focus-within .stream-row-title {
+  color: var(--row-tint);
+}
+.chapter-light .stream--visible .stream-row:hover .stream-row-title,
+.chapter-light .stream--visible .stream-row:focus-within .stream-row-title {
   color: var(--row-tint-deep-large);
 }
 .stream--visible .stream-row:hover .stream-row-arrow,
@@ -2201,6 +2206,13 @@ body[data-loader-state="loading"] {
    audit in Task 8 stays a real audit. */
 .stream .workrow-title {
   font-size: clamp(20px, 2.6vw, 34px);
+}
+
+/* All work: the page's own column is `.section`'s, so the Stream drops the
+   in-chapter gutter and top margin it carries on the home page. */
+.all-work .stream--visible {
+  width: auto;
+  margin: 0;
 }
 
 @media (max-width: 900px) {

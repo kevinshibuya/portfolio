@@ -98,5 +98,11 @@
     "notFound": "project not found",
     "notFoundDescription": "the project you're looking for doesn't exist.",
     "scroll": "scroll"
+  },
+  "allWork": {
+    "meta": {
+      "title": "all work · kevin shibuya",
+      "description": "every piece kevin shibuya has shipped, year by year: case studies and the interactives published on GZH."
+    }
   }
 }
