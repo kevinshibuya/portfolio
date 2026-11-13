@@ -233,4 +233,4 @@ _Avoid_: release tier, full tier
 - The JSON-LD in `index.html` mirrors `src/data/projects.ts`, with contiguous positions; a test asserts it. (`tests/unit/seo/jsonld-projects.test.ts`)
 - Job titles in work experience are historical facts and are not rewritten; only descriptions sync. (`src/data/workExperience.ts`)
 - The CV at `~/keki/cv-rebuild` is canonical for personal facts, and `cv-pt.html` is the only current one. (Kevin's rule, outside the repo)
-- Production ships from `main` on push through Cloudflare; `main` is frozen. `npm run deploy` ships production directly without a merge and is owner-only. (`package.json`, `CLAUDE.md`)
+- Production ships from `main` on push through Cloudflare; a merge into `main` is a release and Kevin's decision. `npm run deploy` ships production directly without a merge and is owner-only. (`package.json`, `CLAUDE.md`)
