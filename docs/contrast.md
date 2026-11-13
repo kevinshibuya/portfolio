@@ -59,3 +59,16 @@ has to read the wall, and the only act-two beat where the camera is square to it
 is exact. The test asserts `|yaw| < 1e-6` at that beat before measuring, so a choreography change fails loudly
 instead of reporting a wrong number, and it asserts the 12 px caption floor on the two desktop viewports only
 (assumption 16).
+
+## All work, on ink
+
+Computed 2026-10-18 for `/all-work` (ADR 0014). The page sits outside the light chapter, so the Stream's canonical tokens resolve to the cream steps and its rows lift on `--row-tint`, the raw tricolor from `accentFor()`; neither deep channel is read on this page. Ground: page ink `#0B0E14` (nothing between `body` and the Stream paints its own; `tests/e2e/all-work.spec.ts` asserts it).
+
+| # | pair (element → color it resolves to) | ground | ratio | need | verdict |
+|---|---|---|---|---|---|
+| 1 | `.stream-title` (the page `h1`), `.stream-year-label`, `.stream-row-title`, `.workrow-title` → cream `#F5F2EC` | ink | 17.29 | 4.5 | ✅ |
+| 2 | `.stream-total`, `.stream-year-count`, `.stream-serial`, `.stream-row-meta`, `.stream-row-arrow`, and the back link `.project-detail-back` (`--bark`) → muted `#C9C4BA` | ink | 11.12 | 4.5 | ✅ |
+| 3 | `.workrow-meta` (the origin word, the only origin mark the Stream renders), its `·`, the `.stream-row-meta-item` `·` separators, `.workrow-arrow` → faded `#A8A49C` | ink | 7.78 | 4.5 | ✅ |
+| 4 | title lift on hover and `:focus-within`, both row kinds → `--row-tint`: pink `#E64D66` / blue `#4D80E6` / yellow `#E6CC4D`. The editorial title is 17 px, under the large-text line, so every slot takes the 4.5 bar; the yellow rule is an on-light rule and does not apply on ink | ink | 5.17 / 5.10 / 12.06 | 4.5 | ✅ |
+| 5 | back link hover → `--blue-400` `#4D80E6`; the lifted arrow and index → cream | ink | 5.10; 17.29 | 4.5 | ✅ |
+| 6 | focus rings on `.stream-row` and `.workrow-link` → cream outline | ink | 17.29 | 3.0 (non-text) | ✅ |

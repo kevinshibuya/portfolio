@@ -36,12 +36,17 @@ export interface StreamProps {
   mode: 'hidden' | 'visible'
   /** Fires on focus of a row, with the archive item id. Undefined in 'visible' mode. */
   onRowFocus?: (itemId: string) => void
+  /** The title's heading level, years one below: 3 under the home page's section
+   *  `h2`, 1 where the Stream is the page itself (All work). */
+  headingLevel?: 1 | 3
 }
 
-export function Stream({ mode, onRowFocus }: StreamProps): React.ReactElement {
+export function Stream({ mode, onRowFocus, headingLevel = 3 }: StreamProps): React.ReactElement {
   const { t, i18n } = useTranslation()
   const lang = i18n.language.startsWith('pt') ? 'pt' : 'en'
   const hidden = mode === 'hidden'
+  const Title = headingLevel === 1 ? 'h1' : 'h3'
+  const YearLabel = headingLevel === 1 ? 'h2' : 'h4'
 
   return (
     <section
@@ -58,20 +63,20 @@ export function Stream({ mode, onRowFocus }: StreamProps): React.ReactElement {
       )}
 
       <header className="stream-header">
-        <h3 id="stream-title" className="stream-title">
+        <Title id="stream-title" className="stream-title">
           {t('sections.archive.title')}
-        </h3>
+        </Title>
         <p className="stream-total">{t('sections.archive.pieces', { count: archive.length })}</p>
       </header>
 
       {BLOCKS.map((block) => (
         <div className="stream-year" data-year={block.year} key={block.year}>
-          <h4 className="stream-year-label">
+          <YearLabel className="stream-year-label">
             {block.year}
             <span className="stream-year-count">
               {t('sections.archive.pieces', { count: block.count })}
             </span>
-          </h4>
+          </YearLabel>
           <ol className="stream-list">
             {block.items.map((item) => (
               <StreamItem key={item.id} item={item} lang={lang} onRowFocus={onRowFocus} />
