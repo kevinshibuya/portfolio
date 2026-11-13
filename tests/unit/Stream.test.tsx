@@ -22,7 +22,7 @@ function renderStream(props: Partial<StreamProps> = {}): HTMLElement {
   const { container } = render(
     <MemoryRouter>
       <MotionProvider>
-        <Stream mode="visible" {...props} />
+        <Stream {...props} />
       </MotionProvider>
     </MemoryRouter>,
   )

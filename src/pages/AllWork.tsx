@@ -35,7 +35,7 @@ export function AllWork(): React.ReactElement {
       <Link to="/" className="project-detail-back">
         ← {t('projectDetail.back')}
       </Link>
-      <Stream mode="visible" headingLevel={1} />
+      <Stream headingLevel={1} />
     </main>
   )
 }

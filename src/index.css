@@ -1829,65 +1829,49 @@ body[data-loader-state="loading"] {
 }
 
 /* =========================================================================
-   STREAM — the archive's accessible twin (Stream.tsx)
-   Where the two ARCHIVE blocks were. Two states of one component: `hidden`
-   runs beside the scene, every row focusable and clipped to a pixel; `visible`
-   is the whole archive in normal flow when there is no WebGL.
+   CARD LINKS — the scene's keyboard and screen-reader path (Projects.tsx)
+   One visually hidden link per corridor card (ADR 0011). Focusing one surfaces
+   it as a pill at the top of the viewport and travels the camera to its card.
    Canonical tokens only — the light chapter's scope inverts them.
    ========================================================================= */
 
-/* ── hidden: focusable, clipped, and a pill on focus ─────────────────────── */
+/* The CONTAINER is fixed, and that is the whole trick. Every link's clipped 1px
+   box then sits inside the viewport at every scroll position, so the browser's
+   focus-scroll — which runs BEFORE :focus-visible applies, and reads the
+   clipped box — has nothing to do, and the eased Lenis travel is the only
+   scroll. An absolutely-positioned container at the section's top would
+   native-scroll the window there on every Tab.
 
-/* The CONTAINER is fixed, and that is the whole trick. Every descendant's
-   clipped 1px box then sits inside the viewport at every size, so the
-   browser's focus-scroll — which runs BEFORE :focus-visible applies, and reads
-   the clipped box — has nothing to do, and the gated Lenis travel is the only
-   scroll. An absolutely-positioned container at the section's top would put
-   every row at playhead 0 and native-scroll the window there on every Tab.
-
-   The z-index lives HERE, not on the row: `position: fixed` always establishes
-   a stacking context, so a row's own z-index cannot leave this container. That
-   is also why the stream is a sibling of .scene-scroll and not a child of
-   .scene-sticky, whose sticky stacking context would trap the pill under the
-   nav at z-index 100.
+   The z-index lives HERE, not on the link: `position: fixed` always
+   establishes a stacking context, so a link's own z-index cannot leave this
+   container. That is also why the list is a sibling of .scene-scroll and not a
+   child of .scene-sticky, whose sticky stacking context would trap the pill
+   under the nav at z-index 100.
 
    overflow stays `visible` and there is no clip-path here, or the pill is
    re-clipped by its own parent. */
-.stream--hidden {
+.scene-cardlinks {
   position: fixed;
   top: 16px;
   left: 50%;
   width: 0;
   height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   overflow: visible;
   z-index: 120;
   pointer-events: none;
 }
 
-/* Wrappers carry no box of their own, so the rule below reaches the rows.
-   `.workrow` belongs in this list and is easy to miss: it is `position:
-   relative`, so a WorkRow row left inside it anchors its `top: 0` to the
-   WORKROW rather than to the fixed container, and the pill lands a few pixels
-   lower for every row already stacked above it — 16, then 19, then 22. */
-.stream--hidden .stream-header,
-.stream--hidden .stream-year,
-.stream--hidden .stream-list,
-.stream--hidden .stream-item,
-.stream--hidden .workrow {
+/* The items carry no box of their own, so the rule below reaches the links. */
+.scene-cardlinks li {
   display: contents;
 }
 
-/* clip-path, never overflow: hidden — that would make every row its own scroll
-   container, and a focused child inside one shifts the stage. */
-.stream--hidden :is(
-    .stream-skip,
-    .stream-row,
-    .workrow-link,
-    .stream-title,
-    .stream-total,
-    .stream-year-label,
-    .stream-serial
-  ) {
+/* clip-path, never overflow: hidden — that would make every link its own
+   scroll container, and a focused child inside one shifts the stage. */
+.scene-cardlink {
   position: absolute;
   top: 0;
   left: 0;
@@ -1900,13 +1884,12 @@ body[data-loader-state="loading"] {
 /* :focus-visible is keyboard-only, so a mouse user never sees the pill and the
    canvas keeps its hover. pointer-events stays inherited-none, pill included.
    No transition: this is a focus indicator, not an animation. */
-.stream--hidden :is(.stream-skip, .stream-row, .workrow-link):focus-visible {
+.scene-cardlink:focus-visible {
   width: auto;
   height: auto;
   clip-path: none;
   transform: translateX(-50%);
   max-width: min(90vw, 720px);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 8px 16px;
@@ -1917,43 +1900,16 @@ body[data-loader-state="loading"] {
   outline: 2px solid var(--text);
   outline-offset: 2px;
   font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
   text-transform: lowercase;
 }
 
-/* A WorkRow brings a full-width flex box, 34px padding and a 64px title into
-   the pill. Reset it to a line of text; only the title shows. The padding is
-   restated rather than zeroed: `padding: 0` also removed the PILL's own 8px,
-   which made a case-study pill 23px tall against 39px for every other one. */
-.stream--hidden .workrow-link:focus-visible {
-  display: block;
-  width: auto;
-  padding: 8px 16px;
-  gap: 0;
-}
-.stream--hidden .workrow-link:focus-visible .workrow-title,
-.stream--hidden .stream-row:focus-visible .stream-row-title {
-  /* Out of the two-line -webkit-box clamp: the pill is one line, and the
-     ellipsis is the pill's own. */
-  display: inline;
-  font-size: inherit;
-  font-weight: 500;
-  line-height: 1.2;
-  letter-spacing: normal;
-}
-.stream--hidden :is(.workrow-link, .stream-row):focus-visible :is(
-    .workrow-meta,
-    .workrow-arrow,
-    .stream-row-meta,
-    .stream-row-arrow,
-    .stream-serial
-  ) {
-  display: none;
-}
-.stream--hidden .stream-row:focus-visible {
-  display: block;
-}
+/* =========================================================================
+   STREAM — every piece, year by year (Stream.tsx), on All work
+   Canonical tokens only.
+   ========================================================================= */
 
-/* ── visible: the archive in normal flow, no WebGL ───────────────────────── */
 .stream--visible {
   width: min(1440px, 100% - 160px);
   margin: 96px auto 0;
@@ -1962,9 +1918,7 @@ body[data-loader-state="loading"] {
 .stream-title {
   /* EXPLICIT, and the muted siblings below are why this is easy to miss: the
      light chapter inverts TOKENS, not inherited colour, so an element with no
-     `color` of its own keeps `body`'s cream and renders cream on cream. The
-     hidden state hid the bug — the pill sets its own colour — and only the
-     no-WebGL state shows it. */
+     `color` of its own keeps `body`'s cream and renders cream on cream. */
   color: var(--text);
   font-size: clamp(56px, 11.6vw, 168px);
   font-weight: 550;

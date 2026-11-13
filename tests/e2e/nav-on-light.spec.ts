@@ -64,11 +64,11 @@ test('nav re-arms on-light after SPA back-nav from a project page', async ({ pag
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(1)
 
   // Follow the first project to its page (SPA nav, Header stays mounted)
-  // through the keyboard path: the stream's case-study rows are the DOM's only
-  // route into a project; the cards themselves live on the canvas (ADR 0011).
+  // through the keyboard path: the card links are the DOM's route into a
+  // project; the cards themselves live on the canvas (ADR 0011).
   // Playhead 0: card 0 settled in the slot.
   await scrollToPlayhead(page, 0)
-  const link = page.locator('#archive .stream-item .workrow-link').first()
+  const link = page.locator('#projects a.scene-cardlink').first()
   const href = await link.getAttribute('href')
   await link.focus()
   await page.keyboard.press('Enter')

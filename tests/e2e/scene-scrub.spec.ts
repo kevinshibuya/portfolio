@@ -181,12 +181,10 @@ test('the overture line stands at the top and is gone once the cards read', asyn
 test('clicking the settled card opens its project', async ({ page }) => {
   await openScene(page)
   await scrollToPlayhead(page, 0)
-  // The stream runs newest-first over the WHOLE archive, so its first row is
-  // not the settled card. Ask for the row that belongs to the card in the slot
-  // at playhead 0, which is `featured[0]` — the same order Projects.tsx builds
-  // `cards` in.
+  // The card in the slot at playhead 0 is `featured[0]`, the same order
+  // Projects.tsx builds `cards` and the card links in.
   const href = `/projects/${FEATURED[0].slug}`
-  await expect(page.locator(`#archive .stream-item a.workrow-link[href="${href}"]`)).toHaveCount(1)
+  await expect(page.locator(`#projects a.scene-cardlink[href="${href}"]`)).toHaveCount(1)
 
   // The settled card's projected rect, from the same geometry the scene uses.
   const { width, height } = page.viewportSize()!
@@ -220,15 +218,15 @@ test('clicking a distant card scrolls it into the slot', async ({ page }) => {
   await expect(page).toHaveURL(/\/$/)
 })
 
-test('a stream row navigates to its project', async ({ page }) => {
+test('a card link navigates to its project', async ({ page }) => {
   await openScene(page)
   await scrollToPlayhead(page, 0)
 
-  // The stream absorbed the skip links: a case-study row IS the keyboard route
-  // into a project now, and it is a real link, clipped rather than hidden.
-  const link = page.locator('#archive .stream-item .workrow-link').first()
+  // The card links are the keyboard route into a project (ADR 0011): real
+  // links, clipped rather than hidden.
+  const link = page.locator('#projects a.scene-cardlink').first()
   const href = (await link.getAttribute('href'))!
-  expect(href).toMatch(/^\/projects\//)
+  expect(href).toBe(`/projects/${FEATURED[0].slug}`)
   await link.focus()
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(new RegExp(href.replace(/[/]/g, '\\/')))

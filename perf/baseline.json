@@ -512,7 +512,7 @@
   },
   "exact": {
     "chunkBytesCeiling": {
-      "AllWork.js": 825,
+      "AllWork.js": 2884,
       "Contact.js": 2999,
       "Footer.js": 979,
       "ProjectDetail.js": 10574,
@@ -521,16 +521,16 @@
       "Skills.js": 2226,
       "Stagger.js": 543,
       "Stats.js": 2358,
-      "Stream.js": 50464,
       "Tag.js": 288,
       "WorkExperience.js": 8643,
       "WorkRow.js": 1950,
+      "archive.js": 48115,
       "framer-motion.js": 130110,
       "i18n.js": 53183,
       "index.css": 47268,
       "index.js": 112868,
       "lenis.js": 19760,
-      "palette.js": 195,
+      "palette.js": 267,
       "projects.js": 32327,
       "react-core.js": 195961,
       "router.js": 38936

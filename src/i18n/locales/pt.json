@@ -30,7 +30,6 @@
       "title": "todos os trabalhos",
       "pieces_one": "{{count}} peça",
       "pieces_other": "{{count}} peças",
-      "skipPast": "pular todos os trabalhos",
       "origin": {
         "freelance": "freelance",
         "personal": "pessoal"
