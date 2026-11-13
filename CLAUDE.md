@@ -86,7 +86,7 @@ Checkboxes in `docs/superpowers/specs/` and `docs/superpowers/plans/` are the so
 | Rules an agent obeys every turn | `CLAUDE.md` |
 | How each surface works | `docs/architecture.md` |
 | AA contrast tables | `docs/contrast.md` |
-| Glossary and invariants | `CONTEXT.md` |
+| Glossary and invariants | `GLOSSARY.md` |
 | Decisions with their reasoning | `docs/adr/` |
 | Records of live systems | `docs/superpowers/specs/`, `docs/superpowers/plans/` |
 | Records of retired systems | `docs/superpowers/archive/` |

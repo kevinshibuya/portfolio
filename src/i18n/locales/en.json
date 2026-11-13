@@ -1,7 +1,6 @@
 {
   "nav": {
     "work": "work",
-    "archive": "all work",
     "experience": "experience",
     "skills": "stack",
     "contact": "contact"
@@ -18,30 +17,22 @@
       "ai engineer"
     ]
   },
-  "stats": {
-    "heading": "numbers",
-    "receipt": {
-      "years": "years shipping interactives, from first commit to today.",
-      "interactives": "interactives published across gauchazh.",
-      "reconstruction": "in reconstruction spend tracked:",
-      "reconstruction_cta": "painel da reconstrução",
-      "votes": "live votes registered:",
-      "votes_cta": "enquetes gzh"
-    }
-  },
   "sections": {
     "projects": {
       "heading": "selected work",
       "overture": "a few things i've built",
       "stack": {
         "viewProject": "view"
+      },
+      "moreWork": {
+        "claim": "plus 250+ interactives for GZH since 2023",
+        "link": "see all work"
       }
     },
     "archive": {
       "title": "all work",
       "pieces_one": "{{count}} piece",
       "pieces_other": "{{count}} pieces",
-      "skipPast": "skip past all work",
       "origin": {
         "freelance": "freelance",
         "personal": "personal"
@@ -98,5 +89,11 @@
     "notFound": "project not found",
     "notFoundDescription": "the project you're looking for doesn't exist.",
     "scroll": "scroll"
+  },
+  "allWork": {
+    "meta": {
+      "title": "all work · kevin shibuya",
+      "description": "every piece kevin shibuya has shipped, year by year: case studies and the interactives published on GZH."
+    }
   }
 }

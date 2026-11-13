@@ -8,6 +8,7 @@ import {
   type RecipeName,
 } from '../../src/utils/animations'
 import { skillCategories } from '../../src/data/skills'
+import { projects } from '../../src/data/projects'
 
 describe('SPRINGS', () => {
   it('exposes gentle, snappy, soft with type:spring', () => {
@@ -72,7 +73,7 @@ describe('STAGGER_PRESETS', () => {
     expect(STAGGER_PRESETS.skillsItems).toBeCloseTo(0.03)
     expect(STAGGER_PRESETS.projectCards).toBeCloseTo(0.05)
     expect(STAGGER_PRESETS.embedRows).toBeCloseTo(0.05)
-    expect(STAGGER_PRESETS.statValues).toBeCloseTo(0.12)
+    expect(STAGGER_PRESETS.detailStats).toBeCloseTo(0.12)
   })
 })
 
@@ -88,16 +89,17 @@ describe('REDUCED_MOTION_VARIANT', () => {
 
 // Guard: Framer nested-container stagger accumulates. The motion-design skill
 // caps total stagger at 500ms. Item counts are fixed in src/data/*:
-// Projects 9, Stats 5, WorkExperience 5. Skills counts are derived from the
-// real data below (categories vary; DevOps has 8 skills), so the worst case is
-// checked against actual content, not a hard-coded assumption.
+// Projects 9, WorkExperience 5. Skills and detail-page stat counts are derived
+// from the real data below (categories vary; DevOps has 8 skills), so the worst
+// case is checked against actual content, not a hard-coded assumption.
 describe('stagger budgets stay under the 500ms motion-design ceiling', () => {
   const CEIL = 0.5
   it('projects: 9 cards, last-card start < 0.5s', () => {
     expect((9 - 1) * STAGGER_PRESETS.projectCards).toBeLessThan(CEIL)
   })
-  it('stats: 5 values, last start < 0.5s', () => {
-    expect((5 - 1) * STAGGER_PRESETS.statValues).toBeLessThan(CEIL)
+  it('detail stats: longest stat row (real data), last start < 0.5s', () => {
+    const maxStats = Math.max(...projects.map((p) => p.stats?.length ?? 0))
+    expect((maxStats - 1) * STAGGER_PRESETS.detailStats).toBeLessThan(CEIL)
   })
   it('workExperience: 5 rows, last start < 0.5s', () => {
     expect((5 - 1) * STAGGER_PRESETS.workRows).toBeLessThan(CEIL)

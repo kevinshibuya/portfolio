@@ -8,6 +8,9 @@ import { useScrollLockDuringEntrance } from './hooks/useScrollLockDuringEntrance
 const ProjectDetail = lazy(() =>
   import('./pages/ProjectDetail').then((m) => ({ default: m.ProjectDetail }))
 )
+const AllWork = lazy(() =>
+  import('./pages/AllWork').then((m) => ({ default: m.AllWork }))
+)
 
 function App() {
   useScrollLockDuringEntrance()
@@ -21,6 +24,14 @@ function App() {
           element={
             <Suspense fallback={null}>
               <ProjectDetail />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/all-work"
+          element={
+            <Suspense fallback={null}>
+              <AllWork />
             </Suspense>
           }
         />

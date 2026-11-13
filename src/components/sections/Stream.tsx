@@ -5,21 +5,11 @@ import { WorkRow } from '../ui/WorkRow'
 import { accentFor, accentDeepFor, accentDeepLargeFor } from '../../utils/palette'
 
 /**
- * The archive's accessible twin.
+ * Every piece, year by year, newest first, as real DOM in normal flow: the
+ * content of All work (ADR 0014). Case studies link to their detail route,
+ * Embeds out to the publisher.
  *
- * The wall is 171 cells drawn on a canvas, which is nothing at all to a
- * keyboard or a screen reader. This is the same 171 pieces as real DOM, year by
- * year, in the wall's own reading order — one component in two states.
- *
- * `hidden` is the state that runs alongside the scene: every row is focusable
- * but clipped to a pixel, and focusing one both surfaces it as a pill at the
- * top of the viewport and travels the camera to its cell. `visible` is the
- * whole thing in normal flow, and it is the archive when there is no WebGL to
- * draw the wall with.
- *
- * No state, no Framer Motion, no canvas import, no router hook — the camera
- * travel belongs to the section that owns the wrapper, and reaches here as
- * `onRowFocus`.
+ * No state, no Framer Motion, no canvas import, no router hook.
  */
 
 /** Static data: the packing never changes at runtime, so neither does this. */
@@ -32,49 +22,41 @@ function dayMonth(date: string): string {
 }
 
 export interface StreamProps {
-  /** 'hidden' while the scene runs (focusable, offscreen); 'visible' without WebGL. */
-  mode: 'hidden' | 'visible'
-  /** Fires on focus of a row, with the archive item id. Undefined in 'visible' mode. */
-  onRowFocus?: (itemId: string) => void
+  /** The title's heading level, years one below: 3 under the home page's section
+   *  `h2`, 1 where the Stream is the page itself (All work). */
+  headingLevel?: 1 | 3
 }
 
-export function Stream({ mode, onRowFocus }: StreamProps): React.ReactElement {
+export function Stream({ headingLevel = 3 }: StreamProps): React.ReactElement {
   const { t, i18n } = useTranslation()
   const lang = i18n.language.startsWith('pt') ? 'pt' : 'en'
-  const hidden = mode === 'hidden'
+  const Title = headingLevel === 1 ? 'h1' : 'h3'
+  const YearLabel = headingLevel === 1 ? 'h2' : 'h4'
 
   return (
     <section
       id="archive"
-      className={`stream ${hidden ? 'stream--hidden' : 'stream--visible'}`}
+      className="stream stream--visible"
       aria-labelledby="stream-title"
     >
-      {/* First in DOM order, so a reader who does not want 171 rows meets the
-          way out before the first of them. */}
-      {hidden && (
-        <a className="stream-skip" href="#work">
-          {t('sections.archive.skipPast')}
-        </a>
-      )}
-
       <header className="stream-header">
-        <h3 id="stream-title" className="stream-title">
+        <Title id="stream-title" className="stream-title">
           {t('sections.archive.title')}
-        </h3>
+        </Title>
         <p className="stream-total">{t('sections.archive.pieces', { count: archive.length })}</p>
       </header>
 
       {BLOCKS.map((block) => (
         <div className="stream-year" data-year={block.year} key={block.year}>
-          <h4 className="stream-year-label">
+          <YearLabel className="stream-year-label">
             {block.year}
             <span className="stream-year-count">
               {t('sections.archive.pieces', { count: block.count })}
             </span>
-          </h4>
+          </YearLabel>
           <ol className="stream-list">
             {block.items.map((item) => (
-              <StreamItem key={item.id} item={item} lang={lang} onRowFocus={onRowFocus} />
+              <StreamItem key={item.id} item={item} lang={lang} />
             ))}
           </ol>
         </div>
@@ -86,10 +68,9 @@ export function Stream({ mode, onRowFocus }: StreamProps): React.ReactElement {
 interface StreamItemProps {
   item: ArchiveItem
   lang: 'en' | 'pt'
-  onRowFocus?: (itemId: string) => void
 }
 
-function StreamItem({ item, lang, onRowFocus }: StreamItemProps): React.ReactElement {
+function StreamItem({ item, lang }: StreamItemProps): React.ReactElement {
   const { t } = useTranslation()
   const title = resolveTitle(item, lang)
   // The item's position in the WHOLE stream, newest at 0, so the tricolor
@@ -97,17 +78,12 @@ function StreamItem({ item, lang, onRowFocus }: StreamItemProps): React.ReactEle
   const position = archive.length - item.serial
   const serial = String(item.serial)
 
-  // Focus bubbles, so one handler on the li covers both row kinds — WorkRow
-  // exposes no onFocus of its own, and the dense row would need a second copy.
-  const onFocus = onRowFocus ? () => onRowFocus(item.id) : undefined
-
   return (
     <li
       className="stream-item"
       data-item-id={item.id}
       data-serial={item.serial}
       data-origin={item.origin}
-      onFocus={onFocus}
     >
       {item.caseStudy ? (
         <>
@@ -117,7 +93,7 @@ function StreamItem({ item, lang, onRowFocus }: StreamItemProps): React.ReactEle
           <WorkRow
             index={position}
             title={title}
-            // The wall's own word, not the raw value: PT `personal` is
+            // The localised word, not the raw value: PT `personal` is
             // `pessoal`, and the stream must not read English beside it.
             // `professional` is the default and says nothing worth a line.
             meta={

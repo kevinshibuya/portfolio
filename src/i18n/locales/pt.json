@@ -1,7 +1,6 @@
 {
   "nav": {
     "work": "trabalhos",
-    "archive": "todos os trabalhos",
     "experience": "experiência",
     "skills": "stack",
     "contact": "contato"
@@ -18,30 +17,22 @@
       "engenheiro de ia"
     ]
   },
-  "stats": {
-    "heading": "números",
-    "receipt": {
-      "years": "anos entregando interativos, do primeiro commit até hoje.",
-      "interactives": "interativos publicados na gauchazh.",
-      "reconstruction": "em recursos da reconstrução acompanhados:",
-      "reconstruction_cta": "painel da reconstrução",
-      "votes": "votos ao vivo registrados:",
-      "votes_cta": "enquetes gzh"
-    }
-  },
   "sections": {
     "projects": {
       "heading": "trabalhos selecionados",
       "overture": "algumas coisas que construí",
       "stack": {
         "viewProject": "ver"
+      },
+      "moreWork": {
+        "claim": "e mais de 250 peças interativas para a GZH desde 2023",
+        "link": "ver todos os trabalhos"
       }
     },
     "archive": {
       "title": "todos os trabalhos",
       "pieces_one": "{{count}} peça",
       "pieces_other": "{{count}} peças",
-      "skipPast": "pular todos os trabalhos",
       "origin": {
         "freelance": "freelance",
         "personal": "pessoal"
@@ -96,5 +87,11 @@
     "notFound": "projeto não encontrado",
     "notFoundDescription": "o projeto que você está procurando não existe.",
     "scroll": "rolar"
+  },
+  "allWork": {
+    "meta": {
+      "title": "todos os trabalhos · kevin shibuya",
+      "description": "todas as peças que kevin shibuya publicou, ano a ano: estudos de caso e as peças interativas publicadas na GZH."
+    }
   }
 }

@@ -28,7 +28,7 @@ export const VARIANTS = {
   },
   stampIn: {
     // Restrained "stamp" — scale 1.06 (was 1.15) reads Premium, keeps a whisper
-    // of the motif on the Stats/Contact headings.
+    // of the motif on the Contact heading.
     hidden:  { opacity: 0, scale: 1.06, filter: 'blur(2px)' },
     visible: { opacity: 1, scale: 1, filter: 'blur(0px)', transition: SPRINGS.snappy },
   },
@@ -58,7 +58,7 @@ export const STAGGER_PRESETS = {
   skillsItems: 0.03,
   projectCards: 0.05,
   embedRows: 0.05,
-  statValues: 0.12,
+  detailStats: 0.12,
 } as const satisfies Record<string, number>
 
 export function staggerContainer(stagger: number, delayChildren = 0): Variants {

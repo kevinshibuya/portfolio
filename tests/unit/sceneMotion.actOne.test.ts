@@ -1,10 +1,9 @@
 /**
  * Act one is pixel-identical, and this file is the definition of that.
  *
- * Every pure function the act-one frame reads is sampled across six viewports
- * and the whole act-one playhead range, rounded, and snapshotted. Act two adds
- * a second playhead unit past 3 and a second pose family; none of it may move a
- * single number below. If a snapshot changes, act one changed.
+ * Every pure function the corridor frame reads is sampled across six viewports
+ * and the whole playhead range, rounded, and snapshotted. If a snapshot
+ * changes, act one changed.
  *
  * The companion proof is the dev-server title-identity dump
  * (`scripts/scene-title-identity.mjs`), which covers what a pure test cannot:
