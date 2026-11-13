@@ -18,17 +18,6 @@
       "ai engineer"
     ]
   },
-  "stats": {
-    "heading": "numbers",
-    "receipt": {
-      "years": "years shipping interactives, from first commit to today.",
-      "interactives": "interactives published across gauchazh.",
-      "reconstruction": "in reconstruction spend tracked:",
-      "reconstruction_cta": "painel da reconstrução",
-      "votes": "live votes registered:",
-      "votes_cta": "enquetes gzh"
-    }
-  },
   "sections": {
     "projects": {
       "heading": "selected work",

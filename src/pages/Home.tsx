@@ -19,9 +19,6 @@ const WorkExperience = lazy(() =>
 const Skills = lazy(() =>
   import('../components/sections/Skills').then((m) => ({ default: m.Skills }))
 )
-const Stats = lazy(() =>
-  import('../components/sections/Stats').then((m) => ({ default: m.Stats }))
-)
 const Contact = lazy(() =>
   import('../components/sections/Contact').then((m) => ({ default: m.Contact }))
 )
@@ -234,7 +231,6 @@ export function Home() {
       void import('../components/sections/Projects')
       void import('../components/sections/WorkExperience')
       void import('../components/sections/Skills')
-      void import('../components/sections/Stats')
       void import('../components/sections/Contact')
       void import('../components/layout/Footer')
     }
@@ -262,7 +258,6 @@ export function Home() {
         <div id="chapter-light" className="chapter-light">
           <Projects />
           <WorkExperience />
-          <Stats />
           <Skills />
         </div>
         {/* The exit veil is the wrapper's SIBLING, never a child: its gradient

@@ -39,7 +39,7 @@ npm run test:e2e:quick  # the quick e2e suite, for a PR's fix loop (ADR 0013)
 src/
   components/
     layout/        # Header, Footer, SmoothScroll
-    sections/      # Hero, Projects, WorkExperience, Skills, Stats, Contact …
+    sections/      # Hero, Projects, WorkExperience, Skills, Contact …
     ui/            # reusable atoms (SectionHeading, Stagger, …)
     canvas/        # the Selected Work R3F scene + the raw-WebGL FluidWaves
     projectDetail/ # project case-study page parts

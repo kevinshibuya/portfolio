@@ -18,17 +18,6 @@
       "engenheiro de ia"
     ]
   },
-  "stats": {
-    "heading": "números",
-    "receipt": {
-      "years": "anos entregando interativos, do primeiro commit até hoje.",
-      "interactives": "interativos publicados na gauchazh.",
-      "reconstruction": "em recursos da reconstrução acompanhados:",
-      "reconstruction_cta": "painel da reconstrução",
-      "votes": "votos ao vivo registrados:",
-      "votes_cta": "enquetes gzh"
-    }
-  },
   "sections": {
     "projects": {
       "heading": "trabalhos selecionados",

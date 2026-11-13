@@ -910,7 +910,7 @@ html[data-loading='true'] {
    nth-child(3n+k) targets the same visual column across every row. Stagger
    wraps each .skills-col in its own motion.div, so the nth-child count must
    run over .skills-grid's direct children (the wrappers), not .skills-col
-   itself — see the identical .stats-rows wrapper note above. */
+   itself. */
 .skills-grid > :nth-child(3n+1) .skills-dot { background: var(--accent-pink); }
 .skills-grid > :nth-child(3n+2) .skills-dot { background: var(--accent-blue); }
 .skills-grid > :nth-child(3n+3) .skills-dot { background: var(--accent-yellow); }
@@ -1150,119 +1150,6 @@ body[data-loader-state="loading"] {
   overscroll-behavior: none;
   touch-action: none;
 }
-
-/* Stats numbered-receipt section. Two-column editorial layout on desktop
-   (heading left, numbered rows right), single column on mobile. */
-.stats {
-  padding: 128px 80px;
-  background: var(--bg);
-}
-.stats-inner {
-  max-width: 1440px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 5fr 7fr;
-  gap: 80px;
-  align-items: start;
-}
-.stats-heading-col {
-  position: sticky;
-  top: 120px;
-}
-.stats-rows {
-  position: relative;
-  border-left: 1px solid var(--hairline);
-  padding-left: 80px;
-  display: flex;
-  flex-direction: column;
-}
-.stats-row {
-  display: grid;
-  grid-template-columns: 48px 240px 1fr;
-  column-gap: 24px;
-  align-items: start;
-  padding: 56px 0;
-  border-bottom: 1px solid var(--hairline);
-}
-/* Stagger wraps each .stats-row in a motion.div, so .stats-row:first-child
-   would (incorrectly) match every row. Target the wrapper instead. */
-.stats-rows > :first-child .stats-row { padding-top: 0; }
-.stats-rows > :last-child .stats-row {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-.stats-row-num {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-faded);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  /* Optical nudge: line up the cap-top of "01" with the cap-top of the
-     value glyph (Plus Jakarta at line-height:1 sits ~6px below box top). */
-  padding-top: 6px;
-}
-.stats-row-value {
-  font-size: 56px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  white-space: nowrap;
-}
-.stats-row-ann {
-  font-size: 16px;
-  color: var(--text-muted);
-  line-height: 1.55;
-  text-transform: lowercase;
-  /* Same optical nudge as .stats-row-num so the annotation's first-line
-     text-top matches the value's cap-top. */
-  padding-top: 6px;
-}
-.stats-row-link {
-  color: var(--accent-blue);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-bottom-color var(--dur-hover-in) var(--ease-house),
-              color var(--dur-hover-in) var(--ease-house);
-  margin-left: 6px;
-}
-.stats-row-link:hover {
-  border-bottom-color: var(--accent-blue);
-}
-.stats-row-link:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: 4px;
-  border-radius: 2px;
-}
-@media (max-width: 1023px) {
-  .stats { padding: 112px 48px; }
-  .stats-inner { gap: 56px; }
-  .stats-rows { padding-left: 48px; }
-  .stats-row { grid-template-columns: 40px 200px 1fr; column-gap: 20px; }
-  .stats-row-value { font-size: 48px; }
-}
-@media (max-width: 768px) {
-  .stats { padding: 96px 24px; }
-  .stats-inner {
-    grid-template-columns: 1fr;
-    gap: 48px;
-  }
-  .stats-heading-col { position: static; }
-  .stats-rows {
-    border-left: none;
-    padding-left: 0;
-  }
-  .stats-row {
-    grid-template-columns: 32px 160px 1fr;
-    column-gap: 16px;
-    padding: 24px 0;
-  }
-  .stats-row-value { font-size: 40px; }
-  .stats-row-ann { font-size: 15px; }
-}
-
 
 /* =====================================================================
  * Project detail page

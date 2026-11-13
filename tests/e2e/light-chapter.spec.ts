@@ -50,15 +50,15 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
     expect(await bgOf(page, 'body')).toBe('rgb(11, 14, 20)')
   })
 
-  test('2 · structure: four sections in the wrapper, veil as its sibling', async ({ page }) => {
+  test('2 · structure: three sections in the wrapper, veil as its sibling', async ({ page }) => {
     await settle(page)
 
     const ids = await page.evaluate(() =>
       Array.from(document.querySelectorAll('#chapter-light > *')).map((el) => el.id),
     )
-    expect(ids).toEqual(['projects', 'work', 'stats', 'skills'])
+    expect(ids).toEqual(['projects', 'work', 'skills'])
 
-    // The stream is a DESCENDANT of #projects, never a fifth chapter child.
+    // The stream is a DESCENDANT of #projects, never a fourth chapter child.
     // Hoisting it would take it out of the scene's section and out of the
     // token scope with it.
     await expect(page.locator('#projects #archive')).toHaveCount(1)
@@ -72,7 +72,7 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
 
     // The wrapper must stay a plain block. Any of these would create a
     // containing block or a clip and silently break the position:sticky stage
-    // inside #projects (and .stats-heading-col, and the fixed skip-link chip) —
+    // inside #projects (and the fixed skip-link chip) —
     // a failure the scrub suite does NOT catch, because useScroll reads document
     // scroll whether or not the stage actually pins.
     const box = await page.evaluate(() => {
@@ -90,7 +90,6 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
     await scrollIntoSection(page, 'work', 0.2)
 
     expect(await bgOf(page, '#skills')).toBe('rgb(237, 233, 224)')
-    expect(await bgOf(page, '#stats')).toBe('rgb(245, 242, 236)')
     expect(await bgOf(page, '#projects')).toBe('rgb(245, 242, 236)')
     // The tech pill sits on the tonal step even on a cream section.
     expect(await bgOf(page, '#work .pill')).toBe('rgb(237, 233, 224)')
@@ -99,9 +98,6 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
 
   test('4 · text inverts to the on-light ink system', async ({ page }) => {
     await settle(page)
-    await scrollIntoSection(page, 'stats', 0.2)
-    expect(await colorOf(page, '#stats .stats-row-value')).toBe('rgb(11, 14, 20)')
-
     await scrollIntoSection(page, 'skills', 0.2)
     expect(await colorOf(page, '#skills .skills-item')).toBe('rgba(11, 14, 20, 0.62)')
 

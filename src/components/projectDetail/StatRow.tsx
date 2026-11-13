@@ -16,7 +16,7 @@ export function StatRow({ stats, lang }: Props) {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.4 }}
-      variants={prefersReducedMotion ? { hidden: {}, visible: {} } : staggerContainer(STAGGER_PRESETS.statValues)}
+      variants={prefersReducedMotion ? { hidden: {}, visible: {} } : staggerContainer(STAGGER_PRESETS.detailStats)}
     >
       {stats.map((s, i) => (
         <motion.div
