@@ -24,49 +24,40 @@ All always-visible pairs are ≥4.5:1 (or ≥3.0:1 for large text). `.contact-nu
 
 ## Light chapter, Plan B
 
-Ratified 2026-09-02; derived in `docs/superpowers/plans/2026-09-02-light-chapter-plan-b.md`. Grounds: cream `#F5F2EC` (Selected Work, Work Experience, Stats, and the wrapper), tonal cream `#EDE9E0` (Skills; also the `.pill` surface), white `#FFFFFF` (card interiors only).
+Ratified 2026-09-02; derived in `docs/superpowers/plans/2026-09-02-light-chapter-plan-b.md`. Recomputed as a unit 2026-11-13 for ADR 0014: the Numbers section, the archive wall and the hidden Stream are gone from the chapter, and More work and the card links are in it. Grounds: cream `#F5F2EC` (Selected Work with More work, Work Experience, and the wrapper), tonal cream `#EDE9E0` (Skills; also the `.pill` surface), white `#FFFFFF` (card interiors only).
 
 | # | pair (element → color it resolves to) | ground | ratio | need | verdict |
 |---|---|---|---|---|---|
-| 1 | `.section-title`, `.workrow-title`, `.stats-row-value`, `.skills-title`, `.work-highlight p`, `.pill:hover` text → ink `#0B0E14` | cream / tonal | 17.29 / 15.94 | 4.5 | ✅ |
-| 2 | `.section-desc`, `.workrow-meta` (+ `·` separators), `.workrow-panel`, `.stats-row-num`, `.stats-row-ann`, `.skills-num`, `.skills-item`, `.work-meta-line`, `.work-location`, `.work-mode-pill`, `.work-bullets li`, `.pill` → muted `rgba(11,14,20,.62)` | cream / tonal | 5.23 / 5.11 | 4.5 | ✅ |
+| 1 | `.section-title`, `.workrow-title` (Work Experience and More work), `.more-work-volume a`, `.skills-title`, `.work-highlight p`, `.pill:hover` text → ink `#0B0E14` | cream / tonal | 17.29 / 15.94 | 4.5 | ✅ |
+| 2 | `.section-desc`, `.workrow-meta` (+ `·` separators; More work's `year · tech · tech`), `.workrow-panel`, `.more-work-volume` (the volume sentence's claim and its `·`), `.skills-num`, `.skills-item`, `.work-meta-line`, `.work-location`, `.work-mode-pill`, `.work-bullets li`, `.pill` → muted `rgba(11,14,20,.62)` | cream / tonal | 5.23 / 5.11 | 4.5 | ✅ |
 | 3 | `.workrow-index` only (`aria-hidden="true"`, pure ordinal) → faded `rgba(11,14,20,.40)` | cream / tonal | 2.62 / 2.59 | exempt (WCAG 1.4.3 note 1, decorative; matches `.contact-num`) | ✅ exempt |
 | 3b | `.workrow-arrow` → muted `rgba(11,14,20,.62)`. NOT on the faded step: on the expandable row it is the only visible cue that the row opens, inside a `<button aria-expanded>`, so WCAG **1.4.11** (3:1, state indicator) applies and `aria-hidden` does not exempt it | cream / tonal | 5.23 / 5.11 | 3.0 | ✅ |
-| 4 | `.section-title em`, `.stats-row-link` → deep blue `#2A54B5` | cream / tonal | 6.20 / 5.71 | 4.5 | ✅ |
+| 4 | `.section-title em` → deep blue `#2A54B5` | cream / tonal | 6.20 / 5.71 | 4.5 | ✅ |
 | 5 | `.work-highlight-label` (10px uppercase, always visible on the expanded row) → `--row-tint-deep`: `#B22B47` / `#2A54B5` / ink-muted | cream | 5.64 / 6.20 / 5.23 | 4.5 | ✅ |
-| 6 | WorkRow title hover tint, pink slot → `#B22B47` | cream / tonal | 5.64 / 5.21 | 3.0 (large, ≥28px); 4.5 for the stream's case-study rows, whose `.stream .workrow-title` is 20 to 34 px at weight 550 and so not large text · every slot clears it | ✅ |
+| 6 | WorkRow title hover tint, pink slot → `#B22B47` | cream / tonal | 5.64 / 5.21 | 3.0 (large: `.workrow-title` is `clamp(28px, 4.6vw, 64px)`, at least 28 px against the 24 px line for weight 550, on Work Experience and More work alike) | ✅ |
 | 7 | WorkRow title hover tint, blue slot → `#2A54B5` | cream / tonal | 6.20 / 5.71 | 3.0 | ✅ |
 | 8 | WorkRow title hover tint, yellow slot → `#7A6800` | cream / tonal | 4.94 / 4.55 | 3.0 | ✅ (also clears 4.5) |
-| 10 | focus rings: `.workrow-*:focus-visible` outline → ink; `.stats-row-link:focus-visible` → deep blue | cream / tonal | 15.94+; 5.71+ | 3.0 (non-text) | ✅ |
+| 10 | focus rings: `.workrow-*:focus-visible` and `.more-work-volume a:focus-visible` outlines → ink | cream / tonal | 15.94+ | 3.0 (non-text) | ✅ |
 | 11 | `::selection` inside the chapter → cream text on deep blue | deep blue | 6.20 | 4.5 | ✅ |
 | 12 | decorative, no text: hairlines `rgba(11,14,20,.12)`; `.skills-dot`; `.skills-item:hover` dashed border; `.work-mode-dot`, `.work-bullets li::before`, `.work-highlight` border-left (all three → `--row-tint-deep-large`, so the yellow slot is olive `#7A6800`, visible, not raw `#E6CC4D` at 1.43); `.work-mode-pill` bg `rgba(11,14,20,.06)`; `.work-highlight` bg `rgba(11,14,20,.04)`; `.pill` bg tonal + hairline border; `.pill:hover` bg `rgba(11,14,20,.06)` + deep-blue border | any | decorative | n/a | ✅ |
 | 13 | nav-on-light over tonal cream: link muted on `rgba(245,242,236,.85)`-over-`#EDE9E0` | ≈ cream | ≥ 5.1 | 4.5 | ✅ |
 | 14 | tonal cream vs cream adjacency (the Skills edge against the cream sections; `.pill` on cream) | n/a | 1.08 | n/a | ✅ (a tonal step, same role as `#131722` vs `#0B0E14` on dark) |
 | 15 | Selected Work caption on the card's white band: name ink `#0B0E14`; subtitle `rgba(11,14,20,.62)` composited on white ≈ `#686A6D`; the `↗` is decorative (`accentDeepLargeFor`) | white `#FFFFFF` | 19.32 / 5.42 | 4.5 | ✅ (rasterised text, not DOM; computed 2026-09-05) |
-| 16 | wall cell title, `professional` → ink `#0B0E14`, rasterised onto the wall's cream | cream | 17.29 | 4.5 | ✅ |
-| 17 | wall cell title, `freelance` → `#B22B47`; `personal` → `#2A54B5`. Size at the approach's end, from `friezeLegibility.test.ts`: desktop **20.43 px** (1440×900), 24.51 px (1920×1080); phone **17.28 px** (320×568), 19.16 px (390×844). Both hexes clear 4.5 at any size, so the size does not change the verdict; it is recorded because the spec asks for it, and the phone figures are recorded, not asserted (assumption 16) | cream | 5.64 / 6.20 | 4.5 | ✅ |
-| 18 | wall cell meta and serial → muted `rgba(11,14,20,.62)` composited on cream ≈ `#646566`, drawn at `CELL_META_WORLD = 0.04`: desktop **13.62 px** (1440×900), 16.34 px (1920×1080); phone **11.52 px** (320×568), 12.77 px (390×844). Wall hover lift → `accentDeepLargeFor`: `#B22B47` / `#2A54B5` / `#7A6800` | cream | 5.23; 5.64 / 6.20 / 4.94 | 4.5 | ✅ |
-| 19 | stream, visible state: `.stream-title`, `.stream-year-label`, `.stream-row-title` → ink **by an explicit `color: var(--text)`, added 2026-09-11 after a browser pass found all three inheriting `body`'s cream and rendering cream on cream in the no-WebGL state** (`.workrow-title` was always right, which is why the nine case-study rows stayed visible while 162 editorial titles did not); `.stream-total`, `.stream-year-count`, `.stream-serial`, `.stream-row-meta`, `.workrow-meta` (the origin word), `.stream-row-arrow`, `.workrow-arrow` → muted; hover AND `:focus-within` lift → the deep-large triplet. The title is 17 px, under the 18.67 px large-text line, so the yellow slot takes the 4.5 bar and clears it | cream | 17.29; 5.23; 5.64 / 6.20 / 4.94 | 4.5 | ✅ |
-| 20 | stream, hidden state: the focused pill is `var(--text)` on `var(--bg)`, which inside the chapter resolves to ink on cream, with a `var(--hairline)` border and an ink outline; an editorial row's `.stream-row-title` stays ink in the pill (no lift rule reaches it), while a case-study row's `.workrow-title` takes `--row-tint-deep-large` through `.chapter-light .workrow:focus-within`, on that same cream at the pill's 14 px; focus rings on the visible state → ink | cream | 17.29; 5.64 / 6.20 / 4.94 | 4.5 (text), 3.0 (ring) | ✅ |
+| 20 | card links (`.scene-cardlink`), the focused pill: `var(--text)` on `var(--bg)`, which inside the chapter resolves to ink on cream, 14 px at weight 500, with a `var(--hairline)` border and a 2 px `var(--text)` outline, so ink; unfocused, the link is clipped to 1 px and shows nothing | cream | 17.29 | 4.5 (text), 3.0 (ring) | ✅ |
 
-**Row 9 is retired, not renumbered.** It covered the paging button of the section this chapter no longer has;
-`.btn--ghost` survives only on the project-detail route, outside this chapter. The numbering is left as it is
-so earlier references still resolve.
+**Retired rows are not renumbered**, so earlier references still resolve:
 
-**Rows 16 to 18 are rasterised text on a canvas, not DOM.** The sizes come from
-`tests/unit/friezeLegibility.test.ts`, measured at the END of the approach beat — the moment the reader first
-has to read the wall, and the only act-two beat where the camera is square to it, so a pitch-only projection
-is exact. The test asserts `|yaw| < 1e-6` at that beat before measuring, so a choreography change fails loudly
-instead of reporting a wrong number, and it asserts the 12 px caption floor on the two desktop viewports only
-(assumption 16).
+- **Row 9** covered the paging button of a section this chapter no longer has; `.btn--ghost` survives only on the project-detail route, outside this chapter.
+- **Rows 16 to 18** covered the archive wall's rasterised cell titles, meta and serials. The wall was deleted with the scene's act two (ADR 0014).
+- **Row 19** covered the Stream's visible state inside the chapter, the no-WebGL archive. The Stream no longer renders on the homepage in any state; its only page is All work, on ink, in the table below.
 
 ## All work, on ink
 
-Computed 2026-10-18 for `/all-work` (ADR 0014). The page sits outside the light chapter, so the Stream's canonical tokens resolve to the cream steps and its rows lift on `--row-tint`, the raw tricolor from `accentFor()`; neither deep channel is read on this page. Ground: page ink `#0B0E14` (nothing between `body` and the Stream paints its own; `tests/e2e/all-work.spec.ts` asserts it).
+Computed 2026-10-18 for `/all-work` (ADR 0014), recomputed with the light chapter's table on 2026-11-13. The Stream renders nowhere else, so this table is the Stream's whole audit. The page sits outside the light chapter, so the Stream's canonical tokens resolve to the cream steps and its rows lift on `--row-tint`, the raw tricolor from `accentFor()`; neither deep channel is read on this page. Ground: page ink `#0B0E14` (nothing between `body` and the Stream paints its own; `tests/e2e/all-work.spec.ts` asserts it).
 
 | # | pair (element → color it resolves to) | ground | ratio | need | verdict |
 |---|---|---|---|---|---|
-| 1 | `.stream-title` (the page `h1`), `.stream-year-label`, `.stream-row-title`, `.workrow-title` → cream `#F5F2EC` | ink | 17.29 | 4.5 | ✅ |
+| 1 | `.stream-title` (the page `h1`), `.stream-year-label`, `.stream-row-title`, `.workrow-title` → cream `#F5F2EC`. The first three set an explicit `color: var(--text)` rather than inherit `body`'s, a rule from 2026-09-11, when the Stream also rendered inside the light chapter and the inherited cream went cream on cream there | ink | 17.29 | 4.5 | ✅ |
 | 2 | `.stream-total`, `.stream-year-count`, `.stream-serial`, `.stream-row-meta`, `.stream-row-arrow`, and the back link `.project-detail-back` (`--bark`) → muted `#C9C4BA` | ink | 11.12 | 4.5 | ✅ |
 | 3 | `.workrow-meta` (the origin word, the only origin mark the Stream renders), its `·`, the `.stream-row-meta-item` `·` separators, `.workrow-arrow` → faded `#A8A49C` | ink | 7.78 | 4.5 | ✅ |
 | 4 | title lift on hover and `:focus-within`, both row kinds → `--row-tint`: pink `#E64D66` / blue `#4D80E6` / yellow `#E6CC4D`. The editorial title is 17 px, under the large-text line, so every slot takes the 4.5 bar; the yellow rule is an on-light rule and does not apply on ink | ink | 5.17 / 5.10 / 12.06 | 4.5 | ✅ |

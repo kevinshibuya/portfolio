@@ -5,14 +5,14 @@
 // a FIXED speed covering a distance derived from LIVE geometry, then a settle.
 // The target is a PLAYHEAD, read off the scene wrapper the way
 // `tests/e2e/helpers/scene.ts` reads it: `.scene-scroll` carries its height in
-// svh as `data-svh`, one playhead unit is 100 svh, and act one starts at
-// OVERTURE_START. A hardcoded pixel distance, or a fraction of the wrapper,
-// would silently re-aim the first time the frieze's column count or a
+// svh as `data-svh` (550 today), one playhead unit is 100 svh, and the scene
+// starts at OVERTURE_START. A hardcoded pixel distance, or a fraction of the
+// wrapper, would silently re-aim the first time the wrapper's height or a
 // section's height changes.
 //
 // The scene compiles and uploads at idle after the entrance. The window opens
 // only once the canvas reports `data-warm="true"`, so it measures the scrub's
-// steady state and not the warm-up (that one is `perf/act-two-probe.mjs`).
+// steady state and not the warm-up.
 //
 // The gesture is a real wheel stream (`gestureSourceType: 'mouse'`), so it
 // goes through Lenis exactly as a user's scroll does. Lenis then keeps easing
@@ -44,7 +44,7 @@ const PRE_DWELL_MS = 2000
 const SCROLL_SPEED = 1200
 /** Card one settled in its slot (`src/utils/playhead.ts`: segment 0). */
 const ARRIVAL_PLAYHEAD = 0
-/** Where act one starts on the playhead axis; mirrors `OVERTURE_START`. */
+/** Where the scene starts on the playhead axis; mirrors `OVERTURE_START`. */
 const OVERTURE_START = -1.5
 const WARM_TIMEOUT_MS = 30_000
 /** How far the settled scroll may sit from the arrival before the run is void. */

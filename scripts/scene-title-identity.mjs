@@ -1,12 +1,17 @@
 // scripts/scene-title-identity.mjs · node scripts/scene-title-identity.mjs <out.json> [devUrl]
 //
-// The act-one identity dump: camera pose, title scale, title z and the four
-// act-one title metrics at six playheads across six viewports, read off the
+// The scene identity dump: camera pose, title scale, title z and the four
+// corridor title metrics at six playheads across six viewports, read off the
 // running dev server through the DEV-only `window.__scene` handle.
 //
-// The "before" run happens on untouched code; the "after" run happens once act
-// two is in the frame loop, and the two files must diff empty except, if at
-// all, the camera's `far` (the act-two far plane, Assumption 12).
+// The playheads run from the overture's start (-1.5) to card four settled (3),
+// which on the 550svh wrapper is its last scroll position. Each is reached by
+// `(p + 1.5)` viewports past the wrapper's top, since one playhead unit is
+// 100 svh.
+//
+// Run it once on untouched code and once after a scene change, then diff the
+// two files: a change that should not move the camera or the title must diff
+// empty.
 import { chromium } from '@playwright/test'
 import { writeFileSync } from 'node:fs'
 const [, , out, url = 'http://localhost:5173/'] = process.argv
