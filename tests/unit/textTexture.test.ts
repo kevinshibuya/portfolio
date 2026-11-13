@@ -10,7 +10,6 @@ import {
   captionScale,
   type DrawTextOptions,
   type DrawBoxOptions,
-  type TextLine,
 } from '../../src/components/canvas/scene/textTexture'
 import {
   sceneGeometry,
@@ -18,18 +17,6 @@ import {
   CAPTION_MIN_NAME_PX,
   CARD_MAX_PX,
 } from '../../src/utils/sceneMotion'
-import { BAND_H } from '../../src/components/canvas/scene/cardAnatomy'
-import {
-  wallCaptionRuns,
-  WALL_CAPTION_GAP_WORLD,
-  WALL_CAPTION_H,
-  WALL_CAPTION_LINE_HEIGHT,
-  WALL_CAPTION_W,
-  WALL_META_WORLD,
-  WALL_MUTED_COLOR,
-  WALL_TITLE_COVERAGE,
-  WALL_TITLE_WORLD,
-} from '../../src/components/canvas/scene/wallCaption'
 
 /**
  * jsdom has no canvas text metrics. The stub reads the em size back out of
@@ -181,7 +168,7 @@ const boxRun = (
   maxWidthPx?: number,
 ) => ({ text, row, align, fontPx, weight: 600, color: '#0B0E14', maxWidthPx })
 
-/** Two rows 300 px wide: the wall caption's shape, in round numbers. */
+/** Two rows 300 px wide, in round numbers. */
 const box = { rowEmPx: [26, 14], widthPx: 300, dpr: 1, lineHeight: 1.2, padPx: 2 }
 
 describe('layoutTextBox', () => {
@@ -245,76 +232,5 @@ describe('drawTextBox', () => {
     expect(drawn.texture.colorSpace).toBe(THREE.SRGBColorSpace)
     expect(drawn.texture.minFilter).toBe(THREE.LinearMipmapLinearFilter)
     expect(drawn.texture.premultiplyAlpha).toBe(false)
-  })
-})
-
-/** The stub's model, without the canvas: length × em × 0.55. */
-const measure = (line: TextLine): number => line.text.length * line.fontPx * 0.55
-/** Round numbers: at 1000 texels per world unit the box is 961.29 px wide. */
-const SCALE = 1000
-
-describe('wallCaptionRuns', () => {
-  it('puts the title on row one and the origin and serial at the ends of row two', () => {
-    const { title, muted } = wallCaptionRuns(
-      { title: 'Beyond', origin: 'personal', serial: '12' },
-      SCALE,
-      measure,
-    )
-    expect(title).toHaveLength(1)
-    expect(title[0].row).toBe(0)
-    expect(title[0].align).toBe('left')
-    // White coverage: the material's colour carries the ink, so hover can tint it.
-    expect(title[0].color).toBe(WALL_TITLE_COVERAGE)
-    expect(title[0].fontPx).toBeCloseTo(WALL_TITLE_WORLD * SCALE, 10)
-    expect(muted.map((r) => [r.text, r.row, r.align])).toEqual([
-      ['personal', 1, 'left'],
-      ['12', 1, 'right'],
-    ])
-    // Never tinted, and drawn opaque: the frame is white and the wall is cream,
-    // so a composited alpha would resolve differently on each.
-    expect(muted.every((r) => r.color === WALL_MUTED_COLOR)).toBe(true)
-    expect(muted.every((r) => r.fontPx === WALL_META_WORLD * SCALE)).toBe(true)
-  })
-
-  it('leaves row two to the serial alone when the piece is professional', () => {
-    const { muted } = wallCaptionRuns({ title: 'T', origin: '', serial: '7' }, SCALE, measure)
-    expect(muted.map((r) => [r.text, r.align])).toEqual([['7', 'right']])
-  })
-
-  it('collapses row two when a long origin would run into the serial', () => {
-    const origin = 'x'.repeat(45)
-    const { muted } = wallCaptionRuns({ title: 'T', origin, serial: '12' }, SCALE, measure)
-    expect(muted).toHaveLength(1)
-    expect(muted[0].align).toBe('left')
-    expect(muted[0].text).toBe(`${origin} · 12`)
-  })
-
-  it('reserves the count slot at the right of the title row and shortens the title', () => {
-    const text = { title: 'Beyond', origin: 'personal', serial: '12' }
-    const plain = wallCaptionRuns(text, SCALE, measure)
-    const counted = wallCaptionRuns({ ...text, count: '24' }, SCALE, measure)
-    const count = counted.muted.find((r) => r.text === '24')
-    expect(count).toBeDefined()
-    expect(count!.row).toBe(0)
-    expect(count!.align).toBe('right')
-    expect(count!.color).toBe(WALL_MUTED_COLOR)
-    expect(plain.title[0].maxWidthPx).toBeCloseTo(WALL_CAPTION_W * SCALE, 10)
-    expect(counted.title[0].maxWidthPx).toBeCloseTo(
-      WALL_CAPTION_W * SCALE - measure(count!) - WALL_CAPTION_GAP_WORLD * SCALE,
-      10,
-    )
-  })
-
-  it('fits two caption rows in the card body band, and not three', () => {
-    expect(WALL_CAPTION_H).toBeCloseTo(
-      (WALL_TITLE_WORLD + WALL_META_WORLD) * WALL_CAPTION_LINE_HEIGHT,
-      12,
-    )
-    expect(WALL_CAPTION_H).toBeLessThan(BAND_H)
-    // Why the wall caption shares one origin/serial row (third amendment): a
-    // third row does not fit the band, so it can never grow one.
-    expect((WALL_TITLE_WORLD + 2 * WALL_META_WORLD) * WALL_CAPTION_LINE_HEIGHT).toBeGreaterThan(
-      BAND_H,
-    )
   })
 })

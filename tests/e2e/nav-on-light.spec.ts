@@ -14,6 +14,19 @@ async function scrollIntoSection(page: import('@playwright/test').Page, id: stri
 }
 
 
+/** The nav names sections only: projects, work, skills, contact (ADR 0014). */
+const NAV_SECTIONS = ['work', 'experience', 'stack', 'contact']
+const NAV_HREFS = ['#projects', '#work', '#skills', '#contact']
+
+test('the nav shows four sections and no archive', async ({ page }) => {
+  await page.goto('/')
+  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
+  const links = page.locator('header.nav .nav-link')
+  await expect(links).toHaveText(NAV_SECTIONS)
+  expect(await links.evaluateAll((all) => all.map((a) => a.getAttribute('href')))).toEqual(NAV_HREFS)
+  await expect(page.locator('header.nav a[href="#archive"]')).toHaveCount(0)
+})
+
 test('nav flips to on-light over the cream chapter (Projects → Skills) and back to dark', async ({ page }) => {
   await page.goto('/')
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
@@ -81,6 +94,8 @@ test('nav re-arms on-light after SPA back-nav from a project page', async ({ pag
   // "not intersecting" and the flag has to be cleared explicitly.
   await expect(page.locator('header.nav.nav--on-light')).toHaveCount(0)
   await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#0B0E14')
+  // Off the home page the nav is the same four sections.
+  await expect(page.locator('header.nav .nav-link')).toHaveText(NAV_SECTIONS)
 
   // Back to Home: the loader/route settle, then #projects remounts fresh.
   await page.goBack()

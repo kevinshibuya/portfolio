@@ -1,20 +1,17 @@
 import * as THREE from 'three'
 import { useLoader } from '@react-three/fiber'
-import type { Mockups } from '../../../types/content'
 import { CARD_W, CARD_H } from '../../../utils/sceneMotion'
 import { CARD_RADIUS, COVER_H, COVER_RADIUS, COVER_W } from './cardAnatomy'
 import { roundedRectGeometry } from './roundedRect'
 
 /**
- * The sole owner of everything two card consumers share: the cover textures and
- * the two card geometries (Q11).
+ * The sole owner of what the scene's cards share: the cover textures and the
+ * two card geometries (Q11).
  *
- * The corridor and the act-two wall both mount card objects, and the featured
- * projects appear in both, so a cover can have two consumers at once. Neither
- * of them may dispose it — a consumer that unmounts would blank the survivor's
- * card. Every shared subtree therefore sets `dispose={null}` so R3F's automatic
- * disposal never reaches these either, and this module disposes on the LAST
- * release alone.
+ * Every card draws the same two geometries, so no single card may dispose
+ * them — a card that unmounts would blank the others. Every shared subtree
+ * therefore sets `dispose={null}` so R3F's automatic disposal never reaches
+ * these either, and this module disposes on the LAST release alone.
  *
  * The final release is deferred one tick and cancelled by a new acquisition.
  * StrictMode's development double-invoke mounts, unmounts and mounts again in
@@ -22,12 +19,6 @@ import { roundedRectGeometry } from './roundedRect'
  * of `useLoader`'s own cache — which is why the entry is cleared there too, and
  * only after the texture is really finished with.
  */
-
-/** What a card's cover is drawn from, best first (Q10). No new assets. */
-export function coverUrlFor(mockups: Mockups | undefined): string | null {
-  if (!mockups) return null
-  return mockups.stackCover || mockups.desktopBento || mockups.desktop || null
-}
 
 interface Entry<T> {
   value: T

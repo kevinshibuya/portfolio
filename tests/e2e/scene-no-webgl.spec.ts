@@ -48,31 +48,3 @@ test('no webgl2 falls back to a plain project list with no pin', async ({ page }
 
   expect(errors).toEqual([])
 })
-
-test('the nav reaches the visible archive from another route', async ({ page }, testInfo) => {
-  // Without WebGL the home page has no Stream left to reach, so the nav's
-  // archive item has no target until #39 removes it, and this test with it.
-  test.fixme(true, 'no visible archive on the home page since #38; #39 deletes the nav item and this test')
-  // The centre links are `display: none` under 720 px; there is no mobile menu.
-  test.skip((testInfo.project.use.viewport?.width ?? 0) <= 720, 'nav links are desktop only')
-  await refuseWebgl2(page)
-
-  // With no wrapper, `resolveNavTarget` answers `'#archive'` and never a
-  // number. Home used to wait for the number until its timeout and then
-  // scroll nowhere, leaving the reader at the top of the page.
-  await page.goto('/projects/radar-legislativo')
-  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
-  await page.locator('.nav-link[href="#archive"]').click()
-
-  await page.locator('#archive.stream--visible').waitFor()
-  await expect
-    .poll(
-      () =>
-        page.evaluate(() => {
-          const r = document.querySelector('#archive')!.getBoundingClientRect()
-          return r.top < window.innerHeight && r.bottom > 0
-        }),
-      { timeout: 5000, message: 'the archive never scrolled into view' },
-    )
-    .toBe(true)
-})

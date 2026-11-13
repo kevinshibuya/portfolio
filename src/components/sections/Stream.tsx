@@ -93,7 +93,7 @@ function StreamItem({ item, lang }: StreamItemProps): React.ReactElement {
           <WorkRow
             index={position}
             title={title}
-            // The wall's own word, not the raw value: PT `personal` is
+            // The localised word, not the raw value: PT `personal` is
             // `pessoal`, and the stream must not read English beside it.
             // `professional` is the default and says nothing worth a line.
             meta={

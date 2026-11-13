@@ -3,12 +3,10 @@ import * as THREE from 'three'
 import { useLoader } from '@react-three/fiber'
 import { CARD_W, CARD_H } from '../../src/utils/sceneMotion'
 import { COVER_H, COVER_W } from '../../src/components/canvas/scene/cardAnatomy'
-import type { Mockups } from '../../src/types/content'
 import {
   acquireCardGeometry,
   acquireCover,
   cardGeometry,
-  coverUrlFor,
   releaseCardGeometry,
   releaseCover,
 } from '../../src/components/canvas/scene/cardResources'
@@ -76,7 +74,7 @@ describe('releaseCover', () => {
 
     releaseCover(url)
     vi.runOnlyPendingTimers()
-    // The corridor let go; the wall is still drawing this cover.
+    // One consumer let go; the other is still drawing this cover.
     expect(disposed()).toBe(0)
     expect(acquireCover(url, texture)).toBe(texture)
 
@@ -243,24 +241,5 @@ describe('cardGeometry', () => {
     releaseCardGeometry('cover')
     vi.runOnlyPendingTimers()
     expect(disposed()).toBe(1)
-  })
-})
-
-describe('coverUrlFor', () => {
-  const base: Mockups = {
-    desktop: '/d.webp',
-    desktopBento: '/db.webp',
-    mobile: '/m.webp',
-  }
-
-  it('prefers the stack cover, then the bento, then the desktop mockup', () => {
-    expect(coverUrlFor({ ...base, stackCover: '/sc.webp' })).toBe('/sc.webp')
-    expect(coverUrlFor(base)).toBe('/db.webp')
-    expect(coverUrlFor({ ...base, desktopBento: '' })).toBe('/d.webp')
-  })
-
-  it('returns null when a project has no usable mockup, so the frame stands alone', () => {
-    expect(coverUrlFor({ ...base, desktopBento: '', desktop: '' })).toBeNull()
-    expect(coverUrlFor(undefined)).toBeNull()
   })
 })

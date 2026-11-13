@@ -2213,7 +2213,7 @@ body[data-loader-state="loading"] {
 
 .scene-scroll {
   position: relative;
-  /* height is inline, from sceneWrapperSvh(columns) in Projects.tsx */
+  /* height is inline, from SCENE_WRAPPER_SVH in Projects.tsx */
   margin-top: 96px;
 }
 .scene-sticky {

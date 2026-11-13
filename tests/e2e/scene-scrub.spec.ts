@@ -7,7 +7,7 @@ import { projects } from '../../src/data/projects'
 const FEATURED = projects
   .filter((p) => p.highlight && (p.highlightOrder ?? 99) <= 4)
   .sort((a, b) => (a.highlightOrder ?? 99) - (b.highlightOrder ?? 99))
-import { openScene, scrollToPlayhead, scrollToActTwo, beats, CANVAS } from './helpers/scene'
+import { openScene, scrollToPlayhead, CANVAS } from './helpers/scene'
 import {
   CARD_H,
   CARD_W,
@@ -37,10 +37,9 @@ const SWEEP = [-1.5, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3, 0]
  * scrub with a clean console is the cheap guard against that whole class.
  */
 test('a full scrub raises no console error and never rejects a promise', async ({ page }) => {
-  // Act two roughly doubles this sweep: eleven more stops on the main pass, and
-  // the act-two beats repeated at every short and near-square viewport. The
-  // default 30 s budget was sized for act one alone.
-  test.setTimeout(180_000)
+  // The warm-up alone may take 30 s in software, and the viewport sweeps below
+  // wait on every resize.
+  test.setTimeout(120_000)
   const problems: string[] = []
   page.on('console', (message) => {
     if (message.type() === 'error') problems.push(`console.error: ${message.text()}`)
@@ -58,21 +57,6 @@ test('a full scrub raises no console error and never rejects a promise', async (
   }
   expect(problems).toEqual([])
 
-  // ACT TWO, at the beat boundaries the page actually shipped. A throw inside
-  // the frame loop is invisible to every DOM assertion in this suite — the
-  // canvas keeps its element and its attributes while the loop dies — so this
-  // sweep is the only guard over the release, the approach and the dolly.
-  const { release, approach } = await beats(page)
-  const ACT_TWO_STOPS = [
-    0, release / 2, release, (release + approach) / 2, approach, 0.3, 0.5, 0.75, 0.95, 1, 0.5,
-  ]
-  for (const u of ACT_TWO_STOPS) {
-    await scrollToActTwo(page, u)
-    expect(problems, `after scrolling to act two u=${u}`).toEqual([])
-  }
-  await scrollToPlayhead(page, 0)
-  expect(problems).toEqual([])
-
   // Short viewports, which nothing else sweeps. Under ~225 CSS px of height the
   // title band closes: its bottom passes its top, and an unclamped shrink used
   // to drive a NEGATIVE font size into the rasteriser — `document.fonts.load`
@@ -84,10 +68,10 @@ test('a full scrub raises no console error and never rejects a promise', async (
     await scrollToPlayhead(page, 0.75)
     await page.waitForTimeout(400)
     expect(problems, `at 1440x${height}`).toEqual([])
-    // Act two too: the wall's fit and the title distance are viewport-derived.
-    await scrollToActTwo(page, 0.5)
+    // The end of the wrapper too: card four settled, the last title drawn.
+    await scrollToPlayhead(page, 3)
     await page.waitForTimeout(400)
-    expect(problems, `act two at 1440x${height}`).toEqual([])
+    expect(problems, `card four at 1440x${height}`).toEqual([])
   }
 
   // Near-square, both sides of the crossover. The card formula and the camera
@@ -104,12 +88,9 @@ test('a full scrub raises no console error and never rejects a promise', async (
     await scrollToPlayhead(page, 0.75)
     await page.waitForTimeout(400)
     expect(problems, `at ${width}x${height}`).toEqual([])
-    const near = await beats(page)
-    for (const u of [near.release, near.approach, 0.5, 1]) {
-      await scrollToActTwo(page, u)
-      await page.waitForTimeout(200)
-      expect(problems, `act two u=${u} at ${width}x${height}`).toEqual([])
-    }
+    await scrollToPlayhead(page, 3)
+    await page.waitForTimeout(200)
+    expect(problems, `card four at ${width}x${height}`).toEqual([])
     visited.push(`${width}x${height}`)
   }
   expect(visited).toEqual(['960x950', '960x970', '820x821', '820x819'])
@@ -145,10 +126,6 @@ test('a full scrub never re-registers the corridor (no react state on scroll)', 
   await expect(canvas).toHaveAttribute('data-registrations', '1')
 
   for (const playhead of SWEEP) await scrollToPlayhead(page, playhead)
-  // Act two adds two more titles and a frieze extent to the scene's props; if
-  // any of it were a per-frame identity change, this is where it would show.
-  for (const u of [0.1, 0.5, 1]) await scrollToActTwo(page, u)
-  await scrollToPlayhead(page, 0)
 
   // Nothing in React re-rendered the scene subtree: the corridor registered
   // its objects exactly once, at mount (ADR 0011).
@@ -251,36 +228,41 @@ test('losing the webgl context falls back to a plain project list, permanently',
   await expect(page.locator('#projects canvas')).toHaveCount(0)
 })
 
-test('data-act names the act, and act two holds the last slot throughout', async ({
+test('the scene ends with card four settled as the wrapper ends, and the page flows on', async ({
   page,
 }) => {
   await openScene(page)
   const canvas = page.locator(CANVAS)
+  const wrapper = page.locator('#projects .scene-scroll')
 
-  // Act two begins STRICTLY after playhead 3: at 3 exactly card four is settled
-  // and `u` is 0, which is still act one (Spec conflict 6).
-  //
-  // Sampled at 2.99, not 3, for the same reason the overture test samples −0.47
-  // and not −0.5: scroll lands on whole pixels, so a target exactly ON a
-  // boundary rounds either side of it. At 589×1090 it rounded UP and read act
-  // two. The strictness itself is asserted below, where every act-two stop is
-  // past the boundary and reads 2.
-  for (const playhead of [-1.5, 0, 2.99]) {
-    await scrollToPlayhead(page, playhead)
-    await expect(canvas, `playhead ${playhead}`).toHaveAttribute('data-act', '1')
-  }
+  // The wrapper is back to 550 svh, and still publishes it: the scene helpers
+  // and the scroll-transition perf scenario both read `data-svh`.
+  await expect(wrapper).toHaveAttribute('data-svh', '550')
+  const { offsetHeight, innerHeight } = await wrapper.evaluate((el) => ({
+    offsetHeight: (el as HTMLElement).offsetHeight,
+    innerHeight: window.innerHeight,
+  }))
+  expect(Math.abs(offsetHeight - 5.5 * innerHeight)).toBeLessThanOrEqual(2)
 
-  for (const u of [0.05, 0.5, 1]) {
-    await scrollToActTwo(page, u)
-    await expect(canvas, `act two u=${u}`).toHaveAttribute('data-act', '2')
-    // The act-one segment is clamped at 3 for the whole of act two, so
-    // `frontIndexFor` keeps returning card four's index. In act two it names
-    // the last act-one slot, NOT a card under the pointer (Assumption 18).
-    await expect(canvas, `act two u=${u}`).toHaveAttribute('data-slot', '3')
-  }
+  // The last scroll position inside the pin is card four's slot.
+  await page.evaluate(() => {
+    const el = document.querySelector('#projects .scene-scroll') as HTMLElement
+    const top = el.getBoundingClientRect().top + window.scrollY
+    window.scrollTo({ top: top + el.offsetHeight - window.innerHeight, behavior: 'instant' as ScrollBehavior })
+  })
+  await expect(canvas).toHaveAttribute('data-slot', '3')
+
+  // No hold beat, no second act: one viewport further and the pin has released,
+  // the canvas has scrolled up out of the frame with its section, and the slot
+  // still names card four.
+  await page.evaluate(() => window.scrollBy({ top: window.innerHeight, behavior: 'instant' as ScrollBehavior }))
+  await expect
+    .poll(async () => (await canvas.boundingBox())?.y ?? 0, { message: 'the pin releases' })
+    .toBeLessThan(-0.5 * (page.viewportSize()?.height ?? 0))
+  await expect(canvas).toHaveAttribute('data-slot', '3')
+  expect(await canvas.getAttribute('data-act'), 'no act attribute survives').toBeNull()
 
   // Reversible, like every other scroll-driven state in the scene.
   await scrollToPlayhead(page, 0)
-  await expect(canvas).toHaveAttribute('data-act', '1')
   await expect(canvas).toHaveAttribute('data-slot', '0')
 })

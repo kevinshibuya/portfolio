@@ -6,9 +6,6 @@
     },
     {
       "path": "./tsconfig.node.json"
-    },
-    {
-      "path": "./tests/tsconfig.frieze-types.json"
     }
   ]
 }

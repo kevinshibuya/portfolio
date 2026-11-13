@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useMotionValue, useScroll } from 'framer-motion'
+import { useScroll } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMotion } from '../../context/MotionContext'
@@ -11,11 +11,8 @@ import {
   playheadFor,
   frontIndexFor,
   scrollTargetFor,
-  actOneSeg,
-  sceneWrapperSvh,
+  SCENE_WRAPPER_SVH,
 } from '../../utils/sceneMotion'
-import { friezeLayout, friezeExtent, FRIEZE_ROWS } from '../../utils/friezeLayout'
-import { archive } from '../../data/archive'
 
 /** Used until the nav has been measured, and if it is ever missing. */
 const NAV_FALLBACK_PX = 66
@@ -29,24 +26,12 @@ export function Projects() {
   const { prefersReducedMotion } = useMotion()
   const lang = i18n.language.startsWith('pt') ? 'pt' : 'en'
 
-  // The frieze's extent, and the wrapper height that follows from it. Static:
-  // six rows in BOTH orientations (amended decision 15), so no aspect key
-  // here or in pipeline 2, and a resize never changes the wrapper's height.
-  // ONE packing: the wrapper's height, the camera's framing, the wall's raster
-  // and its hit test all read the same object, so they cannot disagree about
-  // how wide the archive is.
-  const layout = useMemo(() => friezeLayout(archive, FRIEZE_ROWS), [])
-  const frieze = useMemo(() => friezeExtent(layout, FRIEZE_ROWS), [layout])
-  const svh = sceneWrapperSvh(frieze.columns)
-
   // Nothing here tracks the scroll. The scene's frame loop reads the scroll
   // MotionValue and writes every visual itself; the settled card is reported
   // on the canvas element as `data-slot`, which nothing in React reads
   // (ADR 0011). The language switch is the ONLY thing that may re-render the
   // scene subtree, so `cards` is memoised on `lang` and that is the only
-  // identity change the scene ever sees. `frieze` and `allWork` are the two
-  // other identities the scene sees, and both change only with data or
-  // language.
+  // identity change the scene ever sees.
   const cards = useMemo<SceneCard[]>(
     () =>
       featured.map((p) => ({
@@ -98,9 +83,8 @@ export function Projects() {
   const lenis = useLenisContext()
   const cardClick = useRef((index: number): void => void index)
   cardClick.current = (index) => {
-    const playhead = playheadFor(scrollYProgress.get(), frieze.columns)
-    const seg = actOneSeg(playhead)
-    if (index === frontIndexFor(seg, cards.length, prefersReducedMotion)) {
+    const playhead = playheadFor(scrollYProgress.get())
+    if (index === frontIndexFor(playhead, cards.length, prefersReducedMotion)) {
       navigate(`/projects/${cards[index].slug}`)
       return
     }
@@ -108,10 +92,8 @@ export function Projects() {
   }
 
   // The ONE numeric travel. Every caller hands it a playhead and it resolves
-  // the wrapper, so a clicked card, a clicked cell and a focused card link
-  // cannot land in different places. `columns` is ALWAYS passed: its default of
-  // 0 maps the playhead through act one alone, which would scroll the reader to
-  // a card slot, silently and without a type error.
+  // the wrapper, so a clicked card and a focused card link cannot land in
+  // different places.
   //
   // Lenis replaces the tween in flight rather than queueing (`Animate.fromTo`
   // overwrites from/to/currentTime on one instance), so a reader tabbing
@@ -120,48 +102,13 @@ export function Projects() {
     const wrapper = wrapperRef.current
     if (!wrapper) return
     const wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY
-    const target = scrollTargetFor(
-      playhead,
-      wrapperTop,
-      wrapper.offsetHeight,
-      window.innerHeight,
-      frieze.columns,
-    )
+    const target = scrollTargetFor(playhead, wrapperTop, wrapper.offsetHeight, window.innerHeight)
     if (lenis) lenis.scrollTo(target, { duration: 1.2 })
     else window.scrollTo({ top: target, behavior: 'instant' })
   }
 
   // Stable identity: the scene subtree must only ever re-render on `cards`.
   const handleCardClick = useCallback((index: number) => cardClick.current(index), [])
-
-  // Where a wall cell leads. A case study is a route; an Embed is the
-  // publisher's own page, opened SYNCHRONOUSLY — a popup opened after an await
-  // has lost the trusted click stack and the browser blocks it. An id the
-  // archive does not hold does nothing rather than guessing at one.
-  const cellClick = useRef<(itemId: string) => void>(() => {})
-  cellClick.current = (itemId: string) => {
-    const item = archive.find((piece) => piece.id === itemId)
-    if (!item) return
-    if (item.caseStudy) {
-      navigate(`/projects/${item.caseStudy.slug}`)
-      return
-    }
-    // The href goes out exactly as the archive stores it, `#:~:text=` and all.
-    window.open(item.href, '_blank', 'noopener')
-  }
-
-  // Hover rides a MotionValue, never state: the pointer crosses 171 cells, and
-  // a re-render per cell would drive the scene's whole subtree from the
-  // pointer (ADR 0010).
-  const hoveredCell = useMotionValue<string | null>(null)
-
-  // Stable identities, as onCardClick already keeps: the scene subtree must
-  // only ever re-render on `cards`.
-  const handleCellClick = useCallback((itemId: string) => cellClick.current(itemId), [])
-  const handleCellHover = useCallback(
-    (itemId: string | null) => hoveredCell.set(itemId),
-    [hoveredCell],
-  )
 
   return (
     <section id="projects" className="section projects-scene-section">
@@ -224,8 +171,8 @@ export function Projects() {
         <div
           className="scene-scroll"
           ref={wrapperRef}
-          style={{ height: `${svh}svh` }}
-          data-svh={svh}
+          style={{ height: `${SCENE_WRAPPER_SVH}svh` }}
+          data-svh={SCENE_WRAPPER_SVH}
         >
           <div className="scene-sticky">
             <div className="scene-inner">
@@ -243,13 +190,6 @@ export function Projects() {
                   onCardClick={handleCardClick}
                   navPx={navPx}
                   overture={t('sections.projects.overture')}
-                  frieze={frieze}
-                  friezeLayout={layout}
-                  archive={archive}
-                  lang={lang}
-                  onCellClick={handleCellClick}
-                  onCellHover={handleCellHover}
-                  allWork={t('sections.archive.title')}
                 />
               </div>
             </div>

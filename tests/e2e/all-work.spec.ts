@@ -2,8 +2,8 @@ import { test, expect, type Page } from '@playwright/test'
 
 // All work, the page of its own (ADR 0014): the Stream in its visible mode,
 // off the homepage. Every expected count is read from the page itself, never
-// from the frieze fixture: the stated total must equal the rendered rows, and
-// the year counts must sum to it.
+// hardcoded: the stated total must equal the rendered rows, and the year counts
+// must sum to it.
 
 async function openAllWork(page: Page, path = '/all-work'): Promise<void> {
   await page.goto(path)

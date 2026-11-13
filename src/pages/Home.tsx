@@ -4,7 +4,6 @@ import { Hero } from '../components/sections/Hero'
 import { useLenis } from '../hooks/useLenis'
 import { useMotion } from '../context/MotionContext'
 import { resetPageMeta } from '../utils/pageMeta'
-import { resolveNavTarget } from '../utils/navTarget'
 
 // Below-the-fold sections lazy-load so the main JS chunk only carries Hero
 // (the LCP target). After Hero mounts, an idle callback warms the chunks so
@@ -102,23 +101,9 @@ export function Home() {
 
       const apply = (): boolean => {
         if (cancelled) return false
-        const target = resolveNavTarget(targetId, document, window.innerHeight)
-        // `archive` waits for the NUMBER, not for the element. The stream is a
-        // sibling of `.scene-scroll`, so `#archive` can exist a frame before
-        // the wrapper publishes a usable `data-svh`; gating on the element
-        // would stop the observer on the selector fallback. The observer
-        // retries until the 1500 ms timeout, and its expiry scrolls nowhere.
-        // The one selector that IS final is the visible stream: no WebGL, no
-        // wrapper, so no number will ever come and the archive is in flow.
-        if (targetId === 'archive') {
-          const visible = target === '#archive' && document.querySelector('#archive.stream--visible')
-          if (typeof target !== 'number' && !visible) return false
-          scrollTo(target, { duration: 0.8 })
-          return true
-        }
         const el = document.getElementById(targetId)
         if (!el) return false
-        scrollTo(target, { duration: 0.8 })
+        scrollTo(`#${targetId}`, { duration: 0.8 })
         return true
       }
 

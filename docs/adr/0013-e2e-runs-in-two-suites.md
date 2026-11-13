@@ -23,6 +23,8 @@ Kevin approved these with the plan (`docs/superpowers/plans/2026-10-06-e2e-two-s
 
 The full mobile list is therefore `scene-scrub`, `stream`, `scene-no-webgl`, `frieze-surface`, `frieze-click`, `light-chapter`, `nav-on-light`, `hero-dissolve`, `pixel-gate` and `smoke`, plus `perf-budget` under the harness.
 
+Amended under ADR 0014, 2026-11-13: the quick suite is `scene-scrub`, `card-links`, `scene-no-webgl`, `pixel-gate`, `scene-reduced-motion` and `smoke`. `frieze-surface`, `frieze-click` and the `desktop-hidpi` project went with the wall, and the mobile list is `scene-scrub`, `card-links`, `all-work`, `scene-no-webgl`, `light-chapter`, `nav-on-light`, `hero-dissolve`, `pixel-gate` and `smoke`.
+
 ## Considered and rejected
 
 - **Deleting specs as duplicates of unit tests.** Read closely, `nav-on-light` guards the nav flip and back-nav re-arm, `contact-waves` guarded the canvas budget behind the no-fourth-canvas rule (that test now lives in `smoke`), and `rows-hover` guards the accordion's single-open behaviour. None is covered elsewhere. Only the console-clean mount checks were true duplicates, and those merge into the smoke.

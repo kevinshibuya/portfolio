@@ -55,8 +55,8 @@ export interface TextTexture {
 export const TEXT_FAMILY = '"Plus Jakarta Sans"'
 /**
  * How long a resize must be quiet before the scene's Jakarta textures redraw.
- * Shared by the card captions and the frieze masks so one window setting
- * settles every text rebuild together.
+ * Shared by the card captions so one window setting settles every text
+ * rebuild together.
  */
 export const RESIZE_DEBOUNCE_MS = 150
 const ARROW_FALLBACK_FAMILY = 'system-ui, sans-serif'
@@ -198,10 +198,8 @@ export interface BoxLayout {
  * Where each run lands in a box whose size comes from its rows and width ALONE,
  * never from its runs.
  *
- * That is the point of it: the wall card's caption is two stacked planes — a
- * white title the material tints, and a muted plane that is never tinted — and
- * sized from their own ink they would come out different heights and the rows
- * would drift apart. Built from the same geometry they are the same plane twice.
+ * That is the point of it: two planes stacked from the same rows and width
+ * come out the same size whatever their text, so their rows never drift apart.
  */
 export function layoutTextBox(options: DrawBoxOptions): BoxLayout {
   const ctx = context2d()

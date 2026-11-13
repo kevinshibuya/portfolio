@@ -4,7 +4,6 @@ import * as THREE from 'three'
 import { CARD_COUNT, CARD_W, CARD_H } from '../../../utils/sceneMotion'
 import { accentDeepLargeFor } from '../../../utils/palette'
 import { roundedBlobTexture } from './gradients'
-import { TAP_MAX_DELTA_PX } from './friezeHit'
 import type { SceneRefs } from './sceneRefs'
 import type { SceneCard } from '../SelectedWorkScene'
 import { Caption, type CaptionHandles } from './Caption'
@@ -17,6 +16,13 @@ const SHADOW_H = 1.25 * CARD_H * 0.6
 const SHADOW_Y = 0.002
 /** Below the cards, so a card always draws over its own shadow. */
 const BACKDROP_ORDER = -1
+
+/**
+ * R3F fills `event.delta` (px between pointerdown and click) on every hit
+ * click but only filters MISSES by it (@react-three/fiber 9.7.0), so a scroll
+ * gesture that ends on a card has to be ignored here.
+ */
+const TAP_MAX_DELTA_PX = 6
 
 interface CorridorProps {
   /** The featured projects in corridor order; an empty `art` renders the frame alone. */
@@ -144,7 +150,6 @@ export function Corridor({ cards, sceneRefs, onCardClick }: CorridorProps) {
         >
           <CardObject
             coverUrl={cards[i]?.art || null}
-            mode="corridor"
             materials={sceneRefs.cardMaterials[i]}
             onFrameMaterial={onFrameMaterial[i]}
           >
