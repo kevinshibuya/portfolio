@@ -334,7 +334,7 @@ Rows, year headings and the serial clip with `clip-path: inset(50%)`, never `ove
 
 The section-list primitive, in `src/components/ui/WorkRow.tsx`. Two consumers: Work Experience, and the stream's case-study rows ([The stream](#the-stream)).
 
-An open typographic row, no card. Anatomy: `.workrow-index` (zero-padded, faded, tabular-nums), `.workrow-title` (oversized lowercase, `clamp(28px,4.6vw,64px)`, weight 550, cream, tinting to `--row-tint` on hover and focus), `.workrow-meta` (faded spans joined by `·`), `.workrow-arrow`, whose glyph says where the link goes · `+` opens in place, `→` stays on this site, `↗` leaves it. A bottom hairline per row; the list owner adds the top hairline.
+An open typographic row, no card. Anatomy: `.workrow-index` (zero-padded, faded, tabular-nums), `.workrow-title` (oversized, the name as authored with its capitals, `clamp(28px,4.6vw,64px)`, weight 550, cream, tinting to `--row-tint` on hover and focus), `.workrow-meta` (faded spans joined by `·`), `.workrow-arrow`, whose glyph says where the link goes · `+` opens in place, `→` stays on this site, `↗` leaves it. A bottom hairline per row; the list owner adds the top hairline.
 
 The row carries no imagery. The expandable variant swaps the row for a real `<button aria-expanded>` with an `AnimatePresence` panel. Every variant carries a visible cream `:focus-visible` ring.
 

@@ -1232,7 +1232,7 @@ body[data-loader-state="loading"] {
   letter-spacing: -0.02em;
   line-height: 0.95;
   margin: 0 0 16px;
-  text-transform: lowercase;
+  /* A project name keeps its own capitals (ADR 0014): no text-transform. */
   color: var(--ink);
 }
 .project-detail-title-word {
@@ -1700,7 +1700,7 @@ body[data-loader-state="loading"] {
 /* =========================================================================
    WORKROW — shared tinted typographic row primitive
    (WorkExperience, and the stream's case-study rows.)
-   Open editorial rows: index · oversized lowercase title ·
+   Open editorial rows: index · oversized title (a name keeps its capitals) ·
    ·-joined meta · trailing ↗ / + arrow. Per-row shader tint via --row-tint
    (set inline by the component). The list OWNER draws the top hairline; the
    primitive only draws row bottoms.
@@ -1902,7 +1902,7 @@ body[data-loader-state="loading"] {
   font-size: 14px;
   font-weight: 500;
   line-height: 1.2;
-  text-transform: lowercase;
+  /* The link's text is the project name, which keeps its capitals (ADR 0014). */
 }
 
 /* =========================================================================
@@ -2287,7 +2287,7 @@ body[data-loader-state="loading"] {
   font-size: clamp(14px, 1.4vw, 16px);
   font-weight: 700;
   color: var(--color-ink-on-light);
-  text-transform: lowercase;
+  /* The project name keeps its capitals (ADR 0014); the subtitle stays lowercase. */
   letter-spacing: -0.01em;
 }
 .scene-fallback-subtitle {

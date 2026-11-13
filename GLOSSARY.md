@@ -60,7 +60,7 @@ A row's accent, taken by index rotation through the tricolor via `accentFor()` a
 (`src/utils/palette.ts`, `docs/architecture.md#palette-and-tokens`)
 
 **WorkRow**:
-The shared open typographic row that section lists are built from: index, oversized lowercase title, dot-joined meta, arrow, hairline. Used by WorkExperience, More work and the Stream's case-study rows.
+The shared open typographic row that section lists are built from: index, oversized title (a project or company name, with its own capitals), dot-joined meta, arrow, hairline. Used by WorkExperience, More work and the Stream's case-study rows.
 (`src/components/ui/WorkRow.tsx`, `docs/architecture.md#workrow`)
 _Avoid_: card, list item, table row
 
