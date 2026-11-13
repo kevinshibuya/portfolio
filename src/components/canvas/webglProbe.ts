@@ -38,10 +38,8 @@ let probed: WebglProbe | null = null
 
 /**
  * The probe, run once per page. `Projects` reads it on its first render so the
- * pinned wrapper never mounts where the scene cannot: mounted for even one
- * commit, it publishes a `data-svh` that Home's nav handoff scrolls to, and is
- * gone by the time the scroll lands. The scene reads the same answer, so the
- * page spends one throwaway context, not two.
+ * pinned wrapper never mounts where the scene cannot. The scene reads the same
+ * answer, so the page spends one throwaway context, not two.
  */
 export function webglProbe(): WebglProbe {
   probed ??= probeWebgl()

@@ -67,7 +67,7 @@ test.describe('light chapter (Projects → Skills on cream)', () => {
 
     // The wrapper must stay a plain block. Any of these would create a
     // containing block or a clip and silently break the position:sticky stage
-    // inside #projects (and the fixed skip-link chip) —
+    // inside #projects (and the fixed card-link pill) —
     // a failure the scrub suite does NOT catch, because useScroll reads document
     // scroll whether or not the stage actually pins.
     const box = await page.evaluate(() => {

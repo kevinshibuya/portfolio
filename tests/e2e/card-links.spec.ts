@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 import { projects } from '../../src/data/projects'
 import { CANVAS } from './helpers/scene'
+import { scrollTargetFor } from '../../src/utils/sceneMotion'
 
 /**
  * The four card links: the Selected Work scene's keyboard and screen-reader
@@ -69,6 +70,30 @@ async function tabOntoFirstLink(page: Page): Promise<void> {
   }
   expect(await focusedLink(page), 'Tab from the edge did not land on the first card link').toBe(0)
 }
+
+/**
+ * How far the page is from where card `i`'s travel must leave it, in px.
+ *
+ * `data-slot` cannot prove the travel to card 0: the canvas already reports
+ * slot 0 at the hero, before anything moved. The scroll position can, since the
+ * hero sits a whole overture above card 0's target. The target is recomputed
+ * here from the laid-out wrapper, with the function the travel itself uses.
+ */
+async function distanceFromCard(page: Page, i: number): Promise<number> {
+  const g = await page.evaluate(() => {
+    const wrapper = document.querySelector<HTMLElement>('#projects .scene-scroll')!
+    return {
+      top: wrapper.getBoundingClientRect().top + window.scrollY,
+      height: wrapper.offsetHeight,
+      viewport: window.innerHeight,
+      y: window.scrollY,
+    }
+  })
+  return Math.abs(g.y - scrollTargetFor(i, g.top, g.height, g.viewport))
+}
+
+/** The browser rounds a scroll position to a device pixel; the target is not rounded. */
+const SCROLL_TOLERANCE_PX = 2
 
 /** The focused element's pill geometry. */
 const pillBox = (page: Page) =>
@@ -153,6 +178,13 @@ test.describe('the card links', () => {
       await expect(canvas, `focusing link ${i} must settle card ${i}`).toHaveAttribute('data-slot', String(i), {
         timeout: 5_000,
       })
+      // And the page itself came to rest on that card, link 0 included.
+      await expect
+        .poll(() => distanceFromCard(page, i), {
+          message: `focusing link ${i} must scroll the page to card ${i}`,
+          timeout: 5_000,
+        })
+        .toBeLessThanOrEqual(SCROLL_TOLERANCE_PX)
       await expect(page).toHaveURL(/\/$/)
     }
 
@@ -163,8 +195,8 @@ test.describe('the card links', () => {
     }))
     expect(z.links).toBeGreaterThan(z.nav)
 
-    // Past the fourth link, focus leaves the links for whatever follows the
-    // scroll wrapper; nothing hidden keeps it.
+    // Past the fourth link, focus goes straight into More work: its first row,
+    // with nothing hidden and nothing else in between.
     await page.keyboard.press('Tab')
     const next = await page.evaluate((links) => {
       const el = document.activeElement!
@@ -173,14 +205,25 @@ test.describe('the card links', () => {
         isLink: el.matches(links),
         afterWrapper: !!(wrapper.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING),
         inWrapper: wrapper.contains(el),
+        isFirstMoreWorkRow: el === document.querySelector('#projects .more-work li .workrow-link'),
       }
     }, LINKS)
     expect(next.isLink).toBe(false)
     expect(next.inWrapper).toBe(false)
     expect(next.afterWrapper).toBe(true)
-    // window: absence check: no pill left painted once focus has moved on
-    await page.waitForTimeout(300)
-    expect(await page.locator(`${LINKS}:focus-visible`).count()).toBe(0)
+    expect(next.isFirstMoreWorkRow, 'the Tab after link 3 must land on More work row 01').toBe(true)
+
+    // The link that just lost focus is clipped back to nothing, so no pill
+    // stays painted. Read on that link: a count of focused links is 0 here
+    // whatever is on screen.
+    const left = page.locator(LINKS).nth(3)
+    await expect(left).toHaveCSS('clip-path', 'inset(50%)')
+    const leftBox = await left.evaluate((el) => {
+      const r = el.getBoundingClientRect()
+      return { width: r.width, height: r.height }
+    })
+    expect(leftBox.width).toBeLessThanOrEqual(1)
+    expect(leftBox.height).toBeLessThanOrEqual(1)
   })
 
   test('3 · Enter on a focused link opens its project', async ({ page }) => {
@@ -203,6 +246,11 @@ test.describe('the card links · reduced motion', () => {
 
     await tabOntoFirstLink(page)
     await expect(canvas).toHaveAttribute('data-slot', '0', { timeout: 5_000 })
+    // Slot 0 is also what the hero reads, so the scroll position is the proof
+    // that link 0 moved the page.
+    await expect
+      .poll(() => distanceFromCard(page, 0), { message: 'focusing link 0 must scroll the page to card 0' })
+      .toBeLessThanOrEqual(SCROLL_TOLERANCE_PX)
 
     for (const i of [1, 2]) {
       const before = await page.evaluate(() => window.scrollY)
@@ -226,6 +274,9 @@ test.describe('the card links · reduced motion', () => {
       expect(ys[0], `focusing link ${i} must move the page`).not.toBe(before)
       expect(new Set(ys).size, `the move to card ${i} must be one step`).toBe(1)
       await expect(canvas).toHaveAttribute('data-slot', String(i))
+      expect(await distanceFromCard(page, i), `the one step must land on card ${i}`).toBeLessThanOrEqual(
+        SCROLL_TOLERANCE_PX,
+      )
     }
   })
 })
