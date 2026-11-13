@@ -5,8 +5,8 @@ import { defineConfig, devices, type Project } from '@playwright/test'
 // `npx playwright test` stays the safe default. Mobile runs only the specs whose
 // behaviour changes with the viewport; a new viewport-dependent surface joins
 // MOBILE_SPECS in the PR that adds it.
-const QUICK_SPECS = ['scene-scrub', 'stream', 'scene-no-webgl', 'frieze-surface', 'pixel-gate', 'scene-reduced-motion', 'smoke']
-const MOBILE_SPECS = ['scene-scrub', 'stream', 'scene-no-webgl', 'frieze-surface', 'frieze-click', 'light-chapter', 'nav-on-light', 'hero-dissolve', 'pixel-gate', 'smoke']
+const QUICK_SPECS = ['scene-scrub', 'card-links', 'scene-no-webgl', 'pixel-gate', 'scene-reduced-motion', 'smoke']
+const MOBILE_SPECS = ['scene-scrub', 'card-links', 'more-work', 'all-work', 'scene-no-webgl', 'light-chapter', 'nav-on-light', 'hero-dissolve', 'pixel-gate', 'smoke']
 // perf-budget's DPR test only exercises the 1.5 cap on Pixel 5's capped path,
 // so the harness adds it to mobile; the default suite checks the rule at DPR 1.
 const mobileSpecs = process.env.PERF_HARNESS === '1' ? [...MOBILE_SPECS, 'perf-budget'] : MOBILE_SPECS
@@ -61,42 +61,5 @@ export default defineConfig({
   projects: suite === 'quick' ? [{ ...desktop, testMatch: specs(QUICK_SPECS) }] : [
     desktop,
     { name: 'mobile-chromium', testMatch: specs(mobileSpecs), use: { ...devices['Pixel 5'] } },
-    // The act-two wall sizes its coverage masks from the canvas box times the
-    // renderer DPR, and the two projects above leave a whole sizing regime with
-    // no rendered coverage: Desktop Chrome is deviceScaleFactor 1, and Pixel 5
-    // is capped to 1.5 but only 727 px tall. So on desktop CI has never rendered
-    // at DPR 1.5, the 612.8 texels/world density ceiling (which needs >=1080 CSS
-    // px of canvas height) has never rendered at all, and the 2024 block's panel
-    // split renders only on the phone. That regime also carries the largest mask
-    // allocation, 27.16 MiB steady and 71.40 MiB peak against an 86.45 MiB
-    // budget, so an allocation or sampling failure there would first appear on a
-    // reader's tall screen after merge.
-    //
-    // 1280 wide, not 1920: the mask set is byte-identical at every 1080-tall
-    // canvas — 27.16 MiB across the same five panels, 2024 split included —
-    // because the density is height-driven once the height term binds. Width
-    // therefore buys no extra coverage, only backing store, and a software
-    // rasteriser pays for every pixel of it: 1920x1080 at DPR 1.5 is a 2864x1620
-    // buffer that could not finish the scene warm-up inside openScene's 30 s cap
-    // here, while 1280 is 1904x1620, a third less work, for the same regime.
-    //
-    // Scoped with testMatch to the wall's own rendered-surface spec: this exists
-    // to render the ceiling regime once, not to run the suite a third time. That
-    // spec is the one that would actually catch a failure unique to this regime —
-    // it sweeps act two, reads real glyph and cream pixels, hovers, and switches
-    // language, all against masks built at the ceiling. The hit geometry the
-    // click specs assert is DPR-independent and already covered twice over. No golden is
-    // added — the pixel gate stays hero-only by decision (ADR 0007), and these
-    // specs assert behaviour (frame-loop errors, hover brackets, console) rather
-    // than comparing pixels across machines.
-    {
-      name: 'desktop-hidpi',
-      testMatch: /frieze-surface\.spec\.ts$/,
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1280, height: 1080 },
-        deviceScaleFactor: 1.5,
-      },
-    },
   ],
 })

@@ -6,12 +6,10 @@ import { accentFor, accentDeepFor, accentDeepLargeFor } from '../../utils/palett
 
 /**
  * The open typographic row, in two places: Work Experience's expandable
- * entries, and the stream's case-study rows inside the Selected Work scene.
+ * entries, and the Stream's rows on All work.
  *
  * It carries no imagery of its own. The tracking preview float and the
- * trailing ornament went with the old Archive section — the archive's pictures
- * are the wall's now, drawn on the canvas, and a DOM row that also tried to
- * show one would be a second, worse copy of it.
+ * trailing ornament went with the old Archive section.
  */
 
 export interface WorkRowProps {

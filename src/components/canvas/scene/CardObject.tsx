@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect } from 'react'
 import { useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { COVER_Y, COVER_Z, WALL_ORDER } from './cardAnatomy'
+import { COVER_Y, COVER_Z } from './cardAnatomy'
 import {
   acquireCardGeometry,
   acquireCover,
@@ -11,24 +11,18 @@ import {
 } from './cardResources'
 
 /**
- * The scene's card, in both places it appears: standing in act one's corridor
- * and embedded in act two's wall at a Project's 2x2 footprint.
+ * The scene's card: the white frame, its cover and whatever caption the
+ * consumer nests inside it. The corridor's cards travel, so the rig drives them
+ * through the handles the corridor registers.
  *
- * The two consumers differ in what they OWN, not in what a card is. The
- * corridor's cards travel, so the rig drives them through registered handles;
- * the wall's stand still inside the frieze and register nothing (Q9: reuse the
- * anatomy, not the four-slot indexing). Everything shared between them — the
- * cover textures and the two geometries — belongs to `cardResources`, and this
- * component only borrows it: every shared subtree carries `dispose={null}` so
- * R3F's automatic disposal cannot reach a resource the other consumer is still
+ * The cover textures and the two geometries belong to `cardResources`, and this
+ * component only borrows them: every shared subtree carries `dispose={null}` so
+ * R3F's automatic disposal cannot reach a resource another card is still
  * drawing.
  */
 
-export type CardMode = 'corridor' | 'wall'
-
 interface CardCoverProps {
   url: string
-  mode: CardMode
   /** Every material on this card, so one opacity drives the whole object. */
   materials: THREE.MeshBasicMaterial[]
 }
@@ -38,7 +32,7 @@ interface CardCoverProps {
  * its own component means a card with no cover never calls the hook, and no
  * conditional hook is needed.
  */
-function CardCover({ url, mode, materials }: CardCoverProps) {
+function CardCover({ url, materials }: CardCoverProps) {
   const gl = useThree((state) => state.gl)
   const loaded = useLoader(THREE.TextureLoader, url)
   const geometry = cardGeometry('cover')
@@ -74,28 +68,8 @@ function CardCover({ url, mode, materials }: CardCoverProps) {
   }
 
   return (
-    <mesh
-      position={[0, COVER_Y, COVER_Z]}
-      geometry={geometry}
-      dispose={null}
-      renderOrder={mode === 'wall' ? WALL_ORDER.cover : 0}
-      raycast={mode === 'wall' ? () => null : undefined}
-    >
-      <meshBasicMaterial
-        ref={register}
-        map={loaded}
-        transparent
-        fog
-        toneMapped={false}
-        depthWrite={mode !== 'wall'}
-        // On the wall the cover sits 0.001 in front of its frame, too thin for
-        // the depth buffer at the volume shot, so it is biased toward the camera
-        // instead of skipping the test. Skipping it let the wall's fogged-cream
-        // covers paint over act one's cards wherever the two overlapped on screen.
-        polygonOffset={mode === 'wall'}
-        polygonOffsetFactor={-1}
-        polygonOffsetUnits={-4}
-      />
+    <mesh position={[0, COVER_Y, COVER_Z]} geometry={geometry} dispose={null}>
+      <meshBasicMaterial ref={register} map={loaded} transparent fog toneMapped={false} />
     </mesh>
   )
 }
@@ -103,7 +77,6 @@ function CardCover({ url, mode, materials }: CardCoverProps) {
 interface CardObjectProps {
   /** Null leaves the framed card standing on its own (Q10). */
   coverUrl: string | null
-  mode: CardMode
   /** The card's materials, owned by the consumer; the frame registers here. */
   materials: THREE.MeshBasicMaterial[]
   /** Receives the frame's material so the rig can drive its opacity. */
@@ -111,7 +84,7 @@ interface CardObjectProps {
   children?: React.ReactNode
 }
 
-export function CardObject({ coverUrl, mode, materials, onFrameMaterial, children }: CardObjectProps) {
+export function CardObject({ coverUrl, materials, onFrameMaterial, children }: CardObjectProps) {
   const geometry = cardGeometry('frame')
 
   useEffect(() => {
@@ -121,12 +94,7 @@ export function CardObject({ coverUrl, mode, materials, onFrameMaterial, childre
 
   return (
     <>
-      <mesh
-        geometry={geometry}
-        dispose={null}
-        renderOrder={mode === 'wall' ? WALL_ORDER.frame : 0}
-        raycast={mode === 'wall' ? () => null : undefined}
-      >
+      <mesh geometry={geometry} dispose={null}>
         <meshBasicMaterial
           ref={(material) => {
             onFrameMaterial?.(material)
@@ -136,7 +104,7 @@ export function CardObject({ coverUrl, mode, materials, onFrameMaterial, childre
           fog
         />
       </mesh>
-      {coverUrl ? <CardCover url={coverUrl} mode={mode} materials={materials} /> : null}
+      {coverUrl ? <CardCover url={coverUrl} materials={materials} /> : null}
       {children}
     </>
   )

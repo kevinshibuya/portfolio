@@ -910,7 +910,7 @@ html[data-loading='true'] {
    nth-child(3n+k) targets the same visual column across every row. Stagger
    wraps each .skills-col in its own motion.div, so the nth-child count must
    run over .skills-grid's direct children (the wrappers), not .skills-col
-   itself — see the identical .stats-rows wrapper note above. */
+   itself. */
 .skills-grid > :nth-child(3n+1) .skills-dot { background: var(--accent-pink); }
 .skills-grid > :nth-child(3n+2) .skills-dot { background: var(--accent-blue); }
 .skills-grid > :nth-child(3n+3) .skills-dot { background: var(--accent-yellow); }
@@ -1151,119 +1151,6 @@ body[data-loader-state="loading"] {
   touch-action: none;
 }
 
-/* Stats numbered-receipt section. Two-column editorial layout on desktop
-   (heading left, numbered rows right), single column on mobile. */
-.stats {
-  padding: 128px 80px;
-  background: var(--bg);
-}
-.stats-inner {
-  max-width: 1440px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 5fr 7fr;
-  gap: 80px;
-  align-items: start;
-}
-.stats-heading-col {
-  position: sticky;
-  top: 120px;
-}
-.stats-rows {
-  position: relative;
-  border-left: 1px solid var(--hairline);
-  padding-left: 80px;
-  display: flex;
-  flex-direction: column;
-}
-.stats-row {
-  display: grid;
-  grid-template-columns: 48px 240px 1fr;
-  column-gap: 24px;
-  align-items: start;
-  padding: 56px 0;
-  border-bottom: 1px solid var(--hairline);
-}
-/* Stagger wraps each .stats-row in a motion.div, so .stats-row:first-child
-   would (incorrectly) match every row. Target the wrapper instead. */
-.stats-rows > :first-child .stats-row { padding-top: 0; }
-.stats-rows > :last-child .stats-row {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-.stats-row-num {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-faded);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  /* Optical nudge: line up the cap-top of "01" with the cap-top of the
-     value glyph (Plus Jakarta at line-height:1 sits ~6px below box top). */
-  padding-top: 6px;
-}
-.stats-row-value {
-  font-size: 56px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  white-space: nowrap;
-}
-.stats-row-ann {
-  font-size: 16px;
-  color: var(--text-muted);
-  line-height: 1.55;
-  text-transform: lowercase;
-  /* Same optical nudge as .stats-row-num so the annotation's first-line
-     text-top matches the value's cap-top. */
-  padding-top: 6px;
-}
-.stats-row-link {
-  color: var(--accent-blue);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-bottom-color var(--dur-hover-in) var(--ease-house),
-              color var(--dur-hover-in) var(--ease-house);
-  margin-left: 6px;
-}
-.stats-row-link:hover {
-  border-bottom-color: var(--accent-blue);
-}
-.stats-row-link:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: 4px;
-  border-radius: 2px;
-}
-@media (max-width: 1023px) {
-  .stats { padding: 112px 48px; }
-  .stats-inner { gap: 56px; }
-  .stats-rows { padding-left: 48px; }
-  .stats-row { grid-template-columns: 40px 200px 1fr; column-gap: 20px; }
-  .stats-row-value { font-size: 48px; }
-}
-@media (max-width: 768px) {
-  .stats { padding: 96px 24px; }
-  .stats-inner {
-    grid-template-columns: 1fr;
-    gap: 48px;
-  }
-  .stats-heading-col { position: static; }
-  .stats-rows {
-    border-left: none;
-    padding-left: 0;
-  }
-  .stats-row {
-    grid-template-columns: 32px 160px 1fr;
-    column-gap: 16px;
-    padding: 24px 0;
-  }
-  .stats-row-value { font-size: 40px; }
-  .stats-row-ann { font-size: 15px; }
-}
-
-
 /* =====================================================================
  * Project detail page
  * =====================================================================*/
@@ -1345,7 +1232,7 @@ body[data-loader-state="loading"] {
   letter-spacing: -0.02em;
   line-height: 0.95;
   margin: 0 0 16px;
-  text-transform: lowercase;
+  /* A project name keeps its own capitals (ADR 0014): no text-transform. */
   color: var(--ink);
 }
 .project-detail-title-word {
@@ -1813,7 +1700,7 @@ body[data-loader-state="loading"] {
 /* =========================================================================
    WORKROW — shared tinted typographic row primitive
    (WorkExperience, and the stream's case-study rows.)
-   Open editorial rows: index · oversized lowercase title ·
+   Open editorial rows: index · oversized title (a name keeps its capitals) ·
    ·-joined meta · trailing ↗ / + arrow. Per-row shader tint via --row-tint
    (set inline by the component). The list OWNER draws the top hairline; the
    primitive only draws row bottoms.
@@ -1942,65 +1829,49 @@ body[data-loader-state="loading"] {
 }
 
 /* =========================================================================
-   STREAM — the archive's accessible twin (Stream.tsx)
-   Where the two ARCHIVE blocks were. Two states of one component: `hidden`
-   runs beside the scene, every row focusable and clipped to a pixel; `visible`
-   is the whole archive in normal flow when there is no WebGL.
+   CARD LINKS — the scene's keyboard and screen-reader path (Projects.tsx)
+   One visually hidden link per corridor card (ADR 0011). Focusing one surfaces
+   it as a pill at the top of the viewport and travels the camera to its card.
    Canonical tokens only — the light chapter's scope inverts them.
    ========================================================================= */
 
-/* ── hidden: focusable, clipped, and a pill on focus ─────────────────────── */
+/* The CONTAINER is fixed, and that is the whole trick. Every link's clipped 1px
+   box then sits inside the viewport at every scroll position, so the browser's
+   focus-scroll — which runs BEFORE :focus-visible applies, and reads the
+   clipped box — has nothing to do, and the eased Lenis travel is the only
+   scroll. An absolutely-positioned container at the section's top would
+   native-scroll the window there on every Tab.
 
-/* The CONTAINER is fixed, and that is the whole trick. Every descendant's
-   clipped 1px box then sits inside the viewport at every size, so the
-   browser's focus-scroll — which runs BEFORE :focus-visible applies, and reads
-   the clipped box — has nothing to do, and the gated Lenis travel is the only
-   scroll. An absolutely-positioned container at the section's top would put
-   every row at playhead 0 and native-scroll the window there on every Tab.
-
-   The z-index lives HERE, not on the row: `position: fixed` always establishes
-   a stacking context, so a row's own z-index cannot leave this container. That
-   is also why the stream is a sibling of .scene-scroll and not a child of
-   .scene-sticky, whose sticky stacking context would trap the pill under the
-   nav at z-index 100.
+   The z-index lives HERE, not on the link: `position: fixed` always
+   establishes a stacking context, so a link's own z-index cannot leave this
+   container. That is also why the list is a sibling of .scene-scroll and not a
+   child of .scene-sticky, whose sticky stacking context would trap the pill
+   under the nav at z-index 100.
 
    overflow stays `visible` and there is no clip-path here, or the pill is
    re-clipped by its own parent. */
-.stream--hidden {
+.scene-cardlinks {
   position: fixed;
   top: 16px;
   left: 50%;
   width: 0;
   height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   overflow: visible;
   z-index: 120;
   pointer-events: none;
 }
 
-/* Wrappers carry no box of their own, so the rule below reaches the rows.
-   `.workrow` belongs in this list and is easy to miss: it is `position:
-   relative`, so a WorkRow row left inside it anchors its `top: 0` to the
-   WORKROW rather than to the fixed container, and the pill lands a few pixels
-   lower for every row already stacked above it — 16, then 19, then 22. */
-.stream--hidden .stream-header,
-.stream--hidden .stream-year,
-.stream--hidden .stream-list,
-.stream--hidden .stream-item,
-.stream--hidden .workrow {
+/* The items carry no box of their own, so the rule below reaches the links. */
+.scene-cardlinks li {
   display: contents;
 }
 
-/* clip-path, never overflow: hidden — that would make every row its own scroll
-   container, and a focused child inside one shifts the stage. */
-.stream--hidden :is(
-    .stream-skip,
-    .stream-row,
-    .workrow-link,
-    .stream-title,
-    .stream-total,
-    .stream-year-label,
-    .stream-serial
-  ) {
+/* clip-path, never overflow: hidden — that would make every link its own
+   scroll container, and a focused child inside one shifts the stage. */
+.scene-cardlink {
   position: absolute;
   top: 0;
   left: 0;
@@ -2013,13 +1884,12 @@ body[data-loader-state="loading"] {
 /* :focus-visible is keyboard-only, so a mouse user never sees the pill and the
    canvas keeps its hover. pointer-events stays inherited-none, pill included.
    No transition: this is a focus indicator, not an animation. */
-.stream--hidden :is(.stream-skip, .stream-row, .workrow-link):focus-visible {
+.scene-cardlink:focus-visible {
   width: auto;
   height: auto;
   clip-path: none;
   transform: translateX(-50%);
   max-width: min(90vw, 720px);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 8px 16px;
@@ -2030,43 +1900,16 @@ body[data-loader-state="loading"] {
   outline: 2px solid var(--text);
   outline-offset: 2px;
   font-size: 14px;
-  text-transform: lowercase;
-}
-
-/* A WorkRow brings a full-width flex box, 34px padding and a 64px title into
-   the pill. Reset it to a line of text; only the title shows. The padding is
-   restated rather than zeroed: `padding: 0` also removed the PILL's own 8px,
-   which made a case-study pill 23px tall against 39px for every other one. */
-.stream--hidden .workrow-link:focus-visible {
-  display: block;
-  width: auto;
-  padding: 8px 16px;
-  gap: 0;
-}
-.stream--hidden .workrow-link:focus-visible .workrow-title,
-.stream--hidden .stream-row:focus-visible .stream-row-title {
-  /* Out of the two-line -webkit-box clamp: the pill is one line, and the
-     ellipsis is the pill's own. */
-  display: inline;
-  font-size: inherit;
   font-weight: 500;
   line-height: 1.2;
-  letter-spacing: normal;
-}
-.stream--hidden :is(.workrow-link, .stream-row):focus-visible :is(
-    .workrow-meta,
-    .workrow-arrow,
-    .stream-row-meta,
-    .stream-row-arrow,
-    .stream-serial
-  ) {
-  display: none;
-}
-.stream--hidden .stream-row:focus-visible {
-  display: block;
+  /* The link's text is the project name, which keeps its capitals (ADR 0014). */
 }
 
-/* ── visible: the archive in normal flow, no WebGL ───────────────────────── */
+/* =========================================================================
+   STREAM — every piece, year by year (Stream.tsx), on All work
+   Canonical tokens only.
+   ========================================================================= */
+
 .stream--visible {
   width: min(1440px, 100% - 160px);
   margin: 96px auto 0;
@@ -2075,9 +1918,7 @@ body[data-loader-state="loading"] {
 .stream-title {
   /* EXPLICIT, and the muted siblings below are why this is easy to miss: the
      light chapter inverts TOKENS, not inherited colour, so an element with no
-     `color` of its own keeps `body`'s cream and renders cream on cream. The
-     hidden state hid the bug — the pill sets its own colour — and only the
-     no-WebGL state shows it. */
+     `color` of its own keeps `body`'s cream and renders cream on cream. */
   color: var(--text);
   font-size: clamp(56px, 11.6vw, 168px);
   font-weight: 550;
@@ -2175,10 +2016,15 @@ body[data-loader-state="loading"] {
   transition: color var(--dur-hover-in) var(--ease-house);
 }
 
-/* Mirrors the chapter's WorkRow hover: the title takes the row's deep-large
-   tint, the arrow comes up to full ink. */
+/* Mirrors WorkRow's hover: the title takes the row's tint, the arrow comes up
+   to full text. On ink (All work) that is the raw tricolor; the light chapter
+   re-points it at the deep-large channel, as it does for WorkRow. */
 .stream--visible .stream-row:hover .stream-row-title,
 .stream--visible .stream-row:focus-within .stream-row-title {
+  color: var(--row-tint);
+}
+.chapter-light .stream--visible .stream-row:hover .stream-row-title,
+.chapter-light .stream--visible .stream-row:focus-within .stream-row-title {
   color: var(--row-tint-deep-large);
 }
 .stream--visible .stream-row:hover .stream-row-arrow,
@@ -2201,6 +2047,13 @@ body[data-loader-state="loading"] {
    audit in Task 8 stays a real audit. */
 .stream .workrow-title {
   font-size: clamp(20px, 2.6vw, 34px);
+}
+
+/* All work: the page's own column is `.section`'s, so the Stream drops the
+   in-chapter gutter and top margin it carries on the home page. */
+.all-work .stream--visible {
+  width: auto;
+  margin: 0;
 }
 
 @media (max-width: 900px) {
@@ -2360,7 +2213,7 @@ body[data-loader-state="loading"] {
 
 .scene-scroll {
   position: relative;
-  /* height is inline, from sceneWrapperSvh(columns) in Projects.tsx */
+  /* height is inline, from SCENE_WRAPPER_SVH in Projects.tsx */
   margin-top: 96px;
 }
 .scene-sticky {
@@ -2434,7 +2287,7 @@ body[data-loader-state="loading"] {
   font-size: clamp(14px, 1.4vw, 16px);
   font-weight: 700;
   color: var(--color-ink-on-light);
-  text-transform: lowercase;
+  /* The project name keeps its capitals (ADR 0014); the subtitle stays lowercase. */
   letter-spacing: -0.01em;
 }
 .scene-fallback-subtitle {
@@ -2461,4 +2314,43 @@ body[data-loader-state="loading"] {
 .scene-fallback-link:focus-visible {
   outline: 2px solid var(--color-ink-on-light);
   outline-offset: 3px;
+}
+
+/* More work — the highlighted projects past the corridor's four, as WorkRows,
+   then the volume sentence. Ordinary flow content in a full-bleed section, so
+   it carries the .section gutters itself. Canonical tokens only: the chapter's
+   scope turns them into the on-light steps, and no new pair is introduced. */
+.more-work {
+  width: min(1280px, 100% - 160px);
+  margin: 96px auto 0;
+}
+.more-work-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* The list owner draws the top hairline; WorkRow draws row bottoms. */
+  border-top: 1px solid var(--hairline);
+}
+.more-work-volume {
+  margin-top: 28px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.more-work-volume a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 4px;
+}
+.more-work-volume a:hover {
+  text-decoration-color: currentColor;
+}
+.more-work-volume a:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+@media (max-width: 720px) {
+  .more-work { width: calc(100% - 40px); }
 }

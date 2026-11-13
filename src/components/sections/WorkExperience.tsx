@@ -28,7 +28,8 @@ export function WorkExperience() {
           <WorkRow
             key={exp.id}
             index={i}
-            title={exp.company.toLowerCase()}
+            // A company name keeps its capitals (ADR 0014); the rest of the row stays lowercase.
+            title={exp.company}
             meta={[exp.role[lang], exp.period[lang]]}
             expandable
             expanded={expandedIdx === i}

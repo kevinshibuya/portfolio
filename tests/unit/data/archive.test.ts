@@ -39,7 +39,7 @@ describe('archive', () => {
   it('holds the nine case studies, and every other piece is an external embed', () => {
     // Relations, never the census. 171 is today's count and it moves with every
     // published piece; a test that hardcodes it fails on new content instead of
-    // on a defect. The frieze fixture is where cell drift is caught.
+    // on a defect.
     expect(archive.length).toBeGreaterThan(0)
     const slugs = archive.flatMap((item) => (item.caseStudy ? [item.caseStudy.slug] : [])).sort()
     expect(slugs).toEqual([

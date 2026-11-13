@@ -4,7 +4,7 @@ export const projects: Project[] = [
   {
     id: 'radar-legislativo',
     slug: 'radar-legislativo',
-    title: { en: 'radar legislativo', pt: 'radar legislativo' },
+    title: { en: 'Radar Legislativo', pt: 'Radar Legislativo' },
     year: 2026,
     highlight: true,
     highlightOrder: 2,
@@ -44,7 +44,7 @@ export const projects: Project[] = [
   {
     id: 'painel-da-reconstrucao',
     slug: 'painel-da-reconstrucao',
-    title: { en: 'painel da reconstrução', pt: 'painel da reconstrução' },
+    title: { en: 'Painel da Reconstrução', pt: 'Painel da Reconstrução' },
     year: 2024,
     highlight: true,
     highlightOrder: 4,
@@ -102,7 +102,7 @@ export const projects: Project[] = [
   {
     id: 'enquetes-gzh',
     slug: 'enquetes-gzh',
-    title: { en: 'enquetes gzh', pt: 'enquetes gzh' },
+    title: { en: 'Enquetes GZH', pt: 'Enquetes GZH' },
     year: 2026,
     highlight: true,
     highlightOrder: 3,
@@ -156,7 +156,7 @@ export const projects: Project[] = [
   {
     id: 'chatbot-analitico-redacao',
     slug: 'chat-da-hora',
-    title: { en: 'chat da hora', pt: 'chat da hora' },
+    title: { en: 'Chat da Hora', pt: 'Chat da Hora' },
     year: 2025,
     highlight: true,
     highlightOrder: 5,
@@ -198,7 +198,7 @@ export const projects: Project[] = [
   {
     id: 'ia-na-redacao',
     slug: 'ia-na-redacao',
-    title: { en: 'ia na redação', pt: 'ia na redação' },
+    title: { en: 'IA na Redação', pt: 'IA na Redação' },
     year: 2025,
     highlight: true,
     highlightOrder: 9,
@@ -235,7 +235,7 @@ export const projects: Project[] = [
   {
     id: 'fotos-do-ano-2025',
     slug: 'fotos-do-ano-2025',
-    title: { en: 'fotos do ano 2025', pt: 'fotos do ano 2025' },
+    title: { en: 'Fotos do Ano 2025', pt: 'Fotos do Ano 2025' },
     year: 2025,
     highlight: true,
     highlightOrder: 7,
@@ -277,7 +277,7 @@ export const projects: Project[] = [
   {
     id: 'peleia-gre-nal',
     slug: 'peleia-gre-nal',
-    title: { en: 'peleia gre-nal', pt: 'peleia gre-nal' },
+    title: { en: 'Peleia Gre-Nal', pt: 'Peleia Gre-Nal' },
     year: 2024,
     highlight: true,
     highlightOrder: 8,
@@ -319,7 +319,7 @@ export const projects: Project[] = [
   {
     id: 'hotmart-bunde',
     slug: 'hotmart-bunde',
-    title: { en: 'política essencial', pt: 'política essencial' },
+    title: { en: 'Política Essencial', pt: 'Política Essencial' },
     year: 2026,
     origin: 'freelance',
     highlight: true,
@@ -365,7 +365,7 @@ export const projects: Project[] = [
   {
     id: 'fotos-do-ano-2024',
     slug: 'fotos-do-ano-2024',
-    title: { en: 'fotos do ano 2024', pt: 'fotos do ano 2024' },
+    title: { en: 'Fotos do Ano 2024', pt: 'Fotos do Ano 2024' },
     year: 2024,
     highlight: true,
     highlightOrder: 6,
