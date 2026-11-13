@@ -7,6 +7,8 @@ import { useLenisContext } from '../layout/SmoothScroll'
 import { SelectedWorkScene, type SceneCard } from '../canvas/SelectedWorkScene'
 import { webglProbe } from '../canvas/webglProbe'
 import { projects } from '../../data/projects'
+import { captionMeta } from '../../utils/projectMeta'
+import { MoreWork } from './MoreWork'
 import {
   playheadFor,
   frontIndexFor,
@@ -37,7 +39,7 @@ export function Projects() {
       featured.map((p) => ({
         slug: p.slug,
         title: p.title[lang],
-        subtitle: `${p.year} · ${p.techStack.slice(0, 2).map((s) => s.toLowerCase()).join(' · ')}`,
+        subtitle: captionMeta(p).join(' · '),
         art: p.mockups?.stackCover ?? '',
         alt: `${p.title[lang]} preview`,
       })),
@@ -196,6 +198,10 @@ export function Projects() {
           </div>
         </div>
       )}
+
+      {/* After the scroll wrapper, or after the fallback cards: the same rows
+          either way, in normal flow. */}
+      <MoreWork />
     </section>
   )
 }

@@ -2315,3 +2315,42 @@ body[data-loader-state="loading"] {
   outline: 2px solid var(--color-ink-on-light);
   outline-offset: 3px;
 }
+
+/* More work — the highlighted projects past the corridor's four, as WorkRows,
+   then the volume sentence. Ordinary flow content in a full-bleed section, so
+   it carries the .section gutters itself. Canonical tokens only: the chapter's
+   scope turns them into the on-light steps, and no new pair is introduced. */
+.more-work {
+  width: min(1280px, 100% - 160px);
+  margin: 96px auto 0;
+}
+.more-work-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* The list owner draws the top hairline; WorkRow draws row bottoms. */
+  border-top: 1px solid var(--hairline);
+}
+.more-work-volume {
+  margin-top: 28px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.more-work-volume a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 4px;
+}
+.more-work-volume a:hover {
+  text-decoration-color: currentColor;
+}
+.more-work-volume a:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+@media (max-width: 720px) {
+  .more-work { width: calc(100% - 40px); }
+}
