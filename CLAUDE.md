@@ -28,6 +28,8 @@ How it works: `docs/architecture.md`. Before editing a surface, read its section
    `curl -s https://kevinshibuya.com/ | grep -oE 'theme-color" content="[^"]*"'`
    The pre-redesign site is `#F6F9FC`; the dark redesign is `#0B0E14`. `loader-ks` and `portfolio · 2026` appear only in the redesign. **While `main` is frozen, `#F6F9FC` is the CORRECT production state**, not a regression: production does not yet serve the site this file describes.
 
+**Release and rollback, 2026-11-13.** PR #48 merged `staging` into `main` on Kevin's go-ahead, and production served the redesign from 17:27 to 18:18 UTC. Kevin then judged it not ready to ship and had `main` put back on `62cd73c` with step 1 above; Cloudflare restored the old site in about 150 s. The freeze stands until Kevin says the revamp is finished.
+
 Nothing was lost in that incident because `staging` retained every commit. Keep it that way: **never roll back by deleting work from `staging` or `ai-staging`.**
 
 ## Verification
