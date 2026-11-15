@@ -130,20 +130,6 @@ const ENTRIES: Entry[] = [
     ],
   },
   {
-    slug: 'peleia-gre-nal',
-    source: 'peleia-gre-nal',
-    desktop: [
-      { file: 'desktop/01-intro.png' },
-      { file: 'desktop/03-team-pick.png' },
-      { file: 'desktop/04-combat.png' },
-    ],
-    mobile: [
-      { file: 'mobile/03-team-pick.png' },
-      { file: 'mobile/04-combat.png' },
-      { file: 'mobile/05-round-result.png' },
-    ],
-  },
-  {
     slug: 'ia-na-redacao',
     source: 'ia-na-redacao',
     desktop: [

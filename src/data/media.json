@@ -1,4 +1,283 @@
 {
+ "consilia-ia": {
+  "source": "studio",
+  "items": [
+   {
+    "id": "c01",
+    "type": "clip",
+    "shape": "wide",
+    "w": 960,
+    "h": 600,
+    "poster": "/media/consilia-ia/c01.webp",
+    "webm": "/media/consilia-ia/c01.webm",
+    "mp4": "/media/consilia-ia/c01.mp4",
+    "kb": 518,
+    "twin": "d01"
+   },
+   {
+    "id": "c02",
+    "type": "clip",
+    "shape": "wide",
+    "w": 960,
+    "h": 600,
+    "poster": "/media/consilia-ia/c02.webp",
+    "webm": "/media/consilia-ia/c02.webm",
+    "mp4": "/media/consilia-ia/c02.mp4",
+    "kb": 516
+   },
+   {
+    "id": "c03",
+    "type": "clip",
+    "shape": "wide",
+    "w": 960,
+    "h": 600,
+    "poster": "/media/consilia-ia/c03.webp",
+    "webm": "/media/consilia-ia/c03.webm",
+    "mp4": "/media/consilia-ia/c03.mp4",
+    "kb": 384,
+    "twin": "d05"
+   },
+   {
+    "id": "c04",
+    "type": "clip",
+    "shape": "wide",
+    "w": 960,
+    "h": 600,
+    "poster": "/media/consilia-ia/c04.webp",
+    "webm": "/media/consilia-ia/c04.webm",
+    "mp4": "/media/consilia-ia/c04.mp4",
+    "kb": 269,
+    "twin": "d09"
+   },
+   {
+    "id": "c05",
+    "type": "clip",
+    "shape": "wide",
+    "w": 960,
+    "h": 600,
+    "poster": "/media/consilia-ia/c05.webp",
+    "webm": "/media/consilia-ia/c05.webm",
+    "mp4": "/media/consilia-ia/c05.mp4",
+    "kb": 435,
+    "twin": "d12"
+   },
+   {
+    "id": "c06",
+    "type": "clip",
+    "shape": "wide",
+    "w": 960,
+    "h": 600,
+    "poster": "/media/consilia-ia/c06.webp",
+    "webm": "/media/consilia-ia/c06.webm",
+    "mp4": "/media/consilia-ia/c06.mp4",
+    "kb": 161,
+    "twin": "d13"
+   },
+   {
+    "id": "c07",
+    "type": "clip",
+    "shape": "phone",
+    "w": 360,
+    "h": 780,
+    "poster": "/media/consilia-ia/c07.webp",
+    "webm": "/media/consilia-ia/c07.webm",
+    "mp4": "/media/consilia-ia/c07.mp4",
+    "kb": 300,
+    "twin": "m01"
+   },
+   {
+    "id": "d01",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d01-640.webp",
+    "srcset": "/media/consilia-ia/d01-640.webp 640w, /media/consilia-ia/d01-1280.webp 1280w"
+   },
+   {
+    "id": "d02",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d02-640.webp",
+    "srcset": "/media/consilia-ia/d02-640.webp 640w, /media/consilia-ia/d02-1280.webp 1280w"
+   },
+   {
+    "id": "d03",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d03-640.webp",
+    "srcset": "/media/consilia-ia/d03-640.webp 640w, /media/consilia-ia/d03-1280.webp 1280w"
+   },
+   {
+    "id": "d04",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d04-640.webp",
+    "srcset": "/media/consilia-ia/d04-640.webp 640w, /media/consilia-ia/d04-1280.webp 1280w"
+   },
+   {
+    "id": "d05",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d05-640.webp",
+    "srcset": "/media/consilia-ia/d05-640.webp 640w, /media/consilia-ia/d05-1280.webp 1280w"
+   },
+   {
+    "id": "d06",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d06-640.webp",
+    "srcset": "/media/consilia-ia/d06-640.webp 640w, /media/consilia-ia/d06-1280.webp 1280w"
+   },
+   {
+    "id": "d07",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d07-640.webp",
+    "srcset": "/media/consilia-ia/d07-640.webp 640w, /media/consilia-ia/d07-1280.webp 1280w"
+   },
+   {
+    "id": "d08",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d08-640.webp",
+    "srcset": "/media/consilia-ia/d08-640.webp 640w, /media/consilia-ia/d08-1280.webp 1280w"
+   },
+   {
+    "id": "d09",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d09-640.webp",
+    "srcset": "/media/consilia-ia/d09-640.webp 640w, /media/consilia-ia/d09-1280.webp 1280w"
+   },
+   {
+    "id": "d10",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d10-640.webp",
+    "srcset": "/media/consilia-ia/d10-640.webp 640w, /media/consilia-ia/d10-1280.webp 1280w"
+   },
+   {
+    "id": "d11",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d11-640.webp",
+    "srcset": "/media/consilia-ia/d11-640.webp 640w, /media/consilia-ia/d11-1280.webp 1280w"
+   },
+   {
+    "id": "d12",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d12-640.webp",
+    "srcset": "/media/consilia-ia/d12-640.webp 640w, /media/consilia-ia/d12-1280.webp 1280w"
+   },
+   {
+    "id": "d13",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d13-640.webp",
+    "srcset": "/media/consilia-ia/d13-640.webp 640w, /media/consilia-ia/d13-1280.webp 1280w"
+   },
+   {
+    "id": "d14",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d14-640.webp",
+    "srcset": "/media/consilia-ia/d14-640.webp 640w, /media/consilia-ia/d14-1280.webp 1280w"
+   },
+   {
+    "id": "d15",
+    "type": "still",
+    "shape": "wide",
+    "w": 1440,
+    "h": 900,
+    "src": "/media/consilia-ia/d15-640.webp",
+    "srcset": "/media/consilia-ia/d15-640.webp 640w, /media/consilia-ia/d15-1280.webp 1280w"
+   },
+   {
+    "id": "m01",
+    "type": "still",
+    "shape": "phone",
+    "w": 480,
+    "h": 1039,
+    "src": "/media/consilia-ia/m01-480.webp"
+   },
+   {
+    "id": "m02",
+    "type": "still",
+    "shape": "phone",
+    "w": 480,
+    "h": 1039,
+    "src": "/media/consilia-ia/m02-480.webp"
+   },
+   {
+    "id": "m03",
+    "type": "still",
+    "shape": "phone",
+    "w": 480,
+    "h": 1039,
+    "src": "/media/consilia-ia/m03-480.webp"
+   },
+   {
+    "id": "m04",
+    "type": "still",
+    "shape": "phone",
+    "w": 480,
+    "h": 1039,
+    "src": "/media/consilia-ia/m04-480.webp"
+   },
+   {
+    "id": "m05",
+    "type": "still",
+    "shape": "phone",
+    "w": 480,
+    "h": 1039,
+    "src": "/media/consilia-ia/m05-480.webp"
+   },
+   {
+    "id": "m06",
+    "type": "still",
+    "shape": "phone",
+    "w": 480,
+    "h": 1039,
+    "src": "/media/consilia-ia/m06-480.webp"
+   },
+   {
+    "id": "m07",
+    "type": "still",
+    "shape": "phone",
+    "w": 480,
+    "h": 1039,
+    "src": "/media/consilia-ia/m07-480.webp"
+   }
+  ]
+ },
  "enquetes-gzh": {
   "source": "studio",
   "items": [
@@ -827,136 +1106,6 @@
    }
   ]
  },
- "peleia-gre-nal": {
-  "source": "studio",
-  "items": [
-   {
-    "id": "c01",
-    "type": "clip",
-    "shape": "wide",
-    "w": 960,
-    "h": 600,
-    "poster": "/media/peleia-gre-nal/c01.webp",
-    "webm": "/media/peleia-gre-nal/c01.webm",
-    "mp4": "/media/peleia-gre-nal/c01.mp4",
-    "kb": 220,
-    "twin": "d02"
-   },
-   {
-    "id": "c02",
-    "type": "clip",
-    "shape": "wide",
-    "w": 960,
-    "h": 600,
-    "poster": "/media/peleia-gre-nal/c02.webp",
-    "webm": "/media/peleia-gre-nal/c02.webm",
-    "mp4": "/media/peleia-gre-nal/c02.mp4",
-    "kb": 107,
-    "twin": "d04"
-   },
-   {
-    "id": "c03",
-    "type": "clip",
-    "shape": "wide",
-    "w": 960,
-    "h": 600,
-    "poster": "/media/peleia-gre-nal/c03.webp",
-    "webm": "/media/peleia-gre-nal/c03.webm",
-    "mp4": "/media/peleia-gre-nal/c03.mp4",
-    "kb": 98,
-    "twin": "d01"
-   },
-   {
-    "id": "c04",
-    "type": "clip",
-    "shape": "phone",
-    "w": 360,
-    "h": 780,
-    "poster": "/media/peleia-gre-nal/c04.webp",
-    "webm": "/media/peleia-gre-nal/c04.webm",
-    "mp4": "/media/peleia-gre-nal/c04.mp4",
-    "kb": 114,
-    "twin": "m03"
-   },
-   {
-    "id": "d01",
-    "type": "still",
-    "shape": "wide",
-    "w": 1440,
-    "h": 900,
-    "src": "/media/peleia-gre-nal/d01-640.webp",
-    "srcset": "/media/peleia-gre-nal/d01-640.webp 640w, /media/peleia-gre-nal/d01-1280.webp 1280w"
-   },
-   {
-    "id": "d02",
-    "type": "still",
-    "shape": "wide",
-    "w": 1440,
-    "h": 900,
-    "src": "/media/peleia-gre-nal/d02-640.webp",
-    "srcset": "/media/peleia-gre-nal/d02-640.webp 640w, /media/peleia-gre-nal/d02-1280.webp 1280w"
-   },
-   {
-    "id": "d03",
-    "type": "still",
-    "shape": "wide",
-    "w": 1440,
-    "h": 900,
-    "src": "/media/peleia-gre-nal/d03-640.webp",
-    "srcset": "/media/peleia-gre-nal/d03-640.webp 640w, /media/peleia-gre-nal/d03-1280.webp 1280w"
-   },
-   {
-    "id": "d04",
-    "type": "still",
-    "shape": "wide",
-    "w": 1440,
-    "h": 900,
-    "src": "/media/peleia-gre-nal/d04-640.webp",
-    "srcset": "/media/peleia-gre-nal/d04-640.webp 640w, /media/peleia-gre-nal/d04-1280.webp 1280w"
-   },
-   {
-    "id": "d05",
-    "type": "still",
-    "shape": "wide",
-    "w": 1440,
-    "h": 900,
-    "src": "/media/peleia-gre-nal/d05-640.webp",
-    "srcset": "/media/peleia-gre-nal/d05-640.webp 640w, /media/peleia-gre-nal/d05-1280.webp 1280w"
-   },
-   {
-    "id": "m01",
-    "type": "still",
-    "shape": "phone",
-    "w": 480,
-    "h": 1039,
-    "src": "/media/peleia-gre-nal/m01-480.webp"
-   },
-   {
-    "id": "m02",
-    "type": "still",
-    "shape": "phone",
-    "w": 480,
-    "h": 1039,
-    "src": "/media/peleia-gre-nal/m02-480.webp"
-   },
-   {
-    "id": "m03",
-    "type": "still",
-    "shape": "phone",
-    "w": 480,
-    "h": 1039,
-    "src": "/media/peleia-gre-nal/m03-480.webp"
-   },
-   {
-    "id": "m04",
-    "type": "still",
-    "shape": "phone",
-    "w": 480,
-    "h": 1039,
-    "src": "/media/peleia-gre-nal/m04-480.webp"
-   }
-  ]
- },
  "hotmart-bunde": {
   "source": "studio",
   "items": [
@@ -1316,85 +1465,6 @@
     "w": 480,
     "h": 1253,
     "src": "/media/promptfall/m01-480.webp"
-   }
-  ]
- },
- "barber-app": {
-  "source": "readme",
-  "items": [
-   {
-    "id": "d01",
-    "type": "still",
-    "shape": "wide",
-    "w": 1600,
-    "h": 682,
-    "src": "/media/barber-app/d01-640.webp",
-    "srcset": "/media/barber-app/d01-640.webp 640w, /media/barber-app/d01-1280.webp 1280w"
-   },
-   {
-    "id": "d02",
-    "type": "still",
-    "shape": "wide",
-    "w": 1600,
-    "h": 682,
-    "src": "/media/barber-app/d02-640.webp",
-    "srcset": "/media/barber-app/d02-640.webp 640w, /media/barber-app/d02-1280.webp 1280w"
-   },
-   {
-    "id": "m01",
-    "type": "still",
-    "shape": "phone",
-    "w": 480,
-    "h": 1067,
-    "src": "/media/barber-app/m01-480.webp"
-   },
-   {
-    "id": "m02",
-    "type": "still",
-    "shape": "phone",
-    "w": 480,
-    "h": 1067,
-    "src": "/media/barber-app/m02-480.webp"
-   },
-   {
-    "id": "m03",
-    "type": "still",
-    "shape": "phone",
-    "w": 480,
-    "h": 1067,
-    "src": "/media/barber-app/m03-480.webp"
-   },
-   {
-    "id": "m04",
-    "type": "still",
-    "shape": "phone",
-    "w": 480,
-    "h": 1067,
-    "src": "/media/barber-app/m04-480.webp"
-   },
-   {
-    "id": "m05",
-    "type": "still",
-    "shape": "phone",
-    "w": 480,
-    "h": 1067,
-    "src": "/media/barber-app/m05-480.webp"
-   },
-   {
-    "id": "m06",
-    "type": "still",
-    "shape": "phone",
-    "w": 480,
-    "h": 1067,
-    "src": "/media/barber-app/m06-480.webp"
-   },
-   {
-    "id": "m07",
-    "type": "still",
-    "shape": "phone",
-    "w": 480,
-    "h": 710,
-    "src": "/media/barber-app/m07-480.webp"
    }
   ]
  }

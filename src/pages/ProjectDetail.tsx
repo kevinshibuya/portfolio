@@ -116,7 +116,7 @@ function Page({ project }: { project: Project }): ReactElement {
     <main ref={rootRef}>
       <section className="p-open">
         <div className="p-open-in container">
-          <h1 className="p-title h1" data-enter="title">
+          <h1 className="p-title h1 as-written" data-enter="title">
             {title}
           </h1>
           <div className="p-row grid">
@@ -174,7 +174,7 @@ function Page({ project }: { project: Project }): ReactElement {
             <TLink to="/all-work">
               <Roll>{t('project.crumbWork')}</Roll>
             </TLink>
-            <span className="chip" aria-current="page">
+            <span className="chip as-written" aria-current="page">
               {title}
             </span>
           </nav>
@@ -306,6 +306,7 @@ function Page({ project }: { project: Project }): ReactElement {
                 <WorkRow
                   to={`/projects/${other.slug}`}
                   title={other.title[lang]}
+                  asWritten
                   thumb={
                     <Frame
                       className="wrow-thumb"
