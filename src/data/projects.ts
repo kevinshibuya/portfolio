@@ -5,8 +5,8 @@ export const projects: Project[] = [
     id: 'radar-legislativo',
     kind: { en: 'legislative data platform', pt: 'plataforma de dados legislativos' },
     line: {
-      en: 'Daily open data from the Chamber of Deputies, with AI-drafted voting summaries an editor approves before anything goes public.',
-      pt: 'Dados abertos da Câmara dos Deputados, atualizados todo dia, com resumos de votações rascunhados por IA e aprovados por um editor antes de qualquer publicação.',
+      en: 'Daily data from the Chamber of Deputies, with AI-drafted voting summaries an editor approves first.',
+      pt: 'Votações da Câmara dos Deputados todo dia, com resumos por IA que um editor aprova.',
     },
     body: {
       en: 'A scraper keeps Postgres in step with the Chamber of Deputies’ open data. A queue drafts a plain-language summary of each voting, and an editor approves, edits or rejects it in the back office. The public site shows only what was approved: votes by party and state, deputy profiles, an expense ranking.',
@@ -19,7 +19,7 @@ export const projects: Project[] = [
     // Drafted from the repo history and the CV, then corrected and confirmed by Kevin (2026-11-14).
     role: { en: 'architecture, full-stack', pt: 'arquitetura, full-stack' },
     team: { en: 'solo', pt: 'solo' },
-    status: 'prelaunch',
+    status: 'unlaunched',
     summary: {
       en: 'Legislative-data platform for Grupo RBS: open data in daily, AI-drafted voting summaries, and an editor’s approval before anything goes public.',
       pt: 'Plataforma de dados legislativos do Grupo RBS: dados abertos todo dia, resumos de votações rascunhados por IA e a aprovação de um editor antes de qualquer publicação.',
@@ -40,12 +40,12 @@ export const projects: Project[] = [
     },
     order: 2,
     description: {
-      en: 'Legislative-data platform for Grupo RBS (pre-launch): a NestJS/PostgreSQL backend that ingests the Chamber of Deputies open data daily, an AI pipeline drafting voting summaries for editorial approval, and a public React site with voting and expense visualizations.',
-      pt: 'Plataforma de dados legislativos para o Grupo RBS (pré-lançamento): back-end NestJS/PostgreSQL que ingere diariamente os dados abertos da Câmara dos Deputados, pipeline de IA que rascunha resumos de votações para aprovação editorial e site público em React com visualizações de votações e despesas.',
+      en: 'Legislative-data platform built for Grupo RBS, finished but never launched: a NestJS/PostgreSQL backend that ingested the Chamber of Deputies open data daily, an AI pipeline that drafted voting summaries for editorial approval, and a public React site with voting and expense visualizations.',
+      pt: 'Plataforma de dados legislativos feita para o Grupo RBS, concluída e nunca lançada: back-end NestJS/PostgreSQL que ingeria diariamente os dados abertos da Câmara dos Deputados, pipeline de IA que rascunhava resumos de votações para aprovação editorial e site público em React com visualizações de votações e despesas.',
     },
     pitch: {
-      en: 'A *pre-launch* newsroom platform over the Brazilian Chamber of Deputies: a scraper keeps Postgres in sync with the official open-data API, an *AI pipeline drafts voting summaries*, and nothing reaches the public site before a *human editor approves it*.',
-      pt: 'Uma plataforma de redação (*pré-lançamento*) sobre a Câmara dos Deputados: um scraper mantém o Postgres em dia com a API oficial de dados abertos, um *pipeline de IA rascunha resumos das votações*, e nada chega ao site público antes de um *editor humano aprovar*.',
+      en: 'A newsroom platform over the Brazilian Chamber of Deputies, *finished but never launched*: a scraper kept Postgres in sync with the official open-data API, an *AI pipeline drafted voting summaries*, and nothing reached the public site before a *human editor approved it*.',
+      pt: 'Uma plataforma de redação sobre a Câmara dos Deputados, *concluída e nunca lançada*: um scraper mantinha o Postgres em dia com a API oficial de dados abertos, um *pipeline de IA rascunhava resumos das votações*, e nada chegava ao site público antes de um *editor humano aprovar*.',
     },
     whatShipped: {
       en: 'Three apps in one monorepo: a *NestJS API* that scrapes the Câmara open-data API on a rate-limited daily cron (per-deputy sync plus batch CSV ingestion, with self-healing runs that fail stuck syncs), a *Next.js back office* where editors review, edit, approve or regenerate every AI draft, and a public *React site* with per-party voting visualizations, deputy profiles and an expense-transparency ranking. GitLab CI tests all three and ships Docker images to Kubernetes on GCP.',
@@ -138,8 +138,8 @@ export const projects: Project[] = [
     id: 'enquetes-gzh',
     kind: { en: 'live voting system', pt: 'sistema de votação ao vivo' },
     line: {
-      en: 'Live polls for the GZH newsroom: 71 of them ran during BBB 26 and took 760K+ votes.',
-      pt: 'Enquetes ao vivo para a redação da GZH: 71 rodaram no BBB 26 e somaram mais de 760 mil votos.',
+      en: 'Live polls for the GZH newsroom: 71 polls, 760K votes, and 144K on one BBB 26 eviction.',
+      pt: 'Enquetes ao vivo para a redação da GZH: 71 no total, 760 mil votos, 144 mil num paredão do BBB 26.',
     },
     body: {
       en: 'Two real-time apps over one Firestore. Editors create a poll in the back office and copy its embed; readers vote inside the article and watch the percentages move. Each vote is one atomic write, each duplicate check a single read. It replaced a paid service.',
@@ -147,7 +147,7 @@ export const projects: Project[] = [
     },
     slug: 'enquetes-gzh',
     title: { en: 'Enquetes GZH', pt: 'Enquetes GZH' },
-    year: 2026,
+    year: 2025,
     client: 'GZH · Grupo RBS',
     // Drafted from the repo history and the CV, then corrected and confirmed by Kevin (2026-11-14).
     role: { en: 'full-stack', pt: 'full-stack' },
@@ -158,8 +158,8 @@ export const projects: Project[] = [
       pt: 'Sistema de votação ao vivo da GZH: um back-office para a redação e um widget de enquete que os jornalistas embedam nas matérias.',
     },
     result: {
-      en: '71 live polls and 760K+ votes during BBB 26; replaced a paid service',
-      pt: '71 enquetes ao vivo e mais de 760 mil votos no BBB 26; substituiu um serviço pago',
+      en: '71 live polls and 760K+ votes, 144K of them on one BBB 26 eviction; replaced a paid service',
+      pt: '71 enquetes ao vivo e mais de 760 mil votos, 144 mil num só paredão do BBB 26; substituiu um serviço pago',
     },
     shots: {
       desktop: [
@@ -269,8 +269,8 @@ export const projects: Project[] = [
       pt: 'Jornalistas do Grupo RBS mostram como usam IA: depoimentos em vídeo, artigos e diretrizes editoriais.',
     },
     body: {
-      en: 'A static single-page app on a private RBS host. One shell, with a list, a main panel and a progress bar, serves both the video player and the article reader, and everything is published from a single JSON file, so the newsroom can change the format while the pilot runs.',
-      pt: 'Uma SPA estática em um host privado da RBS. Um único shell, com lista, painel principal e barra de progresso, serve o player de vídeo e o leitor de artigos, e tudo é publicado a partir de um único arquivo JSON, então a redação pode mudar o formato enquanto o piloto roda.',
+      en: 'A static single-page app on a private RBS host. One shell, with a list, a main panel and a progress bar, serves both the video player and the article reader, and everything is published from a single JSON file, so the newsroom could change the format while the pilot ran.',
+      pt: 'Uma SPA estática em um host privado da RBS. Um único shell, com lista, painel principal e barra de progresso, serve o player de vídeo e o leitor de artigos, e tudo é publicado a partir de um único arquivo JSON, então a redação podia mudar o formato enquanto o piloto rodava.',
     },
     slug: 'ia-na-redacao',
     title: { en: 'IA na Redação', pt: 'IA na Redação' },
@@ -307,8 +307,8 @@ export const projects: Project[] = [
       pt: 'Um *hub interno do Grupo RBS* onde os próprios jornalistas contam como usam IA no dia a dia, construído como um MVP para medir a adoção da redação antes de evoluir para uma plataforma editorial completa.',
     },
     whatShipped: {
-      en: 'A React + Vite SPA deployed as a static build on a private RBS host, supporting both video testimonials and long-form articles inside the same editorial shell. Content is published from a single JSON file so the newsroom can keep iterating on the format while the MVP proves its value. Tailwind v4 with a touch of Emotion.',
-      pt: 'SPA React + Vite com build estático servida num host privado da RBS, com suporte tanto a depoimentos em vídeo quanto a artigos longos dentro do mesmo shell editorial. O conteúdo é publicado a partir de um único arquivo JSON, então a redação consegue continuar iterando no formato enquanto o MVP prova seu valor. Tailwind v4 com um toque de Emotion.',
+      en: 'A React + Vite SPA deployed as a static build on a private RBS host, supporting both video testimonials and long-form articles inside the same editorial shell. Content is published from a single JSON file so the newsroom could keep iterating on the format while the MVP proved its value. Tailwind v4 with a touch of Emotion.',
+      pt: 'SPA React + Vite com build estático servida num host privado da RBS, com suporte tanto a depoimentos em vídeo quanto a artigos longos dentro do mesmo shell editorial. O conteúdo é publicado a partir de um único arquivo JSON, então a redação conseguia continuar iterando no formato enquanto o MVP provava seu valor. Tailwind v4 com um toque de Emotion.',
     },
     trick: {
       en: '*One shared course shell* (sidebar list, main panel, progress tracker) backs both the video player and the article reader, so adding a new editorial format becomes a new block type rather than a new screen. Articles ship as ordered arrays of typed blocks (paragraphs, pull-quotes) rather than HTML strings, so styling is applied *structurally* by the renderer instead of leaking into the copy.',
@@ -552,5 +552,136 @@ export const projects: Project[] = [
       pt: 'O *wordmark fixo, comandado pelo scroll*, ‘ZEROHORA — fotos do ano 2024’, fica preso sobre a hero, acompanha o rolar da página, desbota, se reposiciona no canto superior direito de cada painel de fotógrafo e *muda de cor, de pêssego para branco*, quando passa por cima de painéis de fundo escuro. O layout alterna painéis fotográficos sangrando até a borda com painéis narrativos em pêssego, dando o ritmo da narrativa do desastre.',
     },
     techStack: ['React', 'Vite', 'TailwindCSS', 'Framer Motion'],
+  },
+  // Kevin's own public repositories. Every fact and number below comes from the
+  // repository's README as of 2026-11-12, the date of the commit it was read at.
+  {
+    id: 'promptfall',
+    kind: { en: 'idle RPG plugin', pt: 'plugin de RPG idle' },
+    line: {
+      en: 'An idle RPG above the Claude Code prompt: each tool call Claude makes spawns an enemy.',
+      pt: 'Um RPG idle acima do prompt do Claude Code: cada chamada de ferramenta gera um inimigo.',
+    },
+    body: {
+      en: 'A Claude Code plugin. Each tool call Claude makes spawns an enemy, a turn with ten or more ends in a turn boss, and each prompt is a short rest. Under the band, a pane holds the long game: heroes, a market, chat, leaderboards, a world boss every three hours. One integer-only simulation runs on client and server.',
+      pt: 'Um plugin do Claude Code. Cada chamada de ferramenta do Claude gera um inimigo, um turno com dez ou mais termina num chefe de turno, e cada prompt é um descanso curto. Abaixo da faixa, um painel guarda o jogo longo: heróis, mercado, chat, rankings e um chefe mundial a cada três horas. Uma só simulação, só com aritmética inteira, roda no cliente e no servidor.',
+    },
+    slug: 'promptfall',
+    title: { en: 'Promptfall', pt: 'Promptfall' },
+    year: 2026,
+    origin: 'personal',
+    order: 10,
+    // Shown through the `project.personal` label, since `origin` is personal.
+    client: 'Kevin Shibuya',
+    // The README: features start as a spec and decisions, agents in Claude Code build the tickets, the owner reviews each batch.
+    role: { en: 'specs, decisions, review', pt: 'specs, decisões, revisão' },
+    team: { en: 'solo, with Claude Code agents', pt: 'solo, com agentes do Claude Code' },
+    status: 'building',
+    summary: {
+      en: 'An idle fantasy RPG that runs inside Claude Code as a plugin, where a party of three heroes fights above the prompt while Claude works.',
+      pt: 'Um RPG de fantasia idle que roda dentro do Claude Code como plugin: um grupo de três heróis luta acima do prompt enquanto o Claude trabalha.',
+    },
+    result: {
+      en: 'Twelve zones at three tiers, 40 item bases, 72 enemies, and 457 tests in the sim alone',
+      pt: 'Doze zonas em três níveis, 40 bases de item, 72 inimigos e 457 testes só na simulação',
+    },
+    shots: {
+      desktop: [
+        { en: 'The Market tab, drawn as windows in a baked-in pixel font', pt: 'A aba Mercado, desenhada em janelas com uma fonte pixelada embutida' },
+        { en: 'The 40 item bases', pt: 'As 40 bases de item' },
+        { en: 'A zone boss under a tall prompt: the stage shrinks to fit', pt: 'Um chefe de zona sob um prompt alto: o palco encolhe para caber' },
+        { en: 'The Promptwyrm, one of four world bosses', pt: 'O Promptwyrm, um dos quatro chefes mundiais' },
+        { en: 'When Claude compacts its context, the party camps and heals', pt: 'Quando o Claude compacta o contexto, o grupo acampa e se cura' },
+        { en: 'A legendary drop rises out of the chest', pt: 'Um item lendário sobe do baú' },
+        { en: 'The Heroes tab: the roster, stats and gear', pt: 'A aba Heróis: o elenco, os atributos e o equipamento' },
+        { en: 'The four classes in their drawn poses', pt: 'As quatro classes em suas poses desenhadas' },
+      ],
+      mobile: { count: 1, height: 1253 },
+    },
+    description: {
+      en: 'Promptfall, an idle fantasy RPG that runs inside Claude Code as a plugin: each tool call spawns an enemy, each prompt rests the party, and a pane holds a market, chat, leaderboards and a world boss. A work in progress: the public server is offline, so the game runs on an in-process server or one you host.',
+      pt: 'Promptfall, um RPG de fantasia idle que roda dentro do Claude Code como plugin: cada chamada de ferramenta gera um inimigo, cada prompt dá descanso ao grupo, e um painel reúne mercado, chat, rankings e um chefe mundial. Em andamento: o servidor público está fora do ar, então o jogo roda no servidor embutido no plugin ou num que você hospede.',
+    },
+    stats: [
+      { value: '12', label: { en: 'zones', pt: 'zonas' } },
+      { value: '40', label: { en: 'item bases', pt: 'bases de item' } },
+      { value: '72', label: { en: 'enemies', pt: 'inimigos' } },
+    ],
+    pitch: {
+      en: 'An *idle RPG* in the band above the Claude Code prompt: Claude’s tool calls spawn the enemies, and its first rule is that *the game never gets in the way of the work*.',
+      pt: 'Um *RPG idle* na faixa acima do prompt do Claude Code: as chamadas de ferramenta do Claude geram os inimigos, e a primeira regra é que *o jogo nunca atrapalha o trabalho*.',
+    },
+    whatShipped: {
+      en: 'A *Claude Code plugin* that draws the band and the pane, and a host that is *one Node program on SQLite*, shipped as a Docker image behind Caddy. The band draws one scene three ways (a pixel image in Ghostty and kitty, half-block text cells in other terminals, an SVG on the desktop app), checked by 83 golden scenarios. The public server is offline for now, so the game runs on the in-process server or one you host; the public listing, hero skills, the challenge tower and PvP do not exist yet.',
+      pt: 'Um *plugin do Claude Code* que desenha a faixa e o painel, e um host que é *um só programa Node sobre SQLite*, entregue como imagem Docker atrás do Caddy. A faixa desenha a mesma cena de três jeitos (imagem em pixels no Ghostty e no kitty, células de meio bloco nos outros terminais, um SVG no app desktop), conferidos por 83 cenários golden. O servidor público está fora do ar por enquanto, então o jogo roda no servidor embutido no plugin ou num que você hospede; a listagem pública, as habilidades dos heróis, a torre de desafios e o PvP ainda não existem.',
+    },
+    trick: {
+      en: 'The server cannot see Claude’s tools, failures or compactions, only a batch a client claims. So the four *reactive events* (Haste, Enrage, Camp, Guard) shape the fight and *never change rewards*: an event that paid would be the first thing a script could farm. The same integer-only sim runs on both sides, so the server replays every batch and rolls every drop. And saves *migrate by snapshot transform*: the sim is at version 19, and each bump ships a migration with golden fixtures.',
+      pt: 'O servidor não enxerga as ferramentas, as falhas nem as compactações do Claude, só o lote que um cliente diz ter jogado. Por isso os quatro *eventos reativos* (Haste, Enrage, Camp, Guard) mudam a luta e *nunca mudam a recompensa*: um evento que pagasse seria a primeira coisa que um script iria farmar. A mesma simulação de aritmética inteira roda dos dois lados, então o servidor refaz cada lote e sorteia cada drop. E os saves *migram por transformação de snapshot*: a simulação está na versão 19, e cada versão nova traz uma migração com fixtures golden.',
+    },
+    techStack: ['TypeScript', 'Node.js', 'Claude Code plugins', 'SQLite', 'Zod', 'Vitest', 'Docker', 'Caddy', 'Cloudflare R2'],
+    githubUrl: 'https://github.com/kevinshibuya/promptfall',
+  },
+  {
+    id: 'barber-app',
+    kind: { en: 'AI haircut previews', pt: 'prévias de corte com IA' },
+    line: {
+      en: 'A photo of the client in the chair becomes 17 AI previews of hair and beard styles.',
+      pt: 'Uma foto do cliente na cadeira vira 17 prévias de corte e barba feitas por IA.',
+    },
+    body: {
+      en: 'A phone app for barbers in Brazil, in Portuguese. The barber records the client’s consent and takes up to four photos; the moment the front one is uploaded, a worker renders that client in all 12 hair styles and 5 beard styles, so the picker fills in while the barber is still talking. Then a look, an after photo, and a link for the client.',
+      pt: 'Um app de celular para barbeiros no Brasil, em português. O barbeiro registra o consentimento do cliente e tira até quatro fotos; assim que a frontal sobe, um worker gera o cliente nos 12 cortes e nas 5 barbas do catálogo, e as opções vão aparecendo enquanto o barbeiro ainda conversa. Depois vêm o visual escolhido, a foto do depois e um link para o cliente.',
+    },
+    slug: 'barber-app',
+    // The README's working title: the app has no name yet.
+    title: { en: 'Barber app', pt: 'App de barbearia' },
+    year: 2026,
+    origin: 'personal',
+    order: 11,
+    // Shown through the `project.personal` label, since `origin` is personal.
+    client: 'Kevin Shibuya',
+    // The README: each milestone starts as a spec, agents in Claude Code build the tickets, the owner reviews each pull request.
+    role: { en: 'specs, decisions, review', pt: 'specs, decisões, revisão' },
+    team: { en: 'solo, with Claude Code agents', pt: 'solo, com agentes do Claude Code' },
+    status: 'building',
+    summary: {
+      en: 'A phone app where a barber photographs the client in the chair and shows them AI previews of hair and beard styles on their own face before cutting.',
+      pt: 'Um app de celular em que o barbeiro fotografa o cliente na cadeira e mostra prévias de corte e barba feitas por IA no rosto dele, antes de cortar.',
+    },
+    result: {
+      en: '17 previews queued per front photo, from a provider chosen by a 144-render bake-off',
+      pt: '17 prévias na fila a cada foto frontal, de um provedor escolhido num teste de 144 imagens',
+    },
+    shots: {
+      desktop: [
+        { en: 'Bake-off, nano-banana-2.1: the same person in every column', pt: 'Teste de provedores, nano-banana-2.1: a mesma pessoa em todas as colunas' },
+        { en: 'Bake-off, flux-klein: the face and shirt change across a row', pt: 'Teste de provedores, flux-klein: o rosto e a camisa mudam ao longo da linha' },
+      ],
+      mobile: { count: 7, height: 1067 },
+    },
+    description: {
+      en: 'A phone app for barbers in Brazil: photograph the client in the chair and show them AI previews of 12 hair styles and 5 beard styles on their own face before cutting. A work in progress: milestone 1 runs as a demo Android APK, and the CRM, an iOS build, a store listing and a name do not exist yet.',
+      pt: 'Um app de celular para barbeiros no Brasil: fotografe o cliente na cadeira e mostre prévias de 12 cortes e 5 barbas feitas por IA no rosto dele, antes de cortar. Em andamento: o marco 1 roda como um APK Android de demonstração, e o CRM, a versão iOS, a publicação na loja e um nome ainda não existem.',
+    },
+    stats: [
+      { value: '17', label: { en: 'previews a visit', pt: 'prévias por visita' } },
+      { value: '12', label: { en: 'hair styles', pt: 'cortes' } },
+      { value: '5', label: { en: 'beard styles', pt: 'barbas' } },
+    ],
+    pitch: {
+      en: 'A *barber’s phone app* for the moment a client says “something shorter, maybe a fade?”: the answer is the client’s own face, in *17 AI previews* that render while the barber is still talking.',
+      pt: 'Um *app de celular para barbeiros* para a hora em que o cliente diz “algo mais curto, talvez um degradê?”: a resposta é o próprio rosto dele, em *17 prévias feitas por IA* que ficam prontas enquanto o barbeiro ainda conversa.',
+    },
+    whatShipped: {
+      en: 'An *Expo app* and a *NestJS worker* over Supabase. Milestone 1 runs as a demo, an Android APK against a cloud Supabase project, with the owner’s dashboard (six numbers for the week and month) and offline tolerance built on top. Uploads survive a dropped connection, row-level security keeps each barber inside their own shop, and a nightly job removes the images of unchosen previews after seven days. The CRM with bookings, an iOS build, a store listing and a name do not exist yet.',
+      pt: 'Um *app em Expo* e um *worker em NestJS* sobre o Supabase. O marco 1 roda como demonstração, um APK Android apontado para um projeto Supabase na nuvem, com o painel do dono (seis números da semana e do mês) e a tolerância a ficar offline construídos por cima. Os uploads sobrevivem a uma queda de conexão, a segurança por linha mantém cada barbeiro dentro da própria barbearia, e um job noturno apaga as imagens das prévias não escolhidas depois de sete dias. O CRM com agendamentos, a versão iOS, a publicação na loja e um nome ainda não existem.',
+    },
+    trick: {
+      en: 'The image provider was picked by a *measured bake-off*: on 2026-10-22, 4 photos times 12 hair styles went through three providers, 144 renders for about $5.14. `nano-banana-2.1` kept the person in all 48 of its renders at $0.037 each; `flux-klein`, the cheapest at $0.030 and the fastest at 2.8 s, often lost them. The next step is decided, not built: render each style from the original photo and *paste back only its hair or beard region*, because a beard rendered on top of a hair render drifted until the model returned a different person in a different barbershop.',
+      pt: 'O provedor de imagem saiu de um *teste medido*: em 2026-10-22, 4 fotos vezes 12 cortes passaram por três provedores, 144 imagens por cerca de US$ 5,14. O `nano-banana-2.1` manteve a pessoa nas 48 imagens dele, a US$ 0,037 cada; o `flux-klein`, o mais barato a US$ 0,030 e o mais rápido a 2,8 s, perdia a pessoa com frequência. O próximo passo está decidido, ainda não construído: gerar cada estilo a partir da foto original e *colar de volta só a região do cabelo ou da barba*, porque uma barba gerada por cima de um corte já gerado foi se desviando até o modelo devolver outra pessoa em outra barbearia.',
+    },
+    techStack: ['Expo', 'React Native', 'NativeWind', 'NestJS', 'Supabase', 'PostgreSQL', 'Jest', 'Docker', 'Caddy'],
+    githubUrl: 'https://github.com/kevinshibuya/barber-app',
   },
 ]

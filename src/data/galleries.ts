@@ -120,4 +120,27 @@ export const galleries: Record<string, EvidenceGroupPlan[]> = {
     { label: { en: 'articles', pt: 'artigos' }, rows: [{ layout: 'duo', items: ['c03', 'm04'] }] },
     { label: PHONE, rows: [{ layout: 'phones', items: ['c04', 'm02', 'm03'] }] },
   ],
+  promptfall: [
+    {
+      label: { en: 'the band', pt: 'a faixa' },
+      rows: [
+        { layout: 'full', items: ['d03'] },
+        { layout: 'pair', items: ['d04', 'd06'] },
+      ],
+    },
+    { label: { en: 'the pane', pt: 'o painel' }, rows: [{ layout: 'pair', items: ['d01', 'd07'] }] },
+    {
+      label: { en: 'the art', pt: 'a arte' },
+      rows: [
+        { layout: 'full', items: ['d08'] },
+        { layout: 'duo', items: ['d02', 'm01'] },
+      ],
+    },
+  ],
+  'barber-app': [
+    { label: { en: 'the bake-off', pt: 'o teste de provedores' }, rows: [{ layout: 'full', items: ['d02'] }] },
+    { label: { en: 'in the chair', pt: 'na cadeira' }, rows: [{ layout: 'phones', items: ['m03', 'm04', 'm01'] }] },
+    { label: { en: 'the look', pt: 'o visual' }, rows: [{ layout: 'phones', items: ['m02', 'm05', 'm07'] }] },
+    { label: { en: 'the owner', pt: 'o dono' }, rows: [{ layout: 'phones', items: ['m06'] }] },
+  ],
 }

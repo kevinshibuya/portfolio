@@ -1,6 +1,6 @@
 # Portfolio, Claude instructions
 
-Kevin Shibuya's personal developer portfolio, live at kevinshibuya.com: a bilingual EN/PT React single-page site. Version 4 of the site landed on 2026-11-14. Routes: `/` (home), `/all-work` (every case study and the newsroom interactives), `/projects/:slug` (the nine case studies in `src/data/projects.ts`); any other path renders the project template's not-found view.
+Kevin Shibuya's personal developer portfolio, live at kevinshibuya.com: a bilingual EN/PT React single-page site. Version 4 of the site landed on 2026-11-14. Routes: `/` (home), `/all-work` (every case study and the newsroom interactives), `/projects/:slug` (the eleven case studies in `src/data/projects.ts`: nine newsroom and client projects, and two of Kevin's own public repositories); any other path renders the project template's not-found view.
 
 Stack: React 19, TypeScript strict, Vite 6 with SWC, TailwindCSS v4 through the Vite plugin (configured in CSS `@theme`, no `tailwind.config.js`; the site is styled almost entirely by the plain classes in `src/index.css`), react-router-dom 7, Lenis smooth scroll, npm. No animation library and no 3D library: motion is CSS, the Web Animations API, view transitions and one shared animation-frame loop; the paint is raw WebGL. Translations are a small context in `src/i18n/index.tsx` over two JSON locale files. `framer-motion`, `gsap`, `three`, `@react-three/*`, `postprocessing`, `i18next` and `react-i18next` are still listed in `package.json`, but nothing in `src/` imports them.
 
@@ -26,9 +26,11 @@ How it works: `docs/architecture.md` and `GLOSSARY.md` describe the site before 
 2. Cloudflare rebuilds from that push automatically; it restored the previous site in about 40 s, but only once someone knew to trigger it. No manual deploy was needed, and none was possible: `wrangler` was logged out (`Not logged in ... environment is non-interactive`). **Do not assume `wrangler deploy` is available as a recovery path.** Check `npx wrangler whoami` first, and ask Kevin to run `! npx wrangler login` if it is needed.
 3. Verify production from the outside, never from the repo. The live HTML is the only proof:
    `curl -s https://kevinshibuya.com/ | grep -oE 'theme-color" content="[^"]*"'`
-   The pre-redesign site is `#F6F9FC`; the dark redesign is `#0B0E14`. `loader-ks` and `portfolio · 2026` appear only in the redesign. **While `main` is frozen, `#F6F9FC` is the CORRECT production state**, not a regression: production does not yet serve the site this file describes.
+   The pre-redesign site is `#F6F9FC`; the dark redesign is `#0B0E14`. `loader-ks` and `portfolio · 2026` appear only in the redesign. **Since the release of 2026-11-15, `#0B0E14` is the CORRECT production state**: production serves the site this file describes, and `#F6F9FC` would mean it has been rolled back.
 
 **Release and rollback, 2026-11-13.** PR #48 merged `staging` into `main` on Kevin's go-ahead, and production served the redesign from 17:27 to 18:18 UTC. Kevin then judged it not ready to ship and had `main` put back on `62cd73c` with step 1 above; Cloudflare restored the old site in about 150 s. The freeze stands until Kevin says the revamp is finished.
+
+**Release, 2026-11-15 (UTC).** PR #57 merged `staging` into `main` on Kevin's go-ahead of 2026-11-14, given for that release ("until this V4 final is merged into main and deployed into production"). Production has served version 4 since 02:21 UTC; `main` was at `62cd73c` before the merge, which is the tip to put back with step 1 above if he calls for a rollback. Kevin has not yet said whether the freeze on `main` ends with this release: until he does, the standing rule above holds for anything further.
 
 Nothing was lost in that incident because `staging` retained every commit. Keep it that way: **never roll back by deleting work from `staging` or `ai-staging`.**
 
@@ -45,7 +47,7 @@ Nothing was lost in that incident because `staging` retained every commit. Keep 
 | The paint: one fragment shader, at most one WebGL context drawing at a time (hero, closing, and an off-document source); paint windows copy it into 2D canvases cut to a shape; a static stand-in where WebGL is missing | `src/components/canvas/paint.ts`, `FluidWaves.tsx`, `PaintWindow.tsx` |
 | About | `src/components/sections/About.tsx` |
 | Selected work: three projects stacked, a frame each, the name and "view" beside the one in play, a line pinned to the bottom corners | `src/components/sections/SelectedWork.tsx` |
-| Dark section: the other case studies as rows, three jobs as rows, the closing link to all work | `src/components/sections/MoreWork.tsx` |
+| Dark section: the other case studies as rows, every job as a row, the closing link to all work | `src/components/sections/MoreWork.tsx` |
 | Contact and footer, on the paint | `src/components/layout/Closing.tsx` |
 | Header and language pair | `src/components/layout/Header.tsx` |
 | Page change: view transitions, and the arrival of a page's `data-enter` parts | `src/components/layout/PageChange.tsx` |

@@ -1,7 +1,8 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ReactElement } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigationType } from 'react-router-dom'
 import { Hero } from '../components/sections/Hero'
 import { useLenis } from '../hooks/useLenis'
+import { holdScroll, useReturnPosition } from '../hooks/useScrollMemory'
 import { useMotion } from '../context/MotionContext'
 import { resetPageMeta } from '../utils/pageMeta'
 import { pageArrived } from '../components/layout/PageChange'
@@ -12,8 +13,6 @@ import { pageArrived } from '../components/layout/PageChange'
 const About = lazy(() => import('./HomeSections').then((m) => ({ default: m.About })))
 const HomeSections = lazy(() => import('./HomeSections').then((m) => ({ default: m.HomeSections })))
 
-const STORAGE_KEY = 'portfolio:home:scrollY'
-
 // A beat after the opening type starts to rise, so the sections' requests do
 // not compete with the first screen.
 const SECTIONS_DELAY_MS = 300
@@ -23,32 +22,24 @@ interface HomeState {
   top?: boolean
 }
 
-/** The position to return to, read once: a later write must never be replayed. */
-function readStored(state: HomeState | null): number | null {
-  try {
-    if (state?.top || state?.scrollToId) {
-      sessionStorage.removeItem(STORAGE_KEY)
-      return null
-    }
-    const y = Number.parseInt(sessionStorage.getItem(STORAGE_KEY) ?? '', 10)
-    return Number.isFinite(y) && y > 0 ? y : null
-  } catch {
-    return null
-  }
-}
-
 export function Home(): ReactElement {
   const { scrollTo } = useLenis()
   const { bypassEntrance, entranceDone, entranceBypassed } = useMotion()
   const location = useLocation()
-  // Both targets are captured once at mount. The effect below runs again when
+  // Everything is captured once at mount. The effect below runs again when
   // the scroll helper changes identity (the smooth scroller arrives after the
   // entrance), and that second run must find only what is still pending.
+  //
+  // A target handed over by a link (a section, or the top) belongs to that
+  // one arrival. It stays in the history entry's state for good, so coming
+  // back to the entry through the browser's history must not read it again:
+  // that return lands where the reader left the page.
   const state = location.state as HomeState | null
-  const navTargetRef = useRef<string | undefined>(state?.scrollToId)
-  const topRef = useRef<boolean>(state?.top === true)
-  const restoreRef = useRef<number | null | undefined>(undefined)
-  if (restoreRef.current === undefined) restoreRef.current = readStored(state)
+  const returning = useNavigationType() === 'POP'
+  const returnTo = useReturnPosition()
+  const navTargetRef = useRef<string | undefined>(returning ? undefined : state?.scrollToId)
+  const topRef = useRef<boolean>(returning ? returnTo === null : state?.top === true)
+  const restoreRef = useRef<number | null>(returnTo)
 
   const [sectionsDue, setSectionsDue] = useState(entranceBypassed)
   useEffect(() => {
@@ -117,8 +108,10 @@ export function Home(): ReactElement {
     }
 
     const y = restoreRef.current
-    if (y === null || y === undefined) {
+    if (y === null) {
       // A jump to the top is asked for once; a later run must not pull the reader back up.
+      // A return through history to an entry that was left at its top is one
+      // too: nothing else moves the page off the position of the page it came from.
       if (topRef.current) {
         topRef.current = false
         window.scrollTo(0, 0)
@@ -128,67 +121,14 @@ export function Home(): ReactElement {
     }
     // Returning to Home: skip the entrance and put the reader back where they
     // were. The sections arrive as a lazy chunk, so the position is applied
-    // again each time the document grows until it is reachable.
+    // again each time the document grows until it is reachable. Applied, or
+    // given up on: either way the position is spent.
     bypassEntrance()
-
-    let cancelled = false
-    let observer: ResizeObserver | null = null
-    let timeoutId: number | null = null
-
-    const cleanup = (): void => {
-      cancelled = true
-      observer?.disconnect()
-      if (timeoutId !== null) window.clearTimeout(timeoutId)
-    }
-    // Applied, or given up on: either way the position is spent.
-    const finish = (): void => {
+    return holdScroll(y, scrollTo, 1200, () => {
       restoreRef.current = null
-      cleanup()
-    }
-    const apply = (): boolean => {
-      if (cancelled) return false
-      window.scrollTo(0, y)
-      scrollTo(y, { immediate: true, force: true })
-      return window.scrollY >= y - 1
-    }
-
-    if (apply()) {
-      finish()
-      return
-    }
-    if (typeof ResizeObserver !== 'undefined') {
-      observer = new ResizeObserver(() => {
-        if (!cancelled && apply()) finish()
-      })
-      observer.observe(document.documentElement)
-    }
-    timeoutId = window.setTimeout(finish, 1200)
-    return cleanup
+    })
     // Everything read from `location.state` comes through refs captured at mount.
   }, [bypassEntrance, scrollTo])
-
-  // Home's scroll position is mirrored into sessionStorage as it changes, so a
-  // return from a project page can restore it.
-  useEffect(() => {
-    let frame = 0
-    const onScroll = (): void => {
-      if (frame) return
-      frame = requestAnimationFrame(() => {
-        frame = 0
-        try {
-          sessionStorage.setItem(STORAGE_KEY, String(Math.round(window.scrollY)))
-        } catch {
-          /* storage is a convenience */
-        }
-      })
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      // A frame still owed would read the next page's position and save it as home's.
-      cancelAnimationFrame(frame)
-    }
-  }, [])
 
   useLayoutEffect(() => {
     pageArrived()
