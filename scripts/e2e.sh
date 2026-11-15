@@ -4,9 +4,9 @@
 #   scripts/e2e.sh quick [playwright args…]   the PR fix loop: desktop, quick specs
 #   scripts/e2e.sh full  [playwright args…]   everything, in chunks of 4 spec files
 #
-# Playwright ORs positional file filters, so a chunk plus `hero-shader` would run
-# the chunk AND hero-shader. A `full` run given a positional filter therefore
-# runs those filters as one unit instead (`npm run test:e2e -- hero-shader`).
+# Playwright ORs positional file filters, so a chunk plus `project-page` would run
+# the chunk AND project-page. A `full` run given a positional filter therefore
+# runs those filters as one unit instead (`npm run test:e2e -- project-page`).
 # Flags (`--grep`, `--project`) keep the chunks.
 #
 # Playwright reuses the server this script starts because the config sets

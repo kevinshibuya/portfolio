@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test'
 
 // Runs by DEFAULT. This file is the instrumentation contract behind every
 // harness measurement · the ?perf-seed / ?perf-freeze / ?perf-counters hooks in
-// FluidWaves · and it asserts behaviour, not a baselined number.
+// src/components/canvas/paint.ts · and it asserts behaviour, not a baselined
+// number.
 //
 // The per-frame contract waits for LIVENESS_FRAMES frames to advance rather
 // than counting frames over a wall-clock second. The count was a throughput
@@ -24,16 +25,15 @@ const settle = async (page: import('@playwright/test').Page, query: string): Pro
   await page.waitForSelector('[data-canvas="fluid-waves"]')
 }
 
-test('freeze + seed + role pin: frame is exactly reproducible across reloads', async ({ page }) => {
-  await settle(page, 'perf-seed=0.5&perf-freeze=2&perf-role=0')
+test('freeze + seed: frame is exactly reproducible across reloads', async ({ page }) => {
+  await settle(page, 'perf-seed=0.5&perf-freeze=2')
   await page.waitForSelector('[data-canvas="fluid-waves"][data-perf-frozen="true"]')
   const canvas = page.locator('[data-canvas="fluid-waves"]')
   const a = await canvas.screenshot()
-  await settle(page, 'perf-seed=0.5&perf-freeze=2&perf-role=0')
+  await settle(page, 'perf-seed=0.5&perf-freeze=2')
   await page.waitForSelector('[data-canvas="fluid-waves"][data-perf-frozen="true"]')
   const b = await canvas.screenshot()
-  // Same rig, same driver, same seed, same frozen time, pinned role, settled
-  // entrance: the render is a pure function of its inputs — byte-identical is
+  // Same rig, same driver, same seed, same frozen time, settled entrance: the render is a pure function of its inputs — byte-identical is
   // the CONTRACT. If this fails while the frames look identical, that is a
   // determinism defect in the hooks (or driver nondeterminism worth knowing
   // about): return blocked, do not loosen this assertion.
@@ -41,17 +41,17 @@ test('freeze + seed + role pin: frame is exactly reproducible across reloads', a
 })
 
 test('different perf-seed produces different paint', async ({ page }) => {
-  await settle(page, 'perf-seed=0.1&perf-freeze=2&perf-role=0')
+  await settle(page, 'perf-seed=0.1&perf-freeze=2')
   await page.waitForSelector('[data-canvas="fluid-waves"][data-perf-frozen="true"]')
   const a = await page.locator('[data-canvas="fluid-waves"]').screenshot()
-  await settle(page, 'perf-seed=0.9&perf-freeze=2&perf-role=0')
+  await settle(page, 'perf-seed=0.9&perf-freeze=2')
   await page.waitForSelector('[data-canvas="fluid-waves"][data-perf-frozen="true"]')
   const b = await page.locator('[data-canvas="fluid-waves"]').screenshot()
   expect(a.equals(b)).toBe(false)
 })
 
 test('perf-counters exposes exact per-frame GL work', async ({ page }) => {
-  await settle(page, 'perf-seed=0.5&perf-counters&perf-role=0')
+  await settle(page, 'perf-seed=0.5&perf-counters')
   // window: past mount-time setup before the first sample
   await page.waitForTimeout(1000)
   type C = Record<string, { drawCalls: number; uniformUploads: number; frames: number; resizes: number; rafLoopStarts: number }>
@@ -75,11 +75,10 @@ test('perf-counters exposes exact per-frame GL work', async ({ page }) => {
   expect(h2.uniformUploads - h1.uniformUploads).toBe(frames)
 })
 
-// Split from the counters test so it never waits on throughput: the 24 live
-// pixel goldens rest on this precondition.
+// Split from the counters test so it never waits on throughput.
 test('perf-freeze halts everything: one frame, no loop, no redraw', async ({ page }) => {
   type C = Record<string, { frames: number; rafLoopStarts: number }>
-  await settle(page, 'perf-seed=0.5&perf-freeze=2&perf-counters&perf-role=0')
+  await settle(page, 'perf-seed=0.5&perf-freeze=2&perf-counters')
   await page.waitForSelector('[data-canvas="fluid-waves"][data-perf-frozen="true"]')
   const f1 = await page.evaluate(() => (window as unknown as { __PERF_GL__: C }).__PERF_GL__)
   // window: absence check: a frozen canvas must not redraw
