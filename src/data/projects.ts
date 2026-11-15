@@ -5,8 +5,8 @@ export const projects: Project[] = [
     id: 'radar-legislativo',
     kind: { en: 'legislative data platform', pt: 'plataforma de dados legislativos' },
     line: {
-      en: 'Daily open data from the Chamber of Deputies, with AI-drafted voting summaries an editor approves before anything goes public.',
-      pt: 'Dados abertos da Câmara dos Deputados, atualizados todo dia, com resumos de votações rascunhados por IA e aprovados por um editor antes de qualquer publicação.',
+      en: 'Daily data from the Chamber of Deputies, with AI-drafted voting summaries an editor approves first.',
+      pt: 'Votações da Câmara dos Deputados todo dia, com resumos por IA que um editor aprova.',
     },
     body: {
       en: 'A scraper keeps Postgres in step with the Chamber of Deputies’ open data. A queue drafts a plain-language summary of each voting, and an editor approves, edits or rejects it in the back office. The public site shows only what was approved: votes by party and state, deputy profiles, an expense ranking.',

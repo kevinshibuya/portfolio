@@ -802,8 +802,11 @@ button.label { cursor: pointer; }
   position: sticky;
   bottom: 28px;
   z-index: 2;
-  /* A fixed box, taller than its tallest line: the section's height must not change with what is pinned. */
+  /* A fixed box, taller than its tallest line: the section's height must not change with what is pinned.
+     Its one row is the box, not the text: a line that runs longer than the box
+     then grows upward from the bottom margin, never down past the screen's edge. */
   height: 112px;
+  grid-template-rows: minmax(0, 1fr);
   align-items: end;
   margin-top: 8px;
   pointer-events: none;
