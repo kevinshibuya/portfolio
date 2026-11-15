@@ -147,7 +147,7 @@ export const projects: Project[] = [
     },
     slug: 'enquetes-gzh',
     title: { en: 'Enquetes GZH', pt: 'Enquetes GZH' },
-    year: 2026,
+    year: 2025,
     client: 'GZH · Grupo RBS',
     // Drafted from the repo history and the CV, then corrected and confirmed by Kevin (2026-11-14).
     role: { en: 'full-stack', pt: 'full-stack' },
