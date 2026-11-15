@@ -1,3 +1,5 @@
+> This file describes the site before version 4, which landed on 2026-11-14 and replaced it; it is due a rewrite. Until then, `CLAUDE.md`, the section comments in `src/index.css` and the components themselves describe the current site.
+
 # Architecture
 
 How each surface of the site works today. One section per surface, present tense, current tree only.
