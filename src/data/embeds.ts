@@ -24,7 +24,7 @@ const EDITORIAL_SPELLING: Readonly<Record<string, string>> = {
  * Splits one semicolon-delimited CSV line into fields. A field wrapped in
  * double quotes may contain semicolons, and `""` inside it is a literal quote.
  */
-function splitLine(line: string): string[] {
+export function splitLine(line: string): string[] {
   const fields: string[] = []
   let field = ''
   let quoted = false
@@ -56,7 +56,7 @@ function splitLine(line: string): string[] {
  * A headline as it should read in a list: no quotes around the whole of it,
  * typographic quotes around a quoted name inside it, no trailing separator.
  */
-function cleanTitle(raw: string): string {
+export function cleanTitle(raw: string): string {
   let title = raw.trim().replace(/[;\s]+$/, '')
   if (title.startsWith('"') && title.endsWith('"') && title.indexOf('"', 1) === title.length - 1) {
     title = title.slice(1, -1)
