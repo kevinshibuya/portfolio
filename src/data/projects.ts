@@ -19,7 +19,7 @@ export const projects: Project[] = [
     // Drafted from the repo history and the CV, then corrected and confirmed by Kevin (2026-11-14).
     role: { en: 'architecture, full-stack', pt: 'arquitetura, full-stack' },
     team: { en: 'solo', pt: 'solo' },
-    status: 'prelaunch',
+    status: 'unlaunched',
     summary: {
       en: 'Legislative-data platform for Grupo RBS: open data in daily, AI-drafted voting summaries, and an editor’s approval before anything goes public.',
       pt: 'Plataforma de dados legislativos do Grupo RBS: dados abertos todo dia, resumos de votações rascunhados por IA e a aprovação de um editor antes de qualquer publicação.',
@@ -40,12 +40,12 @@ export const projects: Project[] = [
     },
     order: 2,
     description: {
-      en: 'Legislative-data platform for Grupo RBS (pre-launch): a NestJS/PostgreSQL backend that ingests the Chamber of Deputies open data daily, an AI pipeline drafting voting summaries for editorial approval, and a public React site with voting and expense visualizations.',
-      pt: 'Plataforma de dados legislativos para o Grupo RBS (pré-lançamento): back-end NestJS/PostgreSQL que ingere diariamente os dados abertos da Câmara dos Deputados, pipeline de IA que rascunha resumos de votações para aprovação editorial e site público em React com visualizações de votações e despesas.',
+      en: 'Legislative-data platform built for Grupo RBS, finished but never launched: a NestJS/PostgreSQL backend that ingested the Chamber of Deputies open data daily, an AI pipeline that drafted voting summaries for editorial approval, and a public React site with voting and expense visualizations.',
+      pt: 'Plataforma de dados legislativos feita para o Grupo RBS, concluída e nunca lançada: back-end NestJS/PostgreSQL que ingeria diariamente os dados abertos da Câmara dos Deputados, pipeline de IA que rascunhava resumos de votações para aprovação editorial e site público em React com visualizações de votações e despesas.',
     },
     pitch: {
-      en: 'A *pre-launch* newsroom platform over the Brazilian Chamber of Deputies: a scraper keeps Postgres in sync with the official open-data API, an *AI pipeline drafts voting summaries*, and nothing reaches the public site before a *human editor approves it*.',
-      pt: 'Uma plataforma de redação (*pré-lançamento*) sobre a Câmara dos Deputados: um scraper mantém o Postgres em dia com a API oficial de dados abertos, um *pipeline de IA rascunha resumos das votações*, e nada chega ao site público antes de um *editor humano aprovar*.',
+      en: 'A newsroom platform over the Brazilian Chamber of Deputies, *finished but never launched*: a scraper kept Postgres in sync with the official open-data API, an *AI pipeline drafted voting summaries*, and nothing reached the public site before a *human editor approved it*.',
+      pt: 'Uma plataforma de redação sobre a Câmara dos Deputados, *concluída e nunca lançada*: um scraper mantinha o Postgres em dia com a API oficial de dados abertos, um *pipeline de IA rascunhava resumos das votações*, e nada chegava ao site público antes de um *editor humano aprovar*.',
     },
     whatShipped: {
       en: 'Three apps in one monorepo: a *NestJS API* that scrapes the Câmara open-data API on a rate-limited daily cron (per-deputy sync plus batch CSV ingestion, with self-healing runs that fail stuck syncs), a *Next.js back office* where editors review, edit, approve or regenerate every AI draft, and a public *React site* with per-party voting visualizations, deputy profiles and an expense-transparency ranking. GitLab CI tests all three and ships Docker images to Kubernetes on GCP.',

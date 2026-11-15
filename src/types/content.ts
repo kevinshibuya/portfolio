@@ -27,7 +27,7 @@ export interface Stat {
 export type Origin = 'professional' | 'freelance' | 'personal'
 
 /** Where a project stands today; the label is translated in the locale files. */
-export type ProjectStatus = 'live' | 'published' | 'prelaunch' | 'internal' | 'mvp'
+export type ProjectStatus = 'live' | 'published' | 'unlaunched' | 'internal' | 'mvp'
 
 /**
  * The captures of a project, served from /images/work/<slug>/.

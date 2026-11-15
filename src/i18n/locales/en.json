@@ -69,11 +69,11 @@
     "status": {
       "live": "live",
       "published": "published",
-      "prelaunch": "pre-launch",
+      "unlaunched": "finished, never launched",
       "internal": "internal",
       "mvp": "mvp, not in production"
     },
-    "noLink": "no public address yet",
+    "neverLaunched": "no public address",
     "privateLink": "not public",
     "more": "more work",
     "screen": "{{title}}, screen {{n}}",

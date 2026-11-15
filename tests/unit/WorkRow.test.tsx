@@ -18,13 +18,13 @@ function wrap(ui: ReactElement): ReturnType<typeof render> {
 
 describe('WorkRow', () => {
   it('a page of this site renders a same-tab link with its title and tags', () => {
-    wrap(<WorkRow to="/projects/radar-legislativo" title="Radar Legislativo" tags={['legislative data platform', '2026, pre-launch']} />)
+    wrap(<WorkRow to="/projects/radar-legislativo" title="Radar Legislativo" tags={['legislative data platform', '2026, finished, never launched']} />)
     const link = screen.getByRole('link', { name: /radar legislativo/i })
     expect(link).toHaveAttribute('href', '/projects/radar-legislativo')
     expect(link).not.toHaveAttribute('target')
     expect(link.querySelector('.wrow-title')).toHaveTextContent('Radar Legislativo')
     expect(link.querySelector('.wrow-tags')).toHaveTextContent('legislative data platform')
-    expect(link.querySelector('.wrow-tags')).toHaveTextContent('2026, pre-launch')
+    expect(link.querySelector('.wrow-tags')).toHaveTextContent('2026, finished, never launched')
   })
 
   it('an outside address opens in a new tab without an opener', () => {

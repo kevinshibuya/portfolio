@@ -104,7 +104,7 @@ function Page({ project }: { project: Project }): ReactElement {
   const alt = (item: MediaItem, n: number): string =>
     t(item.type === 'clip' ? 'project.recording' : 'project.screen', { title, n })
   const status = t(`project.status.${project.status}`)
-  const quiet = t(project.status === 'prelaunch' ? 'project.noLink' : 'project.privateLink')
+  const quiet = t(project.status === 'unlaunched' ? 'project.neverLaunched' : 'project.privateLink')
   // Frames are numbered down the page; the lead is 01.
   const numbers = new Map(groups.flatMap((group) => group.rows.flatMap((row) => row.items)).map((item, index) => [item.id, index + 2]))
 
