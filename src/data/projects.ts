@@ -553,4 +553,135 @@ export const projects: Project[] = [
     },
     techStack: ['React', 'Vite', 'TailwindCSS', 'Framer Motion'],
   },
+  // Kevin's own public repositories. Every fact and number below comes from the
+  // repository's README as of 2026-11-12, the date of the commit it was read at.
+  {
+    id: 'promptfall',
+    kind: { en: 'idle RPG plugin', pt: 'plugin de RPG idle' },
+    line: {
+      en: 'An idle RPG above the Claude Code prompt: each tool call Claude makes spawns an enemy.',
+      pt: 'Um RPG idle acima do prompt do Claude Code: cada chamada de ferramenta gera um inimigo.',
+    },
+    body: {
+      en: 'A Claude Code plugin. Each tool call Claude makes spawns an enemy, a turn with ten or more ends in a turn boss, and each prompt is a short rest. Under the band, a pane holds the long game: heroes, a market, chat, leaderboards, a world boss every three hours. One integer-only simulation runs on client and server.',
+      pt: 'Um plugin do Claude Code. Cada chamada de ferramenta do Claude gera um inimigo, um turno com dez ou mais termina num chefe de turno, e cada prompt é um descanso curto. Abaixo da faixa, um painel guarda o jogo longo: heróis, mercado, chat, rankings e um chefe mundial a cada três horas. Uma só simulação, só com aritmética inteira, roda no cliente e no servidor.',
+    },
+    slug: 'promptfall',
+    title: { en: 'Promptfall', pt: 'Promptfall' },
+    year: 2026,
+    origin: 'personal',
+    order: 10,
+    // Shown through the `project.personal` label, since `origin` is personal.
+    client: 'Kevin Shibuya',
+    // The README: features start as a spec and decisions, agents in Claude Code build the tickets, the owner reviews each batch.
+    role: { en: 'specs, decisions, review', pt: 'specs, decisões, revisão' },
+    team: { en: 'solo, with Claude Code agents', pt: 'solo, com agentes do Claude Code' },
+    status: 'building',
+    summary: {
+      en: 'An idle fantasy RPG that runs inside Claude Code as a plugin, where a party of three heroes fights above the prompt while Claude works.',
+      pt: 'Um RPG de fantasia idle que roda dentro do Claude Code como plugin: um grupo de três heróis luta acima do prompt enquanto o Claude trabalha.',
+    },
+    result: {
+      en: 'Twelve zones at three tiers, 40 item bases, 72 enemies, and 457 tests in the sim alone',
+      pt: 'Doze zonas em três níveis, 40 bases de item, 72 inimigos e 457 testes só na simulação',
+    },
+    shots: {
+      desktop: [
+        { en: 'The Market tab, drawn as windows in a baked-in pixel font', pt: 'A aba Mercado, desenhada em janelas com uma fonte pixelada embutida' },
+        { en: 'The 40 item bases', pt: 'As 40 bases de item' },
+        { en: 'A zone boss under a tall prompt: the stage shrinks to fit', pt: 'Um chefe de zona sob um prompt alto: o palco encolhe para caber' },
+        { en: 'The Promptwyrm, one of four world bosses', pt: 'O Promptwyrm, um dos quatro chefes mundiais' },
+        { en: 'When Claude compacts its context, the party camps and heals', pt: 'Quando o Claude compacta o contexto, o grupo acampa e se cura' },
+        { en: 'A legendary drop rises out of the chest', pt: 'Um item lendário sobe do baú' },
+        { en: 'The Heroes tab: the roster, stats and gear', pt: 'A aba Heróis: o elenco, os atributos e o equipamento' },
+        { en: 'The four classes in their drawn poses', pt: 'As quatro classes em suas poses desenhadas' },
+      ],
+      mobile: { count: 1, height: 1253 },
+    },
+    description: {
+      en: 'Promptfall, an idle fantasy RPG that runs inside Claude Code as a plugin: each tool call spawns an enemy, each prompt rests the party, and a pane holds a market, chat, leaderboards and a world boss. A work in progress: the public server is offline, so the game runs on an in-process server or one you host.',
+      pt: 'Promptfall, um RPG de fantasia idle que roda dentro do Claude Code como plugin: cada chamada de ferramenta gera um inimigo, cada prompt dá descanso ao grupo, e um painel reúne mercado, chat, rankings e um chefe mundial. Em andamento: o servidor público está fora do ar, então o jogo roda no servidor embutido no plugin ou num que você hospede.',
+    },
+    stats: [
+      { value: '12', label: { en: 'zones', pt: 'zonas' } },
+      { value: '40', label: { en: 'item bases', pt: 'bases de item' } },
+      { value: '72', label: { en: 'enemies', pt: 'inimigos' } },
+    ],
+    pitch: {
+      en: 'An *idle RPG* in the band above the Claude Code prompt: Claude’s tool calls spawn the enemies, and its first rule is that *the game never gets in the way of the work*.',
+      pt: 'Um *RPG idle* na faixa acima do prompt do Claude Code: as chamadas de ferramenta do Claude geram os inimigos, e a primeira regra é que *o jogo nunca atrapalha o trabalho*.',
+    },
+    whatShipped: {
+      en: 'A *Claude Code plugin* that draws the band and the pane, and a host that is *one Node program on SQLite*, shipped as a Docker image behind Caddy. The band draws one scene three ways (a pixel image in Ghostty and kitty, half-block text cells in other terminals, an SVG on the desktop app), checked by 83 golden scenarios. The public server is offline for now, so the game runs on the in-process server or one you host; the public listing, hero skills, the challenge tower and PvP do not exist yet.',
+      pt: 'Um *plugin do Claude Code* que desenha a faixa e o painel, e um host que é *um só programa Node sobre SQLite*, entregue como imagem Docker atrás do Caddy. A faixa desenha a mesma cena de três jeitos (imagem em pixels no Ghostty e no kitty, células de meio bloco nos outros terminais, um SVG no app desktop), conferidos por 83 cenários golden. O servidor público está fora do ar por enquanto, então o jogo roda no servidor embutido no plugin ou num que você hospede; a listagem pública, as habilidades dos heróis, a torre de desafios e o PvP ainda não existem.',
+    },
+    trick: {
+      en: 'The server cannot see Claude’s tools, failures or compactions, only a batch a client claims. So the four *reactive events* (Haste, Enrage, Camp, Guard) shape the fight and *never change rewards*: an event that paid would be the first thing a script could farm. The same integer-only sim runs on both sides, so the server replays every batch and rolls every drop. And saves *migrate by snapshot transform*: the sim is at version 19, and each bump ships a migration with golden fixtures.',
+      pt: 'O servidor não enxerga as ferramentas, as falhas nem as compactações do Claude, só o lote que um cliente diz ter jogado. Por isso os quatro *eventos reativos* (Haste, Enrage, Camp, Guard) mudam a luta e *nunca mudam a recompensa*: um evento que pagasse seria a primeira coisa que um script iria farmar. A mesma simulação de aritmética inteira roda dos dois lados, então o servidor refaz cada lote e sorteia cada drop. E os saves *migram por transformação de snapshot*: a simulação está na versão 19, e cada versão nova traz uma migração com fixtures golden.',
+    },
+    techStack: ['TypeScript', 'Node.js', 'Claude Code plugins', 'SQLite', 'Zod', 'Vitest', 'Docker', 'Caddy', 'Cloudflare R2'],
+    githubUrl: 'https://github.com/kevinshibuya/promptfall',
+  },
+  {
+    id: 'barber-app',
+    kind: { en: 'AI haircut previews', pt: 'prévias de corte com IA' },
+    line: {
+      en: 'A photo of the client in the chair becomes 17 AI previews of hair and beard styles.',
+      pt: 'Uma foto do cliente na cadeira vira 17 prévias de corte e barba feitas por IA.',
+    },
+    body: {
+      en: 'A phone app for barbers in Brazil, in Portuguese. The barber records the client’s consent and takes up to four photos; the moment the front one is uploaded, a worker renders that client in all 12 hair styles and 5 beard styles, so the picker fills in while the barber is still talking. Then a look, an after photo, and a link for the client.',
+      pt: 'Um app de celular para barbeiros no Brasil, em português. O barbeiro registra o consentimento do cliente e tira até quatro fotos; assim que a frontal sobe, um worker gera o cliente nos 12 cortes e nas 5 barbas do catálogo, e as opções vão aparecendo enquanto o barbeiro ainda conversa. Depois vêm o visual escolhido, a foto do depois e um link para o cliente.',
+    },
+    slug: 'barber-app',
+    // The README's working title: the app has no name yet.
+    title: { en: 'Barber app', pt: 'App de barbearia' },
+    year: 2026,
+    origin: 'personal',
+    order: 11,
+    // Shown through the `project.personal` label, since `origin` is personal.
+    client: 'Kevin Shibuya',
+    // The README: each milestone starts as a spec, agents in Claude Code build the tickets, the owner reviews each pull request.
+    role: { en: 'specs, decisions, review', pt: 'specs, decisões, revisão' },
+    team: { en: 'solo, with Claude Code agents', pt: 'solo, com agentes do Claude Code' },
+    status: 'building',
+    summary: {
+      en: 'A phone app where a barber photographs the client in the chair and shows them AI previews of hair and beard styles on their own face before cutting.',
+      pt: 'Um app de celular em que o barbeiro fotografa o cliente na cadeira e mostra prévias de corte e barba feitas por IA no rosto dele, antes de cortar.',
+    },
+    result: {
+      en: '17 previews queued per front photo, from a provider chosen by a 144-render bake-off',
+      pt: '17 prévias na fila a cada foto frontal, de um provedor escolhido num teste de 144 imagens',
+    },
+    shots: {
+      desktop: [
+        { en: 'Bake-off, nano-banana-2.1: the same person in every column', pt: 'Teste de provedores, nano-banana-2.1: a mesma pessoa em todas as colunas' },
+        { en: 'Bake-off, flux-klein: the face and shirt change across a row', pt: 'Teste de provedores, flux-klein: o rosto e a camisa mudam ao longo da linha' },
+      ],
+      mobile: { count: 7, height: 1067 },
+    },
+    description: {
+      en: 'A phone app for barbers in Brazil: photograph the client in the chair and show them AI previews of 12 hair styles and 5 beard styles on their own face before cutting. A work in progress: milestone 1 runs as a demo Android APK, and the CRM, an iOS build, a store listing and a name do not exist yet.',
+      pt: 'Um app de celular para barbeiros no Brasil: fotografe o cliente na cadeira e mostre prévias de 12 cortes e 5 barbas feitas por IA no rosto dele, antes de cortar. Em andamento: o marco 1 roda como um APK Android de demonstração, e o CRM, a versão iOS, a publicação na loja e um nome ainda não existem.',
+    },
+    stats: [
+      { value: '17', label: { en: 'previews a visit', pt: 'prévias por visita' } },
+      { value: '12', label: { en: 'hair styles', pt: 'cortes' } },
+      { value: '5', label: { en: 'beard styles', pt: 'barbas' } },
+    ],
+    pitch: {
+      en: 'A *barber’s phone app* for the moment a client says “something shorter, maybe a fade?”: the answer is the client’s own face, in *17 AI previews* that render while the barber is still talking.',
+      pt: 'Um *app de celular para barbeiros* para a hora em que o cliente diz “algo mais curto, talvez um degradê?”: a resposta é o próprio rosto dele, em *17 prévias feitas por IA* que ficam prontas enquanto o barbeiro ainda conversa.',
+    },
+    whatShipped: {
+      en: 'An *Expo app* and a *NestJS worker* over Supabase. Milestone 1 runs as a demo, an Android APK against a cloud Supabase project, with the owner’s dashboard (six numbers for the week and month) and offline tolerance built on top. Uploads survive a dropped connection, row-level security keeps each barber inside their own shop, and a nightly job removes the images of unchosen previews after seven days. The CRM with bookings, an iOS build, a store listing and a name do not exist yet.',
+      pt: 'Um *app em Expo* e um *worker em NestJS* sobre o Supabase. O marco 1 roda como demonstração, um APK Android apontado para um projeto Supabase na nuvem, com o painel do dono (seis números da semana e do mês) e a tolerância a ficar offline construídos por cima. Os uploads sobrevivem a uma queda de conexão, a segurança por linha mantém cada barbeiro dentro da própria barbearia, e um job noturno apaga as imagens das prévias não escolhidas depois de sete dias. O CRM com agendamentos, a versão iOS, a publicação na loja e um nome ainda não existem.',
+    },
+    trick: {
+      en: 'The image provider was picked by a *measured bake-off*: on 2026-10-22, 4 photos times 12 hair styles went through three providers, 144 renders for about $5.14. `nano-banana-2.1` kept the person in all 48 of its renders at $0.037 each; `flux-klein`, the cheapest at $0.030 and the fastest at 2.8 s, often lost them. The next step is decided, not built: render each style from the original photo and *paste back only its hair or beard region*, because a beard rendered on top of a hair render drifted until the model returned a different person in a different barbershop.',
+      pt: 'O provedor de imagem saiu de um *teste medido*: em 2026-10-22, 4 fotos vezes 12 cortes passaram por três provedores, 144 imagens por cerca de US$ 5,14. O `nano-banana-2.1` manteve a pessoa nas 48 imagens dele, a US$ 0,037 cada; o `flux-klein`, o mais barato a US$ 0,030 e o mais rápido a 2,8 s, perdia a pessoa com frequência. O próximo passo está decidido, ainda não construído: gerar cada estilo a partir da foto original e *colar de volta só a região do cabelo ou da barba*, porque uma barba gerada por cima de um corte já gerado foi se desviando até o modelo devolver outra pessoa em outra barbearia.',
+    },
+    techStack: ['Expo', 'React Native', 'NativeWind', 'NestJS', 'Supabase', 'PostgreSQL', 'Jest', 'Docker', 'Caddy'],
+    githubUrl: 'https://github.com/kevinshibuya/barber-app',
+  },
 ]

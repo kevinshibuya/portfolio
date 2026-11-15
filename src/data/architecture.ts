@@ -148,6 +148,103 @@ export const architectures: Record<string, Architecture> = {
       pt: 'Três agentes, cada um com uma tarefa. O primeiro só pode preencher um molde de SQL, o executor limita toda consulta a vinte linhas, e o último lê as linhas sob regras escritas para cada campo.',
     },
   },
+  // Transcribed from the mermaid chart under "How it's built" in the repository's README.
+  promptfall: {
+    lanes: [
+      {
+        label: { en: 'online', pt: 'online' },
+        nodes: [
+          { label: 'Claude Code', sub: 'hooks', kind: 'outside' },
+          { label: 'plugin', sub: { en: 'band and pane', pt: 'faixa e painel' } },
+          { label: 'host', sub: { en: 'ledger, node:http', pt: 'ledger, node:http' } },
+        ],
+      },
+      {
+        label: { en: 'offline', pt: 'offline' },
+        nodes: [
+          { label: 'Claude Code', sub: 'hooks', kind: 'outside' },
+          { label: 'plugin', sub: { en: 'band and pane', pt: 'faixa e painel' } },
+          { label: { en: 'in-process ledger', pt: 'ledger embutido' }, kind: 'store' },
+        ],
+      },
+      {
+        label: { en: 'one set of rules', pt: 'uma só regra' },
+        nodes: [
+          { label: 'sim', sub: { en: 'integer rules', pt: 'aritmética inteira' } },
+          { label: { en: 'plugin and host', pt: 'plugin e host' } },
+        ],
+      },
+      {
+        label: { en: 'the public server', pt: 'o servidor público' },
+        nodes: [
+          { label: 'Caddy', sub: 'TLS', kind: 'outside' },
+          { label: 'host' },
+          { label: 'SQLite', kind: 'store' },
+          { label: 'Cloudflare R2', sub: { en: 'nightly copy', pt: 'cópia noturna' }, kind: 'outside' },
+        ],
+      },
+      {
+        label: { en: 'players and bots', pt: 'jogadores e bots' },
+        nodes: [
+          { label: 'bots', sub: { en: 'public HTTP API', pt: 'API HTTP pública' } },
+          { label: 'host' },
+          { label: 'GitHub', sub: { en: 'device flow', pt: 'device flow' }, kind: 'outside' },
+        ],
+      },
+    ],
+    caption: {
+      en: 'One deterministic simulation, integer math only, runs in the plugin and on the host, so the host replays every batch a client sends and rolls every drop itself. Offline, the plugin plays against a ledger of its own.',
+      pt: 'Uma só simulação determinística, só com aritmética inteira, roda no plugin e no host, então o host refaz cada lote que um cliente envia e sorteia ele mesmo cada drop. Offline, o plugin joga contra um ledger próprio.',
+    },
+  },
+  // Transcribed from the mermaid chart under "How it's built" in the repository's README.
+  'barber-app': {
+    lanes: [
+      {
+        label: { en: 'a visit', pt: 'uma visita' },
+        nodes: [
+          { label: 'Supabase Auth', sub: { en: 'sign in', pt: 'login' }, kind: 'outside' },
+          { label: { en: 'mobile app', pt: 'app' }, sub: 'Expo, NativeWind' },
+          { label: 'Postgres', sub: { en: 'RLS per shop', pt: 'RLS por loja' }, kind: 'store' },
+          { label: { en: 'previews table', pt: 'tabela previews' }, sub: { en: '17 rows queued', pt: '17 linhas na fila' }, kind: 'store' },
+        ],
+      },
+      {
+        label: { en: 'render', pt: 'gerar' },
+        nodes: [
+          { label: { en: 'previews table', pt: 'tabela previews' }, sub: { en: 'the queue', pt: 'a fila' }, kind: 'store' },
+          { label: 'worker', sub: 'NestJS' },
+          { label: { en: 'image provider', pt: 'provedor' }, sub: 'Gemini, fal, fake', kind: 'outside' },
+          { label: 'Storage', sub: { en: 'preview JPEGs', pt: 'JPEGs das prévias' }, kind: 'store' },
+        ],
+      },
+      {
+        label: { en: 'back in the chair', pt: 'de volta à cadeira' },
+        nodes: [
+          { label: { en: 'previews table', pt: 'tabela previews' }, sub: { en: 'row done', pt: 'linha pronta' }, kind: 'store' },
+          { label: { en: 'mobile app', pt: 'app' }, sub: 'Realtime' },
+        ],
+      },
+      {
+        label: { en: 'the client', pt: 'o cliente' },
+        nodes: [
+          { label: { en: 'a browser', pt: 'um navegador' }, sub: '/v/token', kind: 'outside' },
+          { label: 'worker', sub: { en: 'client page', pt: 'página do cliente' } },
+        ],
+      },
+      {
+        label: { en: 'every night', pt: 'toda noite' },
+        nodes: [
+          { label: { en: 'cleanup', pt: 'limpeza' }, sub: { en: '03:00 São Paulo', pt: '03:00 São Paulo' } },
+          { label: 'Storage', sub: { en: 'unchosen deleted', pt: 'descartes apagados' }, kind: 'store' },
+        ],
+      },
+    ],
+    caption: {
+      en: 'The previews table is the queue. Uploading the front photo queues 17 rows, the worker claims them and calls the image provider, and Realtime tells the app as each row is done, so the picker fills in tile by tile.',
+      pt: 'A tabela de prévias é a fila. A foto frontal enfileira 17 linhas, o worker as reivindica e chama o provedor de imagem, e o Realtime avisa o app a cada linha pronta, então as opções aparecem uma a uma.',
+    },
+  },
 }
 
 /** What a reader should know about the pictures of a project before trusting them. */
