@@ -293,7 +293,9 @@ function Page({ project }: { project: Project }): ReactElement {
 
       <DarkSection className="mw">
         <div className="container">
-          <Label text={t('project.more')} filmed />
+          <h2>
+            <Label text={t('project.more')} filmed />
+          </h2>
           <ul className="rows">
             {othersOf(project).map((other) => (
               <li key={other.slug}>

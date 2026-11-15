@@ -5,8 +5,8 @@ import { defineConfig, devices, type Project } from '@playwright/test'
 // `npx playwright test` stays the safe default. Mobile runs only the specs whose
 // behaviour changes with the viewport; a new viewport-dependent surface joins
 // MOBILE_SPECS in the PR that adds it.
-const QUICK_SPECS = ['smoke', 'project-page', 'no-webgl', 'reduced-motion', 'navigation']
-// project-page sets its own viewport per test, so it stays desktop-only.
+const QUICK_SPECS = ['smoke', 'project-page', 'structure', 'no-webgl', 'reduced-motion', 'navigation']
+// project-page and structure set their own viewport per test, so they stay desktop-only.
 const MOBILE_SPECS = ['smoke', 'no-webgl', 'reduced-motion', 'navigation']
 // perf-budget's DPR test only exercises the 1.5 cap on Pixel 5's capped path,
 // so the harness adds it to mobile; the default suite checks the rule at DPR 1.

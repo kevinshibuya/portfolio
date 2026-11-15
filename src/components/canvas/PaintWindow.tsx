@@ -42,9 +42,9 @@ export function PaintWindow({ text, className, style }: PaintWindowProps): React
 
     const size = (): void => {
       const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP)
-      const rect = host.getBoundingClientRect()
-      width = Math.max(1, Math.round(rect.width * dpr))
-      height = Math.max(1, Math.round(rect.height * dpr))
+      // The layout box: an arrival animation scales the element, and a box read through that would be too small to paint.
+      width = Math.max(1, Math.round(host.offsetWidth * dpr))
+      height = Math.max(1, Math.round(host.offsetHeight * dpr))
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width
         canvas.height = height

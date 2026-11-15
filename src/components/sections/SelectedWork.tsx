@@ -42,6 +42,7 @@ export function SelectedWork(): ReactElement {
     const items = [...stack.querySelectorAll<HTMLElement>('.stack-item')]
     const sides = items.map((item) => [...item.querySelectorAll<HTMLElement>('.stack-side')])
     let lean = 0
+    let drifting = false
     let current: number | null = null
 
     return onFrame((_, delta) => {
@@ -75,8 +76,13 @@ export function SelectedWork(): ReactElement {
           lean = 0
           stack.style.removeProperty('--lean')
         }
+        if (drifting) {
+          drifting = false
+          for (const group of sides) for (const side of group) side.style.removeProperty('transform')
+        }
         return
       }
+      drifting = true
       // Names and "view" drift from half their height high to two fifths low as their project crosses.
       rects.forEach((rect, index) => {
         const through = Math.min(1, Math.max(0, (fold - rect.top) / (fold + rect.height)))
@@ -96,7 +102,9 @@ export function SelectedWork(): ReactElement {
   return (
     <section id="work" className="selected">
       <div className="container">
-        <Label text={t('work.selected')} filmed />
+        <h2>
+          <Label text={t('work.selected')} filmed />
+        </h2>
         <div className="stack" ref={stackRef}>
           {SELECTED.map((project, index) => (
             <TLink

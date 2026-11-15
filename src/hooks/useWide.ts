@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 
-/** The width from which a page takes its wide form: the other side of the stylesheet's `max-width: 860px`. */
-const WIDE = '(min-width: 861px)'
+/** The width from which a page takes its wide form: everything the stylesheet's `max-width: 860px` does not match. */
+const WIDE = 'not all and (max-width: 860px)'
 
 function subscribe(notify: () => void): () => void {
   const query = window.matchMedia(WIDE)

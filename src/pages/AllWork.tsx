@@ -121,7 +121,9 @@ export function AllWork(): ReactElement {
 
       <DarkSection className="pieces">
         <div className="container">
-          <Label text={t('allWork.interactives')} />
+          <h2>
+            <Label text={t('allWork.interactives')} />
+          </h2>
           <div className="pieces-head grid">
             <p className="pieces-count mega">
               <PaintWindow text={String(ARCHIVE_TOTALS.interactives)} />

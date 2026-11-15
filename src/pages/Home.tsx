@@ -170,21 +170,24 @@ export function Home(): ReactElement {
   // Home's scroll position is mirrored into sessionStorage as it changes, so a
   // return from a project page can restore it.
   useEffect(() => {
-    let pending = false
+    let frame = 0
     const onScroll = (): void => {
-      if (pending) return
-      pending = true
-      requestAnimationFrame(() => {
+      if (frame) return
+      frame = requestAnimationFrame(() => {
+        frame = 0
         try {
           sessionStorage.setItem(STORAGE_KEY, String(Math.round(window.scrollY)))
         } catch {
           /* storage is a convenience */
         }
-        pending = false
       })
     }
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      // A frame still owed would read the next page's position and save it as home's.
+      cancelAnimationFrame(frame)
+    }
   }, [])
 
   useLayoutEffect(() => {

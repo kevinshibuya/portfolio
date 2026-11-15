@@ -71,7 +71,9 @@ export function Closing(): ReactElement {
 
       <div className="closing-body container">
         <div className="contact">
-          <Label text={t('contact.title')} />
+          <h2>
+            <Label text={t('contact.title')} />
+          </h2>
           <div className="contact-mail">
             <WorkRow big href={`mailto:${EMAIL}`} title={EMAIL} mark="out" />
           </div>

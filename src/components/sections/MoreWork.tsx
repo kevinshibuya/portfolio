@@ -145,7 +145,9 @@ export function MoreWork(): ReactElement {
   return (
     <DarkSection className="more">
       <div className="container more-block">
-        <Label text={t('work.more')} />
+        <h2>
+          <Label text={t('work.more')} />
+        </h2>
         <ul className="rows">
           {OTHERS.map((project) => (
             <li key={project.slug}>
@@ -168,7 +170,9 @@ export function MoreWork(): ReactElement {
       </div>
 
       <div id="experience" className="container more-block">
-        <Label text={t('experience.title')} />
+        <h2>
+          <Label text={t('experience.title')} />
+        </h2>
         <ul className="rows">
           {JOBS.map((job, index) => (
             <li key={job.id}>

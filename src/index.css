@@ -533,6 +533,14 @@ body[data-loader-state='loading'] {
 }
 .nav-lang.nav-top-only { transform-origin: right center; }
 
+/* The links take the room they need: the name line starts at the fourth
+   column, or straight after the links where they are wider than three. */
+@media not all and (max-width: 860px) {
+  .nav-row { grid-template-columns: minmax(calc(3 * var(--col) + 2 * var(--gap)), max-content) minmax(0, 1fr) auto; }
+  .nav-links { grid-column: 1; }
+  .nav-name { grid-column: 2; }
+  .nav-lang { grid-column: 3; }
+}
 @media (max-width: 860px) {
   .nav-links { grid-column: 1 / 10; margin-left: -6px; }
   .nav-link { padding-inline: 6px; }
@@ -1247,10 +1255,7 @@ a.namehover, a .namehover { cursor: pointer; }
   padding-top: 26.6svh;
   padding-bottom: 24px;
 }
-.p-title {
-  max-width: calc(8 * var(--col) + 7 * var(--gap));
-  text-wrap: balance;
-}
+.p-title { text-wrap: balance; }
 .p-row {
   margin-top: max(96px, 23.9svh - var(--t-h1));
   align-items: start;
@@ -1691,6 +1696,14 @@ html[data-leaving] .nav * { pointer-events: none; }
 
 @media (min-width: 861px) and (max-width: 1100px) {
   .about-statement { grid-column: 1 / 9; }
+  /* The media column is too narrow here for the diagram's wide drawing to keep its text legible: the tall one stands in. */
+  .p-media .diagram-frame { padding: 28px 16px; }
+  .p-media .diagram-svg--wide { display: none !important; }
+  .p-media .diagram-svg--narrow { display: block !important; }
+}
+/* Where a title can run to two lines, the slot leaves the row under it clear. */
+@media (min-width: 861px) and (max-width: 1180px) {
+  .p-slot { width: min(calc(5 * var(--col) + 4 * var(--gap)), (73.4svh - 250px - var(--t-h1)) * 1.52); }
 }
 
 /* =========================================================================
@@ -1724,6 +1737,10 @@ html[data-leaving] .nav * { pointer-events: none; }
   .nav, .nav.is-away:not(:has(:focus-visible)) { transition: opacity 250ms linear 0.4s; }
   /* Nothing travels: the clip stays at its place and the opening shows a still of it. */
   .p-slot > .frame { display: block; }
+  /* On the narrow page the recording already stands right under the slot: one picture, not two. */
+  @media (max-width: 860px) {
+    .p-slot { display: none; }
+  }
   .travel { transform: none !important; }
 }
 

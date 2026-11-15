@@ -60,6 +60,7 @@ function Clip({ item, alt }: { item: MediaClip; alt: string }): ReactElement {
     return () => {
       near.disconnect()
       far.disconnect()
+      video.pause()
     }
   }, [item, prefersReducedMotion])
 
