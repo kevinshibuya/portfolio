@@ -1,131 +1,106 @@
 {
   "nav": {
-    "work": "obras",
-    "archive": "arquivo",
-    "experience": "carreira",
-    "skills": "habilidades",
-    "contact": "contato"
+    "about": "sobre",
+    "work": "trabalhos",
+    "experience": "experiência",
+    "contact": "contato",
+    "primary": "principal",
+    "home": "kevin shibuya, início",
+    "language": "idioma",
+    "name": "kevin shibuya · engenheiro de software · full-stack"
   },
-  "lang": "PT",
   "hero": {
     "name1": "kevin",
     "name2": "shibuya.",
-    "rolePrefix": "sou",
-    "roles": [
-      "um engenheiro de software sênior",
-      "um desenvolvedor full-stack",
-      "um arquiteto de sistemas",
-      "um líder técnico",
-      "um engenheiro de ia"
-    ],
-    "description": "<strong>do esboço ao produto final.</strong> um time de um homem só.",
-    "cta": {
-      "collaborate": "colaborar",
-      "resume": "currículo"
-    },
-    "stats": {
-      "years": "anos entregando",
-      "embeds": "interativos entregues",
-      "projects": "estudos de caso"
+    "role": "engenheiro de software · full-stack"
+  },
+  "about": {
+    "statement": "Construo interfaces de ponta a ponta, e desenho o que construo.",
+    "fact": "anos entregando para times de produto no Brasil, na Austrália e nos Estados Unidos. Desde 2023, jornalismo interativo no Grupo RBS.",
+    "stack": "React, TypeScript, Next.js, Node, NestJS, PostgreSQL",
+    "place": "Porto Alegre, Brasil. Português e inglês.",
+    "portraitAlt": "Retrato de Kevin Shibuya"
+  },
+  "work": {
+    "selected": "trabalhos selecionados",
+    "more": "mais trabalhos",
+    "view": "ver",
+    "open": "Abrir {{title}}"
+  },
+  "experience": {
+    "title": "experiência",
+    "modes": {
+      "in-person": "presencial",
+      "remote": "remoto"
     }
   },
-  "stats": {
-    "heading": "o trabalho, em <em>números.</em>",
-    "eyebrow": "métricas selecionadas",
-    "receipt": {
-      "years": "anos entregando interativos, do primeiro commit até hoje.",
-      "interactives": "interativos publicados na gauchazh.",
-      "reconstruction": "em recursos da reconstrução acompanhados:",
-      "reconstruction_cta": "painel da reconstrução",
-      "votes": "votos ao vivo registrados:",
-      "votes_cta": "enquetes gzh"
-    }
+  "allLink": {
+    "l1": "veja as",
+    "l3": "peças do",
+    "l4": "acervo",
+    "note1": "{{count}} estudos de caso",
+    "note2": "{{count}} interativos de redação",
+    "label": "Veja as {{count}} peças do acervo"
   },
-  "sections": {
-    "projects": {
-      "index": "01 · destaques",
-      "label": "",
-      "title": "obras <em>em foco.</em>",
-      "description": "highlights pessoais. do briefing à entrega.",
-      "caseStudy": "estudo de caso",
-      "viewProject": "ver projeto"
-    },
-    "archive": {
-      "index": "02 · arquivo",
-      "label": "",
-      "title": "o <em>arquivo.</em>",
-      "description": "tudo o que entreguei. pode buscar.",
-      "toolbar": {
-        "search": "buscar…",
-        "kind": "tipo",
-        "type": "formato",
-        "editorial": "editoria",
-        "year": "ano",
-        "sort": "ordenar",
-        "all": "todos",
-        "countLabel": "itens",
-        "showMore": "mostrar mais"
-      },
-      "sort": {
-        "featured": "destaques",
-        "newest": "mais recentes",
-        "oldest": "mais antigos",
-        "az": "a–z",
-        "za": "z–a"
-      }
-    },
-    "work": {
-      "index": "03 · experiência",
-      "label": "",
-      "title": "minha <em>carreira.</em>",
-      "description": "sete anos entregando. visto por milhões.",
-      "award": "★ prêmio",
-      "modes": {
-        "in-person": "presencial",
-        "remote": "remoto"
-      }
-    },
-    "skills": {
-      "index": "04 · conhecimentos",
-      "label": "",
-      "title": "meu <em>arsenal.</em>",
-      "description": "o stack: rápido, sem abrir mão do capricho.",
-      "frontend": "frontend",
-      "design": "design",
-      "backend": "backend & cloud",
-      "devops": "devops & testes",
-      "ai": "engenharia de ia",
-      "leadership": "liderança"
-    },
-    "contact": {
-      "index": "05",
-      "label": "entre em contato",
-      "title": "vamos <em>criar.</em>",
-      "subtitle": "tem um projeto ou ideia? bora conversar.",
-      "links": {
-        "email": "enviar e-mail",
-        "linkedin": "linkedin",
-        "github": "github",
-        "resume": "baixar cv"
-      }
-    }
+  "contact": {
+    "title": "contato",
+    "linkedin": "linkedin",
+    "github": "github",
+    "resume": "currículo",
+    "resumeValue": "cv, pdf"
   },
   "footer": {
-    "copyright": "© {{year}} kevin shibuya · todos os direitos reservados",
-    "builtWith": "feito com react, typescript & capricho",
-    "bigText": "kevin shibuya"
+    "copyright": "© {{year}}",
+    "by": "desenhado e construído por",
+    "name": "kevin shibuya",
+    "place": "porto alegre, brasil",
+    "top": "voltar ao topo"
   },
-  "projectDetail": {
-    "back": "voltar para projetos",
+  "project": {
+    "crumbWork": "todos os trabalhos",
+    "live": "ver no ar",
+    "credits": "créditos",
+    "stack": "stack",
+    "client": "para",
     "year": "ano",
-    "stack": "tecnologias",
-    "whatShipped": "o que entregou",
-    "trick": "o truque",
-    "liveDemo": "demo ao vivo",
-    "sourceCode": "código fonte",
-    "notes": "notas",
+    "state": "status",
+    "role": "função",
+    "team": "time",
+    "status": {
+      "live": "no ar",
+      "published": "publicado",
+      "prelaunch": "pré-lançamento",
+      "internal": "interno",
+      "mvp": "mvp, fora de produção"
+    },
+    "noLink": "ainda sem endereço público",
+    "privateLink": "não é público",
+    "more": "mais trabalhos",
+    "screen": "{{title}}, tela {{n}}",
+    "recording": "{{title}}, gravação {{n}}",
+    "diagram": "Como {{title}} é montado",
     "notFound": "projeto não encontrado",
-    "notFoundDescription": "o projeto que você está procurando não existe.",
-    "scroll": "rolar"
+    "notFoundDescription": "O projeto que você procura não existe.",
+    "backHome": "voltar ao início"
+  },
+  "allWork": {
+    "title": "todos os trabalhos",
+    "interactives": "interativos de redação",
+    "note": "Publicados na GZH, em português. Cada um abre a matéria em que está.",
+    "pieces_one": "{{count}} peça",
+    "pieces_other": "{{count}} peças",
+    "types": {
+      "SIMULADOR": "simuladores",
+      "MAPA INTERATIVO": "mapas interativos",
+      "QUIZ": "quizzes",
+      "CALCULADORA": "calculadoras",
+      "INFOGRAFICO": "infográficos",
+      "BUSCADOR": "buscadores",
+      "GALERIA": "galerias"
+    },
+    "meta": {
+      "title": "todos os trabalhos · kevin shibuya",
+      "description": "Tudo o que Kevin Shibuya já publicou: nove estudos de caso e os interativos publicados na GZH."
+    }
   }
 }

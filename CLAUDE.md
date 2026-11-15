@@ -1,166 +1,113 @@
-# Portfolio — Claude Instructions
+# Portfolio, Claude instructions
 
-## Project
-A complete revamp of a developer portfolio. Built with React 19 + TypeScript + Vite.
-The MVP exists in `src/App.tsx` — the revamp will decompose it into proper components.
+Kevin Shibuya's personal developer portfolio, live at kevinshibuya.com: a bilingual EN/PT React single-page site. Version 4 of the site landed on 2026-11-14. Routes: `/` (home), `/all-work` (every case study and the newsroom interactives), `/projects/:slug` (the nine case studies in `src/data/projects.ts`); any other path renders the project template's not-found view.
 
-## Tech Stack
-- **Framework**: React 19 + TypeScript (strict)
-- **Build**: Vite 6 + SWC
-- **Styling**: TailwindCSS v4 (Vite plugin — no `tailwind.config.js`, configure via CSS `@theme`)
-- **Animation layer 1 — React**: Framer Motion v12
-- **Animation layer 2 — Scroll/Timeline**: GSAP + ScrollTrigger
-- **Animation layer 3 — WebGL/3D**: React Three Fiber (@react-three/fiber + @react-three/drei)
-- **i18n**: react-i18next (bilingual EN + PT — built in from day one, not retrofitted)
-- **Package manager**: npm
+Stack: React 19, TypeScript strict, Vite 6 with SWC, TailwindCSS v4 through the Vite plugin (configured in CSS `@theme`, no `tailwind.config.js`; the site is styled almost entirely by the plain classes in `src/index.css`), react-router-dom 7, Lenis smooth scroll, npm. No animation library and no 3D library: motion is CSS, the Web Animations API, view transitions and one shared animation-frame loop; the paint is raw WebGL. Translations are a small context in `src/i18n/index.tsx` over two JSON locale files. `framer-motion`, `gsap`, `three`, `@react-three/*`, `postprocessing`, `i18next` and `react-i18next` are still listed in `package.json`, but nothing in `src/` imports them.
 
-## Design Direction
-Soft blue pastel editorial. Lowercase, playful, and confident — sky blue on cool cream, with periwinkle accents for balance. Dark ink section (Contact + Footer) for contrast. Defined in `.claude/portfolio-handoff/` (page) and `.claude/design-system-handoff/` (variations).
+How it works: `docs/architecture.md` and `GLOSSARY.md` describe the site before version 4 and are due a rewrite. Until then, the section comments in `src/index.css` and the doc comment at the top of each component are the reference; the summary below maps them.
 
-- **Colors**:
-  - Neutrals: cream `#F6F9FC` (bg), sand `#EAF2F8` (tonal section), mist `#D4E5F2` (borders/ghost).
-  - Blue scale (soft sky): `#F4F8FE → #DCF0FF → #A2D2FF → #6DB8FF → #3A96E8 → #1C6EC4`. Accent = blue-400 `#3A96E8`.
-  - Periwinkle accents: `#C8D8F0 → #8AAADA → #5078B8` (availability dot, ambient).
-  - Text: ink `#111822` (text), bark `#2A4060` (text-muted), dust `#6A8CAA` (text-faded), cream `#F6F9FC` on dark.
-  - Dark section bg = ink `#111822` (not pure black).
-- **Typography**: Plus Jakarta Sans (variable 200–800, local TTF at `/public/fonts/`). Used for both display and body. Massive lowercase hero title `clamp(72px, 13vw, 220px)`. Italic `<em>` spans in titles render in blue-400 for in-line accent ("selected <em>work.</em>").
-- **Shapes**: Rounded-[18px] cards and lists, rounded-[14px] inner preview blocks, rounded-full pills/chips/buttons, rounded-[24px] portrait frame. No sharp edges.
-- **Gradients**: Reserved for imagery (project bento covers, embed type previews, about portrait). Never on primary backgrounds.
-- **Animations**: Smooth cubic-bezier(0.22, 1, 0.36, 1) ease throughout. Character-split reveals on titles, fade-up on descriptions, cycling role text in hero, accordion expand on work rows, scale-on-hover previews and translate-on-hover titles on embed rows, parallax-reactive R3F hero canvas. Respect `prefers-reduced-motion`.
-- **Layout**: Max-width 1440 containers, 80px side padding on desktop. Hero = 4-row grid (eyebrow/name/stats/scroll). Projects = 4-col bento. Embeds = numbered table rows. Work = accordion. Skills = 3-col numbered columns.
-- **Section dividers**: MarqueeDivider components (kept from MVP) with ghost text, restyled to mist/dust/blue palette.
-- **Tonal sections**: Skills + Embeds use `bg-bg-sand`. Contact + Footer use `bg-bg-dark` (ink) with `text-light`.
-- **Featured work cards (bento v04)**: `Projects.tsx` — 4-col grid with sizes `lg` (2×2), `md` (2×1), `sm` (1×1). Gradient backgrounds per card, `dark: true` variant for ink/bark gradient. Top tagline + bottom title + "↗ case study" link.
-- **Editorial embeds (numbered rows v02)**: `EmbedsGallery.tsx` — bordered rounded container, grid rows with num · 56×40 gradient preview · uppercase title · type · editorial · arrow. Hover = sand bg + preview scale 1.08 + title translate-x + arrow opacity 1.
-- **Hero**: Ghost duo name (`kevin` ink + `shibuya.` with blue-300 stroke outline on mist fill), cycling role text, CTAs, stats row.
-- **About**: 380px portrait (blue gradient + "ks" mark) + bio with blue-400 italic highlights + pills.
-- **Nav (split variation)**: Logo mark + brand text left, links center with blue underline on hover, availability pill (periwinkle pulsing dot) + EN/PT toggle right.
-- **Footer**: Viewport-wide outlined `kevin shibuya` text (transparent fill, 1px cream stroke) over ink bg + bottom meta row.
-- **UI Components**: Tag (chip style), SectionHeading (em-accent), MarqueeDivider, StatCounter, SocialLinks, Cursor.
-- **Section flow**: Hero → About → WorkExperience (accordion) → Skills → Projects (bento v04) → EmbedsGallery (numbered rows v02) → Contact → Footer.
-- **NO**: Purple gradients, generic drop shadows, rainbow accents, amber `#D4A020` (retired), terracotta `#E07A56` / sage `#A8C899` (retired), Outfit/Inter (retired), spinning loaders.
+## Branches and deploy (read before any merge)
 
-## Animation Library Usage Rules
-**NEVER mix these libraries for the same animation. Each has a lane:**
+**A push or merge to `main` auto-deploys to production at https://kevinshibuya.com.** The deploy is wired through Cloudflare Workers Builds, connected to this repository directly, **not** through a GitHub Actions workflow. There is no `.github/workflows` directory, and **its absence is not evidence that nothing ships.** "No CI, so merging is safe" is the exact reasoning that caused a production incident.
 
-- **Framer Motion**: Component enter/exit animations, hover states, shared layout transitions, any animation tied to React state. Use `motion.*` components and `AnimatePresence`.
-- **GSAP + ScrollTrigger**: Scroll-pinned sequences, timeline orchestration, text character/word splitting reveals, scroll-progress parallax. Initialize in `useEffect` with proper cleanup. Use `gsap.context()` for scoping.
-- **React Three Fiber**: Hero background (particle field or abstract geometry), maximum 2 canvas elements on the page. Lazy-load R3F components. Keep 3D scenes simple — they should feel atmospheric, not gimmicky.
+- **STANDING RULE (Kevin, 2026-09-03): `main` is FROZEN until the portfolio revamp is complete.** Until Kevin says the revamp is finished, nothing merges into `main`: not a feature, not a fix, not a "sync". `main` is not a decision to make in the meantime, no matter how green or how small the change.
+- **Branch order (Kevin, 2026-10-07):** `main` is production. `staging` is the human test environment for production. `ai-staging` is the agents' playground before a human tests anything. Neither `staging` nor `ai-staging` deploys anything, and both are expected to run far ahead of `main`; a large `main..staging` count is the NORMAL state here, not drift to be tidied up.
+- **Branch flow:** feature branch, then PR into **`ai-staging`**. Merging an approved, GREEN PR into `ai-staging` needs no permission; the merge hook leaves it open by design. Feature-branch commits, pushes and PR creation need no permission either.
+- **Promoting `ai-staging` to `staging` is Kevin's call, after he validates `ai-staging`.** `staging` sits behind `~/.claude/bin/block-merge-to-main.sh` together with `main`. Merging into it needs Kevin's per-action say-so, and the one authorised command is prefixed `ALLOW_MAIN_MERGE=1`. That token is re-authorised per command, and a say-so for a `staging` merge never carries to `main`.
+- **Promoting `staging` to `main` is a PRODUCTION RELEASE, not a branch sync.** It needs an explicit, per-action decision from Kevin *for that release*; blanket earlier permission to "merge" does not cover it.
+- **`npm run deploy` (`npm run build && wrangler deploy`) ships production directly, without a merge, a push or a PR.** The merge hook inspects git and `gh pr merge` only, so it never sees this. It is Kevin's command; an agent does not run it, frozen `main` or not.
+- If a merge's real scope differs from what was asked for (say "merge my feature" would actually promote 153 accumulated commits), **stop and confirm before acting.** Noting the discrepancy and proceeding anyway is the failure.
 
-## Skill Invocation Rules (MANDATORY)
+**Incident, 2026-09-02.** `staging` was merged to `main` (153 commits) on the stated but incorrect basis that nothing would deploy; Cloudflare built and shipped it, and production served the unreleased redesign for about 15 hours before Kevin caught it, not any check here. There is no monitoring on this, so after ANY change to `main`, verify production from the outside immediately with step 3 below instead of assuming the deploy matched intent.
 
-### For ANY visual UI work — components, sections, layouts, styling:
-ALWAYS invoke `frontend-design:frontend-design` before writing any JSX or CSS.
-This is non-negotiable. If you are about to write a component without this skill, STOP and invoke it first.
+**Recovery that worked, in order:**
 
-### For ANY new feature, section, or significant change:
-ALWAYS invoke `superpowers:brainstorming` to explore intent and requirements first.
+1. `ALLOW_MAIN_MERGE=1 git push --force-with-lease=main:<current> origin <prior-sha>:main` puts `main` back on its exact prior tip.
+2. Cloudflare rebuilds from that push automatically; it restored the previous site in about 40 s, but only once someone knew to trigger it. No manual deploy was needed, and none was possible: `wrangler` was logged out (`Not logged in ... environment is non-interactive`). **Do not assume `wrangler deploy` is available as a recovery path.** Check `npx wrangler whoami` first, and ask Kevin to run `! npx wrangler login` if it is needed.
+3. Verify production from the outside, never from the repo. The live HTML is the only proof:
+   `curl -s https://kevinshibuya.com/ | grep -oE 'theme-color" content="[^"]*"'`
+   The pre-redesign site is `#F6F9FC`; the dark redesign is `#0B0E14`. `loader-ks` and `portfolio · 2026` appear only in the redesign. **While `main` is frozen, `#F6F9FC` is the CORRECT production state**, not a regression: production does not yet serve the site this file describes.
 
-### For multi-step work spanning multiple files:
-ALWAYS invoke `superpowers:writing-plans` to create a plan before touching code.
+**Release and rollback, 2026-11-13.** PR #48 merged `staging` into `main` on Kevin's go-ahead, and production served the redesign from 17:27 to 18:18 UTC. Kevin then judged it not ready to ship and had `main` put back on `62cd73c` with step 1 above; Cloudflare restored the old site in about 150 s. The freeze stands until Kevin says the revamp is finished.
 
-### Before writing implementation code:
-ALWAYS invoke `superpowers:test-driven-development` for logic/hooks. UI components may skip unit tests but must have clear acceptance criteria defined first.
+Nothing was lost in that incident because `staging` retained every commit. Keep it that way: **never roll back by deleting work from `staging` or `ai-staging`.**
 
-### Before declaring anything complete:
-ALWAYS invoke `superpowers:verification-before-completion`. Run `npm run build` and `npm run dev` and confirm visually. No success claims without evidence.
+## The site, version 4
 
-### After completing a major feature or section:
-ALWAYS invoke `superpowers:requesting-code-review`.
+**Design.** Two solid grounds, cream `#F9F4EC` and black, and the paint of the first screen. Orange `#D94300`, the paint's body colour, is the one accent: arrows, marks and the paint, never a surface and never text at rest. A dark section (`data-theme="dark"`) is the same tokens swapped. One family, Plus Jakarta Sans, roman only; six type sizes, each with one job (`mega`, `h1`, `h2`, `h4`, `p1`, `p2`); one 12-column grid; two curves, E1 for transitions and page-level moves, E2 for the pop of words and small parts. The frame, a hard black rectangle with the capture inset on a 4 % mat, is the shape the site is built from. The tokens and the reasoning are the TOKENS block at the top of `src/index.css`; the shader's colours are `src/utils/palette.ts`.
 
-### When working with any library (Framer Motion, GSAP, R3F, TailwindCSS v4):
-Add "use context7" to the prompt to get current documentation. These libraries change frequently.
+**Surfaces.**
 
-## Spec & Plan Checkbox Discipline (MANDATORY)
+| Surface | Files |
+| --- | --- |
+| Loader: an ink sheet with "ks." windows, painted by `index.html` at first byte; its exit (contraction, then a zoom through the cutout) and the entrance gate | `index.html`, `src/main.tsx`, `src/context/MotionContext.tsx` |
+| Hero: the name and role line rising over the paint, which dissolves into the cream page below the first screen | `src/components/sections/Hero.tsx`, `src/hooks/useEntered.ts` |
+| The paint: one fragment shader, at most one WebGL context drawing at a time (hero, closing, and an off-document source); paint windows copy it into 2D canvases cut to a shape; a static stand-in where WebGL is missing | `src/components/canvas/paint.ts`, `FluidWaves.tsx`, `PaintWindow.tsx` |
+| About | `src/components/sections/About.tsx` |
+| Selected work: three projects stacked, a frame each, the name and "view" beside the one in play, a line pinned to the bottom corners | `src/components/sections/SelectedWork.tsx` |
+| Dark section: the other case studies as rows, three jobs as rows, the closing link to all work | `src/components/sections/MoreWork.tsx` |
+| Contact and footer, on the paint | `src/components/layout/Closing.tsx` |
+| Header and language pair | `src/components/layout/Header.tsx` |
+| Page change: view transitions, and the arrival of a page's `data-enter` parts | `src/components/layout/PageChange.tsx` |
+| All work | `src/pages/AllWork.tsx` |
+| Project page, in two forms chosen by `useWide` at 861 px. Wide: one numbered column of every capture (`.p-column`), the recording travelling down to head it, a sticky credits column (`.p-credits`), the live link in the title row (`.p-live`), the diagram last. Narrow: the facts under the title (`.p-facts`), then labelled groups (`.p-group`) | `src/pages/ProjectDetail.tsx`, `src/hooks/useWide.ts`, `src/data/media.ts`, `src/data/galleries.ts`, `src/components/ui/Travel.tsx` |
+| Shared parts: frame, work row, label, arrow, rolling link, the name that answers the pointer, the diagram | `src/components/ui/` |
 
-Specs (`docs/superpowers/specs/*.md`) and plans (`docs/superpowers/plans/*.md`) contain GFM checkboxes (`- [ ]`) that are the source of truth for progress. They MUST be kept in sync with reality. Stale boxes (work done but `- [ ]` still showing) silently break the `feat` skill, the retro, and any future session that resumes this work.
+**Motion.** The entrance holds a direct load for about two seconds: `MotionContext`'s `entranceDone` resolves when the loader hands over, and the hero's rise, the header, Lenis and the home sections below the first screen all wait on it. Scroll-following motion subscribes to the one loop in `src/utils/frame.ts`. Under `prefers-reduced-motion` the entrance is instant, the paint draws one still frame, and the REDUCED MOTION block in `src/index.css` puts everything where it ends.
 
-**Rules:**
+**Hooks the tests read.** `body[data-loader-state="done"]` once the loader has gone; `section.hero[data-entrance="settled"]` once the rise has landed; on a paint canvas, `data-canvas` (`fluid-waves`, `fluid-waves-closing`), `data-paused`, `data-painted` and `data-static`. The paint's measurement hooks are URL params, dormant otherwise: `?perf-seed=`, `?perf-freeze=`, `?perf-counters` (`paint.ts`).
 
-- **Plan step boxes** (`- [ ] **Step N: ...**` inside a task): the implementer (subagent or controller) MUST edit the box from `- [ ]` to `- [x]` immediately after that step's command/action lands successfully — BEFORE moving to the next step. Do not batch ticks "at the end".
-- **Spec TODO boxes** (`- [ ] <acceptance criterion>` under `## TODO`): the controller MUST edit the box from `- [ ]` to `- [x]` only when that TODO's acceptance test passes AND code review approves. Never tick a spec TODO based on "I think it's done".
-- **Verification before claiming a task complete:** before announcing a plan task as done, grep the task's section for any remaining `- [ ]` and tick them or explain why they're not applicable. A "completed" task with un-ticked steps is a bug.
-- **Subagent dispatches:** when dispatching an implementer subagent, the dispatch prompt MUST include the explicit instruction: "after each step's command lands successfully, Edit the corresponding `- [ ]` to `- [x]` in the plan file before proceeding to the next step." Do not assume the subagent will infer this from CLAUDE.md.
-- **Never invent boxes.** Only edit checkboxes that already exist in the spec/plan. If the work doesn't fit any existing box, the plan or spec needs to be revised first — open an Edit on the doc, then proceed.
+## Verification
 
-## Architecture
+- **Typecheck with `npx tsc -b`** (or `npm run build`, which runs `tsc -b && vite build`). A bare `npx tsc --noEmit` is a no-op in this repo: the root `tsconfig.json` is `"files": []` plus project references, so it exits 0 on code that does not compile. `tsc -b` covers `src/` and `vite.config.ts` only; the tests are transpiled by Vitest and Playwright without a typecheck.
+- **Kill port 4173 before a direct `npx playwright test` run:** `lsof -ti:4173 | xargs -r kill -9` (bare `xargs kill -9` runs with no argument and exits non-zero when the port is free, breaking an `&&` chain). `playwright.config.ts` sets `reuseExistingServer: !process.env.CI`, so a stale preview server survives and the suite tests the previous build.
+- **A runtime error inside a canvas is invisible to DOM assertions.** The canvas keeps its element and its attributes while the frame loop throws. Every browser spec fails on any console error or page error (`collectErrors` in `tests/e2e/helpers/site.ts`), and that is what catches it.
+- **A rendered surface also needs a headless browser smoke:** it loads, the root renders, zero console errors. Typecheck and lint alone do not cover a surface.
+- **Browser tests import `src/` modules that Node cannot load** (`src/data/media.ts` imports JSON, `src/data/archive.ts` a `?raw` CSV) through `loadSrc` in `tests/e2e/helpers/site.ts`, which runs them through Vite.
+- **The set:** `npx tsc -b`, `npm run lint`, `npx vitest run`, then e2e in two suites (ADR 0013): `npm run test:e2e:quick` in a PR's fix loop, and `npm run test:e2e` (the full suite) once on the final head before the `ai-staging` merge. Both run through `scripts/e2e.sh`, which frees 4173, builds once and owns the server. A surface change adds the smoke.
 
-```
-src/
-  components/
-    layout/        # Header, Footer, Navigation
-    sections/      # Hero, About, Work, Skills, Contact (full-page sections)
-    ui/            # Reusable atoms: Button, Tag, AnimatedText, Cursor, etc.
-    canvas/        # R3F components (HeroBackground, ParticleField, etc.)
-  hooks/           # useSmoothScroll, useScrollProgress, useReducedMotion, etc.
-  utils/
-    animations.ts  # Shared GSAP configs, Framer Motion variants
-    constants.ts   # Design tokens not covered by Tailwind
-  data/            # Portfolio content (projects, experience, etc.) — typed
-    embeds.csv     # Source of truth for Embeds (already at public/data/embeds.csv)
-  types/           # Shared TypeScript interfaces
-    content.ts     # Project, Embed, WorkExperience types
-```
+## Standing rules
 
-## Content Types
+- **Bilingual from the first commit.** Every reader-facing string exists in both `en` and `pt`: UI strings in `src/i18n/locales/` (a unit test holds the two files to the same keys), content as `{ en, pt }` pairs. Two documented exceptions: embed titles are Portuguese only, because the source is editorial, and the loader's two corner labels in `index.html` are English only, because they paint before React and i18n load. Decision: ADR 0001.
+- **Every animation honours `prefers-reduced-motion`.**
+- **A palette or token change ships with a recomputed AA audit** across every affected text/background pair, verified, not hoped. The tables are in `docs/contrast.md`, recomputed as a unit.
+- **`·` in reader-facing prose,** never a spaced em-dash. Reader-facing means site copy and i18n strings; date ranges, code comments and quoted wordmarks are exempt.
+- **TypeScript:** strict, no `any`, explicit return types on hooks and utilities.
+- **Components:** functional, with the props interface above the component.
+- **Performance:** `will-change` only while an element animates; lazy-load canvas sections behind `Suspense` with a fallback.
+- **Tailwind:** semantic class groupings, and repeated patterns become components.
 
-Two distinct work categories:
+### Spec and plan checkbox discipline
 
-**Projects** — fully fledged work with dedicated routes (`/projects/:slug`)
-```typescript
-interface Project {
-  id: string
-  slug: string
-  title: { en: string; pt: string }
-  description: { en: string; pt: string }
-  techStack: string[]
-  year: number
-  liveUrl?: string
-  githubUrl?: string
-  coverImage: string
-  images: string[]
-  featured: boolean
-}
-```
+Checkboxes in `docs/superpowers/specs/` and `docs/superpowers/plans/` are the source of truth for progress, and a stale box silently breaks the next session that resumes the work.
 
-**Embeds** — day-to-day interactives published on GZH (`gauchazh.clicrbs.com.br`), no dedicated page
-Source: `public/data/embeds.csv` — semicolon-delimited, columns:
-`DATA PUBLICAÇÃO` | `EDITORIA/COLUNISTA` | `FORMATO` (always "PROGRAMAÇÃO", ignore) | `ATIVIDADE` | `LINK MATERIA` | `NOME` | _(imagePreview — missing, to be added)_
+- **Plan step boxes:** the implementer edits `- [ ]` to `- [x]` immediately after that step's command lands, before starting the next step. Never batch the ticks at the end.
+- **Spec TODO boxes:** the controller ticks one only when its acceptance test passes and review approves.
+- **Before announcing a task complete,** grep its section for a remaining `- [ ]` and either tick it or say why it does not apply.
+- **When dispatching an implementer,** put the per-step ticking instruction in the dispatch prompt; a subagent does not infer it.
+- **Only edit boxes that already exist.** If the work fits none of them, revise the plan or spec first, then proceed.
 
-```typescript
-type EmbedType = 'SIMULADOR' | 'MAPA INTERATIVO' | 'QUIZ' | 'CALCULADORA' | 'INFOGRAFICO' | 'BUSCADOR' | 'GALERIA'
+## NO
 
-interface Embed {
-  publicationDate: string       // "01/12/2023"
-  editorial: string             // "Esporte", "Saúde", "Porto Alegre", etc.
-  type: EmbedType
-  link: string                  // GZH article URL
-  title: string                 // Display title (Portuguese only — editorial content)
-  imagePreview?: string         // Path to preview image (to be populated)
-}
-```
+- **Cards or bento.** Open typographic rows and frames. Rounded-full pills, chips and buttons survive where already used, on filters and tags.
+- **Router access anywhere in `src/components/canvas/`.** `FluidWaves.tsx` reads `.hero-zone` layout on purpose, so the dissolve band is never a hardcoded svh ratio.
 
-Embeds are displayed as a filterable/scrollable gallery, NOT individual pages. Filter by `type` and `editorial`. Image preview is optional — show a styled placeholder with type badge if missing.
+## Where things live
 
-## Code Standards
-- **TypeScript**: Strict mode. No `any`. Explicit return types on hooks and utilities.
-- **Components**: Functional only. Props interfaces defined above the component.
-- **Tailwind**: Use semantic class groupings. Extract repeated patterns to components, not `@apply`.
-- **GSAP**: Always use `gsap.context()` with a ref for scoping. Always return cleanup from `useEffect`.
-- **R3F**: Wrap in `Suspense` with a fallback. Use `useFrame` sparingly — prefer declarative animations via `@react-spring/three` or Framer Motion 3D when possible.
-- **Performance**: `will-change` only when animating. Lazy-load canvas sections. Measure with Lighthouse before calling anything "done".
-
-## Context7 Trigger Libraries
-Always add "use context7" when working with:
-- TailwindCSS v4 (significantly different from v3 — always check docs)
-- Framer Motion (API changes frequently between major versions)
-- GSAP ScrollTrigger
-- @react-three/fiber or @react-three/drei
-- React 19 (new APIs like `use`, `useActionState`, etc.)
-- react-i18next (translation setup, namespace configuration)
-
-## Existing MVP Notes
-- The custom `useSmoothScroll` hook in `App.tsx` (velocity-based translate3d + skew) is worth preserving — extract to `src/hooks/useSmoothScroll.ts`
-- **Language: Bilingual EN + PT.** Implement an i18n system (recommend `react-i18next` or a simple context-based solution) from the start, not bolted on later. All content must be authored in both languages.
-- `src/utils/animations.ts` contains vanilla JS scroll/fade utils that are superseded by GSAP — can be deleted
-- Unused components in `src/components/` are from an older iteration — evaluate each before reusing
+| What | Where |
+| --- | --- |
+| Rules an agent obeys every turn | `CLAUDE.md` |
+| The design system, section by section | the block comments in `src/index.css` |
+| How each surface worked before version 4 (due a rewrite) | `docs/architecture.md` |
+| AA contrast tables | `docs/contrast.md` |
+| Glossary and invariants, before version 4 (due a rewrite) | `GLOSSARY.md` |
+| Decisions with their reasoning | `docs/adr/` |
+| Records of live systems | `docs/superpowers/specs/`, `docs/superpowers/plans/` |
+| Records of retired systems | `docs/superpowers/archive/` |
+| Pending work that has no spec yet | GitHub issues on the repository |
+| The resume note (ignored, never tracked) | `HANDOFF.md` |
+| Tests | `tests/e2e/`, `tests/unit/` |
+| Content types | `src/types/content.ts` |
+| Content data | `src/data/`: `projects.ts`, `embeds.csv`, `media.json` (captures and recordings, served from `public/media/<slug>/`), `galleries.ts`, `architecture.ts`, `workExperience.ts`, `social.ts` |
+| UI strings, both languages | `src/i18n/locales/` |
+| Stack, getting started, tree | `README.md` |

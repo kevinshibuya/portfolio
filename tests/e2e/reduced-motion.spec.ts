@@ -1,38 +1,46 @@
 import { test, expect } from '@playwright/test'
+import { collectErrors, open } from './helpers/site'
 
+// With reduced motion every page is where it ends from its first frame: the
+// hero renders settled and a page's opening parts are never hidden for an
+// arrival, so nothing waits on the entrance.
 test.use({ contextOptions: { reducedMotion: 'reduce' } })
 
-test('reduced motion: loader resolves quickly and hero is final-state', async ({ page }) => {
-  const start = Date.now()
+test('home shows the hero settled from its first render', async ({ page }) => {
+  const errors = collectErrors(page)
   await page.goto('/')
+  const hero = page.locator('section.hero')
+  await hero.waitFor({ state: 'attached' })
+  // Read at once, before the loader is gone: no waiting on the entrance.
+  expect(await hero.getAttribute('data-entrance')).toBe('settled')
+  await expect(page.locator('.hero-bottom')).toHaveClass(/is-instant/)
+
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
-  const ms = Date.now() - start
-  expect(ms).toBeLessThan(1500) // generous; floor is 200 + paint
-  const fragOp = await page.locator('[data-fragment="bars"]').evaluate((el) =>
-    parseFloat(getComputedStyle(el as HTMLElement).opacity)
-  )
-  expect(fragOp).toBeGreaterThan(0.99)
+  await expect(page.locator('h1.hero-name')).toBeVisible()
+  await expect(page.locator('.hero-role')).toBeVisible()
+  expect(errors).toEqual([])
 })
 
-test('reduced motion: shibuya hover does not scramble', async ({ page }) => {
-  await page.goto('/')
+test('a project page never hides its opening parts', async ({ page }) => {
+  const errors = collectErrors(page)
+  await page.goto('/projects/radar-legislativo')
+  await page.locator('h1.p-title').waitFor({ state: 'attached' })
+  const hidden = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('[data-enter]')].filter((el) => el.style.visibility === 'hidden').length,
+  )
+  expect(hidden).toBe(0)
+
   await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
-  const word = page.locator('[data-hero-word="shibuya"]')
-  await word.hover()
-  await page.waitForTimeout(300)
-  await expect(word).toHaveText('shibuya.')
+  await expect(page.locator('h1.p-title')).toBeVisible()
+  // The credits column on a wide screen, the facts on a narrow one.
+  await expect(page.locator('.p-credits, .p-facts').first()).toBeVisible()
+  expect(errors).toEqual([])
 })
 
-test('reduced motion: titles never scroll-fade', async ({ page }) => {
-  await page.goto('/')
-  await page.waitForFunction(() => document.body.dataset.loaderState === 'done')
-  await page.locator('#projects').scrollIntoViewIfNeeded()
-  await page.evaluate(() => window.scrollBy({ top: -50, behavior: 'instant' as ScrollBehavior }))
-  await page.waitForTimeout(120)
-  // Projects (reverted to the bento grid) renders its title via
-  // SectionHeading as `.section-title`, like every other section.
-  const op = await page.locator('#projects .section-title').first().evaluate((el) =>
-    parseFloat(getComputedStyle(el as HTMLElement).opacity)
-  )
-  expect(op).toBeGreaterThan(0.99)
+test('the home sections still arrive', async ({ page }) => {
+  const errors = collectErrors(page)
+  await open(page, '/')
+  await expect(page.locator('#about')).toBeAttached()
+  await expect(page.locator('#work .stack-item')).toHaveCount(3)
+  expect(errors).toEqual([])
 })

@@ -15,22 +15,60 @@ function isEmbedType(value: string): value is EmbedType {
   return VALID_TYPES.has(value)
 }
 
+/** Desk names the spreadsheet spells without their accent. */
+const EDITORIAL_SPELLING: Readonly<Record<string, string>> = {
+  Saude: 'Saúde',
+}
+
+/**
+ * Splits one semicolon-delimited CSV line into fields. A field wrapped in
+ * double quotes may contain semicolons, and `""` inside it is a literal quote.
+ */
+function splitLine(line: string): string[] {
+  const fields: string[] = []
+  let field = ''
+  let quoted = false
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+    if (quoted) {
+      if (ch === '"' && line[i + 1] === '"') {
+        field += '"'
+        i++
+      } else if (ch === '"') {
+        quoted = false
+      } else {
+        field += ch
+      }
+    } else if (ch === '"' && field === '') {
+      quoted = true
+    } else if (ch === ';') {
+      fields.push(field)
+      field = ''
+    } else {
+      field += ch
+    }
+  }
+  fields.push(field)
+  return fields
+}
+
+/**
+ * A headline as it should read in a list: no quotes around the whole of it,
+ * typographic quotes around a quoted name inside it, no trailing separator.
+ */
 function cleanTitle(raw: string): string {
-  // Strip surrounding """ wrapping from CSV
-  let title = raw.trim()
-  if (title.startsWith('"""') && title.endsWith('"""')) {
-    title = title.slice(3, -3)
-  } else if (title.startsWith('"') && title.endsWith('"')) {
+  let title = raw.trim().replace(/[;\s]+$/, '')
+  if (title.startsWith('"') && title.endsWith('"') && title.indexOf('"', 1) === title.length - 1) {
     title = title.slice(1, -1)
   }
-  return title
+  return title.replace(/"([^"]+)"/g, '“$1”')
 }
 
 function parseEmbeds(csv: string): Embed[] {
-  const lines = csv.trim().split('\n')
-  // Skip header row
+  const lines = csv.trim().split(/\r?\n/)
+  // The first line is the header row.
   return lines.slice(1).reduce<Embed[]>((acc, line) => {
-    const cols = line.split(';')
+    const cols = splitLine(line)
     if (cols.length < 6) return acc
 
     const type = cols[3].trim()
@@ -39,9 +77,10 @@ function parseEmbeds(csv: string): Embed[] {
     const title = cleanTitle(cols[5])
     if (!title) return acc
 
+    const editorial = cols[1].trim()
     acc.push({
       publicationDate: cols[0].trim(),
-      editorial: cols[1].trim(),
+      editorial: EDITORIAL_SPELLING[editorial] ?? editorial,
       type,
       link: cols[4].trim(),
       title,
@@ -51,21 +90,3 @@ function parseEmbeds(csv: string): Embed[] {
 }
 
 export const embeds: Embed[] = parseEmbeds(rawCsv)
-
-export const embedTypes: EmbedType[] = [
-  ...new Set(embeds.map((e) => e.type)),
-].sort() as EmbedType[]
-
-export const editorialCategories: string[] = [
-  ...new Set(embeds.map((e) => e.editorial)),
-].sort()
-
-export const typeGradients: Record<EmbedType, string> = {
-  'SIMULADOR':       'linear-gradient(135deg, #A2D2FF, #3A96E8)',
-  'MAPA INTERATIVO': 'linear-gradient(135deg, #C8D8F0, #8AAADA)',
-  'QUIZ':            'linear-gradient(135deg, #DCF0FF, #6DB8FF)',
-  'CALCULADORA':     'linear-gradient(135deg, #D4E5F2, #6A8CAA)',
-  'INFOGRAFICO':     'linear-gradient(135deg, #111822, #2A4060)',
-  'BUSCADOR':        'linear-gradient(135deg, #6DB8FF, #1C6EC4)',
-  'GALERIA':         'linear-gradient(135deg, #8AAADA, #5078B8)',
-}

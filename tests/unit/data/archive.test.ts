@@ -1,103 +1,126 @@
 import { describe, it, expect } from 'vitest'
-import {
-  archive,
-  archiveTypes,
-  archiveEditorials,
-  archiveYears,
-  byFeatured,
-} from '../../../src/data/archive'
-import type { ArchiveItem } from '../../../src/types/content'
+import { ARCHIVE_TOTALS, interactives, rankedProjects, typeCounts, yearBlocks } from '../../../src/data/archive'
+import type { ArchiveEntry } from '../../../src/data/archive'
+import { projects } from '../../../src/data/projects'
 
-describe('archive', () => {
-  it('contains all featured projects + all embeds', () => {
-    const featuredCount = archive.filter((i) => i.kind === 'featured').length
-    const editorialCount = archive.filter((i) => i.kind === 'editorial').length
-    expect(featuredCount).toBe(9)
-    expect(editorialCount).toBeGreaterThan(100) // 142 in current CSV
-  })
+function piece(link: string, year: number, month = 1): ArchiveEntry {
+  return {
+    publicationDate: `01/${String(month).padStart(2, '0')}/${year}`,
+    editorial: 'notícias',
+    type: 'QUIZ',
+    link,
+    title: link,
+    sortDate: Date.UTC(year, month - 1, 1),
+    year,
+    day: `01.${String(month).padStart(2, '0')}`,
+  }
+}
 
-  it('is sorted by sortDate descending', () => {
-    for (let i = 1; i < archive.length; i++) {
-      expect(archive[i - 1].sortDate).toBeGreaterThanOrEqual(archive[i].sortDate)
+describe('rankedProjects', () => {
+  it('holds the nine case studies in rank order, first to last', () => {
+    expect(rankedProjects.map((p) => p.slug).sort()).toEqual([
+      'chat-da-hora',
+      'enquetes-gzh',
+      'fotos-do-ano-2024',
+      'fotos-do-ano-2025',
+      'hotmart-bunde',
+      'ia-na-redacao',
+      'painel-da-reconstrucao',
+      'peleia-gre-nal',
+      'radar-legislativo',
+    ])
+    for (let i = 1; i < rankedProjects.length; i++) {
+      expect(rankedProjects[i - 1].order).toBeLessThan(rankedProjects[i].order)
     }
   })
 
-  it('flags featured projects as internal links', () => {
-    const featured = archive.find((i) => i.kind === 'featured')
-    expect(featured?.internal).toBe(true)
-    expect(featured?.href.startsWith('/projects/')).toBe(true)
+  it('is a sorted copy: the source array keeps its own order', () => {
+    expect(rankedProjects).not.toBe(projects)
+    expect([...projects].sort((a, b) => a.order - b.order)).toEqual(rankedProjects)
+  })
+})
+
+describe('interactives', () => {
+  it('every newsroom piece is an outside link with a parsed date', () => {
+    // Relations, never the census: the count moves with every published piece.
+    expect(interactives.length).toBeGreaterThan(0)
+    for (const item of interactives) {
+      expect(item.link).toMatch(/^https?:\/\//)
+      expect(item.publicationDate).toMatch(/^\d{2}\/\d{2}\/\d{4}$/)
+      expect(item.sortDate).toBeGreaterThan(0)
+      expect(item.title.length).toBeGreaterThan(0)
+      expect(item.editorial.length).toBeGreaterThan(0)
+    }
   })
 
-  it('flags editorial entries as external links', () => {
-    const editorial = archive.find((i) => i.kind === 'editorial')
-    expect(editorial?.internal).toBe(false)
-    expect(editorial?.href.startsWith('http')).toBe(true)
-  })
-
-  it('formats editorial dates as dd/mm/yyyy and project dates as yyyy', () => {
-    const editorial = archive.find((i) => i.kind === 'editorial')
-    expect(editorial?.date).toMatch(/^\d{2}\/\d{2}\/\d{4}$/)
-    const featured = archive.find((i) => i.kind === 'featured')
-    expect(featured?.date).toMatch(/^\d{4}$/)
-  })
-
-  it('exposes sorted unique types from editorial entries', () => {
-    expect(archiveTypes.length).toBeGreaterThan(0)
-    expect([...archiveTypes].sort()).toEqual(archiveTypes)
-  })
-
-  it('exposes sorted unique editorials', () => {
-    expect(archiveEditorials.length).toBeGreaterThan(0)
-    expect([...archiveEditorials].sort()).toEqual(archiveEditorials)
-  })
-
-  it('exposes years descending', () => {
-    expect(archiveYears.length).toBeGreaterThan(0)
-    for (let i = 1; i < archiveYears.length; i++) {
-      expect(archiveYears[i - 1]).toBeGreaterThanOrEqual(archiveYears[i])
+  it('sorts newest first and derives the year and day from the date, in UTC', () => {
+    for (let i = 1; i < interactives.length; i++) {
+      expect(interactives[i - 1].sortDate).toBeGreaterThanOrEqual(interactives[i].sortDate)
+    }
+    for (const item of interactives) {
+      const [dd, mm, yyyy] = item.publicationDate.split('/')
+      expect(item.year).toBe(new Date(item.sortDate).getUTCFullYear())
+      expect(item.year).toBe(Number(yyyy))
+      expect(item.day).toBe(`${dd}.${mm}`)
     }
   })
 })
 
-function mkItem(over: Partial<ArchiveItem>): ArchiveItem {
-  return {
-    id: 'x',
-    kind: 'editorial',
-    title: 't',
-    date: '01/01/2024',
-    sortDate: 0,
-    href: '#',
-    internal: false,
-    gradient: '',
-    ...over,
-  }
-}
+describe('typeCounts', () => {
+  it('counts every piece once, most frequent type first', () => {
+    expect(typeCounts.reduce((sum, { count }) => sum + count, 0)).toBe(interactives.length)
+    expect(new Set(typeCounts.map(({ type }) => type)).size).toBe(typeCounts.length)
+    for (let i = 1; i < typeCounts.length; i++) {
+      expect(typeCounts[i - 1].count).toBeGreaterThanOrEqual(typeCounts[i].count)
+    }
+    for (const { type, count } of typeCounts) {
+      expect(interactives.filter((item) => item.type === type)).toHaveLength(count)
+    }
+  })
+})
 
-describe('byFeatured', () => {
-  it('puts highlights before non-highlights', () => {
-    const h = mkItem({ kind: 'featured', highlight: true, highlightOrder: 3, sortDate: 1 })
-    const n = mkItem({ kind: 'editorial', sortDate: 9999 })
-    expect(byFeatured(h, n)).toBeLessThan(0)
-    expect(byFeatured(n, h)).toBeGreaterThan(0)
+describe('ARCHIVE_TOTALS', () => {
+  it('is the sum of the case studies and the newsroom pieces', () => {
+    expect(ARCHIVE_TOTALS.caseStudies).toBe(projects.length)
+    expect(ARCHIVE_TOTALS.interactives).toBe(interactives.length)
+    expect(ARCHIVE_TOTALS.pieces).toBe(projects.length + interactives.length)
   })
 
-  it('orders highlights by highlightOrder ascending', () => {
-    const h1 = mkItem({ kind: 'featured', highlight: true, highlightOrder: 1 })
-    const h2 = mkItem({ kind: 'featured', highlight: true, highlightOrder: 2 })
-    expect(byFeatured(h1, h2)).toBeLessThan(0)
-    expect(byFeatured(h2, h1)).toBeGreaterThan(0)
+  it('spans the earliest to the latest year of either', () => {
+    const years = [...projects.map((p) => p.year), ...interactives.map((i) => i.year)]
+    expect(ARCHIVE_TOTALS.firstYear).toBe(Math.min(...years))
+    expect(ARCHIVE_TOTALS.lastYear).toBe(Math.max(...years))
+  })
+})
+
+describe('yearBlocks', () => {
+  it('groups every newsroom piece into newest-first year blocks that lose nothing', () => {
+    const blocks = yearBlocks(interactives)
+    expect(blocks.length).toBeGreaterThan(0)
+    for (let i = 1; i < blocks.length; i++) expect(blocks[i - 1].year).toBeGreaterThan(blocks[i].year)
+    expect(blocks.flatMap((block) => block.items)).toEqual(interactives)
+    for (const block of blocks) for (const item of block.items) expect(item.year).toBe(block.year)
   })
 
-  it('orders non-highlights by sortDate desc', () => {
-    const a = mkItem({ kind: 'editorial', sortDate: 100 })
-    const b = mkItem({ kind: 'editorial', sortDate: 200 })
-    expect(byFeatured(a, b)).toBeGreaterThan(0) // a is older, sorts after
-    expect(byFeatured(b, a)).toBeLessThan(0)
+  it('groups unordered input newest-first without mutating it or reordering pieces within a year', () => {
+    const input = Object.freeze([
+      Object.freeze(piece('oldest', 2023)),
+      Object.freeze(piece('z-first', 2024, 3)),
+      Object.freeze(piece('newest', 2025)),
+      Object.freeze(piece('a-second', 2024, 5)),
+    ])
+    const before = structuredClone(input)
+    const blocks = yearBlocks(input)
+    expect(blocks.map(({ year, items }) => ({ year, links: items.map((item) => item.link) }))).toEqual([
+      { year: 2025, links: ['newest'] },
+      { year: 2024, links: ['z-first', 'a-second'] },
+      { year: 2023, links: ['oldest'] },
+    ])
+    blocks[1].items.pop()
+    expect(input).toEqual(before)
   })
 
-  it('treats kind=featured without highlight=true as non-highlight', () => {
-    const fakeFeatured = mkItem({ kind: 'featured', highlight: false, sortDate: 100 })
-    const editorial = mkItem({ kind: 'editorial', sortDate: 200 })
-    expect(byFeatured(fakeFeatured, editorial)).toBeGreaterThan(0)
+  it('returns no year blocks for no pieces', () => {
+    expect(yearBlocks([])).toEqual([])
   })
 })

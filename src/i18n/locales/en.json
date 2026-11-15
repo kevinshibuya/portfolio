@@ -1,133 +1,106 @@
 {
   "nav": {
+    "about": "about",
     "work": "work",
-    "archive": "the archive",
     "experience": "experience",
-    "skills": "skills",
-    "contact": "contact"
+    "contact": "contact",
+    "primary": "primary",
+    "home": "kevin shibuya, home",
+    "language": "language",
+    "name": "kevin shibuya · software engineer · full-stack"
   },
-  "lang": "EN",
   "hero": {
     "name1": "kevin",
     "name2": "shibuya.",
-    "rolePrefix": "i am",
-    "roles": [
-      "a senior software engineer",
-      "a full-stack developer",
-      "a system architect",
-      "a tech lead",
-      "an ai engineer"
-    ],
-    "description": "<strong>rough ideas → shipped products.</strong> a team of one.",
-    "cta": {
-      "collaborate": "collaborate",
-      "resume": "resume"
-    },
-    "stats": {
-      "years": "years shipping",
-      "embeds": "interactives shipped",
-      "projects": "case studies"
+    "role": "software engineer · full-stack"
+  },
+  "about": {
+    "statement": "I build interfaces end to end, and design what I build.",
+    "fact": "years shipping for product teams in Brazil, Australia and the United States. Since 2023, interactive journalism at Grupo RBS.",
+    "stack": "React, TypeScript, Next.js, Node, NestJS, PostgreSQL",
+    "place": "Porto Alegre, Brazil. English and Portuguese.",
+    "portraitAlt": "Portrait of Kevin Shibuya"
+  },
+  "work": {
+    "selected": "selected work",
+    "more": "more work",
+    "view": "view",
+    "open": "Open {{title}}"
+  },
+  "experience": {
+    "title": "experience",
+    "modes": {
+      "in-person": "in person",
+      "remote": "remote"
     }
   },
-  "stats": {
-    "heading": "the work, in <em>numbers.</em>",
-    "eyebrow": "selected metrics",
-    "receipt": {
-      "years": "years shipping interactives, from first commit to today.",
-      "interactives": "interactives published across gauchazh.",
-      "reconstruction": "in reconstruction spend tracked:",
-      "reconstruction_cta": "painel da reconstrução",
-      "votes": "live votes registered:",
-      "votes_cta": "enquetes gzh"
-    }
+  "allLink": {
+    "l1": "see all",
+    "l3": "pieces of",
+    "l4": "work",
+    "note1": "{{count}} case studies",
+    "note2": "{{count}} newsroom interactives",
+    "label": "See all {{count}} pieces of work"
   },
-  "sections": {
-    "projects": {
-      "index": "01 · featured",
-      "label": "",
-      "title": "selected <em>work.</em>",
-      "description": "personal highlights. from brief to ship.",
-      "caseStudy": "case study",
-      "viewProject": "view project"
-    },
-    "archive": {
-      "index": "02 · everything",
-      "label": "",
-      "title": "the <em>archive.</em>",
-      "description": "everything i've shipped, searchable.",
-      "toolbar": {
-        "search": "search…",
-        "kind": "kind",
-        "type": "type",
-        "editorial": "editorial",
-        "year": "year",
-        "sort": "sort",
-        "all": "all",
-        "countLabel": "items",
-        "showMore": "show more"
-      },
-      "sort": {
-        "featured": "featured",
-        "newest": "newest first",
-        "oldest": "oldest first",
-        "az": "a–z",
-        "za": "z–a"
-      }
-    },
-    "work": {
-      "index": "03 · experience",
-      "label": "",
-      "title": "work <em>history.</em>",
-      "description": "seven years shipping. seen by millions.",
-      "award": "★ award",
-      "modes": {
-        "in-person": "in person",
-        "remote": "remote"
-      }
-    },
-    "skills": {
-      "index": "04 · expertise",
-      "label": "",
-      "title": "skills &amp; <em>tools.</em>",
-      "description": "my stack: fast, without cutting craft.",
-      "frontend": "frontend",
-      "design": "design",
-      "backend": "backend & cloud",
-      "devops": "devops & testing",
-      "ai": "ai engineering",
-      "leadership": "leadership"
-    },
-    "contact": {
-      "index": "05",
-      "label": "get in touch",
-      "title": "let's <em>build.</em>",
-      "subtitle": "got a project or rough idea? let's talk.",
-      "links": {
-        "email": "send mail",
-        "linkedin": "linkedin",
-        "github": "github",
-        "resume": "download cv"
-      }
-    }
+  "contact": {
+    "title": "contact",
+    "linkedin": "linkedin",
+    "github": "github",
+    "resume": "curriculum",
+    "resumeValue": "cv, pdf"
   },
   "footer": {
-    "copyright": "© {{year}} kevin shibuya · all rights reserved",
-    "builtWith": "built with react, typescript & care",
-    "bigText": "kevin shibuya"
+    "copyright": "© {{year}}",
+    "by": "designed and built by",
+    "name": "kevin shibuya",
+    "place": "porto alegre, brazil",
+    "top": "back to top"
   },
-  "projectDetail": {
-    "back": "back to projects",
+  "project": {
+    "crumbWork": "all work",
+    "live": "view live",
+    "credits": "credits",
+    "stack": "stack",
+    "client": "for",
     "year": "year",
-    "stack": "tech stack",
-    "whatShipped": "what shipped",
-    "trick": "the trick",
-    "liveDemo": "live demo",
-    "sourceCode": "source code",
-    "routesCount_one": "{{count}} route",
-    "routesCount_other": "{{count}} routes",
-    "notes": "notes",
+    "state": "status",
+    "role": "role",
+    "team": "team",
+    "status": {
+      "live": "live",
+      "published": "published",
+      "prelaunch": "pre-launch",
+      "internal": "internal",
+      "mvp": "mvp, not in production"
+    },
+    "noLink": "no public address yet",
+    "privateLink": "not public",
+    "more": "more work",
+    "screen": "{{title}}, screen {{n}}",
+    "recording": "{{title}}, recording {{n}}",
+    "diagram": "How {{title}} is put together",
     "notFound": "project not found",
-    "notFoundDescription": "the project you're looking for doesn't exist.",
-    "scroll": "scroll"
+    "notFoundDescription": "The project you are looking for does not exist.",
+    "backHome": "back home"
+  },
+  "allWork": {
+    "title": "all work",
+    "interactives": "newsroom interactives",
+    "note": "Published on GZH, in Portuguese. Each one opens the article it lives in.",
+    "pieces_one": "{{count}} piece",
+    "pieces_other": "{{count}} pieces",
+    "types": {
+      "SIMULADOR": "simulators",
+      "MAPA INTERATIVO": "interactive maps",
+      "QUIZ": "quizzes",
+      "CALCULADORA": "calculators",
+      "INFOGRAFICO": "infographics",
+      "BUSCADOR": "finders",
+      "GALERIA": "galleries"
+    },
+    "meta": {
+      "title": "all work · kevin shibuya",
+      "description": "Every piece Kevin Shibuya has shipped: nine case studies and the interactives published on GZH."
+    }
   }
 }
