@@ -12,7 +12,7 @@ export interface WorkExperience {
   company: string
   role: Bilingual
   period: Bilingual
-  location: string
+  location: Bilingual
   workMode: WorkMode
   description: { en: string[]; pt: string[] }
   technologies: string[]

@@ -186,7 +186,7 @@ export function MoreWork(): ReactElement {
                   <PaintWindow className="span-bar" style={{ left: `${spans[index].left.toFixed(2)}%`, width: `${spans[index].width.toFixed(2)}%` }} />
                 </span>
                 <span className="wrow-aside">
-                  <span>{job.location}</span>
+                  <span>{job.location[lang]}</span>
                   <span>{t(`experience.modes.${job.workMode}`)}</span>
                 </span>
               </div>
