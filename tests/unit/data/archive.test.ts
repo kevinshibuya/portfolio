@@ -17,8 +17,9 @@ function piece(link: string, year: number, month = 1): ArchiveEntry {
 }
 
 describe('rankedProjects', () => {
-  it('holds the nine case studies in rank order, first to last', () => {
+  it('holds the eleven case studies in rank order, first to last', () => {
     expect(rankedProjects.map((p) => p.slug).sort()).toEqual([
+      'barber-app',
       'chat-da-hora',
       'enquetes-gzh',
       'fotos-do-ano-2024',
@@ -27,6 +28,7 @@ describe('rankedProjects', () => {
       'ia-na-redacao',
       'painel-da-reconstrucao',
       'peleia-gre-nal',
+      'promptfall',
       'radar-legislativo',
     ])
     for (let i = 1; i < rankedProjects.length; i++) {

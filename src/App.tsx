@@ -5,6 +5,7 @@ import { PageChangeProvider } from './components/layout/PageChange'
 import { Home } from './pages/Home'
 import { SmoothScroll } from './components/layout/SmoothScroll'
 import { useScrollLockDuringEntrance } from './hooks/useScrollLockDuringEntrance'
+import { useScrollMemory } from './hooks/useScrollMemory'
 import { allWorkPage, projectPage } from './routes'
 
 const ProjectDetail = projectPage.Page
@@ -12,6 +13,7 @@ const AllWork = allWorkPage.Page
 
 function App(): ReactElement {
   useScrollLockDuringEntrance()
+  useScrollMemory()
   return (
     <SmoothScroll>
       <PageChangeProvider>

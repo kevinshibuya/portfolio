@@ -24,7 +24,13 @@ import { cloudflare } from "@cloudflare/vite-plugin";
  * - the entry script and its modulepreloads become an inline script that
  *   requests the same three files, the same way (module script, modulepreloads,
  *   crossorigin), once the browser reports its first paint (first-paint, or
- *   first-contentful-paint where only that is reported). That paint now comes
+ *   first-contentful-paint where only that is reported) or two animation
+ *   frames have run, whichever is first. WebKit lists paint timing as
+ *   supported and then reports no entry for the loader (it holds nothing
+ *   WebKit counts as content), so on Safari and every iOS browser the report
+ *   alone left the code to the 3 s fallback: three idle seconds on the mark
+ *   before anything was requested. The second frame runs once the first has
+ *   been drawn, which is the same moment by another clock. That paint now comes
  *   one frame after the HTML, so on a slow connection the
  *   requests start a frame later while the stylesheet and the font are still
  *   arriving, and the code's last byte (and with it the name) does not move; on
@@ -50,7 +56,8 @@ function loaderFirst(): Plugin {
           `var s=d.createElement("script");s.type="module";s.crossOrigin="";s.src=e;d.head.appendChild(s)}` +
           `try{if(d.visibilityState!=="hidden"&&PerformanceObserver.supportedEntryTypes.indexOf("paint")>=0){` +
           `new PerformanceObserver(function(l){if(l.getEntries().length)start()})` +
-          `.observe({type:"paint",buffered:true});d.addEventListener("visibilitychange",function(){` +
+          `.observe({type:"paint",buffered:true});requestAnimationFrame(function(){requestAnimationFrame(start)});` +
+          `d.addEventListener("visibilitychange",function(){` +
           `if(d.visibilityState==="hidden")start()});setTimeout(start,3000);return}}catch(x){}start()})()</script>\n    `;
         // The stylesheet stops blocking the first frame: the loader's rules are
         // inline in index.html, and main.tsx renders nothing until this sheet

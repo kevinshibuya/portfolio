@@ -1,8 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useI18n } from '../i18n'
 import { ARCHIVE_TOTALS, interactives, rankedProjects, typeCounts } from '../data/archive'
 import { stripOf } from '../data/media'
-import { useLenis } from '../hooks/useLenis'
+import { useOpeningScroll } from '../hooks/useScrollMemory'
 import { setPageMeta, resetPageMeta } from '../utils/pageMeta'
 import type { EmbedType } from '../types/content'
 import { Closing } from '../components/layout/Closing'
@@ -64,13 +64,9 @@ function TypeRow({ type, count }: { type: EmbedType; count: number }): ReactElem
  */
 export function AllWork(): ReactElement {
   const { t, lang } = useI18n()
-  const { scrollTo } = useLenis()
   const rootRef = useRef<HTMLElement>(null)
 
-  useLayoutEffect(() => {
-    window.scrollTo(0, 0)
-    scrollTo(0, { immediate: true, force: true })
-  }, [scrollTo])
+  useOpeningScroll()
 
   useEffect(() => {
     setPageMeta(t('allWork.meta.title'), t('allWork.meta.description'))
