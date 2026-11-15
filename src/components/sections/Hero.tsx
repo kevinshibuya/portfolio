@@ -1,220 +1,55 @@
-import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { useTranslation } from 'react-i18next'
-import { useMotion } from '../../context/MotionContext'
-import { EASE_HOUSE } from '../../utils/animations'
+import { useEffect, type CSSProperties, type ReactElement } from 'react'
+import { useI18n } from '../../i18n'
+import { useEntered } from '../../hooks/useEntered'
 import { FluidWaves } from '../canvas/FluidWaves'
 
-const ROLE_DURATION_MS = 5000
+const line = (index: number): CSSProperties => ({ '--rise-i': index }) as CSSProperties
 
-// Entrance rise choreography: per-line duration + stagger delays (role line,
-// name line 1, name line 2). The clip release is derived from these so tuning
-// the rise can never de-sync it — releasing early pops glyphs mid-rise;
-// releasing never leaves the 'y' descender + role focus ring clipped at rest.
-const RISE_DURATION = 0.9
-const LINE_DELAYS = [0, 0.08, 0.16] as const
-const RELEASE_MS = (Math.max(...LINE_DELAYS) + RISE_DURATION) * 1000 + 90
-
-// Perf harness (test/measurement only): ?perf-role=<index> pins the role line
-// to one index and never starts the 5 s auto-cycle, so any hero capture stops
-// being time-dependent. Dormant (null) without the param.
-// A present-but-unparseable value warns instead of falling silently back to the
-// live auto-cycle — a silently unpinned role line produces a time-dependent
-// capture that still looks plausible. The no-param path never warns.
-const PERF_ROLE = ((): number | null => {
-  if (typeof window === 'undefined') return null
-  const raw = new URLSearchParams(window.location.search).get('perf-role')
-  if (raw === null) return null
-  const value = Number.parseInt(raw, 10)
-  if (!Number.isInteger(value) || value < 0) {
-    console.warn(`[perf] ignoring malformed ?perf-role=${raw} — expected a non-negative integer; role stays live`)
-    return null
-  }
-  return value
-})()
-
-let warnedRoleRange = false
-
+/**
+ * The first screen: the name set large at the bottom left, the role line above
+ * it, both directly on the paint. The paint runs on below the first screen for
+ * a band, where it dissolves into the cream page.
+ */
 export function Hero(): ReactElement {
-  const { t, i18n } = useTranslation()
-  const lang = i18n.language
-  const { prefersReducedMotion, entranceDone, entranceBypassed } = useMotion()
+  const { t, lang } = useI18n()
+  const { entered, settled, instant } = useEntered(3)
 
-  // Entrance rise. The loader explosion reveals the shader; the hero text then
-  // rises out of its clip masks once the explosion nears completion (main.tsx
-  // resolves entranceDone at ~92% of the explosion). `riseSettled` releases the
-  // clip to overflow:visible only AFTER the rise finishes, so the role focus
-  // ring and glyph descenders aren't clipped at rest. Reduced-motion and SPA
-  // back-nav skip straight to the settled state — no rise.
-  const instant = prefersReducedMotion || entranceBypassed
-  const [entered, setEntered] = useState(instant)
-  const [riseSettled, setRiseSettled] = useState(instant)
+  // The paint stays dark behind the type's own boxes: tell it when they move.
   useEffect(() => {
-    if (instant) return
-    let cancelled = false
-    let releaseTimer: ReturnType<typeof setTimeout> | undefined
-    entranceDone.then(() => {
-      if (cancelled) return
-      setEntered(true)
-      // Release the clip once the last line has finished rising (derived
-      // from the rise constants above, plus a small buffer).
-      releaseTimer = setTimeout(() => {
-        if (!cancelled) setRiseSettled(true)
-      }, RELEASE_MS)
-    })
-    return () => {
-      cancelled = true
-      if (releaseTimer) clearTimeout(releaseTimer)
-    }
-  }, [instant, entranceDone])
-
-  // Rise transition per line; instant (duration 0) under reduced-motion/bypass.
-  const rise = (delay: number) => ({
-    duration: instant ? 0 : RISE_DURATION,
-    ease: EASE_HOUSE,
-    delay: instant ? 0 : delay,
-  })
-
-  const roles = useMemo(() => {
-    const value = t('hero.roles', { returnObjects: true })
-    return Array.isArray(value) ? (value as string[]) : []
-    // lang forces a recompute when the language toggles.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, lang])
-
-  // roles[0] is the canonical title; every load starts the cycle there.
-  // ?perf-role pins the index instead (no cycle at all — see PERF_ROLE).
-  const [roleIdx, setRoleIdx] = useState(PERF_ROLE ?? 0)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  // Start (or reset) the auto-cycle interval. Clicking restarts the timer so
-  // the user gets a full ROLE_DURATION_MS to read the role they advanced to.
-  const startCycling = (): void => {
-    if (intervalRef.current) clearInterval(intervalRef.current)
-    if (PERF_ROLE !== null || roles.length <= 1) return
-    intervalRef.current = setInterval(() => {
-      setRoleIdx((i) => (i + 1) % roles.length)
-    }, ROLE_DURATION_MS)
-  }
-
-  useEffect(() => {
-    setRoleIdx(PERF_ROLE ?? 0)
-    // Once per page load: the effect re-runs whenever `roles` is rebuilt (i18n
-    // settle, language toggle), and a duplicated diagnostic reads as two bugs.
-    if (!warnedRoleRange && PERF_ROLE !== null && roles.length > 0 && PERF_ROLE >= roles.length) {
-      warnedRoleRange = true
-      console.warn(`[perf] ?perf-role=${PERF_ROLE} is out of range (${roles.length} roles) — clamped to ${roles.length - 1}`)
-    }
-    // Reduced-motion users get the static canonical role (roles[0]) — no
-    // interval, no Framer slide transition ever fires. The cycle waits for
-    // `entered`: it used to start at React mount, which burned the canonical
-    // role's 5 s display window behind the loader (on a slow machine roles[1]
-    // could already be up when the text rose — caught by hero-entrance e2e).
-    if (!prefersReducedMotion && entered) startCycling()
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
-    // startCycling is stable enough for our purposes; re-running on roles is
-    // what matters (language toggle rebuilds the array).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roles, prefersReducedMotion, entered])
-
-  const cycleRole = (): void => {
-    if (PERF_ROLE !== null || roles.length <= 1) return
-    setRoleIdx((i) => (i + 1) % roles.length)
-    startCycling()
-  }
-
-  // Clamped at read time (roles.length is only known here): an out-of-range
-  // ?perf-role would otherwise render an EMPTY role line — deterministic, so a
-  // pixel gate would happily bake and then defend a role-less hero forever.
-  const activeRole = roles[Math.min(roleIdx, roles.length - 1)] ?? ''
-
-  // The loader explosion reveals the shader; then the hero text rises in (above).
-  // main.tsx is the sole resolver of the entrance gate (finishLoader →
-  // resolveEntrance) on the normal path, which flips `entered`; bypassEntrance()
-  // owns the SPA back-nav path (instant). Hero only reads the gate — it never
-  // resolves it.
+    window.dispatchEvent(new Event('hero:measure'))
+  }, [lang, settled])
 
   return (
     // data-entrance="settled" marks the moment the rise has finished (or was
-    // bypassed) — an unconditional, test-only marker: capture tooling waits on
-    // it instead of guessing a timeout. Nothing in the app reads it.
-    <section id="top" className="hero" data-entrance={riseSettled ? 'settled' : undefined}>
+    // skipped): capture tooling waits on it. Nothing in the app reads it.
+    <section id="top" className="hero" data-entrance={settled ? 'settled' : undefined} data-motion="entrance">
       <div className="hero-canvas">
-        <FluidWaves variant="hero" />
+        <FluidWaves kind="hero" />
       </div>
-      {/* Inner 100svh zone re-anchors the name/role so they never fall into the
-          bottom dissolve band. The text sits plain on raw shader paint — no
-          scrim, no halo (documented AA exemption; see .hero-zone in index.css). */}
       <div className="hero-zone">
-        <div className={`hero-bottom${riseSettled ? ' is-entered' : ''}`}>
-        {/* Role line rises first out of its clip mask; the inner Framer
-            AnimatePresence owns the separate click/keyboard cycle swap. */}
-        <div className="hero-line-mask hero-role-line">
-          <motion.div
-            initial={{ y: instant ? '0%' : '125%' }}
-            animate={{ y: entered ? '0%' : '125%' }}
-            transition={rise(LINE_DELAYS[0])}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.span
-                key={`${lang}-${roleIdx}`}
-                initial={{ y: 12, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{
-                  y: -12,
-                  opacity: 0,
-                  // Shorter exit than enter (skill: exit < enter). Under reduced
-                  // motion keep the prior 0.45s so that path stays untouched.
-                  transition: { duration: prefersReducedMotion ? 0.45 : 0.3, ease: EASE_HOUSE },
-                }}
-                transition={{ duration: 0.45, ease: EASE_HOUSE }}
-                whileTap={{ scale: 0.94 }}
-                className="hero-role"
-                onClick={cycleRole}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    cycleRole()
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label={`cycle role — currently ${activeRole}`}
-              >
-                {activeRole}
-              </motion.span>
-            </AnimatePresence>
-          </motion.div>
-        </div>
-
-        <h1 className="hero-name" aria-label={`${t('hero.name1')} ${t('hero.name2')}`}>
-          <span className="hero-line-mask">
-            <motion.span
-              className="hero-line"
-              initial={{ y: instant ? '0%' : '125%' }}
-              animate={{ y: entered ? '0%' : '125%' }}
-              transition={rise(LINE_DELAYS[1])}
-            >
-              {t('hero.name1')}
-            </motion.span>
-          </span>
-          <span className="hero-line-mask">
-            <motion.span
-              className="hero-line"
-              initial={{ y: instant ? '0%' : '125%' }}
-              animate={{ y: entered ? '0%' : '125%' }}
-              transition={rise(LINE_DELAYS[2])}
-            >
-              {t('hero.name2')}
-            </motion.span>
-          </span>
-        </h1>
+        <div
+          className={`hero-bottom container rise${entered ? ' is-entered' : ''}${settled ? ' is-settled' : ''}${instant ? ' is-instant' : ''}`}
+        >
+          <p className="rise-mask hero-role-line">
+            <span className="rise-line hero-role" style={line(0)}>
+              {t('hero.role')}
+            </span>
+          </p>
+          <h1 className="hero-name" aria-label={`${t('hero.name1')} ${t('hero.name2')}`}>
+            <span className="rise-mask">
+              <span className="rise-line" style={line(1)}>
+                {t('hero.name1')}
+              </span>
+            </span>
+            <span className="rise-mask rise-mask--descender">
+              <span className="rise-line" style={line(2)}>
+                {t('hero.name2')}
+              </span>
+            </span>
+          </h1>
         </div>
       </div>
-      {/* The transparent→cream melt below the 100svh zone is drawn by the shader
-          itself now (FluidWaves hero cream-dissolve), not a CSS veil element. */}
+      <div className="hero-band" aria-hidden="true" />
     </section>
   )
 }

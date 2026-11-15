@@ -5,8 +5,9 @@ import { defineConfig, devices, type Project } from '@playwright/test'
 // `npx playwright test` stays the safe default. Mobile runs only the specs whose
 // behaviour changes with the viewport; a new viewport-dependent surface joins
 // MOBILE_SPECS in the PR that adds it.
-const QUICK_SPECS = ['scene-scrub', 'card-links', 'scene-no-webgl', 'pixel-gate', 'scene-reduced-motion', 'smoke']
-const MOBILE_SPECS = ['scene-scrub', 'card-links', 'more-work', 'all-work', 'scene-no-webgl', 'light-chapter', 'nav-on-light', 'hero-dissolve', 'pixel-gate', 'smoke']
+const QUICK_SPECS = ['smoke', 'project-page', 'structure', 'no-webgl', 'reduced-motion', 'navigation']
+// project-page and structure set their own viewport per test, so they stay desktop-only.
+const MOBILE_SPECS = ['smoke', 'no-webgl', 'reduced-motion', 'navigation']
 // perf-budget's DPR test only exercises the 1.5 cap on Pixel 5's capped path,
 // so the harness adds it to mobile; the default suite checks the rule at DPR 1.
 const mobileSpecs = process.env.PERF_HARNESS === '1' ? [...MOBILE_SPECS, 'perf-budget'] : MOBILE_SPECS
@@ -22,24 +23,10 @@ const desktop: Project = { name: 'desktop-chromium', use: { ...devices['Desktop 
 
 export default defineConfig({
   testDir: './tests/e2e',
-  // workers:1 — DO NOT raise this. Two independent reasons, both load-bearing:
-  //
-  // 1. The pixel gate (tests/e2e/pixel-gate.spec.ts) is calibrated at exactly
-  //    one worker and ASSERTS it in a beforeAll. Concurrent WebGL pages add GPU
-  //    contention its tolerance was never characterised under, and a
-  //    contention-induced red would get an innocent optimization batch
-  //    reverted — the gate is the campaign's sole visual judge, with no human
-  //    eyeball in the loop. A bare `npx playwright test` is what the QA gate,
-  //    future tasks and handoff docs actually run, so the DEFAULT has to be
-  //    correct; fixing it in one npm script would not cover them.
-  // 2. The loader → hero handoff tests must observe in-flight state of a 700ms
-  //    animation. Under parallel pressure the shared preview server delays page
-  //    loads enough that the loader can complete before tests sample it. This
-  //    was already walked 4 → 2 for that reason; 1 is strictly better for them,
-  //    not a compromise.
-  //
-  // The suite has been de facto serial all along (green at --workers=1); this
-  // makes the config say what the suite already required.
+  // workers:1. The perf specs (perf-budget, perf-hooks) count frames and GL
+  // calls on the paint canvas and read wall-clock work; concurrent WebGL pages
+  // on one software GPU add contention those counts were never characterised
+  // under. The rest of the suite is fast enough serial, so the default stays 1.
   fullyParallel: true,
   workers: 1,
   forbidOnly: !!process.env.CI,

@@ -1,41 +1,50 @@
-import { lazy, Suspense } from 'react'
+import { Suspense, type ReactElement } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Header } from './components/layout/Header'
+import { PageChangeProvider } from './components/layout/PageChange'
 import { Home } from './pages/Home'
 import { SmoothScroll } from './components/layout/SmoothScroll'
 import { useScrollLockDuringEntrance } from './hooks/useScrollLockDuringEntrance'
+import { allWorkPage, projectPage } from './routes'
 
-const ProjectDetail = lazy(() =>
-  import('./pages/ProjectDetail').then((m) => ({ default: m.ProjectDetail }))
-)
-const AllWork = lazy(() =>
-  import('./pages/AllWork').then((m) => ({ default: m.AllWork }))
-)
+const ProjectDetail = projectPage.Page
+const AllWork = allWorkPage.Page
 
-function App() {
+function App(): ReactElement {
   useScrollLockDuringEntrance()
   return (
     <SmoothScroll>
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route
-          path="/projects/:slug"
-          element={
-            <Suspense fallback={null}>
-              <ProjectDetail />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/all-work"
-          element={
-            <Suspense fallback={null}>
-              <AllWork />
-            </Suspense>
-          }
-        />
-      </Routes>
+      <PageChangeProvider>
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route
+            path="/projects/:slug"
+            element={
+              <Suspense fallback={null}>
+                <ProjectDetail />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/all-work"
+            element={
+              <Suspense fallback={null}>
+                <AllWork />
+              </Suspense>
+            }
+          />
+          {/* Any other path gets the not-found view of the project template. */}
+          <Route
+            path="*"
+            element={
+              <Suspense fallback={null}>
+                <ProjectDetail />
+              </Suspense>
+            }
+          />
+        </Routes>
+      </PageChangeProvider>
     </SmoothScroll>
   )
 }

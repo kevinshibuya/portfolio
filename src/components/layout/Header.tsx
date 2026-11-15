@@ -1,174 +1,176 @@
-import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useLenis } from "../../hooks/useLenis";
-import { useMotion } from "../../context/MotionContext";
+import { useEffect, useState, type MouseEvent, type ReactElement } from 'react'
+import { useLocation } from 'react-router-dom'
+import { useI18n } from '../../i18n'
+import { useLenis } from '../../hooks/useLenis'
+import { useMotion } from '../../context/MotionContext'
+import { Roll } from '../ui/Roll'
+import { NameHover } from '../ui/NameHover'
+import { TLink, usePageChange } from './PageChange'
+import type { Lang } from '../../types/content'
 
-const NAV_ITEMS = [
-  "work",
-  "experience",
-  "skills",
-  "contact",
-] as const;
+/** The nav's four entries. `work` is a page; the others are sections. */
+const LINKS = ['about', 'work', 'experience', 'contact'] as const
+type LinkId = (typeof LINKS)[number]
 
-type NavItem = (typeof NAV_ITEMS)[number];
+const LANGS: readonly Lang[] = ['en', 'pt']
 
-const SECTION_ID: Record<NavItem, string> = {
-  work: "projects",
-  experience: "work",
-  skills: "skills",
-  contact: "contact",
-};
+/**
+ * The header every page carries, with no bar behind it: four links at the
+ * left margin, the name line at the fourth column on inner pages, the
+ * language pair at the right. At the top of a page the links are plain text.
+ * Going down the page the header leaves, so nothing sits over what is being
+ * read; going back up it returns, each link on a pale chip so it reads over
+ * paint, cream, black and frames alike. A link that takes keyboard focus
+ * brings the header back. Nothing hides behind a menu at any width.
+ */
 
-export function Header() {
-  const { t, i18n } = useTranslation();
-  const [scrolled, setScrolled] = useState(false);
-  const { scrollTo } = useLenis();
-  const { entranceDone } = useMotion();
-  const [visible, setVisible] = useState(false);
-  const [onLight, setOnLight] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+/** How far the page must move one way before the header answers, in px. */
+const TURN = 6
+/** The header never leaves this close to the top of a page. */
+const KEEP = 72
+export function Header(): ReactElement {
+  const { t, lang, setLang } = useI18n()
+  const { scrollTo } = useLenis()
+  const { entranceDone } = useMotion()
+  const { go } = usePageChange()
+  const location = useLocation()
+  const onHome = location.pathname === '/'
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
-    let io: IntersectionObserver | null = null;
-    let mo: MutationObserver | null = null;
-
-    const arm = (el: Element): boolean => {
-      if (io) return true;
-      io = new IntersectionObserver(
-        (entries) => setOnLight(entries.some((e) => e.isIntersecting)),
-        // A 1% band (not a zero-height line) at the very top, where the fixed nav
-        // sits: on-light while the light chapter crosses the nav, dark above
-        // and below. The spec asked to "extend the root margin to the whole
-        // chapter", but a rootMargin cannot express a chapter — so the observed
-        // ELEMENT widened to #chapter-light (Projects → Skills) and the band is
-        // unchanged. The exit veil sits outside the wrapper, so the flip back to
-        // dark happens at Skills' bottom, mirroring the entry at Projects' top.
-        { rootMargin: "-8% 0px -91% 0px", threshold: 0 },
-      );
-      io.observe(el);
-      return true;
-    };
-
-    const existing = document.getElementById("chapter-light");
-    if (existing) {
-      arm(existing);
-    } else {
-      // No chapter node in this route's DOM. Clear the flag before waiting:
-      // the IO is disconnected by the cleanup above in the same commit that
-      // unmounts #chapter-light, so it never gets to deliver a final
-      // "not intersecting". Without this reset the nav keeps the previous
-      // route's on-light styling — muted ink links on an ink page — and
-      // theme-color stays cream, on /projects/:slug which is fully dark.
-      // On Home this is a no-op: the IO's first callback sets the real value.
-      setOnLight(false);
-      // #chapter-light mounts later (it commits in the same Suspense boundary
-      // that gated #projects before). Arm on first appearance, then stop watching.
-      mo = new MutationObserver(() => {
-        const el = document.getElementById("chapter-light");
-        if (el && arm(el)) {
-          mo?.disconnect();
-          mo = null;
-        }
-      });
-      mo.observe(document.body, { childList: true, subtree: true });
-    }
-
-    return () => {
-      io?.disconnect();
-      io = null;
-      mo?.disconnect();
-      mo = null;
-    };
-  }, [location.pathname]);
-
-  // theme-color follows the nav flip, so the mobile browser chrome matches the
-  // sheet beneath it: cream over the light chapter, ink over hero and Contact.
-  useEffect(() => {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (!meta) return;
-    meta.setAttribute("content", onLight ? "#F5F2EC" : "#0B0E14");
-  }, [onLight]);
+  const [visible, setVisible] = useState(false)
+  const [moved, setMoved] = useState(false)
+  const [away, setAway] = useState(false)
+  const [current, setCurrent] = useState<LinkId | null>(onHome ? null : 'work')
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
     entranceDone
       .then(() => {
-        if (!cancelled) setVisible(true);
+        if (!cancelled) setVisible(true)
       })
-      .catch(() => {});
+      .catch(() => {})
     return () => {
-      cancelled = true;
-    };
-  }, [entranceDone]);
-
-  const go = (id: string) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (location.pathname === "/") {
-      scrollTo(`#${id}`, { duration: 1.2 });
-    } else {
-      // Off-home (e.g. /projects/:slug): the target section isn't in the DOM,
-      // so route home and hand the target to Home via location.state.
-      navigate("/", { state: { scrollToId: id } });
+      cancelled = true
     }
-  };
+  }, [entranceDone])
 
-  const toggleLanguage = (): void => {
-    const next = i18n.language === "en" ? "pt" : "en";
-    i18n.changeLanguage(next);
-  };
+  useEffect(() => {
+    // `anchor` is where the page last turned: the header answers once the page
+    // has gone TURN px past it, down (it leaves) or up (it returns).
+    let anchor = window.scrollY
+    const onScroll = (): void => {
+      const y = window.scrollY
+      setMoved(y > 4)
+      if (y <= KEEP) {
+        anchor = y
+        setAway(false)
+      } else if (y > anchor + TURN) {
+        anchor = y
+        setAway(true)
+      } else if (y < anchor - TURN) {
+        anchor = y
+        setAway(false)
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [location.pathname])
+
+  // Which section holds the middle of the viewport. Sections mount late, so
+  // the observer is armed on whatever exists and re-armed as the page grows.
+  useEffect(() => {
+    const base: LinkId | null = onHome ? null : 'work'
+    setCurrent(base)
+    if (typeof IntersectionObserver === 'undefined') return
+    const seen = new Set<Element>()
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const id = entry.target.id as LinkId
+          if (entry.isIntersecting) setCurrent(id)
+          else setCurrent((value) => (value === id ? base : value))
+        }
+      },
+      { rootMargin: '-45% 0px -54% 0px', threshold: 0 },
+    )
+    const arm = (): void => {
+      for (const id of LINKS) {
+        const el = document.getElementById(id)
+        if (el && !seen.has(el)) {
+          seen.add(el)
+          io.observe(el)
+        }
+      }
+    }
+    const mo = new MutationObserver(arm)
+    mo.observe(document.body, { childList: true, subtree: true })
+    arm()
+    return () => {
+      io.disconnect()
+      mo.disconnect()
+    }
+  }, [onHome, location.pathname])
+
+  const toSection = (id: LinkId) => (e: MouseEvent) => {
+    e.preventDefault()
+    if (document.getElementById(id)) scrollTo(`#${id}`, { duration: 1 })
+    // The section lives on the home page: go there and hand it the target.
+    else go('/', { state: { scrollToId: id } })
+  }
 
   return (
     <header
-      className={`nav${scrolled ? " is-scrolled" : ""}${visible ? " is-visible" : ""}${onLight ? " nav--on-light" : ""}`}
+      className={`nav${visible ? ' is-visible' : ''}${moved ? ' is-moved' : ''}${away ? ' is-away' : ''}`}
+      data-over={onHome ? 'paint' : 'cream'}
     >
-      <div className="nav-inner">
-        <a
-          href="/"
-          className="nav-brand"
-          onClick={(e) => {
-            e.preventDefault();
-            if (location.pathname === "/") {
-              scrollTo("#top", { duration: 1.2 });
-            } else {
-              // Off-home (e.g. /projects/:slug): route home. ProjectDetail's
-              // useLayoutEffect resets scroll to 0, so the user lands on the hero.
-              navigate("/");
-            }
-          }}
-        >
-          <span className="nav-mark">ks<span className="nav-mark__dot" aria-hidden="true" /></span>
-          {/* <span className="nav-brand-text">kevin shibuya</span> */}
-        </a>
-
-        <nav className="nav-links">
-          {NAV_ITEMS.map((key) => (
-            <a
-              key={key}
-              href={`#${SECTION_ID[key]}`}
-              onClick={go(SECTION_ID[key])}
-              className="nav-link"
-            >
-              {t(`nav.${key}`)}
-            </a>
-          ))}
+      <div className="nav-row container grid">
+        <nav className="nav-links" aria-label={t('nav.primary')}>
+          {LINKS.map((id) =>
+            id === 'work' ? (
+              <TLink
+                key={id}
+                to="/all-work"
+                className="nav-link"
+                aria-current={current === id ? 'page' : undefined}
+                data-motion="page-change"
+              >
+                <Roll>{t(`nav.${id}`)}</Roll>
+              </TLink>
+            ) : (
+              <a
+                key={id}
+                href={onHome || id === 'contact' ? `#${id}` : `/#${id}`}
+                onClick={toSection(id)}
+                className="nav-link"
+                aria-current={current === id ? 'true' : undefined}
+              >
+                <Roll>{t(`nav.${id}`)}</Roll>
+              </a>
+            ),
+          )}
         </nav>
 
-        <div className="nav-right">
-          <button className="nav-lang" onClick={toggleLanguage}>
-            {t("lang")}
-          </button>
+        {!onHome && (
+          <TLink to="/" state={{ top: true }} className="nav-name nav-top-only" aria-label={t('nav.home')}>
+            <NameHover text={t('nav.name')} side="down" />
+          </TLink>
+        )}
+
+        <div className="nav-lang nav-top-only" role="group" aria-label={t('nav.language')}>
+          {LANGS.map((code) => (
+            <button
+              key={code}
+              type="button"
+              className="nav-lang-btn"
+              aria-pressed={lang === code}
+              lang={code}
+              onClick={() => setLang(code)}
+            >
+              {code.toUpperCase()}
+            </button>
+          ))}
         </div>
       </div>
     </header>
-  );
+  )
 }

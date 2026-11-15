@@ -1,48 +1,45 @@
 import { describe, it, expect } from 'vitest'
-import {
-  accentFor,
-  accentDeepFor,
-  accentDeepLargeFor,
-  ACCENTS,
-  ACCENTS_DEEP,
-  ACCENTS_DEEP_LARGE,
-} from '../../src/utils/palette'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { PALETTE, toVec3 } from '../../src/utils/palette'
 
-describe('accentFor (raw tricolor, on-ink)', () => {
-  it('rotates pink/blue/yellow and wraps', () => {
-    expect(accentFor(0)).toBe('#E64D66')
-    expect(accentFor(1)).toBe('#4D80E6')
-    expect(accentFor(2)).toBe('#E6CC4D')
-    expect(accentFor(3)).toBe('#E64D66')
+// The shader reads its colours from palette.ts; the stylesheet repeats the same
+// hexes as tokens. A change to one without the other would put the paint and
+// the page out of step, so the two are pinned together here.
+const css = readFileSync(resolve(__dirname, '../../src/index.css'), 'utf8')
+
+function token(name: string): string | undefined {
+  return css.match(new RegExp(`--${name}:\\s*(#[0-9A-Fa-f]{6})`))?.[1]?.toUpperCase()
+}
+
+describe('PALETTE', () => {
+  it('cream, black and orange match the stylesheet tokens', () => {
+    expect(token('cream')).toBe(PALETTE.cream.toUpperCase())
+    expect(token('black')).toBe(PALETTE.black.toUpperCase())
+    expect(token('orange')).toBe(PALETTE.orange.toUpperCase())
+    expect(token('color-cream')).toBe(PALETTE.cream.toUpperCase())
+    expect(token('color-black')).toBe(PALETTE.black.toUpperCase())
+    expect(token('color-orange')).toBe(PALETTE.orange.toUpperCase())
+  })
+
+  it('the paint stand-in uses the paint’s pink and orange', () => {
+    const fallback = css.match(/\.paint-fallback \{\s*background:([^}]*)\}/)?.[1] ?? ''
+    expect(fallback.toUpperCase()).toContain(PALETTE.pink.toUpperCase())
+    expect(fallback).toContain('var(--orange)')
+  })
+
+  it('every colour is a six-digit hex', () => {
+    for (const hex of Object.values(PALETTE)) expect(hex).toMatch(/^#[0-9A-F]{6}$/)
   })
 })
 
-describe('accentDeepFor (on-light deep triplet)', () => {
-  it('deep pink / deep blue / ink-muted (yellow small-text exemption), wraps', () => {
-    expect(accentDeepFor(0)).toBe('#B22B47')
-    expect(accentDeepFor(1)).toBe('#2A54B5')
-    expect(accentDeepFor(2)).toBe('rgba(11,14,20,0.62)')
-    expect(accentDeepFor(3)).toBe('#B22B47')
-  })
-  it('the yellow slot never emits a deep-yellow (fails small-text AA on cream)', () => {
-    expect(ACCENTS_DEEP[2]).not.toMatch(/^#/)
-  })
-  it('is index-aligned in length with the raw triplet', () => {
-    expect(ACCENTS_DEEP.length).toBe(ACCENTS.length)
-  })
-})
-
-describe('accentDeepLargeFor (on-light large-text / decorative triplet)', () => {
-  it('deep pink / deep blue / deep yellow, wraps', () => {
-    expect(accentDeepLargeFor(0)).toBe('#B22B47')
-    expect(accentDeepLargeFor(1)).toBe('#2A54B5')
-    expect(accentDeepLargeFor(2)).toBe('#7A6800')
-    expect(accentDeepLargeFor(3)).toBe('#B22B47')
-  })
-  it('carries a hex in the yellow slot, unlike the small-text triplet', () => {
-    expect(ACCENTS_DEEP_LARGE[2]).toMatch(/^#/)
-  })
-  it('is index-aligned in length with the raw triplet', () => {
-    expect(ACCENTS_DEEP_LARGE.length).toBe(ACCENTS.length)
+describe('toVec3', () => {
+  it('maps #RRGGBB to 0..1 floats', () => {
+    expect([...toVec3('#000000')]).toEqual([0, 0, 0])
+    expect([...toVec3('#FFFFFF')]).toEqual([1, 1, 1])
+    const [r, g, b] = toVec3(PALETTE.orange)
+    expect(r).toBeCloseTo(0xd9 / 255, 6)
+    expect(g).toBeCloseTo(0x43 / 255, 6)
+    expect(b).toBeCloseTo(0, 6)
   })
 })

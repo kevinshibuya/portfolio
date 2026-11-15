@@ -1,529 +1,163 @@
-/* Automatic source detection is OFF (`source(none)`) and the app's real source
-   surface is registered explicitly below.
-
-   Why: Tailwind v4 auto-detection scans the whole repo, so non-app files emit
-   real utilities into the SHIPPED stylesheet — the perf campaign's own
-   artifacts planted `.top-3` (from the prose "top 3" in `perf/decisions.md`)
-   and `.antialiased` (from `tests/e2e/pixel-gate.spec.ts`), neither used
-   anywhere in `src/` or `index.html`. An `@source not` deny-list was rejected:
-   it only covers the directories that exist today, so the next new top-level
-   directory leaks again. An explicit allow-list is closed by construction —
-   and its own failure mode (silently dropping a utility the app really uses)
-   is bounded and detectable, which is why this change shipped with a full
-   emitted-CSS rule diff plus the 30-golden pixel gate.
-
-   Everything the browser ever renders comes from `src/` and `index.html`;
-   there is no other markup in the tree. Add an `@source` line here if that
-   ever stops being true. */
+/* Automatic source detection is off (`source(none)`): the app's real source
+   surface is registered explicitly, so prose in tooling folders can never emit
+   utilities into the shipped stylesheet. Everything the browser renders comes
+   from `src/` and `index.html`. */
 @import "tailwindcss" source(none);
 @source "../src";
 @source "../index.html";
 
 /* =========================================================================
-   FONTS
+   FONT — one family, roman only. Its @font-face is declared once, inline in
+   index.html, because the loader's labels paint with it before this
+   stylesheet applies. A second, identical rule here would be a second face
+   that wins once this sheet lands and must load again, so the labels could
+   drop to the fallback font for a frame.
    ========================================================================= */
-@font-face {
-  font-family: 'Plus Jakarta Sans';
-  src: url('/fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2-variations'),
-       url('/fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2');
-  font-weight: 200 800;
-  font-style: normal;
-  /* swap: render with fallback immediately, swap to Plus Jakarta when
-     ready. Prevents Lighthouse "ensure text remains visible during
-     webfont load" flag while keeping FOUT minimal because the font is
-     preloaded in <head>. */
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Plus Jakarta Sans';
-  src: url('/fonts/PlusJakartaSans-Italic-VariableFont_wght.woff2') format('woff2-variations'),
-       url('/fonts/PlusJakartaSans-Italic-VariableFont_wght.woff2') format('woff2');
-  font-weight: 200 800;
-  font-style: italic;
-  /* swap: render with fallback immediately, swap to Plus Jakarta when
-     ready. Prevents Lighthouse "ensure text remains visible during
-     webfont load" flag while keeping FOUT minimal because the font is
-     preloaded in <head>. */
-  font-display: swap;
-}
-
-/* Anton — display face for the Selected Work morphing title ONLY (Anton fence).
-   Self-hosted, single weight 400, subset latin + latin-ext, swap. */
-@font-face {
-  font-family: 'Anton';
-  src: url('/fonts/Anton-latin.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
-}
-@font-face {
-  font-family: 'Anton';
-  src: url('/fonts/Anton-latin-ext.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
-}
 
 /* =========================================================================
-   TOKENS (Tailwind v4 @theme + CSS vars)
+   TOKENS
+
+   Colour: two solid grounds, cream and black, and the paint of the first
+   screen. Orange, the paint's body colour, is the one accent: arrows, marks
+   and the paint itself, never a surface and never text at rest. A dark
+   section is the same tokens swapped. Muted text is the text colour at 62 %
+   (6.1:1 on cream, 7.2:1 on black).
+
+   Type: six sizes, each with one job.
+     mega  172.8 at 1440   the name on the first screen; the closing block
+     h1    90              a page's one statement or title; work titles
+     h2    52              names in a list
+     h4    24              one-line descriptions, the line under the name
+     p1    20              running text, credits, links
+     p2    14              the header, labels, tags, frame numbers
+   Display sizes are set at 700, text sizes at 600.
+
+   Space: one 12-column grid and one margin, the one the name sits on.
+
+   Motion: two curves. E1 for every transition and page-level move, E2 for
+   the pop of words and small parts.
    ========================================================================= */
 @theme {
-  /* Canonical dark-ink tokens (new work styles against these). */
-  --color-bg:          #0B0E14;
-  --color-bg-tonal:    #131722;
-  --color-text:        #F5F2EC;
-  --color-text-muted:  #C9C4BA;
-  --color-text-faded:  #A8A49C;
-  --color-accent-pink:   #E64D66;
-  --color-accent-blue:   #4D80E6;
-  --color-accent-yellow: #E6CC4D;
-
-  /* On-light chapter (Plan A). New canonical tokens — NOT the legacy alias set.
-     Contrast-audited in docs/superpowers/archive/plans/2026-07-22-light-chapter-plan-a.md. */
-  --color-surface-light:        #F5F2EC; /* cream page surface */
-  --color-surface-light-tonal:  #EDE9E0; /* deeper cream (Plan B tonal role; defined now) */
-  --color-ink-on-light:         #0B0E14; /* primary ink text on cream/white */
-  --color-accent-pink-deep:     #B22B47; /* deep pink, ≥4.5:1 on cream/white */
-  --color-accent-blue-deep:     #2A54B5; /* deep blue, ≥4.5:1 on cream/white */
-  --color-accent-yellow-deep:   #7A6800; /* large/decorative only — small text uses ink-muted */
-
+  --color-cream: #F9F4EC;
+  --color-black: #000000;
+  --color-chip: #EDE8DE;
+  --color-orange: #D94300;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 :root {
-  /* Canonical dark-ink tokens. Contrast-audited in the plan — do not
-     change hexes without recomputing the AA table. */
-  --bg:         #0B0E14;
-  --bg-tonal:   #131722;
-  --text:       #F5F2EC;
-  --text-muted: #C9C4BA;
-  --text-faded: #A8A49C;
-  --hairline:   rgba(245, 242, 236, 0.13);
-  --accent-pink:   #E64D66;
-  --accent-blue:   #4D80E6;
-  --accent-yellow: #E6CC4D;
+  --cream: #F9F4EC;
+  --black: #000000;
+  --chip: #EDE8DE;
+  --orange: #D94300;
 
-  /* Canonical `--color-*` names, mirrored here on purpose.
-     They are ALSO declared in `@theme` above, but Tailwind tree-shakes
-     `@theme` down to the tokens it can see referenced — and it scans for
-     CLASS candidates, never for `var()` in a .tsx. So a future
-     `style={{ color: 'var(--color-text)' }}` or
-     `getPropertyValue('--color-accent-pink')` would resolve to EMPTY, with
-     no error and no failing test. CLAUDE.md tells new work to read these
-     names, so the contract has to hold at runtime: this plain `:root` block
-     is not tree-shaken and guarantees it. (A `var(--color-text)` written
-     inside this stylesheet self-heals — that is why the light-chapter
-     `--color-*-deep` tokens survived the Task 5c scoping and these did not.)
-     Values are the same hexes as the `@theme` block; change both together. */
-  --color-bg:            #0B0E14;
-  --color-bg-tonal:      #131722;
-  --color-text:          #F5F2EC;
-  --color-text-muted:    #C9C4BA;
-  --color-text-faded:    #A8A49C;
-  --color-accent-pink:   #E64D66;
-  --color-accent-blue:   #4D80E6;
-  --color-accent-yellow: #E6CC4D;
-  --color-accent-yellow-deep: #7A6800;
-
-  /* LEGACY ALIASES — remapped onto the dark system so the whole light-era
-     stylesheet flips in one commit. Semantics: in the light theme --cream
-     was "page background" and --ink was "text"; those ROLES keep their
-     var names, so --cream is now dark and --ink is now light. Sections
-     migrate to the canonical names above as they're restyled. */
-  --cream:    #0B0E14;             /* page bg */
-  --sand:     #131722;             /* tonal section bg */
-  --mist:     rgba(245, 242, 236, 0.14); /* borders/hairlines */
-  --ink:      #F5F2EC;             /* primary text */
-  --bark:     #C9C4BA;             /* secondary text */
-  --dust:     #A8A49C;             /* faded text */
-
-  --blue-50:  #131722;             /* was near-white tint bg */
-  --blue-100: #1B2233;             /* chip/tint bg */
-  --blue-200: #7AA0ED;
-  --blue-300: #7AA0ED;
-  --blue-400: #4D80E6;             /* accent slot */
-  --blue-500: #7AA0ED;             /* hover: lighter, not darker, on dark */
-
-  --periwinkle-100: #2A3450;       /* was pale bg */
-  --periwinkle-200: #6B94EA;
-  --periwinkle-300: #7AA0ED;
-
-  /* On-light alpha steps (Plan A). Muted = always-visible small text (≥4.5:1);
-     faded = decorative/aria-hidden ONLY (2.62:1, below AA, matches .contact-num).
-     Inside .chapter-light the faded STEP collapses into muted (A2): no alpha
-     between 0.62 and ink is both AA-passing and visually distinct from 0.62,
-     so --text-faded is remapped to the muted value there and this token is
-     applied by hand to its only two legitimate consumers, .workrow-index and
-     .workrow-arrow, which are aria-hidden. Do not widen that list: any
-     always-visible text on this step fails AA on cream. */
-  --color-ink-on-light-muted: rgba(11, 14, 20, 0.62);
-  --color-ink-on-light-faded: rgba(11, 14, 20, 0.40);
-  --color-hairline-on-light:  rgba(11, 14, 20, 0.12);
-
-  /* Motion tokens (motion-consistency-pass, 2026-07-21). Signature = house ease.
-     Pacing keeps the grandeur: unify values, don't speed up reveals. */
-  --ease-house: cubic-bezier(0.22, 1, 0.36, 1);
-  --dur-quick: 0.18s;      /* small state changes */
-  --dur-standard: 0.6s;    /* section entrances */
-  --dur-slow: 0.9s;        /* hero rise / dramatic reveals */
-  --dur-hover-in: 0.18s;
-  --dur-hover-out: 0.22s;
+  --ground: var(--cream);
+  --text: var(--black);
+  --muted: rgba(0, 0, 0, 0.62);
+  --line: rgba(0, 0, 0, 0.1);
 
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --t-mega: clamp(64px, 12vw, 200px);
+  --t-h1: clamp(44px, 6.25vw, 90px);
+  --t-h2: clamp(30px, 3.6112vw, 52px);
+  --t-h4: clamp(20px, 1.67vw, 24px);
+  --t-p1: 20px;
+  --t-p2: 14px;
+
+  --gutter: 80px;
+  --gap: 24px;
+  --page: min(100vw, 1440px);
+  --col: calc((var(--page) - 2 * var(--gutter) - 11 * var(--gap)) / 12);
+  --section: clamp(96px, 11vw, 160px);
+  --nav-top: 20px;
+
+  --e1: cubic-bezier(0.5, 0.6, 0, 1);
+  --e2: cubic-bezier(0, 0.56, 0.25, 1);
+  --dur-rise: 0.9s;
+  --ease-rise: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-theme='dark'] {
+  --ground: var(--black);
+  --text: var(--cream);
+  --muted: rgba(249, 244, 236, 0.62);
+  --line: rgba(249, 244, 236, 0.15);
+  background: var(--ground);
+  color: var(--text);
+}
+
+@media (max-width: 1100px) {
+  :root { --gutter: 40px; }
+}
+@media (max-width: 860px) {
+  :root {
+    --gutter: 20px;
+    --gap: 16px;
+    --t-p1: 18px;
+    --nav-top: 14px;
+  }
 }
 
 /* =========================================================================
    GLOBAL
    ========================================================================= */
 *, *::before, *::after { box-sizing: border-box; }
+
 html, body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-sans);
   background: var(--cream);
-  color: var(--ink);
+  color: var(--black);
+  font-family: var(--font-sans);
+  font-size: var(--t-p1);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* `clip` (not `hidden`) so sticky descendants don't inherit body as a
-     containing-block and lose their stick. `clip` still suppresses any
-     horizontal overflow from off-screen animations. */
+  /* `clip`, not `hidden`, so sticky descendants keep the viewport as their
+     scroll container. */
   overflow-x: clip;
 }
-/* Reserve the scrollbar gutter at all times so releasing the loader's
-   overflow lock (data-loading / data-loader-state) doesn't reflow the page
-   sideways by a scrollbar width on devices with classic (non-overlay) bars. */
-html { scrollbar-gutter: stable; }
-
-/* Scrollbar — invisible track, a faint cream bar that reads with the ink
-   aesthetic (rounded, inset off the edge, brightens on hover). Firefox uses the
-   two-value shorthand; WebKit/Blink use the pseudo-elements. */
+/* The scrollbar gutter is reserved at all times, so releasing the loader's
+   scroll lock never shifts the page sideways. */
 html {
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: rgba(120, 120, 128, 0.55) transparent;
+  scrollbar-color: rgba(120, 116, 110, 0.5) transparent;
+  -webkit-text-size-adjust: 100%;
 }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(120, 120, 128, 0.5);
+  background: rgba(120, 116, 110, 0.5);
   border-radius: 999px;
-  /* transparent border + padding-box clip = the bar floats inset from the edge
-     and reads thinner, matching the hairline restraint of the page. */
   border: 2px solid transparent;
   background-clip: padding-box;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(120, 120, 128, 0.72); }
-::-webkit-scrollbar-corner { background: transparent; }
-
-body { font-weight: 400; }
-::selection { background: var(--accent-blue); color: var(--bg); }
+::selection { background: var(--orange); color: #fff; }
 
 a { color: inherit; text-decoration: none; }
 button {
-  font-family: inherit;
+  font: inherit;
+  letter-spacing: inherit;
   border: none;
   background: none;
   cursor: pointer;
   color: inherit;
+  padding: 0;
 }
-ul { list-style: none; margin: 0; padding: 0; }
-img { max-width: 100%; display: block; }
-/* Body-copy emphasis. Distinct from <em>, which renders as italic blue-400. */
-strong {
-  font-weight: 600;
-  color: var(--ink);
-  font-style: normal;
-}
-.section--contact strong,
-.footer strong {
-  color: var(--text);
-}
+ul, ol { list-style: none; margin: 0; padding: 0; }
+img, video { max-width: 100%; display: block; height: auto; }
+em { font-style: normal; }
+h1, h2, h3, p, dl, dd, dt, figure { margin: 0; font-size: inherit; font-weight: inherit; }
 
-/* =========================================================================
-   NAV
-   ========================================================================= */
-.nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  padding: 18px 40px;
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    padding 0.4s var(--ease-house),
-    background 0.4s var(--ease-house),
-    border-color 0.4s var(--ease-house),
-    opacity 200ms ease-out;
-}
-.nav.is-visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-.nav.is-scrolled {
-  padding: 12px 40px;
-  background: rgba(11, 14, 20, 0.78);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--hairline);
-}
-.nav-inner {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 32px;
-  max-width: 1440px;
-  margin: 0 auto;
-}
-.nav-brand { display: inline-flex; align-items: center; gap: 10px; }
-.nav-mark {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  background: var(--text);
-  color: var(--bg);
-  font-size: 14px; font-weight: 700;
-  text-transform: lowercase;
-  letter-spacing: -0.04em;
-  /* line-height matches the tile height so the single line of text is
-     vertically centered without flex — that way the dot can keep its
-     real text baseline (vertical-align: baseline) instead of getting
-     shoved to the cross-axis center by a flex container. */
-  line-height: 30px;
-  text-align: center;
-  white-space: nowrap;
-}
-.nav-mark__dot {
-  display: inline-block;
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: var(--accent-blue);
-  vertical-align: baseline;
-  margin-left: 1px;
-}
-.nav-links { display: flex; gap: 26px; justify-self: center; }
-.nav-link {
-  position: relative;
-  font-size: 12px; font-weight: 500;
-  /* Near-full cream: over raw hero paint the old --text-faded gray read muddy
-     (owner call 2026-07-23). Hover lifts to full cream + underline. The
-     on-light variant overrides with its own ink values. */
-  color: rgba(245, 242, 236, 0.85);
-  text-transform: lowercase;
-  letter-spacing: 0.02em;
-  padding: 6px 0;
-  transition: color var(--dur-hover-out) var(--ease-house);
-}
-.nav-link::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 100%; bottom: 2px;
-  height: 1px;
-  background: var(--accent-blue);
-  transition: right var(--dur-hover-out) var(--ease-house);
-}
-.nav-link:hover { color: var(--text); transition-duration: var(--dur-hover-in); }
-.nav-link:hover::after { right: 0; }
-.nav-right { display: flex; align-items: center; gap: 14px; justify-self: end; }
-.nav-lang {
-  font-size: 11px; font-weight: 600;
-  color: var(--text);
-  letter-spacing: 0.15em;
-  padding: 4px 0;
-  transition: color var(--dur-hover-in) var(--ease-house);
-}
-.nav-lang:hover { color: var(--text); }
-
-/* Over the hero the nav text sits plain on raw shader paint — no halo, no
-   scrim (documented AA exemption, owner-ratified 2026-07-23; see the hero
-   comment at .hero-zone). */
-
-/* On-light nav variant — toggled by IntersectionObserver over the cream chapter. */
-.nav--on-light .nav-link { color: var(--color-ink-on-light-muted); }
-.nav--on-light .nav-link:hover { color: var(--color-ink-on-light); }
-.nav--on-light .nav-link::after { background: var(--color-accent-blue-deep); }
-.nav--on-light .nav-mark { background: var(--color-ink-on-light); color: var(--color-surface-light); }
-.nav--on-light .nav-mark__dot { background: var(--color-accent-blue-deep); }
-.nav--on-light .nav-lang { color: var(--color-ink-on-light); }
-.nav--on-light.is-scrolled {
-  background: rgba(245, 242, 236, 0.85);
-  border-bottom: 1px solid var(--color-hairline-on-light);
-}
-
-@media (max-width: 720px) {
-  .nav-brand { min-height: 44px; }
-  .nav-lang {
-    min-width: 44px; min-height: 44px;
-    display: inline-flex; align-items: center; justify-content: center;
-    padding: 0 12px;
-  }
-}
-
-/* =========================================================================
-   HERO — full-viewport dark stage. FluidWaves canvas behind, then the text
-   plane directly on the raw paint (no scrim — see the AA exemption at
-   .hero-zone): a monumental bottom-anchored signature name with the role
-   cycle directly above it. Entrance transforms (clipped role + name rises)
-   are PRE-SET here so the entrance reveals already-laid-out text rather
-   than a first mount (LCP is the name).
-   ========================================================================= */
-.hero {
-  position: relative;
-  min-height: 130svh; /* was 100svh — grows for the shader cream-dissolve band */
-  overflow: hidden;
-  background: var(--bg);
-}
-
-/* Canvas layer — FluidWaves (position:absolute; inset:0) fills this box.
-   Covers the FULL 130svh section so the shader's own cream dissolve (bottom
-   ~30svh) melts the paint into the page surface — no CSS veil element.
-   Settled from first paint (opacity 1): the loader explosion IS the entrance,
-   blowing open onto an already-final hero — no timeline holds this hidden. */
-.hero-canvas {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  opacity: 1;
-}
-
-/* Inner 100svh zone — re-anchors the name/role text plane so it never falls
-   into the shader's cream-dissolve band (the bottom ~30svh of the section).
-
-   DOCUMENTED AA EXEMPTION (owner-ratified 2026-07-23) — canonical record,
-   referenced by CLAUDE.md: the hero text (name, role, dark-context nav)
-   renders plain cream DIRECTLY on raw shader paint — no scrim, no text-shadow
-   halo, no shader-side darkening of any kind between the text and the paint.
-   This deliberately fails AA over the brightest paint (soft treatments proved
-   unsatisfiable: ~1.8–2.3:1 over worst-case yellow; a worst-pixel 4.5:1 needs
-   a near-opaque halo, rejected aesthetically). The owner explicitly accepts
-   the tradeoff — do NOT reintroduce a contrast layer. Sole sanctioned
-   exception: the opt-in prefers-contrast layer further down. */
-.hero-zone {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100svh;
-  z-index: 2;
-}
-
-/* Opt-in contrast layer (owner-ratified 2026-07-23) — the sole sanctioned
-   exception to the AA exemption recorded at .hero-zone: only when the user's OS
-   requests more contrast, the hero + dark-context nav text casts a dense ink
-   halo so every pixel adjacent to the strokes reads over the brightest paint.
-   The default presentation (everyone else) stays plain cream on raw paint. */
-@media (prefers-contrast: more) {
-  .hero-role,
-  .nav-link,
-  .nav-lang {
-    text-shadow:
-      0 0 1px rgba(11, 14, 20, 1),
-      0 0 2px rgba(11, 14, 20, 1),
-      0 0 3px rgba(11, 14, 20, 1),
-      0 0 4px rgba(11, 14, 20, 1),
-      0 0 5px rgba(11, 14, 20, 1),
-      0 0 6px rgba(11, 14, 20, 1),
-      0 0 9px rgba(11, 14, 20, 0.92),
-      0 0 14px rgba(11, 14, 20, 0.6);
-  }
-  .hero-name {
-    text-shadow:
-      0 0 2px rgba(11, 14, 20, 1),
-      0 0 4px rgba(11, 14, 20, 1),
-      0 0 6px rgba(11, 14, 20, 1),
-      0 0 9px rgba(11, 14, 20, 1),
-      0 0 12px rgba(11, 14, 20, 1),
-      0 0 18px rgba(11, 14, 20, 0.85),
-      0 0 32px rgba(11, 14, 20, 0.55),
-      0 0 56px rgba(11, 14, 20, 0.35);
-  }
-  /* Small nav text over raw paint stays marginal even with the halo — give
-     the dark-context nav its scrolled-style ink bar full-time instead. */
-  .nav:not(.nav--on-light) {
-    background: rgba(11, 14, 20, 0.88);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-  }
-  /* The cream chapter already backs the ink nav text — no halo there. */
-  .nav--on-light .nav-link,
-  .nav--on-light .nav-lang { text-shadow: none; }
-}
-
-.hero-bottom {
-  position: absolute;
-  left: 80px;
-  right: 80px;
-  bottom: 72px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-/* Clip mask for the entrance rise: each row hides its line below the edge, and
-   Framer translates the inner element from y:110% to 0% so the letters emerge
-   out of nothing. Overflow is released to visible once the rise settles
-   (.hero-bottom.is-entered) so the role focus ring and glyph descenders aren't
-   clipped at rest. */
-.hero-line-mask {
-  display: block;
-  overflow: hidden;
-}
-.hero-bottom.is-entered .hero-line-mask {
-  overflow: visible;
-}
-/* The bottom name line ("shibuya.") carries a descender (the "y" leg). With the
-   tight line-height:0.92 the clip box ends at the baseline, so overflow:hidden
-   amputates the leg for the whole rise (until the is-entered release). Extend the
-   clip region down into the descender (content inside padding stays visible under
-   overflow:hidden), and cancel the layout shift with an equal negative margin —
-   the 125% hidden travel (Hero.tsx) still starts the line fully below this taller
-   box, so nothing peeks before the rise. */
-.hero-name .hero-line-mask:last-child {
-  padding-bottom: 0.18em;
-  margin-bottom: -0.18em;
-}
-
-/* Role line: left-aligns the inline role above the name with a tiny breathing
-   space; Framer Motion owns the inner .hero-role cycle swap. */
-.hero-role-line {
-  align-self: flex-start;
-  padding-bottom: 2px;
-}
-.hero-role {
-  display: inline-block;
-  font-size: clamp(15px, 1.6vw, 22px);
-  font-weight: 500;
-  color: var(--text);
-  text-transform: lowercase;
-  letter-spacing: -0.01em;
-  cursor: pointer;
-  user-select: none;
-  outline: none;
+:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
   border-radius: 2px;
-  transition: color var(--dur-hover-in) var(--ease-house);
-  /* Plain cream on raw paint — documented AA exemption (see .hero-zone note). */
-}
-.hero-role:hover { color: var(--accent-blue); }
-.hero-role:focus-visible {
-  outline: 2px solid var(--blue-300);
-  outline-offset: 6px;
 }
 
-.hero-name {
-  margin: 0;
-  font-size: clamp(64px, 12vw, 200px);
-  font-weight: 700;
-  line-height: 0.92;
-  letter-spacing: -0.03em;
-  text-transform: lowercase;
-  color: var(--text);
-  /* Plain cream on raw paint — documented AA exemption (see .hero-zone note). */
-}
-/* Name lines. Each sits inside its own .hero-line-mask row and rises from
-   y:110% to 0% on entrance (Framer, in Hero.tsx). */
-.hero-line {
-  display: block;
-}
-
-/* Visually-hidden helper (screen-reader-only text). Standard a11y pattern. */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -536,27 +170,1586 @@ strong {
   border: 0;
 }
 
-/* =========================================================================
-   LOADER — ink SVG loader, paints at first frame from index.html, explodes
-   away via main.tsx after React mounts + min-dwell.
-
-   Structure: a full-viewport ink SVG <rect> masked by static "ks." glyph
-   windows (paths extracted from Plus Jakarta Sans 700 — no font dependency,
-   no FOUT) over a dim tricolor .loader-standin gradient that reads as paint
-   pre-React. On mount main.tsx adds .loader--mounted to fade the stand-in
-   (revealing the live hero canvas behind #loader), then GSAP contracts the
-   ks. cutout (anticipation) and explodes it outward until the viewport sits
-   inside a letterform window. Corner .loader-meta blocks are crisp cream
-   HTML on the ink.
-
-   Same rules are inlined in index.html so the loader paints with the first
-   byte of HTML, before this bundled stylesheet arrives; the cascade here is
-   a no-op re-declaration.
-   ========================================================================= */
-html[data-loading='true'] {
+/* While the loader is up, and while one page is giving way to the next, the page does not scroll. */
+html[data-loading='true'],
+html:has(body[data-loader-state='loading']),
+body[data-loader-state='loading'] {
   overflow: hidden;
 }
 
+/* =========================================================================
+   GRID
+   ========================================================================= */
+.container {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap);
+}
+
+/* =========================================================================
+   TYPE
+   ========================================================================= */
+/* Display sizes are set tight, and tighter the larger they are; the word space
+   is given back what the tracking takes from it, so words stay apart. */
+.mega {
+  font-size: var(--t-mega);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  word-spacing: 0.06em;
+  text-transform: lowercase;
+}
+.h1 {
+  font-size: var(--t-h1);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  word-spacing: 0.1em;
+  text-transform: lowercase;
+}
+.h2 {
+  font-size: var(--t-h2);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  word-spacing: 0.08em;
+  text-transform: lowercase;
+}
+.h4 {
+  font-size: var(--t-h4);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+}
+.p1 {
+  font-size: var(--t-p1);
+  line-height: 1.2;
+}
+.p2 {
+  font-size: var(--t-p2);
+  line-height: 1.15;
+}
+.muted { color: var(--muted); }
+.lower { text-transform: lowercase; }
+
+/* =========================================================================
+   THE POP — how a word or small part arrives: there at once, sliding in from
+   an offset, growing from a corner in two steps.
+   ========================================================================= */
+@keyframes pop-slide {
+  from { translate: var(--pop-x, 0) var(--pop-y, 0.6em); }
+  to { translate: 0 0; }
+}
+@keyframes pop-scale {
+  from { scale: 0; }
+  to { scale: 1; }
+}
+.pop {
+  transform-origin: var(--pop-origin, left bottom);
+  animation:
+    pop-slide 350ms var(--e2) both,
+    pop-scale 100ms steps(2, jump-none) both;
+  animation-delay: var(--pop-delay, 0ms);
+}
+
+/* =========================================================================
+   MARKS: the arrow, the chip, the tag, the rolling link
+   ========================================================================= */
+.arrow {
+  flex: none;
+  display: block;
+  color: var(--orange);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 8px 1px;
+  border-radius: 4px;
+  background: var(--chip);
+  color: var(--black);
+  white-space: nowrap;
+}
+.tag {
+  display: inline-block;
+  padding: 4px 6px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: var(--t-p2);
+  line-height: 1;
+  text-transform: lowercase;
+}
+
+/* A text link rolls on hover: the resting face tips up and back while a second
+   face rolls up from below, in the accent for a beat, then in the text colour. */
+.roll {
+  position: relative;
+  display: inline-block;
+  perspective: 400px;
+}
+.roll-face {
+  display: block;
+  transform-origin: 50% 50% -0.5em;
+  transition: transform 400ms var(--e1) 0ms, opacity 0s linear 200ms;
+  backface-visibility: hidden;
+}
+.roll-face--next {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: rotateX(-120deg);
+  transition: transform 400ms var(--e1), opacity 0s linear 150ms, visibility 0s linear 400ms;
+}
+/* A link in copy: muted, with an underline that rises as it comes to full strength. */
+.link {
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  transition: color 150ms var(--e1), text-underline-offset 200ms var(--e1);
+}
+@media (hover: hover) and (pointer: fine) {
+  a:hover > .roll > .roll-face--rest,
+  button:hover > .roll > .roll-face--rest,
+  a:hover > span > .roll > .roll-face--rest {
+    transform: rotateX(54deg);
+    opacity: 0;
+    transition: transform 400ms var(--e1) 50ms, opacity 0s linear 200ms;
+  }
+  a:hover > .roll > .roll-face--next,
+  button:hover > .roll > .roll-face--next,
+  a:hover > span > .roll > .roll-face--next {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    animation: roll-flash 240ms linear both;
+    transition: transform 400ms var(--e1) 75ms, opacity 0s linear 120ms, visibility 0s linear 0s;
+  }
+  .link:hover { color: var(--text); text-underline-offset: 2px; }
+}
+@keyframes roll-flash {
+  0%, 60% { color: var(--orange); }
+  100% { color: inherit; }
+}
+
+/* =========================================================================
+   FRAME — the site's dominant shape: a hard black rectangle with a capture
+   inset in it. Stills, clips, the portrait and the diagram all sit in one.
+   A frame takes the shape of its capture: the mat, the black margin round it,
+   is 4 % of the frame's width on every side, for a desktop screen and for a
+   phone screen alike.
+   ========================================================================= */
+.frame {
+  position: relative;
+  width: 100%;
+  background: #000;
+  overflow: hidden;
+}
+/* The mat is the capture's own margin: a percentage margin is a share of the
+   frame's width on all four sides. */
+.frame > img,
+.frame > video {
+  width: 92%;
+  height: auto;
+  margin: 4%;
+  outline: 1px solid rgba(249, 244, 236, 0.15);
+}
+/* A frame on the black ground is told from it by the same 15 % line. */
+[data-theme='dark'] .frame { outline: 1px solid var(--line); outline-offset: -1px; }
+
+.shot { position: relative; }
+.shot-n {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  font-size: var(--t-p2);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================================
+   PAINT — the fluid canvas, its static stand-in, and the windows onto it.
+   ========================================================================= */
+.paint-canvas,
+.paint-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+/* A canvas shows only once it holds a frame. */
+.paint-canvas {
+  opacity: 0;
+  transition: opacity 250ms linear;
+}
+.paint-canvas[data-painted] { opacity: 1; }
+.paint-fallback {
+  background:
+    radial-gradient(60% 50% at 62% 40%, #E0306E, transparent 70%),
+    radial-gradient(40% 40% at 30% 62%, #7F86B8, transparent 70%),
+    var(--orange);
+}
+.paint-fallback[data-kind='hero'] { mask-image: linear-gradient(to bottom, #000 78%, transparent 97%); }
+.paint-fallback[data-kind='footer'] { mask-image: linear-gradient(to top, #000 70%, transparent 96%); }
+
+.paint-window {
+  position: relative;
+  display: block;
+  background: var(--orange);
+}
+.paint-window > canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+.paint-window > canvas[data-painted] { opacity: 1; }
+/* Cut to its own characters: the text is the accent until the paint arrives. */
+.paint-window--text {
+  display: inline-block;
+  background: none;
+  color: var(--orange);
+  white-space: nowrap;
+}
+.paint-window--text:has(> canvas[data-painted]) { color: transparent; }
+
+/* =========================================================================
+   NAV — no bar. Four links at the left margin. Going down the page the
+   header leaves; going back up it returns, each link on its own pale chip, so
+   it reads over whatever lies beneath. Keyboard focus brings it back.
+   ========================================================================= */
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  font-size: var(--t-p2);
+  line-height: 1;
+  color: var(--black);
+  transition: opacity 250ms var(--e1) 0.4s, translate 320ms var(--e1);
+}
+.nav.is-visible { opacity: 1; }
+.nav.is-away:not(:has(:focus-visible)) {
+  translate: 0 calc(-100% - 12px);
+  transition: opacity 250ms var(--e1) 0.4s, translate 220ms cubic-bezier(0.5, 0, 0.9, 0.5);
+}
+.nav.is-away:not(:has(:focus-visible)) .nav-link { pointer-events: none; }
+.nav[data-over='paint'] { color: var(--cream); }
+.nav-row {
+  padding-top: var(--nav-top);
+  align-items: center;
+}
+.nav-links {
+  grid-column: 1 / 4;
+  display: flex;
+  gap: 2px;
+  margin-left: -8px;
+}
+.nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px 1px;
+  border-radius: 4px;
+  text-transform: lowercase;
+  pointer-events: auto;
+  transition: background-color 150ms var(--e1), color 150ms var(--e1);
+}
+/* A larger target than the chip shows. */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  inset: -9px -1px;
+}
+.nav.is-moved .nav-link {
+  background: var(--chip);
+  color: var(--black);
+}
+/* Where the reader is: an orange square leads the link. */
+.nav-link[aria-current]::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--orange);
+}
+.nav:not(.is-moved)[data-over='paint'] .nav-link[aria-current]::before { background: var(--cream); }
+.nav-name {
+  grid-column: 4 / 10;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  text-transform: lowercase;
+  pointer-events: auto;
+}
+.nav-lang {
+  grid-column: 10 / 13;
+  justify-self: end;
+  display: flex;
+  gap: 2px;
+  margin-right: -8px;
+}
+.nav-lang-btn {
+  position: relative;
+  height: 28px;
+  padding: 0 8px 1px;
+  border-radius: 4px;
+  font-weight: 600;
+  pointer-events: auto;
+  transition: background-color 150ms var(--e1), color 150ms var(--e1);
+}
+.nav-lang-btn::after {
+  content: '';
+  position: absolute;
+  inset: -9px -1px;
+}
+.nav-lang-btn[aria-pressed='true'] {
+  background: var(--chip);
+  color: var(--black);
+}
+/* The name line and the language pair belong to the top of a page: past the
+   first pixels they pop out, and back at the top they pop in. */
+.nav-top-only {
+  transform-origin: left center;
+  transition: scale 100ms steps(2, jump-none), translate 350ms var(--e2), visibility 0s linear 0s;
+}
+.nav.is-moved .nav-top-only {
+  scale: 0;
+  translate: 0 -8px;
+  visibility: hidden;
+  transition: scale 100ms steps(2, jump-none) 80ms, translate 180ms var(--e1), visibility 0s linear 180ms;
+}
+.nav-lang.nav-top-only { transform-origin: right center; }
+
+/* The links take the room they need: the name line starts at the fourth
+   column, or straight after the links where they are wider than three. */
+@media not all and (max-width: 860px) {
+  .nav-row { grid-template-columns: minmax(calc(3 * var(--col) + 2 * var(--gap)), max-content) minmax(0, 1fr) auto; }
+  .nav-links { grid-column: 1; }
+  .nav-name { grid-column: 2; }
+  .nav-lang { grid-column: 3; }
+}
+@media (max-width: 860px) {
+  .nav-links { grid-column: 1 / 10; margin-left: -6px; }
+  .nav-link { padding-inline: 6px; }
+  .nav-name { display: none; }
+  .nav-lang-btn { padding-inline: 6px; }
+}
+
+/* =========================================================================
+   RISE — the opening type of the first screen: each line travels up out of
+   its mask, one step after the line before it. The masks let go once the
+   last line has landed, so descenders are whole at rest.
+   ========================================================================= */
+.rise-mask {
+  display: block;
+  overflow: hidden;
+}
+.rise.is-settled .rise-mask { overflow: visible; }
+.rise-mask--descender {
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
+}
+.rise-line {
+  display: block;
+  transform: translateY(125%);
+  transition: transform var(--dur-rise) var(--ease-rise) calc(var(--rise-i, 0) * 80ms);
+}
+.rise.is-entered .rise-line { transform: none; }
+.rise.is-instant .rise-line { transition: none; }
+
+/* =========================================================================
+   HERO — the first screen: the name set large at the bottom left over the
+   paint, the role line above it. Below the first screen the paint runs on
+   for a band and dissolves into the cream page.
+   ========================================================================= */
+.hero {
+  position: relative;
+  color: var(--cream);
+}
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, #D4402A 0%, var(--orange) 62%, var(--cream) 97%);
+}
+.hero-zone {
+  position: relative;
+  height: 100svh;
+  min-height: 520px;
+}
+.hero-band { height: 30svh; }
+.hero-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 72px;
+  display: flex;
+  flex-direction: column;
+  /* Each line is as wide as its own text, so the paint is measured against the type's real boxes. */
+  align-items: flex-start;
+  gap: 18px;
+}
+.hero-name .rise-mask {
+  padding-right: 0.06em;
+  margin-right: -0.06em;
+}
+.hero-role-line { padding-bottom: 2px; }
+.hero-role {
+  font-size: var(--t-h4);
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  text-transform: lowercase;
+  color: var(--cream);
+}
+.hero-name {
+  font-size: var(--t-mega);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  text-transform: lowercase;
+  color: var(--cream);
+}
+@media (max-width: 860px) {
+  .hero-bottom { bottom: 44px; gap: 14px; }
+  .hero-role { font-size: 16px; }
+}
+/* Only when the OS asks for more contrast: the type on the paint gets a dark halo. */
+@media (prefers-contrast: more) {
+  .hero-role,
+  .hero-name {
+    text-shadow: 0 0 2px #000, 0 0 6px #000, 0 0 14px #000;
+  }
+}
+
+/* =========================================================================
+   ABOUT — one statement, the portrait as a frame of paint, a fact in the
+   lower left and two lines in the lower right.
+   ========================================================================= */
+.about {
+  position: relative;
+  padding-top: 104px;
+  padding-bottom: 24px;
+  grid-template-rows: auto 1fr auto;
+}
+.about-statement {
+  grid-column: 1 / 9;
+  grid-row: 1;
+  text-transform: none;
+  text-wrap: balance;
+}
+.about-portrait {
+  grid-column: 9 / 13;
+  grid-row: 1 / 3;
+  aspect-ratio: 4 / 5;
+  display: grid;
+  /* One cell the size of the frame, so the window's share of it is a share of a known box. */
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  place-items: center;
+}
+.about-portrait .paint-window {
+  width: calc(100% - 48px);
+  height: calc(100% - 48px);
+}
+.about-fact {
+  grid-column: 1 / 8;
+  grid-row: 2;
+  align-self: end;
+  display: flex;
+  align-items: flex-end;
+  gap: 28px;
+  padding-top: 72px;
+}
+.about-years {
+  line-height: 0.74;
+  margin-bottom: -0.02em;
+}
+.about-fact p { max-width: 21em; }
+.about-meta {
+  grid-column: 9 / 13;
+  grid-row: 3;
+  display: grid;
+  gap: 6px;
+  padding-top: 16px;
+}
+
+/* =========================================================================
+   LABEL — an icon of two stacked frames and a line of small text: the title
+   of a list. It draws itself, opens, and its letters fly out of it.
+   ========================================================================= */
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  font-size: var(--t-p2);
+  line-height: 1;
+  text-transform: lowercase;
+  white-space: nowrap;
+  cursor: default;
+}
+button.label { cursor: pointer; }
+.label-icon {
+  flex: none;
+  overflow: visible;
+}
+.label-front {
+  fill: var(--ground);
+  stroke: var(--text);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: left bottom;
+  transition: transform 400ms var(--e1);
+}
+.label-back {
+  fill: var(--orange);
+  transition: transform 400ms var(--e1);
+}
+.label[data-open] .label-front { transform: skewX(-16deg) scaleY(0.82); }
+.label[data-open] .label-back { transform: translate(2px, 0); }
+.label-letter {
+  display: inline-block;
+  white-space: pre;
+}
+@media (hover: hover) and (pointer: fine) {
+  .label[data-open]:hover .label-front { transform: skewX(-26deg) scaleY(0.74); }
+  .label[data-open]:hover .label-back { transform: translate(4px, 0); }
+}
+
+/* =========================================================================
+   SELECTED WORK — three projects stacked: a centred frame playing a clip,
+   the name far left and "view" far right for the one in play, and a line
+   pinned to the bottom corners that says what it is.
+   ========================================================================= */
+.selected {
+  position: relative;
+  padding-top: clamp(56px, 6.4vw, 92px);
+}
+.stack {
+  display: grid;
+  row-gap: var(--gap);
+  margin-top: 40px;
+  perspective: 1400px;
+}
+.stack-item {
+  position: relative;
+  align-items: center;
+  color: inherit;
+}
+.stack-name {
+  grid-column: 1 / 5;
+  grid-row: 1;
+  text-wrap: balance;
+}
+.stack-frame {
+  grid-column: 5 / 11;
+  grid-row: 1;
+  transform: rotateX(var(--lean, 0deg));
+  transform-origin: var(--lean-origin, 50% 100%);
+  will-change: transform;
+}
+.stack-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  transition: transform 450ms var(--e1);
+}
+.stack-frame > * { position: relative; }
+.stack-item.is-active .stack-frame { overflow: visible; }
+.stack-item.is-active .stack-frame::before { transform: scaleX(1.05); }
+.stack-arrow {
+  grid-column: 11;
+  grid-row: 1;
+  justify-self: center;
+}
+.stack-view {
+  grid-column: 12;
+  grid-row: 1;
+  justify-self: end;
+  text-transform: lowercase;
+}
+/* Every project on the screen is named beside its frame, from the moment the
+   middle of the frame is clear of the pinned line; the way in, the arrow and
+   "view", shows for the one in play only. */
+.stack-name { visibility: hidden; }
+.stack-item[data-named] .stack-name {
+  visibility: visible;
+  --pop-x: -80px;
+  --pop-y: 0;
+  transform-origin: left bottom;
+  animation: pop-slide 350ms var(--e2) both, pop-scale 100ms steps(2, jump-none) both;
+}
+.stack-way { visibility: hidden; }
+.stack-item.is-active .stack-way { visibility: visible; }
+.stack-item.is-active .stack-view { --pop-x: 80px; --pop-y: 0; --pop-origin: right bottom; }
+.stack-item.is-active .stack-arrow { --pop-x: -100px; --pop-y: 0; }
+.stack-line { display: none; }
+
+.pin {
+  position: sticky;
+  bottom: 28px;
+  z-index: 2;
+  /* A fixed box, taller than its tallest line: the section's height must not change with what is pinned. */
+  height: 112px;
+  align-items: end;
+  margin-top: 8px;
+  pointer-events: none;
+}
+.pin-line {
+  grid-column: 1 / 5;
+  max-width: 17em;
+}
+.pin-tags {
+  grid-column: 11 / 13;
+  justify-self: end;
+  display: grid;
+  gap: 2px;
+  text-align: right;
+  --pop-origin: right bottom;
+}
+.selected-end { height: 104px; }
+
+/* =========================================================================
+   DARK SECTIONS — black arrives a little early: a band grows up out of the
+   section's top edge as it crosses the viewport.
+   ========================================================================= */
+.dark {
+  position: relative;
+}
+.dark-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 99px;
+  background: #000;
+  transform-origin: 50% 100%;
+  transform: scaleY(var(--edge, 0));
+  pointer-events: none;
+}
+
+/* =========================================================================
+   ROWS — a work row: a title, two small tag lines beside it, the arrow in
+   its box at the right. On hover the tags fade, the title slides over, a
+   second arrow swings in at the third column behind it, and the right arrow
+   leaves once that one shows: at every moment an arrow is on one side. On
+   leaving, the tags come back riding beside the title.
+   ========================================================================= */
+.rows > li { border-top: 1px solid var(--line); }
+.rows > li:last-child { border-bottom: 1px solid var(--line); }
+.wrow {
+  --box: 44px;
+  /* How far the title moves on hover: two columns, the arrow's box and a gap. */
+  --shift: calc(2 * (var(--col) + var(--gap)) + var(--box) + 12px);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  min-height: calc(var(--box) + 56px);
+  padding-block: 24px;
+  perspective: 400px;
+}
+.wrow--big {
+  --box: 68px;
+  --shift: calc(2 * (var(--col) + var(--gap)) + var(--box) + 20px);
+  padding-block: 0;
+  min-height: 0;
+}
+.wrow-head {
+  display: flex;
+  align-items: baseline;
+  /* The tags' last line sits on the title's baseline. */
+  align-items: last baseline;
+  gap: var(--gap);
+  min-width: 0;
+}
+.wrow-title {
+  flex: none;
+  max-width: 100%;
+  transition: transform 600ms var(--e1) 40ms;
+}
+.wrow-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--t-p2);
+  line-height: 1.15;
+  text-transform: lowercase;
+  white-space: nowrap;
+  /* `translate` carries the tags along with the title on its way back; `transform` is their own small step. */
+  transition: opacity 200ms var(--e1) 140ms, transform 200ms var(--e1) 140ms, translate 600ms var(--e1) 40ms;
+}
+.wrow-spacer { flex: 1; }
+.wrow-thumb {
+  flex: none;
+  width: calc(3 * var(--col) + 2 * var(--gap));
+}
+.wrow-aside {
+  flex: none;
+  display: grid;
+  gap: 2px;
+  font-size: var(--t-p2);
+  line-height: 1.15;
+  text-transform: lowercase;
+  text-align: right;
+}
+.wrow-arrow {
+  flex: none;
+  width: var(--box);
+  height: var(--box);
+}
+.wrow-arrow { backface-visibility: hidden; }
+.wrow-arrow .arrow { width: 100%; height: 100%; }
+.wrow-arrow--r {
+  transform: translateZ(-25rem) rotateY(0deg) translateZ(25rem) scale(1);
+  transition: transform 340ms var(--e1), opacity 0s linear 0s;
+}
+.wrow-arrow--l {
+  position: absolute;
+  left: calc(2 * (var(--col) + var(--gap)));
+  top: 50%;
+  margin-top: calc(var(--box) / -2);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateZ(-25rem) rotateY(-90deg) translateZ(25rem) scale(0.5);
+  transition: transform 600ms var(--e1) 40ms, opacity 0s linear 490ms, visibility 0s linear 640ms;
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 1000px) {
+  a.wrow:hover .wrow-title {
+    transform: translateX(var(--shift));
+    transition: transform 600ms var(--e1) 125ms;
+  }
+  a.wrow:hover .wrow-tags {
+    opacity: 0;
+    transform: translateX(-12px);
+    /* Once they have faded they take the title's offset, unseen, to ride back beside it. */
+    translate: var(--shift) 0;
+    transition: opacity 200ms var(--e1) 50ms, transform 200ms var(--e1) 50ms, translate 0s linear 260ms;
+  }
+  /* The right arrow holds until the left one has come out from behind the title. */
+  a.wrow:hover .wrow-arrow--r {
+    opacity: 0;
+    transform: translateZ(-25rem) rotateY(90deg) translateZ(25rem) scale(0.5);
+    transition: transform 450ms var(--e1) 290ms, opacity 0s linear 600ms;
+  }
+  a.wrow:hover .wrow-arrow--l {
+    opacity: 1;
+    visibility: visible;
+    transform: translateZ(-25rem) rotateY(0deg) translateZ(25rem) scale(1);
+    transition: transform 600ms var(--e1) 125ms, opacity 0s linear 125ms, visibility 0s linear 0s;
+  }
+  a.wrow:hover .wrow-arrow--l .arrow { animation: arrow-pulse 700ms 650ms infinite; }
+}
+@keyframes arrow-pulse {
+  0% { transform: none; animation-timing-function: var(--e2); }
+  48.6% { transform: translateX(-75%); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.4); }
+  100% { transform: none; }
+}
+/* Without a hover, the row nearest the middle of the screen nudges its arrow. */
+@keyframes arrow-nudge {
+  0%, 100% { transform: none; }
+  45% { transform: translateX(20px); }
+}
+@media (hover: none), (max-width: 999px) {
+  .wrow.is-near .wrow-arrow--r .arrow { animation: arrow-nudge 1400ms var(--e1) infinite; }
+}
+
+/* =========================================================================
+   HOME, BLACK — the other case studies, the experience, the way to all work.
+   ========================================================================= */
+.more { padding-top: clamp(64px, 6.4vw, 92px); }
+.more .label { margin-bottom: 28px; }
+.more-block + .more-block { margin-top: clamp(64px, 6.4vw, 92px); }
+
+/* A job's span on one time line shared by the rows: a bar of the paint, from
+   its first month to its last, so the rows read as steps up to the present. */
+.span {
+  position: absolute;
+  left: calc(6 * (var(--col) + var(--gap)));
+  top: 50%;
+  width: calc(4 * var(--col) + 3 * var(--gap));
+  height: 14px;
+  margin-top: -7px;
+}
+.span::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto 0;
+  border-top: 1px solid var(--line);
+}
+.span-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.cb {
+  position: relative;
+  display: block;
+  padding-block: clamp(64px, 6.4vw, 92px) clamp(72px, 7.2vw, 104px);
+}
+.cb-lines {
+  display: grid;
+  justify-items: start;
+}
+.cb-line {
+  display: flex;
+  align-items: center;
+  gap: 0.22em;
+  white-space: nowrap;
+}
+/* Three lines at staggered indents: together they are shorter than a screen. */
+.cb-line:nth-child(1) { margin-left: 0; }
+.cb-line:nth-child(2) { margin-left: calc(3 * (var(--col) + var(--gap))); }
+.cb-line:nth-child(3) { margin-left: calc(6 * (var(--col) + var(--gap))); }
+.cb-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateX(var(--from, -144px));
+}
+.cb.is-in .cb-word {
+  opacity: 1;
+  transform: none;
+  transition: transform 600ms var(--e2) var(--cb-delay, 0ms), opacity 0s linear var(--cb-delay, 0ms);
+}
+.cb-arrow {
+  width: 0.62em;
+  height: 0.62em;
+}
+.cb-arrow .arrow { width: 100%; height: 100%; }
+@media (hover: hover) and (pointer: fine) {
+  .cb:hover .cb-arrow .arrow { animation: arrow-nudge 700ms var(--e2) infinite; }
+}
+.cb-note {
+  position: absolute;
+  right: var(--gutter);
+  top: var(--section);
+  text-align: right;
+}
+
+/* =========================================================================
+   CLOSING — contact, then the footer, on the first screen's paint, darker.
+   The paint is entered from black through the same liquid edge.
+   ========================================================================= */
+.closing {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  overflow: hidden;
+}
+.closing-paint {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+/* The paint, at about a third of its brightness. */
+.closing-paint::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.66);
+}
+.closing-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-top: 30svh;
+  padding-bottom: 28px;
+}
+.contact .label { margin-bottom: 20px; }
+.contact-mail { border-bottom: 1px solid var(--line); padding-bottom: 28px; }
+.contact-mail .wrow-title { font-size: min(90px, 6.25vw); }
+.channels {
+  padding-top: 24px;
+  row-gap: 14px;
+}
+.channel {
+  grid-column: span 3;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+.channel-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+}
+.channel-link .arrow { width: 16px; height: 16px; }
+/* The small labels stand on the paint at full strength: the paint moves, and muted text would not hold 4.5:1 over all of it. */
+.channel-name { font-size: var(--t-p2); line-height: 1.15; text-transform: lowercase; }
+.footer {
+  margin-top: clamp(64px, 12svh, 140px);
+  align-items: end;
+  row-gap: 12px;
+  font-size: var(--t-p2);
+  line-height: 1.15;
+  text-transform: lowercase;
+}
+.footer-copy { grid-column: 1 / 4; }
+.footer-credit {
+  grid-column: 4 / 10;
+  justify-self: center;
+  white-space: nowrap;
+}
+.footer-end {
+  grid-column: 10 / 13;
+  justify-self: end;
+  display: flex;
+  gap: 16px;
+}
+
+/* The name: under the pointer its letters step out of line, and a drop of the
+   paint follows the pointer along it. */
+.namehover {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  cursor: default;
+}
+a.namehover, a .namehover { cursor: pointer; }
+.namehover-letter {
+  display: inline-block;
+  white-space: pre;
+  will-change: transform;
+}
+.namehover-drop {
+  position: absolute;
+  left: 0;
+  width: 26px;
+  height: 32px;
+  margin-left: -13px;
+  pointer-events: none;
+  opacity: 0;
+}
+.namehover[data-side='up'] .namehover-drop { bottom: calc(100% + 6px); }
+.namehover[data-side='down'] .namehover-drop { top: calc(100% + 6px); }
+.namehover-drop-shape {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  clip-path: path('M13 0 C13 0 26 15 26 21 A13 11 0 0 1 0 21 C0 15 13 0 13 0 Z');
+  background:
+    radial-gradient(60% 55% at 68% 70%, #E0306E, transparent 72%),
+    radial-gradient(45% 40% at 30% 58%, #8DA8F2, transparent 75%),
+    var(--orange);
+  transform-origin: 50% 100%;
+}
+.namehover[data-side='down'] .namehover-drop-shape { transform-origin: 50% 0; }
+.namehover-drop.is-on { opacity: 1; }
+.namehover-drop.is-on .namehover-drop-shape { animation: drop-in 350ms var(--e2) both; }
+.namehover-drop.is-off { opacity: 0; transition: opacity 100ms linear 50ms; }
+.namehover-drop.is-off .namehover-drop-shape { transform: scale(0); transition: transform 150ms var(--e1); }
+@keyframes drop-in {
+  0% { transform: scale(0, 0); }
+  20% { transform: scale(1.2, 0.8); }
+  40% { transform: scale(0.8, 1.2); }
+  60% { transform: scale(0.95, 0.95); }
+  80%, 100% { transform: scale(1, 1); }
+}
+
+/* =========================================================================
+   ALL WORK — the label, then every case study as a row with its frames;
+   then, on black, the newsroom pieces by type.
+   ========================================================================= */
+.aw-open {
+  padding-top: 180px;
+  padding-bottom: 28px;
+}
+.aw-list {
+  display: grid;
+  row-gap: clamp(64px, 8.4vw, 120px);
+  padding-bottom: var(--section);
+}
+/* Three frames of one height: each takes the share of the row its own shape asks for. */
+.strip {
+  display: flex;
+  gap: var(--gap);
+  align-items: flex-start;
+  margin-top: 44px;
+}
+.strip > .shot { min-width: 0; }
+.pieces { padding-block: var(--section); }
+.pieces-head {
+  align-items: end;
+  margin-bottom: 40px;
+}
+.pieces-count { grid-column: 1 / 7; }
+.pieces-note {
+  grid-column: 9 / 13;
+  max-width: 17em;
+  text-wrap: balance;
+  padding-bottom: 0.9em;
+}
+.type-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  width: 100%;
+  padding-block: 22px;
+  text-align: left;
+}
+.type-toggle {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  transition: transform 450ms var(--e1);
+}
+.type-toggle .arrow { width: 100%; height: 100%; }
+.type-row[aria-expanded='true'] .type-toggle { transform: rotate(180deg); }
+.type-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--gap);
+  padding-bottom: 36px;
+}
+.piece {
+  display: grid;
+  grid-template-columns: 5.2em minmax(0, 1fr) 16px;
+  column-gap: 12px;
+  align-items: baseline;
+  padding-block: 9px;
+  border-top: 1px solid var(--line);
+  font-size: var(--t-p2);
+  line-height: 1.25;
+}
+.piece .arrow { width: 12px; height: 12px; align-self: center; }
+.piece-date { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* =========================================================================
+   PROJECT — the opening screen, the travelling clip, the one paragraph,
+   more work. Wide: every frame in one column with the credits beside it,
+   then the diagram. Narrow: the facts under the title, the diagram, the
+   evidence in groups.
+   ========================================================================= */
+.p-open {
+  position: relative;
+  min-height: max(100svh, 680px);
+  display: flex;
+}
+/* The left side is a column in the flow, so a title of two lines pushes what
+   follows it down instead of running into it. The facts and the slot are
+   placed on the right. */
+.p-open-in {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: 26.6svh;
+  padding-bottom: 24px;
+}
+.p-title { text-wrap: balance; }
+.p-row {
+  margin-top: max(96px, 23.9svh - var(--t-h1));
+  align-items: start;
+}
+.p-kind { grid-column: 1 / 3; text-wrap: balance; }
+.p-desc {
+  grid-column: 3 / 7;
+  max-width: 19em;
+  text-wrap: pretty;
+}
+/* The way to the live thing, at the right of the row on the wide page. */
+.p-live { grid-column: 8 / 13; }
+.p-live .p-live-link { margin-top: -4px; }
+/* Who it was for, the role, the team, the stack: under the title on the narrow page. */
+.p-facts {
+  position: absolute;
+  right: var(--gutter);
+  top: calc(26.6svh + 10px);
+  width: calc(4 * var(--col) + 3 * var(--gap));
+  display: grid;
+  gap: 20px;
+  justify-items: start;
+}
+.facts {
+  display: grid;
+  grid-template-columns: 5.4em minmax(0, 1fr);
+  gap: 6px 12px;
+  width: 100%;
+  line-height: 1.2;
+}
+.facts dt { color: var(--muted); text-transform: lowercase; }
+.facts dd { text-wrap: pretty; }
+.p-live-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+/* The year, cut out of the paint: the opening screen's one graphic. */
+.p-yearmark {
+  margin-top: auto;
+  padding-top: 32px;
+  margin-left: -0.04em;
+}
+@media (max-height: 759px) {
+  .p-yearmark { display: none; }
+  .p-crumbs { margin-top: auto; padding-top: 32px; }
+}
+.p-crumbs {
+  display: flex;
+  gap: 2px;
+  margin: 32px 0 0 -8px;
+  font-size: var(--t-p2);
+  line-height: 1;
+  text-transform: lowercase;
+}
+.p-crumbs a:not(.chip) {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 8px 1px;
+}
+/* Where the recording starts. It gives way to the row above it on a short screen. */
+.p-slot {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 24px;
+  width: min(calc(5 * var(--col) + 4 * var(--gap)), (73.4svh - 250px) * 1.52);
+}
+.p-slot > .frame { display: none; }
+
+.p-detail {
+  display: grid;
+  row-gap: clamp(88px, 9vw, 128px);
+  padding-top: 160px;
+  padding-bottom: var(--section);
+}
+/* The paragraph keeps the left columns and the recording lands on the right,
+   under the slot it started in, so its path never crosses the text. */
+.p-lead { align-items: start; }
+.p-lead-media { grid-column: 5 / 13; grid-row: 1; }
+.travel {
+  position: relative;
+  z-index: 3;
+  transform-origin: 0 0;
+  perspective: 1000px;
+  will-change: transform;
+}
+.travel-lean { will-change: transform; }
+.p-body {
+  grid-column: 1 / 5;
+  grid-row: 1;
+  max-width: 21.5em;
+  line-height: 1.2;
+  text-wrap: pretty;
+}
+.p-note { padding-top: 16px; }
+
+/* The wide page: the media in one column from the left, the recording at its
+   head, and the credits in a column that comes to rest beside it. */
+.p-detail--column {
+  row-gap: 0;
+  padding-top: 200px;
+  align-items: start;
+}
+.p-media {
+  grid-column: 1 / 8;
+  display: grid;
+  row-gap: var(--gap);
+  min-width: 0;
+}
+.p-media .p-body {
+  grid-column: auto;
+  grid-row: auto;
+  padding-block: 28px 72px;
+}
+/* Every frame after the first, numbered: a screen takes the column, phone screens stand two to a row. */
+.p-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 46px var(--gap);
+  align-items: start;
+  padding-top: 22px;
+}
+.p-column > .shot { grid-column: 1 / -1; }
+.p-column > .shot--half { grid-column: auto; }
+.p-media .diagram { margin-top: 46px; }
+.p-media .diagram-caption { padding-top: 24px; }
+.p-side {
+  grid-column: 9 / 13;
+  align-self: stretch;
+}
+.p-credits {
+  position: sticky;
+  top: 96px;
+  display: grid;
+  gap: 40px;
+  will-change: transform;
+}
+.credit-group { display: grid; gap: 14px; justify-items: start; }
+.credit-rows {
+  display: grid;
+  grid-template-columns: minmax(6em, auto) 1fr;
+  gap: 5px 28px;
+  padding-left: 8px;
+}
+.credit-rows dd { text-wrap: balance; }
+.credit-list {
+  display: grid;
+  gap: 5px;
+  padding-left: 8px;
+}
+
+.diagram { align-items: start; }
+.diagram-frame {
+  grid-column: 5 / 13;
+  grid-row: 1;
+  padding: 44px 40px;
+  color: var(--cream);
+}
+.diagram-frame svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+}
+.diagram-svg--narrow { display: none !important; }
+.diagram-caption {
+  grid-column: 1 / 5;
+  grid-row: 1;
+  max-width: 21.5em;
+  line-height: 1.2;
+  text-wrap: pretty;
+}
+
+/* A group of evidence: its name, then one or two rows, each at its own scale. */
+.p-group {
+  position: relative;
+  display: grid;
+  row-gap: var(--gap);
+}
+.p-group-label { justify-self: start; }
+.p-shots {
+  display: grid;
+  gap: var(--gap);
+  align-items: start;
+  /* Room for the frame numbers. */
+  padding-top: 20px;
+}
+.p-shots--pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* A screen and its phone counterpart, one height. */
+.p-shots--duo { display: flex; }
+.p-shots--duo > .shot { min-width: 0; }
+/* Three phone screens from the fourth column on; the group's name stands at the first. */
+.p-shots--phones { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.p-shots--phones > .shot { grid-column: span 3; }
+.p-shots--phones > .shot:first-child { grid-column: 4 / span 3; }
+.p-group:has(> .p-shots--phones) > .p-group-label {
+  position: absolute;
+  top: 20px;
+  left: 0;
+}
+
+.mw { padding-block: clamp(72px, 7vw, 104px) calc(var(--section) - 28px); }
+.mw .label { margin-bottom: 28px; }
+
+.notfound {
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  gap: 28px;
+  justify-items: start;
+}
+
+/* =========================================================================
+   PAGE CHANGE — the page that is leaving is held as a picture and dissolves
+   over the next one, whose parts are already arriving (PageChange.tsx). The
+   `data-leaving` rules are the plain fade of a browser without that.
+   ========================================================================= */
+::view-transition-group(root) { animation-duration: 260ms; }
+::view-transition-old(root) {
+  z-index: 1;
+  mix-blend-mode: normal;
+  animation: page-out 260ms cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+  animation: none;
+}
+@keyframes page-out {
+  to { opacity: 0; }
+}
+html[data-leaving] main {
+  opacity: 0;
+  transition: opacity 150ms var(--e1);
+  pointer-events: none;
+}
+html[data-leaving] .nav { pointer-events: none; }
+/* The paint is fading under the header: its links take the colour of the bare ground. */
+html[data-leaving] .nav[data-over='paint']:not(.is-moved) { color: var(--black); transition: color 150ms var(--e1); }
+html[data-leaving] .nav * { pointer-events: none; }
+
+/* =========================================================================
+   NARROW — one column. Frames go full width; names, arrow and "view" share a
+   line under them; the credits follow the frames.
+   ========================================================================= */
+@media (max-width: 860px) {
+  .about {
+    padding-top: 40px;
+    padding-bottom: 8px;
+    grid-template-rows: none;
+  }
+  .about-statement,
+  .about-portrait,
+  .about-fact,
+  .about-meta { grid-column: 1 / -1; grid-row: auto; }
+  .about-portrait {
+    margin-top: 40px;
+    aspect-ratio: 1;
+  }
+  .about-portrait .paint-window {
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+  }
+  .about-fact {
+    gap: 16px;
+    padding-top: 40px;
+    align-items: flex-start;
+  }
+  /* One column leaves the numeral no frame to stand against, so it grows to
+     span the first lines of its sentence and stays a window, not a bullet. */
+  .about-years {
+    font-size: clamp(112px, 30vw, 172px);
+    line-height: 0.76;
+    margin-bottom: 0;
+  }
+  .about-meta { padding-top: 28px; }
+
+  .stack { row-gap: 44px; margin-top: 20px; perspective: none; }
+  .stack-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 20px auto;
+    column-gap: 12px;
+    row-gap: 12px;
+    align-items: center;
+  }
+  .stack-frame { grid-column: 1 / -1; grid-row: 1; transform: none; }
+  .stack-item.is-active .stack-frame::before { transform: none; }
+  .stack-way, .stack-name, .stack-item[data-named] .stack-name { visibility: visible; animation: none; }
+  .stack-name { grid-column: 1; grid-row: 2; font-size: var(--t-h4); letter-spacing: -0.02em; }
+  .stack-arrow { grid-column: 2; grid-row: 2; width: 20px; height: 20px; }
+  .stack-arrow .arrow { width: 20px; height: 20px; }
+  .stack-view { grid-column: 3; grid-row: 2; font-size: var(--t-h4); letter-spacing: -0.02em; }
+  .stack-line {
+    display: block;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    color: var(--muted);
+  }
+  .pin { display: none; }
+  .selected-end { height: 40px; }
+
+  .wrow {
+    --box: 24px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    row-gap: 12px;
+    column-gap: 12px;
+    padding-block: 20px;
+    min-height: 0;
+  }
+  .wrow--big { --box: 28px; }
+  .wrow-arrow--l { display: none; }
+  .wrow-thumb { order: -1; width: 100%; }
+  .wrow-head {
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .wrow-title { flex: none; font-size: var(--t-h4); letter-spacing: -0.03em; }
+  .wrow--big .wrow-title { font-size: var(--t-h2); letter-spacing: -0.04em; }
+  .wrow-spacer { display: none; }
+  .wrow-tags {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    color: var(--muted);
+    white-space: normal;
+  }
+  .wrow-aside {
+    order: 6;
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    text-align: left;
+    color: var(--muted);
+    margin-top: -6px;
+  }
+
+  .cb-line:nth-child(n) { margin-left: 0; }
+  .cb-line:nth-child(1) { flex-wrap: wrap; column-gap: 0.22em; }
+  .cb-line:nth-child(2) { margin-left: calc(2 * (var(--col) + var(--gap))); }
+  .cb-line:nth-child(3) { justify-self: end; }
+  .span { position: relative; left: auto; top: auto; flex: 0 0 100%; order: 7; width: auto; height: 10px; margin-top: 2px; }
+  .cb-word { --from-scale: 0.33; }
+  .cb-note { position: static; text-align: left; margin-bottom: 28px; }
+
+  .closing-body { padding-top: 30svh; }
+  .contact-mail .wrow-title { flex: 1 1 0; font-size: 6.2vw; }
+  .channel {
+    grid-column: 1 / -1;
+    grid-template-columns: 6.5em 1fr;
+    align-items: center;
+  }
+  .footer { margin-top: 56px; row-gap: 12px; }
+  .footer-copy { grid-column: 1 / 3; grid-row: 2; white-space: nowrap; }
+  .footer-credit { grid-column: 1 / -1; grid-row: 1; justify-self: start; padding-top: 34px; }
+  .footer-end { grid-column: 3 / -1; grid-row: 2; justify-content: space-between; white-space: nowrap; }
+
+  .aw-open { padding-top: 104px; }
+  .aw-list { row-gap: 64px; }
+  .strip { display: block; margin-top: 28px; }
+  .strip > .shot:nth-child(n + 2) { display: none; }
+  .pieces-count, .pieces-note { grid-column: 1 / -1; }
+  .pieces-note { padding-top: 16px; padding-bottom: 0; }
+  .type-row { align-items: center; padding-block: 18px; }
+  .type-row .wrow-title { font-size: var(--t-h2); letter-spacing: -0.04em; }
+  .type-toggle { width: 28px; height: 28px; }
+  .type-list { grid-template-columns: minmax(0, 1fr); }
+
+  .p-open { min-height: 0; }
+  .p-open-in {
+    padding-top: 84px;
+    padding-bottom: 0;
+  }
+  .p-title { max-width: none; order: 1; }
+  .p-row {
+    order: 2;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 12px;
+    margin-top: 18px;
+  }
+  .p-kind, .p-desc { grid-column: 1; }
+  .p-kind { order: 2; color: var(--muted); }
+  .p-facts {
+    order: 3;
+    position: static;
+    width: auto;
+    margin-top: 24px;
+    gap: 16px;
+  }
+  .p-yearmark { display: none; }
+  /* The way back stands over the title, so nothing lies between the first picture and its place below. */
+  .p-crumbs { order: 0; margin: 0 0 14px -8px; }
+  .p-crumbs [aria-current] { display: none; }
+  .p-slot {
+    order: 4;
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    margin-top: 40px;
+  }
+
+  .p-detail { padding-top: 24px; row-gap: 72px; }
+  .p-lead, .diagram { display: block; }
+  .p-body { padding-top: 20px; }
+  .diagram-frame { padding: 28px 16px; }
+  .diagram-svg--wide { display: none !important; }
+  .diagram-svg--narrow { display: block !important; }
+  .diagram-caption { padding-top: 16px; }
+  .p-group { row-gap: 16px; }
+  .p-shots { gap: 34px 12px; }
+  .p-shots--pair { grid-template-columns: minmax(0, 1fr); }
+  .p-shots--duo { flex-direction: column; }
+  .p-shots--duo > .shot { flex: none !important; width: 100%; }
+  /* A phone screen is shown one at a time, at most of the column's width. */
+  .p-shots--duo > .shot--phone { width: 86%; }
+  .p-group:has(> .p-shots--phones) > .p-group-label { position: static; }
+  .p-shots--phones {
+    display: flex;
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+  .p-shots--phones::-webkit-scrollbar { display: none; }
+  .p-shots--phones > .shot {
+    flex: 0 0 calc((100vw - 2 * var(--gutter)) * 0.86);
+    scroll-snap-align: start;
+  }
+}
+
+@media (min-width: 861px) and (max-width: 1100px) {
+  .about-statement { grid-column: 1 / 9; }
+  /* The media column is too narrow here for the diagram's wide drawing to keep its text legible: the tall one stands in. */
+  .p-media .diagram-frame { padding: 28px 16px; }
+  .p-media .diagram-svg--wide { display: none !important; }
+  .p-media .diagram-svg--narrow { display: block !important; }
+}
+/* Where a title can run to two lines, the slot leaves the row under it clear. */
+@media (min-width: 861px) and (max-width: 1180px) {
+  .p-slot { width: min(calc(5 * var(--col) + 4 * var(--gap)), (73.4svh - 250px - var(--t-h1)) * 1.52); }
+}
+
+/* =========================================================================
+   REDUCED MOTION — everything is where it ends, from the first frame.
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .rise-line { transform: none; transition: none; }
+  .pop, .stack-item[data-named] .stack-name { animation: none; }
+  .roll-face,
+  .roll-face--next,
+  .wrow-title,
+  .wrow-tags,
+  .wrow-arrow--r,
+  .wrow-arrow--l,
+  .label-front,
+  .label-back,
+  .type-toggle,
+  .nav-top-only,
+  .stack-frame::before {
+    transition: none !important;
+    animation: none !important;
+  }
+  a.wrow:hover .wrow-arrow--l .arrow,
+  .wrow.is-near .wrow-arrow--r .arrow,
+  .cb:hover .cb-arrow .arrow,
+  .namehover-drop.is-on .namehover-drop-shape { animation: none; }
+  .cb-word { opacity: 1; transform: none; }
+  .stack-frame { transform: none; }
+  .dark-edge { display: none; }
+  html[data-leaving] main { transition: none; }
+  .nav, .nav.is-away:not(:has(:focus-visible)) { transition: opacity 250ms linear 0.4s; }
+  /* Nothing travels: the clip stays at its place and the opening shows a still of it. */
+  .p-slot > .frame { display: block; }
+  /* On the narrow page the recording already stands right under the slot: one picture, not two. */
+  @media (max-width: 860px) {
+    .p-slot { display: none; }
+  }
+  .travel { transform: none !important; }
+}
+
+/* =========================================================================
+   LOADER — the ink loader painted by index.html at first byte: an ink sheet
+   with ks. windows cut in it, a stand-in in the paint's colours behind the
+   windows, and two corner labels. main.tsx drives its exit. The same rules
+   are inlined in index.html so it paints before this stylesheet arrives.
+   ========================================================================= */
 #loader {
   position: fixed;
   inset: 0;
@@ -564,35 +1757,25 @@ html[data-loading='true'] {
   pointer-events: none;
   overflow: hidden;
 }
-
-/* Dim tricolor stand-in behind the windows: reads as paint before React
-   mounts the live shader (mirrors the hero fallback gradient). Subtly
-   animated (spec §3) via a compositor-cheap transform drift so the paint
-   breathes pre-React; the mount fade uses opacity (separate channel). */
 .loader-standin {
   position: absolute;
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(60% 80% at 20% 30%, rgba(230, 77, 102, 0.50), transparent 70%),
-    radial-gradient(50% 70% at 80% 25%, rgba(77, 128, 230, 0.50), transparent 70%),
-    radial-gradient(70% 60% at 55% 80%, rgba(230, 204, 77, 0.35), transparent 70%),
-    #0B0E14;
+    radial-gradient(60% 60% at 42% 46%, rgba(224, 48, 110, 0.95), transparent 75%),
+    radial-gradient(60% 60% at 72% 58%, rgba(141, 168, 242, 0.7), transparent 75%),
+    #D94300;
   opacity: 1;
   transition: opacity 300ms ease-out;
   animation: loaderStandinDrift 7s ease-in-out infinite alternate;
   will-change: transform;
 }
-
 @keyframes loaderStandinDrift {
   from { transform: scale(1) translate3d(0, 0, 0); }
   to   { transform: scale(1.05) translate3d(-1.5%, 1.5%, 0); }
 }
-
-/* On React mount main.tsx adds .loader--mounted → fade the stand-in so the
-   windows reveal the live (already-looping) hero canvas behind #loader. */
-#loader.loader--mounted .loader-standin { opacity: 0; }
-
+/* Once React has painted, the stand-in thins so the live paint moves behind it. */
+#loader.loader--mounted .loader-standin { opacity: 0.5; }
 .loader-ink {
   position: absolute;
   inset: 0;
@@ -600,7 +1783,6 @@ html[data-loading='true'] {
   width: 100%;
   height: 100%;
 }
-
 .loader-meta {
   position: absolute;
   z-index: 2;
@@ -608,1749 +1790,24 @@ html[data-loading='true'] {
   flex-direction: column;
   gap: 2px;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 400;
   line-height: 1.4;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   text-transform: lowercase;
-  color: #F5F2EC; /* --text — fallback hex */
+  color: #F5F2EC;
 }
-
+/* Hidden until their face has loaded (index.html), never seen in the fallback. */
+.loader-meta { visibility: hidden; }
+html[data-loader-font] .loader-meta { visibility: visible; }
 .loader-meta--bl { bottom: 28px; left: 28px; text-align: left; }
 .loader-meta--br { bottom: 28px; right: 28px; text-align: right; }
-
 @media (max-width: 640px) {
-  .loader-meta { font-size: 10px; }
-  .loader-meta--bl { left: 18px; }
-  .loader-meta--br { right: 18px; }
+  .loader-meta--bl { left: 20px; }
+  .loader-meta--br { right: 20px; }
 }
-
-/* Reduced motion: no explosion — fade the whole loader out; no stand-in drift. */
 @media (prefers-reduced-motion: reduce) {
   #loader { transition: opacity 150ms ease-out; }
   #loader.loader--exit { opacity: 0; }
   .loader-standin { transition: none; animation: none; }
-}
-
-/* Scramble lettering — cursor affordance + design-system focus ring.
-   The ::after underline on hover is for parity with the wider editorial feel:
-   a soft suggestion that the lettering is interactive, without committing to
-   button-like styling that would break the H1 silhouette. */
-.scramble {
-  cursor: pointer;
-  outline: none;
-  border-radius: 2px;
-  transition: text-decoration-color var(--dur-hover-in) var(--ease-house);
-}
-.scramble:focus-visible {
-  outline: 2px solid var(--blue-300);
-  outline-offset: 6px;
-}
-.scramble-static { /* reduced-motion fallback — render as plain text */ }
-
-/* =========================================================================
-   BUTTONS
-   ========================================================================= */
-.btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-family: inherit;
-  font-size: 13px; font-weight: 600;
-  text-transform: lowercase;
-  letter-spacing: 0.04em;
-  padding: 16px 28px;
-  border-radius: 999px;
-  transition: all var(--dur-hover-out) var(--ease-house);
-  white-space: nowrap;
-}
-.btn--primary {
-  background: var(--text);
-  color: var(--bg);
-}
-.btn--primary:hover {
-  background: var(--blue-400);
-  transform: translateY(-1px);
-}
-.btn--ghost {
-  background: transparent;
-  color: var(--text);
-  border: 1.5px solid var(--text);
-  padding: 14.5px 26.5px;
-}
-.btn--ghost:hover {
-  background: var(--text);
-  color: var(--bg);
-}
-.btn-arrow { display: inline-block; transition: transform var(--dur-hover-in) var(--ease-house); }
-.btn:hover { transition-duration: var(--dur-hover-in); }
-.btn:hover .btn-arrow { transform: translateX(3px); }
-.btn--ghost:hover .btn-arrow { transform: translateY(3px); }
-
-/* =========================================================================
-   SECTION SCAFFOLD
-   ========================================================================= */
-.section {
-  padding: 140px 80px;
-  max-width: 1440px;
-  margin: 0 auto;
-  position: relative;
-}
-.section--sand {
-  background: var(--bg-tonal);
-  max-width: none;
-  padding-left: 80px;
-  padding-right: 80px;
-}
-.section--sand > .section-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-}
-.section-header {
-  margin-bottom: 64px;
-  max-width: 720px;
-}
-.section-title {
-  font-size: clamp(44px, 6vw, 84px);
-  font-weight: 400;
-  color: var(--text);
-  margin: 0 0 20px;
-  text-transform: lowercase;
-  letter-spacing: -0.035em;
-  line-height: 0.98;
-}
-.section-title em {
-  font-style: italic;
-  font-weight: 400;
-  color: var(--blue-500);
-}
-.section-desc {
-  font-size: 17px;
-  color: var(--text-muted);
-  line-height: 1.7;
-  margin: 0;
-  text-transform: lowercase;
-  max-width: 560px;
-}
-/* Replaces ad-hoc 64px gaps between section heading and body content. */
-.section-spacing-content {
-  margin-top: 96px;
-}
-
-/* =========================================================================
-   PILL (tags)
-   ========================================================================= */
-.pill {
-  display: inline-block;
-  font-size: 11px; font-weight: 500;
-  color: var(--text-muted);
-  background: var(--bg-tonal);
-  border: 1px solid var(--hairline);
-  padding: 6px 12px;
-  border-radius: 999px;
-  text-transform: lowercase;
-  transition: all var(--dur-hover-in) var(--ease-house);
-}
-.pill:hover {
-  background: var(--blue-100);
-  border-color: var(--blue-200);
-  color: var(--text);
-}
-
-/* chip = filter variant of pill */
-.chip {
-  font-family: inherit;
-  font-size: 11px; font-weight: 500;
-  color: var(--bark);
-  background: var(--cream);
-  border: 1px solid var(--mist);
-  padding: 7px 14px;
-  border-radius: 999px;
-  text-transform: lowercase;
-  letter-spacing: 0.02em;
-  transition: all var(--dur-hover-in) var(--ease-house);
-}
-.chip:hover { border-color: var(--blue-300); color: var(--ink); }
-.chip.is-active {
-  background: var(--ink);
-  color: var(--cream);
-  border-color: var(--ink);
-}
-
-/* =========================================================================
-   WORK HISTORY (expandable WorkRows — see WORKROW primitive)
-   ========================================================================= */
-.work-list {
-  border-top: 1px solid var(--hairline);
-}
-.work-meta-line {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-  font-size: 13px;
-  text-transform: lowercase;
-  letter-spacing: 0.02em;
-  color: var(--text-faded);
-}
-.work-location {
-  color: var(--text-faded);
-}
-.work-mode-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: rgba(245, 242, 236, 0.08);
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: lowercase;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-}
-.work-mode-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--row-tint);
-}
-.work-bullets {
-  margin-bottom: 24px;
-  display: flex; flex-direction: column; gap: 10px;
-}
-.work-bullets li {
-  font-size: 14px;
-  color: var(--text-muted);
-  line-height: 1.6;
-  padding-left: 18px;
-  position: relative;
-  text-transform: lowercase;
-}
-.work-bullets li::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0.65em;
-  width: 8px; height: 1px;
-  background: var(--row-tint);
-}
-.work-highlight {
-  background: rgba(245, 242, 236, 0.06);
-  border-left: 3px solid var(--row-tint);
-  padding: 14px 20px;
-  border-radius: 0 10px 10px 0;
-  margin-bottom: 20px;
-  max-width: 640px;
-}
-.work-highlight-label {
-  font-size: 10px; font-weight: 600;
-  color: var(--row-tint);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  display: block;
-  margin-bottom: 4px;
-}
-.work-highlight p {
-  font-size: 13px;
-  color: var(--text);
-  line-height: 1.5;
-  margin: 0;
-  text-transform: lowercase;
-}
-.work-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-
-/* =========================================================================
-   SKILLS (3-col numbered columns)
-   ========================================================================= */
-.skills-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 56px;
-  max-width: 1100px;
-}
-.skills-col-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
-.skills-num {
-  font-size: 11px; font-weight: 600;
-  color: var(--text-faded);
-  letter-spacing: 0.1em;
-  font-variant-numeric: tabular-nums;
-}
-.skills-title {
-  font-size: 18px; font-weight: 600;
-  color: var(--text);
-  margin: 0;
-  text-transform: lowercase;
-  letter-spacing: -0.01em;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--hairline);
-  flex: 1;
-}
-.skills-list { display: flex; flex-direction: column; gap: 10px; }
-.skills-item {
-  display: flex; align-items: center; gap: 12px;
-  font-size: 14px;
-  color: var(--text-muted);
-  text-transform: lowercase;
-  padding: 8px 0;
-  border-bottom: 1px dashed transparent;
-  transition: all var(--dur-hover-in) var(--ease-house);
-}
-.skills-item:hover {
-  color: var(--text);
-  border-bottom-color: var(--accent-blue);
-  transform: translateX(3px);
-}
-.skills-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--accent-blue);
-  transition: all var(--dur-hover-in) var(--ease-house);
-  flex-shrink: 0;
-}
-/* Tricolor dots rotate by column index — skills-grid is a 3-col layout, so
-   nth-child(3n+k) targets the same visual column across every row. Stagger
-   wraps each .skills-col in its own motion.div, so the nth-child count must
-   run over .skills-grid's direct children (the wrappers), not .skills-col
-   itself. */
-.skills-grid > :nth-child(3n+1) .skills-dot { background: var(--accent-pink); }
-.skills-grid > :nth-child(3n+2) .skills-dot { background: var(--accent-blue); }
-.skills-grid > :nth-child(3n+3) .skills-dot { background: var(--accent-yellow); }
-.skills-item:hover .skills-dot {
-  transform: scale(1.6);
-}
-
-/* =========================================================================
-   PROJECTS — tinted WorkRow list (featured work)
-   ========================================================================= */
-.projects-list {
-  border-top: 1px solid var(--hairline);
-}
-
-/* =========================================================================
-   CONTACT / FOOTER STAGE (canvas #2 backdrop)
-   The stage owns the dark background so Contact + Footer sit transparent over
-   the FluidWaves backdrop canvas. --bg (#0B0E14) matches the shader's clear color, so
-   the stage reads seamless before the lazy canvas mounts / if WebGL fails.
-   ========================================================================= */
-.contact-footer-stage {
-  position: relative;
-  background: var(--bg);
-  isolation: isolate;
-}
-.contact-footer-stage > .section--contact,
-.contact-footer-stage > .footer {
-  position: relative;
-  z-index: 1;
-}
-
-/* =========================================================================
-   CONTACT (transparent over the stage)
-   ========================================================================= */
-.section--contact {
-  background: transparent;
-  color: var(--text);
-  padding: 160px 80px 120px;
-  max-width: none;
-}
-.contact-inner { max-width: 1100px; margin: 0 auto; }
-.contact-title {
-  font-size: clamp(80px, 14vw, 220px);
-  font-weight: 600;
-  line-height: 0.88;
-  letter-spacing: -0.05em;
-  text-transform: lowercase;
-  margin: 16px 0 32px;
-  color: var(--text);
-}
-.contact-title em {
-  font-style: italic;
-  font-weight: 500;
-  color: var(--blue-300);
-}
-.contact-lede {
-  font-size: 18px;
-  color: rgba(246, 249, 252, 0.6);
-  max-width: 560px;
-  line-height: 1.6;
-  margin: 0 0 56px;
-  text-transform: lowercase;
-}
-.contact-list { max-width: 880px; }
-.contact-row {
-  display: grid;
-  grid-template-columns: 48px 1fr auto 32px;
-  align-items: center;
-  gap: 20px;
-  padding: 24px 0;
-  border-bottom: 1px solid rgba(246, 249, 252, 0.12);
-  transition: all var(--dur-hover-out) var(--ease-house);
-}
-.contact-row:hover {
-  transition-duration: var(--dur-hover-in);
-  padding-left: 20px;
-  /* --color-accent-blue #4D80E6, not the retired light-era #3A96E8 */
-  background: linear-gradient(90deg, rgba(77, 128, 230, 0.06), transparent);
-}
-.contact-num {
-  font-size: 10px;
-  color: rgba(246, 249, 252, 0.4);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.1em;
-}
-.contact-label {
-  font-size: clamp(20px, 2.2vw, 32px);
-  font-weight: 500;
-  color: var(--text);
-  /* lowercase site voice — the light-era uppercase treatment is retired */
-  text-transform: lowercase;
-  letter-spacing: 0.02em;
-  /* inline-block + transform-origin so skewX animates from the left edge
-     without horizontal drift. font-weight is not interpolable so it
-     stays out of the transition list and snaps on hover; that's
-     imperceptible against the 400ms skew. */
-  display: inline-block;
-  transform: skewX(0);
-  transform-origin: 0 50%;
-  transition:
-    transform var(--dur-hover-out) var(--ease-house),
-    color var(--dur-hover-in) var(--ease-house);
-}
-/* Progressive skew replaces the previous font-style: italic swap, which
-   was an instant glyph-pop because Plus Jakarta Italic is a separate
-   font file with no slant axis. */
-.contact-row:hover .contact-label {
-  transform: skewX(-10deg);
-  color: var(--blue-300);
-  font-weight: 600;
-}
-.contact-label-arrow { display: inline-block; margin-left: 6px; opacity: 0; transition: opacity var(--dur-hover-in) var(--ease-house); }
-.contact-row:hover .contact-label-arrow { opacity: 1; }
-.contact-meta {
-  font-size: 13px;
-  /* --text #F5F2EC. Alpha .5→.62: AA over the 0.22-dimmed backdrop worst case
-     (rgb(57,56,41)) = 5.17:1. Hover-reveal opacity 0→1 is separate + untouched. */
-  color: rgba(245, 242, 236, 0.62);
-  text-transform: lowercase;
-  opacity: 0;
-  transform: translateX(8px);
-  transition: all var(--dur-hover-in) var(--ease-house);
-  white-space: nowrap;
-}
-.contact-row:hover .contact-meta { opacity: 1; transform: translateX(0); }
-.contact-icon {
-  font-size: 16px;
-  color: var(--blue-200);
-  text-align: center;
-}
-
-/* =========================================================================
-   FOOTER
-   ========================================================================= */
-.footer {
-  background: transparent;
-  color: var(--text);
-  padding: 60px 80px 40px;
-  border-top: 1px solid var(--hairline);
-}
-/* =========================================================================
-   FOOTER NAME
-   "kevin shibuya" set as a large lowercase typographic display — no outline
-   or trace trickery (the ink-draw marquee was retired in the WebGL pivot).
-   ========================================================================= */
-.footer-name {
-  margin: 0 0 48px;
-  font-size: clamp(48px, 10vw, 160px);
-  font-weight: 650;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  text-transform: lowercase;
-  color: var(--text);
-}
-.footer-bottom {
-  display: flex; justify-content: space-between; align-items: center;
-  padding-top: 24px;
-  border-top: 1px solid var(--hairline);
-  font-size: 11px;
-  color: var(--text-faded);
-  text-transform: lowercase;
-  letter-spacing: 0.04em;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-.footer-meta-left,
-.footer-meta-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.footer-meta-sep { opacity: 0.5; }
-.footer-lang {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-faded);
-  transition: color var(--dur-hover-in) var(--ease-house);
-}
-.footer-lang:hover { color: var(--text); }
-
-/* =========================================================================
-   RESPONSIVE
-   ========================================================================= */
-@media (max-width: 1100px) {
-  .nav, .section, .section--contact, .footer {
-    padding-left: 40px;
-    padding-right: 40px;
-  }
-  /* Hero children are absolutely positioned (padding on .hero would inset
-     the full-bleed canvas), so track the narrower page gutter directly. */
-  .hero-bottom { left: 40px; right: 40px; }
-}
-
-/* Skills steps down 3 → 2 → 1 col across desktop / tablet / mobile.
-   Kept on its own breakpoints (1024, 480) rather than the 1100 page-padding
-   break so tablets in the 720–1023 band get a 2-col layout instead of the
-   single tall column they had before. */
-@media (max-width: 1023px) {
-  .skills-grid { grid-template-columns: repeat(2, 1fr); gap: 48px; max-width: 720px; }
-}
-@media (max-width: 480px) {
-  .skills-grid { grid-template-columns: 1fr; gap: 40px; max-width: 560px; }
-}
-
-@media (max-width: 720px) {
-  .nav { padding: 12px 20px; }
-  /* Override the outer .nav.is-scrolled rule (which sets 12px 40px and
-     would win on specificity) so horizontal padding stays 20px on scroll. */
-  .nav.is-scrolled { padding: 12px 20px; }
-  .nav-links { display: none; }
-  .nav-inner { grid-template-columns: auto 1fr; }
-  .section, .section--contact, .footer {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-  .contact-row { grid-template-columns: 32px 1fr 24px; }
-  .contact-meta { display: none; }
-  .section-header { margin-bottom: 40px; }
-  .section { padding: 100px 20px; }
-
-  /* Hero on a phone: hug the 20px gutter, lift the bottom anchor off the
-     home indicator. */
-  .hero-bottom { left: 20px; right: 20px; bottom: 56px; gap: 14px; }
-}
-
-/* =========================================================================
-   LOADER SCROLL LOCK — keyed off body[data-loader-state="loading"], which
-   main.tsx sets on mount (and useScrollLockDuringEntrance mirrors it),
-   cleared when the entrance handoff resolves.
-   Belt-and-braces: lock both <html> and <body>; pin touch-action so iOS
-   Safari doesn't bypass overflow:hidden via momentum scroll.
-   ========================================================================= */
-html:has(body[data-loader-state="loading"]),
-body[data-loader-state="loading"] {
-  overflow: hidden;
-  overscroll-behavior: none;
-  touch-action: none;
-}
-
-/* =====================================================================
- * Project detail page
- * =====================================================================*/
-
-.project-detail-hero {
-  margin-bottom: 32px;
-}
-
-/* Scroll cue — sits between hero and first story block while user is at
-   scroll 0; fades out the moment they start scrolling so the first
-   mockup's reveal trigger isn't competing for attention. The slot owns
-   the layout space so AnimatePresence-driven unmount of the cue itself
-   doesn't shift the content below. */
-.scroll-cue-slot {
-  position: relative;
-  /* Owns ~96px of layout space so the absolutely-positioned cue (top: 48px,
-     ~30px tall) doesn't overlap whatever sits below it. The cue only fades
-     opacity (never unmounts), so claiming layout height costs nothing. */
-  height: 96px;
-  pointer-events: none;
-}
-.scroll-cue {
-  position: absolute;
-  top: 48px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--dust);
-  text-transform: uppercase;
-  letter-spacing: 0.22em;
-  white-space: nowrap;
-  user-select: none;
-  pointer-events: none;
-}
-.scroll-cue-arrow {
-  display: block;
-  font-size: 18px;
-  line-height: 1;
-  color: var(--blue-400);
-}
-
-.project-detail-back {
-  display: inline-block;
-  margin-bottom: 48px;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-  color: var(--bark);
-  text-decoration: none;
-  transition: color var(--dur-hover-in) var(--ease-house);
-}
-.project-detail-back:hover { color: var(--blue-400); }
-@media (max-width: 720px) {
-  .project-detail-back {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-  }
-}
-
-.project-detail-eyebrow {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--blue-400);
-  margin-bottom: 12px;
-}
-
-.project-detail-title {
-  font-size: clamp(40px, 7vw, 104px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 0.95;
-  margin: 0 0 16px;
-  /* A project name keeps its own capitals (ADR 0014): no text-transform. */
-  color: var(--ink);
-}
-.project-detail-title-word {
-  display: inline-block;
-  white-space: nowrap;
-}
-
-.project-detail-tagline {
-  font-size: clamp(16px, 1.4vw, 20px);
-  line-height: 1.4;
-  color: var(--bark);
-  max-width: 620px;
-  margin: 0 0 24px;
-}
-
-.project-detail-ctas {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 32px;
-}
-
-.project-detail-stat-row {
-  display: flex;
-  gap: 32px;
-  flex-wrap: wrap;
-  margin: 24px 0 0;
-  padding: 0;
-}
-.project-detail-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 0;
-}
-.project-detail-stat-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--ink);
-  margin: 0;
-}
-.project-detail-stat-label {
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-  color: var(--dust);
-  margin: 0;
-}
-
-.project-detail-cover {
-  border-radius: 18px;
-  aspect-ratio: 16 / 9;
-  margin: 40px 0;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-}
-.project-detail-cover-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.project-detail-cover-fallback {
-  color: rgba(17, 24, 34, 0.2);
-  font-family: var(--font-sans);
-  font-weight: 700;
-  text-transform: lowercase;
-  font-size: clamp(32px, 4vw, 56px);
-}
-
-/* Story column — narrow reading width with full-bleed breakouts */
-.project-detail-story {
-  max-width: 1280px;
-  margin: 0 auto;
-}
-.project-detail-paragraph,
-.project-detail-heading,
-.project-detail-pullquote,
-.project-detail-route-list,
-.project-detail-figure--inset {
-  max-width: 620px;
-  margin-left: auto;
-  margin-right: auto;
-}
-.project-detail-paragraph {
-  font-size: 17px;
-  line-height: 1.7;
-  color: var(--ink);
-  margin: 0 auto 1.4em;
-}
-.project-detail-paragraph em {
-  color: var(--blue-400);
-  font-style: italic;
-}
-.project-detail-paragraph strong {
-  font-weight: 600;
-  color: var(--ink);
-}
-.project-detail-paragraph .prose-link {
-  color: var(--blue-400);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  text-decoration-thickness: 1px;
-}
-
-.project-detail-heading--h2 h2 {
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin: 32px auto 16px;
-  text-transform: lowercase;
-  color: var(--ink);
-}
-.project-detail-heading--h3 h3 {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 24px auto 12px;
-  text-transform: lowercase;
-  color: var(--ink);
-}
-
-.project-detail-pullquote {
-  position: relative;
-  padding: 8px 0 8px 18px;
-  margin: 32px auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.project-detail-pullquote-stripe {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 2px;
-  background: var(--blue-400);
-  transform-origin: top;
-  display: block;
-}
-.project-detail-pullquote-text {
-  display: block;
-  font-style: italic;
-  font-size: 22px;
-  line-height: 1.4;
-  color: var(--blue-400);
-}
-.project-detail-pullquote-cite {
-  font-style: normal;
-  font-size: 12px;
-  color: var(--dust);
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-}
-
-.project-detail-divider {
-  border: 0;
-  border-top: 1px solid var(--mist);
-  margin: 48px auto;
-  max-width: 620px;
-}
-
-/* Figures: inset stays in the column; wide breaks out to story container; bleed = full viewport */
-.project-detail-figure { margin: 40px 0; }
-.project-detail-figure--inset { width: 100%; }
-.project-detail-figure--wide { max-width: 1280px; margin-left: auto; margin-right: auto; }
-.project-detail-figure--bleed {
-  width: 100vw;
-  position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-}
-.project-detail-figure-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 14px;
-}
-.project-detail-figure--bleed .project-detail-figure-img { border-radius: 0; }
-.project-detail-figure-caption {
-  font-size: 12px;
-  color: var(--dust);
-  letter-spacing: 0.04em;
-  margin-top: 8px;
-  text-align: center;
-}
-
-.project-detail-figure-pair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  max-width: 1280px;
-  margin: 40px auto;
-}
-.project-detail-figure-pair-item { margin: 0; }
-@media (max-width: 720px) {
-  .project-detail-figure-pair { grid-template-columns: 1fr; }
-}
-
-.project-detail-figure-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
-  max-width: 1280px;
-  margin: 40px auto;
-}
-.project-detail-figure-grid-item { margin: 0; }
-
-.project-detail-route-list { margin: 32px auto; }
-.project-detail-route-list-summary {
-  cursor: pointer;
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--blue-400);
-  margin-bottom: 12px;
-}
-@media (max-width: 720px) {
-  .project-detail-route-list-summary {
-    /* Grow the box to >= 44px tap target via padding rather than flex,
-       so <summary>'s native disclosure marker (default list-item display)
-       isn't stripped on mobile. */
-    padding-block: 14px;
-  }
-}
-.project-detail-route-list-items {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  row-gap: 6px;
-  column-gap: 16px;
-}
-/* Tighter than the rest of the file's 720px mobile cutoff: the desktop grid
-   `240px 1fr` only overruns once the second track collapses below ~24px,
-   which happens at viewport widths under ~340px. 480px catches the small
-   phones without disturbing 600–720px tablets that have plenty of room. */
-@media (max-width: 480px) {
-  .project-detail-route-list-items {
-    grid-template-columns: 1fr;
-    /* `display: contents` flattens each <li> so cells flow path₁/label₁/
-       path₂/label₂. A uniform row-gap would blur pairs into each other,
-       so we tighten the gap and add inter-route spacing on the label. */
-    row-gap: 4px;
-    column-gap: 0;
-  }
-  .project-detail-route-label { margin-bottom: 10px; }
-}
-.project-detail-route-list-item { display: contents; }
-.project-detail-route-path {
-  font-family: ui-monospace, monospace;
-  font-size: 12px;
-  color: var(--blue-400);
-}
-.project-detail-route-label {
-  font-size: 13px;
-  color: var(--bark);
-}
-
-.project-detail-stack { text-align: center; margin: 64px 0 32px; }
-.project-detail-stack-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--blue-400);
-  margin-bottom: 16px;
-}
-.project-detail-stack-chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-}
-
-/* ============================================================
-   Editorial digest v3 — Pitch / MockupFrame / WhatShipped / MobileTrickRow
-   Used on highlight project detail pages.
-   Tech stack lives in the legacy .project-detail-stack-* rules above.
-   ============================================================ */
-
-/* Shared inline tokens — match .project-detail-paragraph treatment */
-.project-detail-pitch em,
-.project-detail-what-shipped-text em,
-.project-detail-mobile-trick-text em {
-  color: var(--blue-400);
-  font-style: italic;
-}
-.project-detail-pitch strong,
-.project-detail-what-shipped-text strong,
-.project-detail-mobile-trick-text strong {
-  font-weight: 600;
-  color: var(--ink);
-}
-.project-detail-pitch code,
-.project-detail-what-shipped-text code,
-.project-detail-mobile-trick-text code,
-.project-detail-paragraph code {
-  background: var(--sand);
-  color: var(--bark);
-  padding: 0.05em 0.4em;
-  border-radius: 6px;
-  font-family: ui-monospace, monospace;
-  font-size: 0.92em;
-}
-
-/* Pitch — option C: deck-style lead with blue rule above */
-.project-detail-pitch {
-  max-width: 680px;
-  margin: 32px auto 64px;
-  font-size: clamp(20px, 2vw, 28px);
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--bark);
-  text-align: justify;
-}
-.project-detail-pitch::before {
-  content: "";
-  display: block;
-  width: 28px;
-  height: 2px;
-  background: var(--blue-400);
-  margin: 0 0 20px;
-}
-
-/* MockupFrame — framed, centered, max-width constrained */
-.project-detail-mockup-frame {
-  margin: 64px auto 80px;  /* more breathing room between mockup zones */
-  display: block;
-}
-.project-detail-mockup-frame--desktop { max-width: 880px; }
-.project-detail-mockup-frame--mobile  { max-width: 320px; }
-.project-detail-mockup-frame img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 14px;
-  object-fit: contain;
-}
-
-/* WhatShipped — full-width prose block above the mobile mockup */
-.project-detail-what-shipped {
-  max-width: 720px;
-  margin: 80px auto 32px;
-}
-.project-detail-what-shipped-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--blue-400);
-  margin: 0 0 12px;
-}
-.project-detail-what-shipped-text {
-  font-size: 17px;
-  line-height: 1.6;
-  color: var(--ink);
-  margin: 0;
-  text-align: justify;
-}
-
-/* MobileTrickRow — mobile mockup left, trick prose right; stacks at <720px */
-.project-detail-mobile-trick {
-  max-width: 880px;
-  margin: 32px auto 96px;
-  display: grid;
-  grid-template-columns: minmax(0, 320px) 1fr;
-  gap: 64px;
-  align-items: center;
-}
-@media (max-width: 720px) {
-  .project-detail-mobile-trick {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-}
-.project-detail-mobile-trick .project-detail-mockup-frame {
-  margin: 0;
-}
-.project-detail-mobile-trick-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--blue-400);
-  margin: 0 0 12px;
-}
-.project-detail-mobile-trick-text {
-  font-size: 17px;
-  line-height: 1.6;
-  color: var(--ink);
-  margin: 0;
-  text-align: justify;
-}
-@media (max-width: 720px) {
-  .project-detail-pitch,
-  .project-detail-what-shipped-text,
-  .project-detail-mobile-trick-text {
-    text-align: left;
-  }
-}
-
-.project-detail-footnotes {
-  max-width: 620px;
-  margin: 32px auto;
-  font-style: italic;
-  color: var(--dust);
-}
-.project-detail-footnotes-label {
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  font-style: normal;
-  color: var(--dust);
-  margin-bottom: 6px;
-}
-.project-detail-footnotes-list {
-  list-style: disc;
-  padding-left: 1.2em;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-/* FLUID WAVES (canvas #1) */
-.fluid-waves-canvas,
-.fluid-waves-fallback {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-/* No-WebGL fallback: layered tricolor radials so the hero never renders
-   black-on-black — same principle as the live shader: the paint reads raw and
-   the hero text sits plain on it (documented AA exemption, see .hero-zone
-   note). The topmost cream layer mirrors the shader's cream dissolve so the
-   bottom ~23% (≈30svh of the 130svh section) melts into the page. */
-.fluid-waves-fallback {
-  background:
-    linear-gradient(to top,
-      var(--color-surface-light) 0%,
-      rgba(245, 242, 236, 0) 23%,
-      rgba(245, 242, 236, 0) 100%),
-    radial-gradient(60% 80% at 20% 30%, rgba(230, 77, 102, 0.42), transparent 70%),
-    radial-gradient(50% 70% at 80% 25%, rgba(77, 128, 230, 0.42), transparent 70%),
-    radial-gradient(70% 60% at 55% 80%, rgba(230, 204, 77, 0.30), transparent 70%),
-    var(--bg);
-}
-
-/* Backdrop variant (canvas #2, contact/footer stage). Opaque paint dimmed to
-   an AA-verified murmur via CSS over the stage ink. 0.22 (not ~0.32): keeps
-   contact/footer accent + faded text ≥ 4.5:1 over worst-case dimmed yellow
-   (Task 7 contrast table). */
-.fluid-waves-canvas--backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  opacity: 0.22;
-  filter: saturate(0.7);
-}
-
-/* =========================================================================
-   WORKROW — shared tinted typographic row primitive
-   (WorkExperience, and the stream's case-study rows.)
-   Open editorial rows: index · oversized title (a name keeps its capitals) ·
-   ·-joined meta · trailing ↗ / + arrow. Per-row shader tint via --row-tint
-   (set inline by the component). The list OWNER draws the top hairline; the
-   primitive only draws row bottoms.
-   ========================================================================= */
-.workrow {
-  position: relative;
-  border-bottom: 1px solid var(--hairline);
-}
-
-.workrow-link,
-.workrow-toggle {
-  display: flex;
-  align-items: center;
-  gap: clamp(16px, 2.4vw, 40px);
-  width: 100%;
-  padding: clamp(18px, 2.6vw, 34px) 0;
-  color: inherit;
-  text-align: left;
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font: inherit;
-}
-.workrow-toggle {
-  cursor: pointer;
-}
-
-.workrow-index {
-  flex: none;
-  font-size: clamp(11px, 1vw, 13px);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-  color: var(--text-faded);
-  transition: color var(--dur-hover-in) var(--ease-house);
-}
-
-.workrow-title {
-  font-size: clamp(28px, 4.6vw, 64px);
-  font-weight: 550;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  color: var(--text);
-  transition: color var(--dur-hover-in) var(--ease-house);
-}
-
-.workrow-meta {
-  display: inline-flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  font-size: clamp(11px, 1vw, 13px);
-  /* site voice is lowercase everywhere; archive types arrive UPPERCASE from the CSV */
-  text-transform: lowercase;
-  color: var(--text-faded);
-}
-.workrow-meta-item + .workrow-meta-item::before {
-  content: "·";
-  margin: 0 0.55em;
-  color: var(--text-faded);
-}
-
-
-.workrow-arrow {
-  flex: none;
-  margin-left: auto;
-  font-size: clamp(18px, 1.8vw, 24px);
-  line-height: 1;
-  color: var(--text-faded);
-  transition:
-    color var(--dur-hover-in) var(--ease-house),
-    transform var(--dur-hover-in) var(--ease-house);
-}
-
-/* Hover / focus: title + arrow take the row tint / full cream. */
-.workrow-link:hover .workrow-title,
-.workrow-toggle:hover .workrow-title,
-.workrow:focus-within .workrow-title {
-  color: var(--row-tint);
-}
-.workrow-link:hover .workrow-arrow,
-.workrow-link:hover .workrow-index,
-.workrow-toggle:hover .workrow-arrow,
-.workrow-toggle:hover .workrow-index,
-.workrow:focus-within .workrow-arrow,
-.workrow:focus-within .workrow-index {
-  color: var(--text);
-}
-
-/* Static (non-link) rows don't invite interaction. */
-.workrow-link--static {
-  cursor: default;
-}
-
-/* Expandable variant: `+` rotates to `×` when open. */
-.workrow-toggle[aria-expanded="true"] .workrow-arrow {
-  transform: rotate(45deg);
-}
-.workrow-panel {
-  padding: 0 0 clamp(20px, 2.4vw, 34px);
-  color: var(--text-muted);
-}
-
-/* Focus ring — visible cream ring per spec. */
-.workrow-link:focus-visible,
-.workrow-toggle:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 4px;
-  border-radius: 4px;
-}
-
-/* THE exit veil (cream→ink): the single tonal bridge out of the light chapter,
-   between Skills' bottom and the Contact/Footer stage. Owned by Home.tsx, where
-   it is deliberately a SIBLING of #chapter-light and not a child — its gradient
-   ends in var(--bg), which the wrapper's token scope resolves to cream, so
-   nesting it would erase the fade. Pure tone: no shader, no text ever.
-   There is no matching entry veil; the hero side is handled in the shader by
-   FluidWaves' cream dissolve across the hero's lower band. */
-.chapter-exit-veil {
-  height: 30svh;
-  /* First stop MUST equal the background of #chapter-light's LAST child.
-     Skills carries .section--sand, i.e. the tonal step, so starting this fade
-     on plain cream put a faint 1.08:1 hard edge at the one seam whose whole
-     purpose is not having one. light-chapter.spec.ts test 5 asserts the two
-     agree, so a reorder of the chapter's last section cannot silently re-break it. */
-  background: linear-gradient(to bottom, var(--color-surface-light-tonal) 0%, var(--bg) 100%);
-}
-
-/* =========================================================================
-   CARD LINKS — the scene's keyboard and screen-reader path (Projects.tsx)
-   One visually hidden link per corridor card (ADR 0011). Focusing one surfaces
-   it as a pill at the top of the viewport and travels the camera to its card.
-   Canonical tokens only — the light chapter's scope inverts them.
-   ========================================================================= */
-
-/* The CONTAINER is fixed, and that is the whole trick. Every link's clipped 1px
-   box then sits inside the viewport at every scroll position, so the browser's
-   focus-scroll — which runs BEFORE :focus-visible applies, and reads the
-   clipped box — has nothing to do, and the eased Lenis travel is the only
-   scroll. An absolutely-positioned container at the section's top would
-   native-scroll the window there on every Tab.
-
-   The z-index lives HERE, not on the link: `position: fixed` always
-   establishes a stacking context, so a link's own z-index cannot leave this
-   container. That is also why the list is a sibling of .scene-scroll and not a
-   child of .scene-sticky, whose sticky stacking context would trap the pill
-   under the nav at z-index 100.
-
-   overflow stays `visible` and there is no clip-path here, or the pill is
-   re-clipped by its own parent. */
-.scene-cardlinks {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  width: 0;
-  height: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  overflow: visible;
-  z-index: 120;
-  pointer-events: none;
-}
-
-/* The items carry no box of their own, so the rule below reaches the links. */
-.scene-cardlinks li {
-  display: contents;
-}
-
-/* clip-path, never overflow: hidden — that would make every link its own
-   scroll container, and a focused child inside one shifts the stage. */
-.scene-cardlink {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 1px;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-/* :focus-visible is keyboard-only, so a mouse user never sees the pill and the
-   canvas keeps its hover. pointer-events stays inherited-none, pill included.
-   No transition: this is a focus indicator, not an animation. */
-.scene-cardlink:focus-visible {
-  width: auto;
-  height: auto;
-  clip-path: none;
-  transform: translateX(-50%);
-  max-width: min(90vw, 720px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: 1px solid var(--hairline);
-  background: var(--bg);
-  color: var(--text);
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.2;
-  /* The link's text is the project name, which keeps its capitals (ADR 0014). */
-}
-
-/* =========================================================================
-   STREAM — every piece, year by year (Stream.tsx), on All work
-   Canonical tokens only.
-   ========================================================================= */
-
-.stream--visible {
-  width: min(1440px, 100% - 160px);
-  margin: 96px auto 0;
-}
-
-.stream-title {
-  /* EXPLICIT, and the muted siblings below are why this is easy to miss: the
-     light chapter inverts TOKENS, not inherited colour, so an element with no
-     `color` of its own keeps `body`'s cream and renders cream on cream. */
-  color: var(--text);
-  font-size: clamp(56px, 11.6vw, 168px);
-  font-weight: 550;
-  letter-spacing: -0.035em;
-  line-height: 0.86;
-  text-transform: lowercase;
-}
-.stream-total {
-  margin-top: 12px;
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.stream-year {
-  display: grid;
-  grid-template-columns: 160px minmax(0, 1fr);
-  gap: 0 40px;
-  margin-top: 56px;
-  padding-top: 34px;
-  border-top: 1px solid var(--hairline);
-}
-.stream-year-label {
-  color: var(--text);
-  position: sticky;
-  top: 120px;
-  align-self: start;
-  font-size: 34px;
-  font-weight: 300;
-  line-height: 1;
-}
-.stream-year-count {
-  display: block;
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.stream-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-/* The dense row: everything that is not a case study. */
-.stream-row {
-  display: flex;
-  align-items: flex-start;
-  gap: clamp(16px, 2.4vw, 34px);
-  padding: 15px 0;
-  border-bottom: 1px solid var(--hairline);
-  text-decoration: none;
-  color: inherit;
-}
-.stream-serial {
-  flex: none;
-  width: 48px;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.6;
-  color: var(--text-muted);
-}
-.stream-body {
-  min-width: 0;
-  flex: 1;
-}
-.stream-row-title {
-  color: var(--text);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  font-size: 17px;
-  font-weight: 500;
-  line-height: 1.25;
-  transition: color var(--dur-hover-in) var(--ease-house);
-}
-.stream-row-meta {
-  display: block;
-  margin-top: 6px;
-  font-size: 13px;
-  color: var(--text-muted);
-  text-transform: lowercase;
-}
-.stream-row-meta-item + .stream-row-meta-item::before {
-  content: "·";
-  margin: 0 0.55em;
-  color: var(--text-faded);
-}
-.stream-row-arrow {
-  flex: none;
-  margin-left: auto;
-  font-size: 18px;
-  line-height: 1.4;
-  color: var(--text-muted);
-  transition: color var(--dur-hover-in) var(--ease-house);
-}
-
-/* Mirrors WorkRow's hover: the title takes the row's tint, the arrow comes up
-   to full text. On ink (All work) that is the raw tricolor; the light chapter
-   re-points it at the deep-large channel, as it does for WorkRow. */
-.stream--visible .stream-row:hover .stream-row-title,
-.stream--visible .stream-row:focus-within .stream-row-title {
-  color: var(--row-tint);
-}
-.chapter-light .stream--visible .stream-row:hover .stream-row-title,
-.chapter-light .stream--visible .stream-row:focus-within .stream-row-title {
-  color: var(--row-tint-deep-large);
-}
-.stream--visible .stream-row:hover .stream-row-arrow,
-.stream--visible .stream-row:focus-within .stream-row-arrow {
-  color: var(--text);
-}
-.stream--visible .stream-row:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 4px;
-  border-radius: 4px;
-}
-
-/* The serial is rendered once per row, so WorkRow's own ordinal — which counts
-   position, not serial — would be a second, wrong number. */
-.stream .workrow-index {
-  display: none;
-}
-/* Re-declared from the retired id-scoped rule, by class this time, so the
-   selector no longer carries the retired section's prefix and the deletion
-   audit in Task 8 stays a real audit. */
-.stream .workrow-title {
-  font-size: clamp(20px, 2.6vw, 34px);
-}
-
-/* All work: the page's own column is `.section`'s, so the Stream drops the
-   in-chapter gutter and top margin it carries on the home page. */
-.all-work .stream--visible {
-  width: auto;
-  margin: 0;
-}
-
-@media (max-width: 900px) {
-  /* One inline row: the label and its count side by side, no sticky column. */
-  .stream-year {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .stream-year-label {
-    position: static;
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    font-size: 28px;
-  }
-  .stream-year-count {
-    display: inline;
-    margin-top: 0;
-  }
-}
-
-@media (max-width: 720px) {
-  .stream--visible {
-    width: calc(100% - 40px);
-  }
-  .stream-serial {
-    width: 32px;
-    font-size: 11px;
-  }
-  .stream-row-title {
-    font-size: 16px;
-  }
-  .stream-row-meta {
-    font-size: 12px;
-  }
-  .stream .workrow-link {
-    padding: 22px 0;
-  }
-}
-
-/* =========================================================================
-   LIGHT CHAPTER — scoped on-light token inversion (Plan B)
-   The wrapper is #chapter-light in Home.tsx and spans Projects → Skills.
-   Re-declaring the canonical tokens here flips every descendant rule that
-   already reads them, with no per-rule edits: that is the whole mechanism,
-   and it is why T4 moved the chapter's rules off the legacy aliases first.
-   The ONE thing this scope cannot reach is an inline custom property, so the
-   --row-tint* channels set on .workrow style attributes stay raw tricolor
-   and every consumer of one is overridden explicitly below.
-   ========================================================================= */
-.chapter-light {
-  background: var(--color-surface-light);
-
-  --bg:            var(--color-surface-light);
-  --bg-tonal:      var(--color-surface-light-tonal);
-  --text:          var(--color-ink-on-light);
-  --text-muted:    var(--color-ink-on-light-muted);
-  --text-faded:    var(--color-ink-on-light-muted); /* A2: forced — no AA-passing step exists between muted and ink */
-  --hairline:      var(--color-hairline-on-light);
-  --accent-pink:   var(--color-accent-pink-deep);
-  --accent-blue:   var(--color-accent-blue-deep);
-  --accent-yellow: var(--color-accent-yellow-deep); /* decorative only in the chapter (.skills-dot) */
-
-  /* The @theme --color-* names carry the same roles and are what Tailwind emits
-     at the use site (e.g. `text-text-muted` compiles to var(--color-text-muted)).
-     Nothing in the chapter reads one today — verified by grep — but CLAUDE.md
-     tells the next author that canonical work uses these names, so leaving them
-     un-scoped would make that instruction silently produce cream on cream.
-     Kept in lockstep with the six shorthands above. */
-  --color-bg:           var(--color-surface-light);
-  --color-bg-tonal:     var(--color-surface-light-tonal);
-  --color-text:         var(--color-ink-on-light);
-  --color-text-muted:   var(--color-ink-on-light-muted);
-  --color-text-faded:   var(--color-ink-on-light-muted);
-  --color-accent-pink:  var(--color-accent-pink-deep);
-  --color-accent-blue:  var(--color-accent-blue-deep);
-  --color-accent-yellow: var(--color-accent-yellow-deep);
-}
-
-/* 1. Title emphasis reads --blue-500 outside the scope. (A5) */
-.chapter-light .section-title em {
-  color: var(--accent-blue);
-}
-
-/* 2. The row ORDINAL keeps a faded step. (A2)
-   Specificity is deliberate and determinate: this is (0,2,0), while the hover
-   lifts below are (0,3,0), so hovering still raises it to ink.
-   .workrow-arrow is deliberately NOT in this rule. On the expandable variant it
-   is the only visible cue that the row opens, inside a <button aria-expanded>,
-   which makes it a state indicator under WCAG 1.4.11 (3:1) — and being
-   aria-hidden does not exempt it, since 1.4.11 is about sighted users. The
-   faded step is 2.62:1 on cream. It therefore falls through to --text-faded,
-   which the scope above remaps to the muted value: 5.23:1. On the dark side it
-   sat at ~7.9:1, which is why this only surfaces on light. */
-.chapter-light .workrow-index {
-  color: var(--color-ink-on-light-faded);
-}
-
-/* 3. Row title hover tint → the LARGE-text deep triplet, so the tricolor
-   rotation survives on cream (the yellow row goes olive-gold, 4.94:1 on a
-   28-64px title). Mirrors the dark rule's selector list, prefixed to outrank it. */
-.chapter-light .workrow-link:hover .workrow-title,
-.chapter-light .workrow-toggle:hover .workrow-title,
-.chapter-light .workrow:focus-within .workrow-title {
-  color: var(--row-tint-deep-large);
-}
-
-/* 4. Award label is small text → the small-text-safe deep channel. */
-.chapter-light .work-highlight-label {
-  color: var(--row-tint-deep);
-}
-
-/* 5. Decorative marks → the large/decorative channel, so the yellow slot stays
-   visible as olive instead of raw #E6CC4D at 1.43 on cream. */
-.chapter-light .work-mode-dot,
-.chapter-light .work-bullets li::before {
-  background: var(--row-tint-deep-large);
-}
-.chapter-light .work-highlight {
-  border-left-color: var(--row-tint-deep-large);
-}
-
-/* 6. Cream-alpha surfaces are invisible on cream; restate them as ink-alpha. */
-.chapter-light .work-mode-pill {
-  background: rgba(11, 14, 20, 0.06);
-}
-.chapter-light .work-highlight {
-  background: rgba(11, 14, 20, 0.04);
-}
-
-/* 7. The dark pill hover (--blue-100/--blue-200) has no canonical equivalent. */
-.chapter-light .pill:hover {
-  background: rgba(11, 14, 20, 0.06);
-  border-color: var(--accent-blue);
-  color: var(--text);
-}
-
-/* =========================================================================
-   SELECTED WORK — SCENE (R3F corridor, scroll-driven camera dolly)
-   Replaces the retired pinned card stack. The card, the title and the
-   corridor all live INSIDE the canvas now; what is left here is the pinned
-   shell, the DOM overlay that rides the front card, and the no-WebGL
-   fallback. Canonical tokens only — the light chapter's scope inverts them.
-   ========================================================================= */
-.projects-scene-section {
-  overflow: visible; /* never clip the sticky descendant */
-  background: var(--color-surface-light);
-  /* FULL-BLEED, deliberately: the stage is a viewport, not a column. The
-     corridor overflows the frame by design (a card mid-approach, the overture
-     growing past 0.7 of the width), and that overflow has to clip at the
-     VIEWPORT edge to read as bleed. Under `.section`'s 1440 cap and 80px
-     gutters it clipped 80px inside instead — a hard vertical edge standing on
-     cream. Overrides `.section` and its 20px phone gutter by source order. */
-  max-width: none;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.scene-scroll {
-  position: relative;
-  /* height is inline, from SCENE_WRAPPER_SVH in Projects.tsx */
-  margin-top: 96px;
-}
-.scene-sticky {
-  position: sticky;
-  top: 0;
-  height: 100svh;
-  overflow: hidden;
-}
-.scene-inner {
-  position: relative;
-  height: 100%;
-}
-
-/* The canvas fills the pinned stage and fades in once the scene has mounted,
-   so a cover popping in never lands mid-scroll. Its clear colour is the
-   section cream, so the edge is invisible before and after the fade. */
-.scene-canvas-wrap {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.4s var(--ease-house);
-}
-.scene-canvas-wrap[data-ready='true'] { opacity: 1; }
-.scene-canvas-wrap canvas { display: block; width: 100%; height: 100%; }
-
-
-/* No-WebGL fallback — the four projects as framed cards in normal flow.
-   Same anatomy as the in-scene card, so losing the scene loses the motion,
-   not the design. No pin, no canvas. */
-.scene-fallback {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  /* The section is full-bleed, so the fallback carries its own gutter — it is
-     ordinary flow content, not stage. */
-  width: min(620px, 100% - 40px);
-  margin: 96px auto 0;
-}
-.scene-fallback-card {
-  background: #FFFFFF;
-  border: 1px solid var(--color-hairline-on-light);
-  border-radius: 16px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.scene-fallback-frame {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9.5;
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--color-surface-light-tonal);
-}
-.scene-fallback-frame img {
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: top;
-  display: block;
-}
-.scene-fallback-body {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 0 4px;
-}
-.scene-fallback-labels { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.scene-fallback-name {
-  margin: 0;
-  font-size: clamp(14px, 1.4vw, 16px);
-  font-weight: 700;
-  color: var(--color-ink-on-light);
-  /* The project name keeps its capitals (ADR 0014); the subtitle stays lowercase. */
-  letter-spacing: -0.01em;
-}
-.scene-fallback-subtitle {
-  margin: 0;
-  font-size: 13px;
-  color: var(--color-ink-on-light-muted);
-  text-transform: lowercase;
-  font-variant-numeric: tabular-nums;
-}
-.scene-fallback-link {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 16px;
-  border-radius: 999px;
-  background: var(--color-ink-on-light);
-  color: var(--color-surface-light);
-  font-size: 13px;
-  text-transform: lowercase;
-  white-space: nowrap;
-  text-decoration: none;
-}
-.scene-fallback-link:focus-visible {
-  outline: 2px solid var(--color-ink-on-light);
-  outline-offset: 3px;
-}
-
-/* More work — the highlighted projects past the corridor's four, as WorkRows,
-   then the volume sentence. Ordinary flow content in a full-bleed section, so
-   it carries the .section gutters itself. Canonical tokens only: the chapter's
-   scope turns them into the on-light steps, and no new pair is introduced. */
-.more-work {
-  width: min(1280px, 100% - 160px);
-  margin: 96px auto 0;
-}
-.more-work-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  /* The list owner draws the top hairline; WorkRow draws row bottoms. */
-  border-top: 1px solid var(--hairline);
-}
-.more-work-volume {
-  margin-top: 28px;
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--text-muted);
-}
-.more-work-volume a {
-  color: var(--text);
-  text-decoration: underline;
-  text-decoration-color: var(--hairline);
-  text-underline-offset: 4px;
-}
-.more-work-volume a:hover {
-  text-decoration-color: currentColor;
-}
-.more-work-volume a:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 4px;
-  border-radius: 4px;
-}
-@media (max-width: 720px) {
-  .more-work { width: calc(100% - 40px); }
 }
