@@ -34,6 +34,8 @@ How it works: `docs/architecture.md` and `GLOSSARY.md` describe the site before 
 
 **Second release, 2026-11-15 (UTC).** PR #61 merged `staging` into `main` on Kevin's go-ahead of the same day, given for that release ("until everything is properly merged into main and pushed to prod"): the mobile fixes, the content brought in step with the CV, and two new case studies (PR #59). Production has served it since 16:08 UTC, about 90 s after the merge; `main` was at `caf34d2` before it, which is the tip to put back with step 1 above if he calls for a rollback. The standing rule above still holds for anything further.
 
+**Third release, 2026-11-15 (UTC).** PR #65 merged `staging` into `main` on Kevin's go-ahead of the same day, given for that release ("until everything I asked for is properly merged into main and published to production"): Consilia IA as the first case study, Barber app and Peleia Gre-Nal removed, the work index in its new order, and project names set as written (PR #63). Production has served it since 21:09 UTC, about 40 s after the merge; `main` was at `25e41dd` before it, which is the tip to put back with step 1 above if he calls for a rollback. The standing rule above still holds for anything further.
+
 Nothing was lost in that incident because `staging` retained every commit. Keep it that way: **never roll back by deleting work from `staging` or `ai-staging`.**
 
 ## The site, version 4
