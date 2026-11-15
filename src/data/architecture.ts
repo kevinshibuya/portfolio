@@ -236,7 +236,7 @@ export const architectures: Record<string, Architecture> = {
         label: { en: 'every night', pt: 'toda noite' },
         nodes: [
           { label: { en: 'cleanup', pt: 'limpeza' }, sub: { en: '03:00 São Paulo', pt: '03:00 São Paulo' } },
-          { label: 'Storage', sub: { en: 'unchosen deleted', pt: 'descartes apagados' }, kind: 'store' },
+          { label: 'Storage', sub: { en: 'unchosen gone', pt: 'sobras apagadas' }, kind: 'store' },
         ],
       },
     ],
