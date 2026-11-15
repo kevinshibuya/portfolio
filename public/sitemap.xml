@@ -8,9 +8,15 @@
   </url>
   <url>
     <loc>https://kevinshibuya.com/all-work</loc>
-    <lastmod>2026-10-18</lastmod>
+    <lastmod>2026-11-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://kevinshibuya.com/projects/consilia-ia</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://kevinshibuya.com/projects/radar-legislativo</loc>
@@ -32,12 +38,6 @@
   </url>
   <url>
     <loc>https://kevinshibuya.com/projects/ia-na-redacao</loc>
-    <lastmod>2026-05-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://kevinshibuya.com/projects/peleia-gre-nal</loc>
     <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -68,12 +68,6 @@
   </url>
   <url>
     <loc>https://kevinshibuya.com/projects/promptfall</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://kevinshibuya.com/projects/barber-app</loc>
     <lastmod>2026-11-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

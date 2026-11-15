@@ -27,6 +27,17 @@ describe('WorkRow', () => {
     expect(link.querySelector('.wrow-tags')).toHaveTextContent('2026, finished, never launched')
   })
 
+  it('a project\'s name is marked to be set as written; any other title keeps the display type\'s lowercase', () => {
+    wrap(
+      <>
+        <WorkRow to="/projects/consilia-ia" title="Consilia IA" asWritten />
+        <WorkRow to="/all-work" title="all work" />
+      </>,
+    )
+    expect(screen.getByRole('link', { name: /consilia ia/i }).querySelector('.wrow-title')).toHaveClass('as-written')
+    expect(screen.getByRole('link', { name: /all work/i }).querySelector('.wrow-title')).not.toHaveClass('as-written')
+  })
+
   it('an outside address opens in a new tab without an opener', () => {
     wrap(<WorkRow href="https://example.com/x" title="outside" mark="out" />)
     const link = screen.getByRole('link')

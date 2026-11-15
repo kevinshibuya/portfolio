@@ -1,6 +1,83 @@
 import type { Project } from '../types/content'
 
 export const projects: Project[] = [
+  // Facts from the product's repository (private) at its main branch on 2026-11-10: its architecture
+  // document, its nine decision records and the code they name. The role is the one the product's own
+  // landing page states. No price, no model name and no person but Kevin appears here.
+  {
+    id: 'consilia-ia',
+    kind: { en: 'AI briefings for legislative offices', pt: 'briefings com IA para gabinetes' },
+    line: {
+      en: 'Before each commitment on a legislator’s agenda, the office gets a briefing in which every line says where it came from.',
+      pt: 'Antes de cada compromisso da agenda de um parlamentar, o gabinete recebe um briefing em que cada linha diz de onde veio.',
+    },
+    body: {
+      en: 'A product for the offices of Brazilian legislators, built as its co-founder and CTO. It reads what the legislative houses publish and what the office itself keeps, writes the briefing for each commitment on the agenda and answers questions in a chat. One Next.js app on one Postgres: the database keeps each office apart, and a citation loses its number when the quote is not in the source.',
+      pt: 'Um produto para gabinetes de parlamentares brasileiros, construído como cofundador e CTO. Ele lê o que as casas legislativas publicam e o que o próprio gabinete guarda, escreve o briefing de cada compromisso da agenda e responde perguntas em um chat. Um app Next.js sobre um Postgres: o banco separa um gabinete do outro, e uma citação perde o número quando o trecho citado não está na fonte.',
+    },
+    slug: 'consilia-ia',
+    title: { en: 'Consilia IA', pt: 'Consilia IA' },
+    year: 2026,
+    client: 'Consilia IA',
+    role: { en: 'co-founder and CTO', pt: 'cofundador e CTO' },
+    team: { en: 'sole engineer, with Claude Code agents', pt: 'único engenheiro, com agentes do Claude Code' },
+    status: 'live',
+    summary: {
+      en: 'Preparation copilot for the offices of Brazilian legislators: a briefing, questions and context for each commitment on the agenda, every line tied to its source.',
+      pt: 'Copiloto de preparação para gabinetes de parlamentares brasileiros: briefing, perguntas e contexto para cada compromisso da agenda, cada linha ligada à sua fonte.',
+    },
+    result: {
+      en: 'One Next.js app on one Postgres, 19 tables under row-level security, and a landing page with a WebGL corridor',
+      pt: 'Um app Next.js sobre um Postgres, 19 tabelas sob segurança por linha e uma landing page com um corredor em WebGL',
+    },
+    shots: {
+      desktop: [
+        { en: 'Landing page: the wordmark over the documents', pt: 'Landing page: o nome sobre os documentos' },
+        { en: 'The app’s Hoje screen: the day’s agenda and suggested questions', pt: 'A tela Hoje do app: a agenda do dia e as perguntas sugeridas' },
+        { en: 'Landing page: the dive through the wordmark', pt: 'Landing page: o mergulho por dentro do nome' },
+        { en: 'Landing page: a question and its answer, typed in', pt: 'Landing page: uma pergunta e sua resposta, digitada' },
+        { en: 'Landing page: the sources carousel', pt: 'Landing page: o carrossel das fontes' },
+        { en: 'Landing page: an answer, annotated line by line', pt: 'Landing page: uma resposta, anotada linha a linha' },
+        { en: 'Landing page: the corridor, at the agenda', pt: 'Landing page: o corredor, na agenda' },
+        { en: 'Landing page: the corridor, at the phone message', pt: 'Landing page: o corredor, na mensagem do celular' },
+        { en: 'Landing page: one panel for each legislative house', pt: 'Landing page: um painel para cada casa legislativa' },
+        { en: 'Landing page: the principles', pt: 'Landing page: os princípios' },
+        { en: 'The week’s agenda, each commitment with its state', pt: 'A agenda da semana, cada compromisso com seu estado' },
+        { en: 'A briefing: what will happen, what to do', pt: 'Um briefing: o que vai acontecer, o que fazer' },
+        { en: 'A chat answer with its citations', pt: 'Uma resposta do chat com as citações' },
+        { en: 'A source open in the reader, the cited passage marked', pt: 'Uma fonte aberta no leitor, com o trecho citado marcado' },
+        { en: 'The office’s documents and the public collection', pt: 'Os documentos do gabinete e a coleção pública' },
+      ],
+      mobile: { count: 7, height: 1039 },
+    },
+    order: 1,
+    description: {
+      en: 'Consilia IA, a preparation copilot for the offices of Brazilian legislators: before each commitment on the agenda it writes the office’s briefing, and every line says where it came from. Built as co-founder and CTO: one Next.js app on Postgres with isolation enforced by the database, and a landing page with a scroll-driven WebGL corridor.',
+      pt: 'Consilia IA, um copiloto de preparação para gabinetes de parlamentares brasileiros: antes de cada compromisso da agenda ele escreve o briefing do gabinete, e cada linha diz de onde veio. Construído como cofundador e CTO: um app Next.js sobre Postgres com isolamento garantido pelo banco, e uma landing page com um corredor em WebGL guiado pelo scroll.',
+    },
+    stats: [
+      { value: '19', label: { en: 'tables under RLS', pt: 'tabelas sob RLS' } },
+      { value: '3', label: { en: 'retrieval arms', pt: 'braços de busca' } },
+      { value: '9', label: { en: 'recorded decisions', pt: 'decisões registradas' } },
+    ],
+    pitch: {
+      en: 'A *preparation copilot* for the offices of Brazilian legislators: before each commitment on the agenda it writes the briefing, split into what will happen and what to do, and *every line says where it came from*.',
+      pt: 'Um *copiloto de preparação* para gabinetes de parlamentares brasileiros: antes de cada compromisso da agenda ele escreve o briefing, dividido em o que vai acontecer e o que fazer, e *cada linha diz de onde veio*.',
+    },
+    whatShipped: {
+      en: 'The app is *one Next.js 16 application on one Postgres*, with a private storage bucket and one model module that every call passes through. There is no worker and no external queue: jobs are rows the app drains by posting to itself, one job per pass under an advisory lock, and every screen polls. Documents go in as pages, sections and passages, with OCR for scanned pages, and land in *pgvector*; paid ingestion output is stored by content hash, so the same file is never paid for twice. The *landing page* is a separate Vite package, prerendered in Portuguese and English: a scroll-driven dive through the wordmark, a raw WebGL shader field under the navy sections, and a three.js corridor the camera dollies through, which falls back to a stacked list under reduced motion or without WebGL2.',
+      pt: 'O app é *uma aplicação Next.js 16 sobre um Postgres*, com um bucket privado de arquivos e um único módulo de modelos por onde toda chamada passa. Não há worker nem fila externa: os jobs são linhas que o app drena postando para si mesmo, um job por passada sob um advisory lock, e toda tela faz polling. Os documentos entram como páginas, seções e trechos, com OCR nas páginas digitalizadas, e vão para o *pgvector*; a saída paga da ingestão é guardada pelo hash do conteúdo, então o mesmo arquivo nunca é pago duas vezes. A *landing page* é um pacote Vite separado, pré-renderizado em português e inglês: um mergulho por dentro do nome guiado pelo scroll, um campo de shader em WebGL puro sob as seções azul-marinho e um corredor em three.js que a câmera atravessa, que vira uma lista empilhada com movimento reduzido ou sem WebGL2.',
+    },
+    trick: {
+      en: 'Isolation between offices is *enforced by the database*, not by the application: a request runs as a login role that cannot bypass row-level security, inside a transaction that names the acting user, so a query that forgets the user returns nothing. Retrieval fuses up to *three ranked arms* (the question, the question with the one before it, and a keyword search on its rare words only) by reciprocal rank fusion, which puts a passage two arms agree on above one arm’s first hit. And a citation carries the exact words it rests on: the render checks them against the passage, and *a quote the source does not hold loses its number*.',
+      pt: 'O isolamento entre gabinetes é *garantido pelo banco*, não pela aplicação: uma requisição roda com um papel de login que não pode contornar a segurança por linha, dentro de uma transação que nomeia o usuário, então uma query que esquece o usuário não devolve nada. A busca funde até *três braços ranqueados* (a pergunta, a pergunta junto com a anterior e uma busca por palavra-chave só nas palavras raras) por reciprocal rank fusion, que põe um trecho em que dois braços concordam acima do primeiro resultado de um braço só. E uma citação carrega as palavras exatas em que se apoia: a renderização confere essas palavras com o trecho, e *uma citação que a fonte não contém perde o número*.',
+    },
+    techStack: [
+      'Next.js 16', 'React 19', 'TypeScript', 'PostgreSQL', 'pgvector', 'Prisma', 'Supabase', 'AI SDK',
+      'assistant-ui', 'Tailwind CSS', 'Vite', 'three.js', 'GSAP', 'Lenis', 'Vercel', 'Cloudflare Pages',
+    ],
+    liveUrl: 'https://consiliaia.com.br',
+  },
   {
     id: 'radar-legislativo',
     kind: { en: 'legislative data platform', pt: 'plataforma de dados legislativos' },
@@ -95,7 +172,7 @@ export const projects: Project[] = [
       ],
       mobile: { count: 3, height: 939 },
     },
-    order: 3,
+    order: 4,
     description: {
       en: 'Long-running data dashboard for GZH tracking every public and private real spent on reconstruction after the May 2024 floods in Rio Grande do Sul.',
       pt: 'Painel de dados sempre atualizado para a GZH, que monitora cada real (público e privado) investido na reconstrução após as enchentes de maio de 2024 no Rio Grande do Sul.',
@@ -169,7 +246,7 @@ export const projects: Project[] = [
       ],
       mobile: { count: 3, height: 939 },
     },
-    order: 1,
+    order: 3,
     description: {
       en: 'Poll/survey system for GZH: a backoffice for the newsroom and an embed widget journalists drop into articles, sharing one Firestore backend.',
       pt: 'Sistema de enquetes para a GZH: um backoffice para a redação e um widget de embed que os jornalistas plugam direto nas matérias, rodando sobre um único Firestore.',
@@ -237,7 +314,7 @@ export const projects: Project[] = [
       ],
       mobile: { count: 0, height: 1214 },
     },
-    order: 5,
+    order: 7,
     description: {
       en: 'AI chat tool for GZH editors and product managers: ask in plain Portuguese ("qual o mês com mais acessos em 2025?") and get back a formatted analyst answer over the newsroom\'s BigQuery audience data. Built as an MVP for Lab IA 2026 (Abraji + Google + Plexus + Blue Engine Collaborative): the multi-agent workflow proved out end-to-end, but the tool never went to production in the newsroom. Plexus\'s investment is what takes it there.',
       pt: 'ferramenta de chat com IA pros editores e PMs da GZH: perguntam em português direto ("qual o mês com mais acessos em 2025?") e recebem uma resposta analítica formatada, batendo no BigQuery de audiência da redação. construído como MVP do Lab IA 2026 (Abraji + Google + Plexus + Blue Engine Collaborative): o pipeline multi-agente funcionou fim a fim, mas a ferramenta não chegou a virar produto na redação. é justamente esse o salto que o investimento da Plexus banca.',
@@ -296,7 +373,7 @@ export const projects: Project[] = [
       ],
       mobile: { count: 3, height: 1214 },
     },
-    order: 9,
+    order: 8,
     description: {
       en: 'A special-feature page for Grupo RBS introducing how AI is being used inside their newsrooms: video testimonials from journalists, opinion articles, and the editorial guidelines that frame the use. Shipped as an MVP to validate internal adoption before scaling into a full platform.',
       pt: 'Página especial do Grupo RBS mostrando como a IA já está sendo usada dentro das redações: depoimentos em vídeo de jornalistas, artigos de opinião e as diretrizes editoriais que orientam esse uso. Lançado como MVP para validar a adoção interna antes de investir numa evolução maior.',
@@ -350,7 +427,7 @@ export const projects: Project[] = [
       ],
       mobile: { count: 3, height: 939 },
     },
-    order: 7,
+    order: 10,
     description: {
       en: 'Year-end photo retrospective for GZH: a curated longform of the most striking images of 2025, presented as an immersive scroll experience.',
       pt: 'Retrospectiva fotográfica de fim de ano para a GZH: um longform curado das imagens mais marcantes de 2025, montado como uma leitura imersiva guiada pelo scroll.',
@@ -373,65 +450,6 @@ export const projects: Project[] = [
       pt: 'O scroll é todo comandado pelos *hooks de scroll do Motion*, com escopo por seção. Um único valor de progresso alimenta os deslocamentos de parallax, as revelações por opacidade, a compressão de largura das fotos e o deslize vertical da coluna do autor, tudo em `transform` e `opacity` para o trabalho ficar na GPU. As posições dos thumbnails são determinísticas e memoizadas entre frames de scroll.',
     },
     techStack: ['React', 'TypeScript', 'Vite', 'TailwindCSS', 'Framer Motion'],
-  },
-  {
-    id: 'peleia-gre-nal',
-    kind: { en: 'card game', pt: 'jogo de cartas' },
-    line: {
-      en: 'A Super Trunfo duel on the Gre-Nal derby: 56 player cards, ten rounds against the house.',
-      pt: 'Um duelo de Super Trunfo sobre o Gre-Nal: 56 cartas de jogadores, dez rodadas contra a máquina.',
-    },
-    body: {
-      en: 'A one-route app whose whole game is a state machine in the client: intro, rules, pick a side, then ten rounds of draw, choose a stat and read the result, and a podium. Card reveals play in two beats, the opponent’s card first, then the winning stat.',
-      pt: 'Um app de rota única em que o jogo inteiro é uma máquina de estados no cliente: abertura, regras, escolha do time, dez rodadas de sacar, escolher um atributo e ler o resultado, e um pódio. As cartas se revelam em dois tempos: primeiro a do adversário, depois o atributo vencedor.',
-    },
-    slug: 'peleia-gre-nal',
-    title: { en: 'Peleia Gre-Nal', pt: 'Peleia Gre-Nal' },
-    year: 2024,
-    client: 'GZH',
-    // Drafted from the repo history and the CV, then corrected and confirmed by Kevin (2026-11-14).
-    role: { en: 'front-end', pt: 'front-end' },
-    team: { en: '1 developer, GZH newsroom', pt: '1 dev, redação GZH' },
-    status: 'published',
-    summary: {
-      en: 'A Super Trunfo card duel on the Gre-Nal, Porto Alegre’s football derby, for GZH’s sports desk.',
-      pt: 'Um duelo de Super Trunfo sobre o Gre-Nal, o clássico de Porto Alegre, para a editoria de esportes da GZH.',
-    },
-    result: {
-      en: '56 player cards, ten rounds against the house',
-      pt: '56 cartas de jogadores, dez rodadas contra a máquina',
-    },
-    shots: {
-      desktop: [
-        { en: 'Intro screen', pt: 'Tela de abertura' },
-        { en: 'Pick a side', pt: 'A escolha do time' },
-        { en: 'A round in play', pt: 'Uma rodada em jogo' },
-      ],
-      mobile: { count: 3, height: 1214 },
-    },
-    order: 8,
-    description: {
-      en: 'An interactive piece on the Gre-Nal, Porto Alegre’s historic football derby, built for GZH’s sports editorial.',
-      pt: 'Peça interativa sobre o Gre-Nal, o clássico histórico de Porto Alegre, feita para a editoria de esportes da GZH.',
-    },
-    stats: [
-      { value: '10', label: { en: 'rounds', pt: 'rodadas' } },
-      { value: '56', label: { en: 'cards', pt: 'cartas' } },
-      { value: '2', label: { en: 'squads', pt: 'elencos' } },
-    ],
-    pitch: {
-      en: 'A *Super Trunfo card duel* themed around Porto Alegre’s Gre-Nal: pick a side, play ten rounds against the house, watch a podium decide it.',
-      pt: 'Um *duelo de Super Trunfo* no clima do Gre-Nal: escolha um lado, dispute dez rodadas contra a máquina e deixe o pódio decidir o resultado.',
-    },
-    whatShipped: {
-      en: 'A single-route React + Vite SPA with Emotion styling. Game progression is a *client-side state machine* (intro → rules → team picker → 10 × {draw → stat-pick → result} → podium) with no URL transitions. All roster data, player stats, and matchup logic ship as static assets: 56 athlete portraits, four stat icons, podium illustrations.',
-      pt: 'SPA React + Vite de rota única com Emotion. A progressão do jogo é uma *máquina de estados no cliente* (intro → regras → escolha de time → 10 × {saca → escolhe atributo → resultado} → pódio), sem trocar de URL. Todos os dados de elenco, atributos e a lógica de confronto vão como assets estáticos: 56 retratos, quatro ícones de atributo e as ilustrações de pódio.',
-    },
-    trick: {
-      en: 'The *gangorra* (a score-delta momentum visualization) swaps between three pre-baked WebP illustrations via Framer Motion easing. Card-flip reveals are choreographed in *two sequential phases*: opponent card reveal first, then stat-row highlight on the winning attribute, producing a TV-style result read rather than a single-frame cut. A portrait-orientation gate enforces vertical layout.',
-      pt: 'A *gangorra* (uma visualização do momentum em cima da diferença de pontos) alterna entre três WebPs pré-renderizados com easing do Framer Motion. E as viradas de carta são coreografadas em *duas fases sequenciais*: primeiro a carta do adversário é virada, depois o atributo vencedor é destacado na linha, uma leitura no ritmo da televisão, não um corte seco. No celular, uma trava de orientação retrato segura o layout no vertical.',
-    },
-    techStack: ['React', 'TypeScript', 'D3.js'],
   },
   {
     id: 'hotmart-bunde',
@@ -469,7 +487,7 @@ export const projects: Project[] = [
       mobile: { count: 3, height: 1214 },
     },
     origin: 'freelance',
-    order: 4,
+    order: 6,
     description: {
       en: 'Sales landing page for Política Essencial, a Brazilian online course teaching political fundamentals from zero through 50+ hours of video lessons by 17 social-media communicators. Pure conversion funnel: no auth, no cart, no payment surface; checkout lives on Hotmart.',
       pt: 'Landing page de vendas do Política Essencial, curso online brasileiro que ensina os fundamentos da política do zero, em mais de 50 horas de vídeo-aulas ministradas por 17 comunicadores de redes sociais. Um funil de conversão puro: sem login, sem carrinho, sem área de pagamento; o checkout fica no Hotmart.',
@@ -529,7 +547,7 @@ export const projects: Project[] = [
       ],
       mobile: { count: 3, height: 1214 },
     },
-    order: 6,
+    order: 9,
     description: {
       en: 'Year-end photojournalism retrospective for Zero Hora: eight staff photographers, each contributing one image from the May 2024 Rio Grande do Sul floods. Scroll-driven editorial gallery with sticky wordmark and embedded video testimonials.',
       pt: 'Retrospectiva fotojornalística de fim de ano da Zero Hora: oito fotógrafos do quadro, uma imagem de cada sobre as enchentes de maio de 2024 no Rio Grande do Sul. Galeria editorial comandada pelo scroll, com wordmark fixo e depoimentos em vídeo.',
@@ -570,7 +588,7 @@ export const projects: Project[] = [
     title: { en: 'Promptfall', pt: 'Promptfall' },
     year: 2026,
     origin: 'personal',
-    order: 10,
+    order: 5,
     // Shown through the `project.personal` label, since `origin` is personal.
     client: 'Kevin Shibuya',
     // The README: features start as a spec and decisions, agents in Claude Code build the tickets, the owner reviews each batch.
@@ -621,67 +639,5 @@ export const projects: Project[] = [
     },
     techStack: ['TypeScript', 'Node.js', 'Claude Code plugins', 'SQLite', 'Zod', 'Vitest', 'Docker', 'Caddy', 'Cloudflare R2'],
     githubUrl: 'https://github.com/kevinshibuya/promptfall',
-  },
-  {
-    id: 'barber-app',
-    kind: { en: 'AI haircut previews', pt: 'prévias de corte com IA' },
-    line: {
-      en: 'A photo of the client in the chair becomes 17 AI previews of hair and beard styles.',
-      pt: 'Uma foto do cliente na cadeira vira 17 prévias de corte e barba feitas por IA.',
-    },
-    body: {
-      en: 'A phone app for barbers in Brazil, in Portuguese. The barber records the client’s consent and takes up to four photos; the moment the front one is uploaded, a worker renders that client in all 12 hair styles and 5 beard styles, so the picker fills in while the barber is still talking. Then a look, an after photo, and a link for the client.',
-      pt: 'Um app de celular para barbeiros no Brasil, em português. O barbeiro registra o consentimento do cliente e tira até quatro fotos; assim que a frontal sobe, um worker gera o cliente nos 12 cortes e nas 5 barbas do catálogo, e as opções vão aparecendo enquanto o barbeiro ainda conversa. Depois vêm o visual escolhido, a foto do depois e um link para o cliente.',
-    },
-    slug: 'barber-app',
-    // The README's working title: the app has no name yet.
-    title: { en: 'Barber app', pt: 'App de barbearia' },
-    year: 2026,
-    origin: 'personal',
-    order: 11,
-    // Shown through the `project.personal` label, since `origin` is personal.
-    client: 'Kevin Shibuya',
-    // The README: each milestone starts as a spec, agents in Claude Code build the tickets, the owner reviews each pull request.
-    role: { en: 'specs, decisions, review', pt: 'specs, decisões, revisão' },
-    team: { en: 'solo, with Claude Code agents', pt: 'solo, com agentes do Claude Code' },
-    status: 'building',
-    summary: {
-      en: 'A phone app where a barber photographs the client in the chair and shows them AI previews of hair and beard styles on their own face before cutting.',
-      pt: 'Um app de celular em que o barbeiro fotografa o cliente na cadeira e mostra prévias de corte e barba feitas por IA no rosto dele, antes de cortar.',
-    },
-    result: {
-      en: '17 previews queued per front photo, from a provider chosen by a 144-render bake-off',
-      pt: '17 prévias na fila a cada foto frontal, de um provedor escolhido num teste de 144 imagens',
-    },
-    shots: {
-      desktop: [
-        { en: 'Bake-off, nano-banana-2.1: the same person in every column', pt: 'Teste de provedores, nano-banana-2.1: a mesma pessoa em todas as colunas' },
-        { en: 'Bake-off, flux-klein: the face and shirt change across a row', pt: 'Teste de provedores, flux-klein: o rosto e a camisa mudam ao longo da linha' },
-      ],
-      mobile: { count: 7, height: 1067 },
-    },
-    description: {
-      en: 'A phone app for barbers in Brazil: photograph the client in the chair and show them AI previews of 12 hair styles and 5 beard styles on their own face before cutting. A work in progress: milestone 1 runs as a demo Android APK, and the CRM, an iOS build, a store listing and a name do not exist yet.',
-      pt: 'Um app de celular para barbeiros no Brasil: fotografe o cliente na cadeira e mostre prévias de 12 cortes e 5 barbas feitas por IA no rosto dele, antes de cortar. Em andamento: o marco 1 roda como um APK Android de demonstração, e o CRM, a versão iOS, a publicação na loja e um nome ainda não existem.',
-    },
-    stats: [
-      { value: '17', label: { en: 'previews a visit', pt: 'prévias por visita' } },
-      { value: '12', label: { en: 'hair styles', pt: 'cortes' } },
-      { value: '5', label: { en: 'beard styles', pt: 'barbas' } },
-    ],
-    pitch: {
-      en: 'A *barber’s phone app* for the moment a client says “something shorter, maybe a fade?”: the answer is the client’s own face, in *17 AI previews* that render while the barber is still talking.',
-      pt: 'Um *app de celular para barbeiros* para a hora em que o cliente diz “algo mais curto, talvez um degradê?”: a resposta é o próprio rosto dele, em *17 prévias feitas por IA* que ficam prontas enquanto o barbeiro ainda conversa.',
-    },
-    whatShipped: {
-      en: 'An *Expo app* and a *NestJS worker* over Supabase. Milestone 1 runs as a demo, an Android APK against a cloud Supabase project, with the owner’s dashboard (six numbers for the week and month) and offline tolerance built on top. Uploads survive a dropped connection, row-level security keeps each barber inside their own shop, and a nightly job removes the images of unchosen previews after seven days. The CRM with bookings, an iOS build, a store listing and a name do not exist yet.',
-      pt: 'Um *app em Expo* e um *worker em NestJS* sobre o Supabase. O marco 1 roda como demonstração, um APK Android apontado para um projeto Supabase na nuvem, com o painel do dono (seis números da semana e do mês) e a tolerância a ficar offline construídos por cima. Os uploads sobrevivem a uma queda de conexão, a segurança por linha mantém cada barbeiro dentro da própria barbearia, e um job noturno apaga as imagens das prévias não escolhidas depois de sete dias. O CRM com agendamentos, a versão iOS, a publicação na loja e um nome ainda não existem.',
-    },
-    trick: {
-      en: 'The image provider was picked by a *measured bake-off*: on 2026-10-22, 4 photos times 12 hair styles went through three providers, 144 renders for about $5.14. `nano-banana-2.1` kept the person in all 48 of its renders at $0.037 each; `flux-klein`, the cheapest at $0.030 and the fastest at 2.8 s, often lost them. The next step is decided, not built: render each style from the original photo and *paste back only its hair or beard region*, because a beard rendered on top of a hair render drifted until the model returned a different person in a different barbershop.',
-      pt: 'O provedor de imagem saiu de um *teste medido*: em 2026-10-22, 4 fotos vezes 12 cortes passaram por três provedores, 144 imagens por cerca de US$ 5,14. O `nano-banana-2.1` manteve a pessoa nas 48 imagens dele, a US$ 0,037 cada; o `flux-klein`, o mais barato a US$ 0,030 e o mais rápido a 2,8 s, perdia a pessoa com frequência. O próximo passo está decidido, ainda não construído: gerar cada estilo a partir da foto original e *colar de volta só a região do cabelo ou da barba*, porque uma barba gerada por cima de um corte já gerado foi se desviando até o modelo devolver outra pessoa em outra barbearia.',
-    },
-    techStack: ['Expo', 'React Native', 'NativeWind', 'NestJS', 'Supabase', 'PostgreSQL', 'Jest', 'Docker', 'Caddy'],
-    githubUrl: 'https://github.com/kevinshibuya/barber-app',
   },
 ]

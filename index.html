@@ -133,7 +133,7 @@
       }
     </script>
 
-    <!-- STRUCTURED DATA: the eleven case studies, in step with src/data/projects.ts. -->
+    <!-- STRUCTURED DATA: the ten case studies, in step with src/data/projects.ts. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -141,21 +141,21 @@
         "@id": "https://kevinshibuya.com/#featured-projects",
         "name": "Featured projects",
         "itemListOrder": "https://schema.org/ItemListOrderAscending",
-        "numberOfItems": 11,
+        "numberOfItems": 10,
         "itemListElement": [
           {
             "@type": "ListItem",
             "position": 1,
             "item": {
               "@type": "CreativeWork",
-              "@id": "https://kevinshibuya.com/projects/hotmart-bunde#creativework",
-              "url": "https://kevinshibuya.com/projects/hotmart-bunde",
-              "name": "Política Essencial",
-              "description": "Sales landing page for Política Essencial, a Brazilian online course teaching political fundamentals from zero through 50+ hours of video lessons by 17 social-media communicators. Pure conversion funnel: no auth, no cart, no payment surface; checkout lives on Hotmart.",
+              "@id": "https://kevinshibuya.com/projects/consilia-ia#creativework",
+              "url": "https://kevinshibuya.com/projects/consilia-ia",
+              "name": "Consilia IA",
+              "description": "Consilia IA, a preparation copilot for the offices of Brazilian legislators: before each commitment on the agenda it writes the office’s briefing, and every line says where it came from. Built as co-founder and CTO: one Next.js app on Postgres with isolation enforced by the database, and a landing page with a scroll-driven WebGL corridor.",
               "dateCreated": "2026",
               "inLanguage": "pt-BR",
-              "keywords": "React, TypeScript, Vite, TailwindCSS, Framer Motion, Lenis, Cloudflare Pages",
-              "sameAs": "https://politicaessencial.com",
+              "keywords": "Next.js, React, TypeScript, PostgreSQL, pgvector, Prisma, Supabase, AI SDK, Tailwind CSS, Vite, three.js, GSAP, Lenis",
+              "sameAs": "https://consiliaia.com.br",
               "creator": {
                 "@id": "https://kevinshibuya.com/#person"
               }
@@ -219,6 +219,41 @@
             "position": 5,
             "item": {
               "@type": "CreativeWork",
+              "@id": "https://kevinshibuya.com/projects/promptfall#creativework",
+              "url": "https://kevinshibuya.com/projects/promptfall",
+              "name": "Promptfall",
+              "description": "Promptfall, an idle fantasy RPG that runs inside Claude Code as a plugin: each tool call spawns an enemy, each prompt rests the party, and a pane holds a market, chat, leaderboards and a world boss. A work in progress: the public server is offline, so the game runs on an in-process server or one you host.",
+              "dateCreated": "2026",
+              "inLanguage": "en",
+              "keywords": "TypeScript, Node.js, Claude Code plugins, SQLite, Zod, Vitest, Docker, Caddy, Cloudflare R2",
+              "creator": {
+                "@id": "https://kevinshibuya.com/#person"
+              }
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "item": {
+              "@type": "CreativeWork",
+              "@id": "https://kevinshibuya.com/projects/hotmart-bunde#creativework",
+              "url": "https://kevinshibuya.com/projects/hotmart-bunde",
+              "name": "Política Essencial",
+              "description": "Sales landing page for Política Essencial, a Brazilian online course teaching political fundamentals from zero through 50+ hours of video lessons by 17 social-media communicators. Pure conversion funnel: no auth, no cart, no payment surface; checkout lives on Hotmart.",
+              "dateCreated": "2026",
+              "inLanguage": "pt-BR",
+              "keywords": "React, TypeScript, Vite, TailwindCSS, Framer Motion, Lenis, Cloudflare Pages",
+              "sameAs": "https://politicaessencial.com",
+              "creator": {
+                "@id": "https://kevinshibuya.com/#person"
+              }
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "item": {
+              "@type": "CreativeWork",
               "@id": "https://kevinshibuya.com/projects/chat-da-hora#creativework",
               "url": "https://kevinshibuya.com/projects/chat-da-hora",
               "name": "Chat da Hora",
@@ -233,58 +268,7 @@
           },
           {
             "@type": "ListItem",
-            "position": 6,
-            "item": {
-              "@type": "CreativeWork",
-              "@id": "https://kevinshibuya.com/projects/peleia-gre-nal#creativework",
-              "url": "https://kevinshibuya.com/projects/peleia-gre-nal",
-              "name": "Peleia Gre-Nal",
-              "description": "An interactive piece on the Gre-Nal, Porto Alegre's historic football derby, built for GZH's sports editorial.",
-              "dateCreated": "2024",
-              "inLanguage": "pt-BR",
-              "keywords": "React, TypeScript, D3.js",
-              "creator": {
-                "@id": "https://kevinshibuya.com/#person"
-              }
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 7,
-            "item": {
-              "@type": "CreativeWork",
-              "@id": "https://kevinshibuya.com/projects/fotos-do-ano-2025#creativework",
-              "url": "https://kevinshibuya.com/projects/fotos-do-ano-2025",
-              "name": "Fotos do Ano 2025",
-              "description": "Year-end photo retrospective for GZH: a curated longform of the most striking images of 2025, presented as an immersive scroll experience.",
-              "dateCreated": "2025",
-              "inLanguage": "pt-BR",
-              "keywords": "React, TypeScript, Vite, TailwindCSS, Framer Motion",
-              "creator": {
-                "@id": "https://kevinshibuya.com/#person"
-              }
-            }
-          },
-          {
-            "@type": "ListItem",
             "position": 8,
-            "item": {
-              "@type": "CreativeWork",
-              "@id": "https://kevinshibuya.com/projects/fotos-do-ano-2024#creativework",
-              "url": "https://kevinshibuya.com/projects/fotos-do-ano-2024",
-              "name": "Fotos do Ano 2024",
-              "description": "Year-end photojournalism retrospective for Zero Hora: eight staff photographers, each contributing one image from the May 2024 Rio Grande do Sul floods. Scroll-driven editorial gallery with sticky wordmark and embedded video testimonials.",
-              "dateCreated": "2024",
-              "inLanguage": "pt-BR",
-              "keywords": "React, Vite, TailwindCSS, Framer Motion",
-              "creator": {
-                "@id": "https://kevinshibuya.com/#person"
-              }
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 9,
             "item": {
               "@type": "CreativeWork",
               "@id": "https://kevinshibuya.com/projects/ia-na-redacao#creativework",
@@ -301,16 +285,16 @@
           },
           {
             "@type": "ListItem",
-            "position": 10,
+            "position": 9,
             "item": {
               "@type": "CreativeWork",
-              "@id": "https://kevinshibuya.com/projects/promptfall#creativework",
-              "url": "https://kevinshibuya.com/projects/promptfall",
-              "name": "Promptfall",
-              "description": "Promptfall, an idle fantasy RPG that runs inside Claude Code as a plugin: each tool call spawns an enemy, each prompt rests the party, and a pane holds a market, chat, leaderboards and a world boss. A work in progress: the public server is offline, so the game runs on an in-process server or one you host.",
-              "dateCreated": "2026",
-              "inLanguage": "en",
-              "keywords": "TypeScript, Node.js, Claude Code plugins, SQLite, Zod, Vitest, Docker, Caddy, Cloudflare R2",
+              "@id": "https://kevinshibuya.com/projects/fotos-do-ano-2024#creativework",
+              "url": "https://kevinshibuya.com/projects/fotos-do-ano-2024",
+              "name": "Fotos do Ano 2024",
+              "description": "Year-end photojournalism retrospective for Zero Hora: eight staff photographers, each contributing one image from the May 2024 Rio Grande do Sul floods. Scroll-driven editorial gallery with sticky wordmark and embedded video testimonials.",
+              "dateCreated": "2024",
+              "inLanguage": "pt-BR",
+              "keywords": "React, Vite, TailwindCSS, Framer Motion",
               "creator": {
                 "@id": "https://kevinshibuya.com/#person"
               }
@@ -318,16 +302,16 @@
           },
           {
             "@type": "ListItem",
-            "position": 11,
+            "position": 10,
             "item": {
               "@type": "CreativeWork",
-              "@id": "https://kevinshibuya.com/projects/barber-app#creativework",
-              "url": "https://kevinshibuya.com/projects/barber-app",
-              "name": "Barber app",
-              "description": "A phone app for barbers in Brazil: photograph the client in the chair and show them AI previews of 12 hair styles and 5 beard styles on their own face before cutting. A work in progress: milestone 1 runs as a demo Android APK, and the CRM, an iOS build, a store listing and a name do not exist yet.",
-              "dateCreated": "2026",
+              "@id": "https://kevinshibuya.com/projects/fotos-do-ano-2025#creativework",
+              "url": "https://kevinshibuya.com/projects/fotos-do-ano-2025",
+              "name": "Fotos do Ano 2025",
+              "description": "Year-end photo retrospective for GZH: a curated longform of the most striking images of 2025, presented as an immersive scroll experience.",
+              "dateCreated": "2025",
               "inLanguage": "pt-BR",
-              "keywords": "Expo, React Native, NativeWind, NestJS, Supabase, PostgreSQL, Jest, Docker, Caddy",
+              "keywords": "React, TypeScript, Vite, TailwindCSS, Framer Motion",
               "creator": {
                 "@id": "https://kevinshibuya.com/#person"
               }

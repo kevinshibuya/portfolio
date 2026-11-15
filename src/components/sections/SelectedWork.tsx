@@ -113,7 +113,7 @@ export function SelectedWork(): ReactElement {
               className={`stack-item grid${active === index ? ' is-active' : ''}`}
               aria-label={t('work.open', { title: project.title[lang] })}
             >
-              <span className="stack-name stack-side h2">{project.title[lang]}</span>
+              <span className="stack-name stack-side h2 as-written">{project.title[lang]}</span>
               <Frame
                 className="stack-frame"
                 item={leadOf(project.slug)}

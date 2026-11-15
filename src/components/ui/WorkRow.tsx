@@ -15,6 +15,8 @@ export interface WorkRowProps {
   /** A page of this site (plays the page change) or an outside address. */
   to?: string
   href?: string
+  /** The title is a project's name: set as written, not lowercased with the rest of the display type. */
+  asWritten?: boolean
   /** `big` is the 90 px row of the work index. */
   big?: boolean
   mark?: ArrowKind
@@ -43,6 +45,7 @@ export function WorkRow({
   tags = [],
   to,
   href,
+  asWritten = false,
   big = false,
   mark = 'in',
   thumb,
@@ -70,7 +73,7 @@ export function WorkRow({
         <Arrow kind={mark} />
       </span>
       <span className="wrow-head">
-        <span className={`wrow-title ${big ? 'h1' : 'h2'}`} data-enter={enter && 'title'} data-enter-group={enter}>
+        <span className={`wrow-title ${big ? 'h1' : 'h2'}${asWritten ? ' as-written' : ''}`} data-enter={enter && 'title'} data-enter-group={enter}>
           {title}
         </span>
         {tags.length > 0 && <Tags tags={tags} enter={enter} />}
