@@ -59,6 +59,7 @@
   "project": {
     "crumbWork": "all work",
     "live": "view live",
+    "code": "view code",
     "credits": "credits",
     "stack": "stack",
     "client": "for",

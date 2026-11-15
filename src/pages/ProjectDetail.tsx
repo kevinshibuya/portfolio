@@ -101,6 +101,12 @@ function Page({ project }: { project: Project }): ReactElement {
     t(item.type === 'clip' ? 'project.recording' : 'project.screen', { title, n })
   const status = t(`project.status.${project.status}`)
   const quiet = t(project.status === 'unlaunched' ? 'project.neverLaunched' : 'project.privateLink')
+  // Where the page sends the reader: the thing itself when it is live, its code when only that is public.
+  const outward = project.liveUrl
+    ? { href: project.liveUrl, label: t('project.live') }
+    : project.githubUrl
+      ? { href: project.githubUrl, label: t('project.code') }
+      : null
   // A personal project was made for no client: the page says so in the reader's language.
   const client = project.origin === 'personal' ? t('project.personal') : project.client
   // Frames are numbered down the page; the lead is 01.
@@ -122,10 +128,10 @@ function Page({ project }: { project: Project }): ReactElement {
             </p>
             {wide && (
               <p className="p-live p1" data-enter="pop">
-                {project.liveUrl ? (
-                  <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="p-live-link lower">
-                    <Roll>{t('project.live')}</Roll>
-                    <span className="chip p2">{hostOf(project.liveUrl)}</span>
+                {outward ? (
+                  <a href={outward.href} target="_blank" rel="noopener noreferrer" className="p-live-link lower">
+                    <Roll>{outward.label}</Roll>
+                    <span className="chip p2">{hostOf(outward.href)}</span>
                   </a>
                 ) : (
                   <span className="muted lower">
@@ -144,7 +150,7 @@ function Page({ project }: { project: Project }): ReactElement {
                 <dd>{project.year}</dd>
                 <dt>{t('project.state')}</dt>
                 <dd>
-                  {project.liveUrl ? status : `${status}, ${quiet}`}
+                  {outward ? status : `${status}, ${quiet}`}
                 </dd>
                 <dt>{t('project.role')}</dt>
                 <dd>{project.role[lang]}</dd>
@@ -153,10 +159,10 @@ function Page({ project }: { project: Project }): ReactElement {
                 <dt>{t('project.stack')}</dt>
                 <dd>{project.techStack.slice(0, 7).join(', ')}</dd>
               </dl>
-              {project.liveUrl && (
-                <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="p-live-link p1 lower">
-                  <Roll>{t('project.live')}</Roll>
-                  <span className="chip p2">{hostOf(project.liveUrl)}</span>
+              {outward && (
+                <a href={outward.href} target="_blank" rel="noopener noreferrer" className="p-live-link p1 lower">
+                  <Roll>{outward.label}</Roll>
+                  <span className="chip p2">{hostOf(outward.href)}</span>
                 </a>
               )}
             </div>
