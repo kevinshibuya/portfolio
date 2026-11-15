@@ -23,11 +23,18 @@ export function useScrollMemory(): void {
 
   useEffect(() => {
     const onScroll = (): void => rememberScroll(keyRef.current, window.scrollY)
+    // A phone may discard a background tab without ever sending pagehide; it
+    // does say when the page is hidden.
+    const onHidden = (): void => {
+      if (document.visibilityState === 'hidden') persistScroll()
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('pagehide', persistScroll)
+    document.addEventListener('visibilitychange', onHidden)
     return () => {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('pagehide', persistScroll)
+      document.removeEventListener('visibilitychange', onHidden)
     }
   }, [])
 }

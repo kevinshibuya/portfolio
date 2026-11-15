@@ -190,9 +190,14 @@ export function usePageEnter(rootRef: RefObject<HTMLElement | null>, key: string
     if (!root || prefersReducedMotion) return
 
     const fold = window.innerHeight
-    const parts = [...root.querySelectorAll<HTMLElement>('[data-enter]')].filter(
-      (el) => el.getBoundingClientRect().top < fold,
-    )
+    // Only what is on the screen arrives. A page reopened further down
+    // (useOpeningScroll runs first) has its opening parts above the screen:
+    // left in, each would start under the bottom edge and sweep up through
+    // what the reader came back to.
+    const parts = [...root.querySelectorAll<HTMLElement>('[data-enter]')].filter((el) => {
+      const box = el.getBoundingClientRect()
+      return box.top < fold && box.bottom > 0
+    })
     for (const el of parts) el.style.visibility = 'hidden'
 
     let cancelled = false

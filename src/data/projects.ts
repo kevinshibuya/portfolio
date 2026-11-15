@@ -138,7 +138,7 @@ export const projects: Project[] = [
     id: 'enquetes-gzh',
     kind: { en: 'live voting system', pt: 'sistema de votação ao vivo' },
     line: {
-      en: 'Live polls for the GZH newsroom: 71 polls, 760K+ votes, and 144K on one BBB 26 eviction.',
+      en: 'Live polls for the GZH newsroom: 71 polls, 760K votes, and 144K on one BBB 26 eviction.',
       pt: 'Enquetes ao vivo para a redação da GZH: 71 no total, 760 mil votos, 144 mil num paredão do BBB 26.',
     },
     body: {

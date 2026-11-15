@@ -68,5 +68,39 @@ test('Back lands where the page was left, not on the nav target that opened it',
   await expect(page).toHaveURL(/\/all-work$/)
   await expect.poll(scrollY, { timeout: 5000 }).toBeGreaterThan(awLeftAt - 4)
   expect(Math.abs((await scrollY()) - awLeftAt)).toBeLessThanOrEqual(3)
+  // The page's opening parts are above the screen now: none of them arrives again.
+  const sweeping = await page.evaluate(
+    () =>
+      document
+        .getAnimations()
+        .filter((animation) => {
+          const target = (animation.effect as KeyframeEffect | null)?.target
+          return target instanceof HTMLElement && 'enter' in target.dataset && target.getBoundingClientRect().bottom <= 0
+        }).length,
+  )
+  expect(sweeping).toBe(0)
+  expect(errors).toEqual([])
+})
+
+// A page left at its top has no position on record. Coming back to it must
+// still put the reader at the top, not at the offset of the page they left.
+test('Back to a home page that was left at its top lands at the top', async ({ page }) => {
+  const errors = collectErrors(page)
+  const scrollY = (): Promise<number> => page.evaluate(() => Math.round(window.scrollY))
+  await open(page, '/')
+
+  await page.locator('a.nav-link[href="/all-work"]').click()
+  await expect(page).toHaveURL(/\/all-work$/)
+  const row = page.locator('.aw-list > li').nth(3)
+  await row.evaluate((el) => el.scrollIntoView({ block: 'start' }))
+  await expect.poll(scrollY).toBeGreaterThan(200)
+
+  await page.goBack()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.locator('section.hero')).toBeVisible()
+  await expect.poll(scrollY, { timeout: 5000 }).toBe(0)
+  // It stays there once the lower sections have mounted.
+  await page.locator('#about').waitFor({ state: 'attached' })
+  expect(await scrollY()).toBe(0)
   expect(errors).toEqual([])
 })

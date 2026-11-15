@@ -38,7 +38,7 @@ export function Home(): ReactElement {
   const returning = useNavigationType() === 'POP'
   const returnTo = useReturnPosition()
   const navTargetRef = useRef<string | undefined>(returning ? undefined : state?.scrollToId)
-  const topRef = useRef<boolean>(!returning && state?.top === true)
+  const topRef = useRef<boolean>(returning ? returnTo === null : state?.top === true)
   const restoreRef = useRef<number | null>(returnTo)
 
   const [sectionsDue, setSectionsDue] = useState(entranceBypassed)
@@ -110,6 +110,8 @@ export function Home(): ReactElement {
     const y = restoreRef.current
     if (y === null) {
       // A jump to the top is asked for once; a later run must not pull the reader back up.
+      // A return through history to an entry that was left at its top is one
+      // too: nothing else moves the page off the position of the page it came from.
       if (topRef.current) {
         topRef.current = false
         window.scrollTo(0, 0)
