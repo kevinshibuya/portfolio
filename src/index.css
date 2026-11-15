@@ -995,6 +995,17 @@ button.label { cursor: pointer; }
   top: 0;
   bottom: 0;
 }
+/* The company and its tags keep to the six columns before the time line; a
+   name too long to share them with its tags sets the tags under it. The place
+   keeps to the two columns after it, and a long one wraps there. */
+@media not all and (max-width: 860px) {
+  #experience .wrow-head {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    max-width: calc(6 * (var(--col) + var(--gap)) - var(--gap));
+  }
+  #experience .wrow-aside { max-width: calc(2 * var(--col) + var(--gap)); }
+}
 
 .cb {
   position: relative;
