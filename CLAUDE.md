@@ -1,6 +1,6 @@
 # Portfolio, Claude instructions
 
-Kevin Shibuya's personal developer portfolio, live at kevinshibuya.com: a bilingual EN/PT React single-page site. Version 4 of the site landed on 2026-11-14. Routes: `/` (home), `/all-work` (every case study and the newsroom interactives), `/projects/:slug` (the eleven case studies in `src/data/projects.ts`: nine newsroom and client projects, and two of Kevin's own public repositories); any other path renders the project template's not-found view.
+Kevin Shibuya's personal developer portfolio, live at kevinshibuya.com: a bilingual EN/PT React single-page site. Version 4 of the site landed on 2026-11-14. Routes: `/` (home), `/all-work` (every case study and the newsroom interactives), `/projects/:slug` (the ten case studies in `src/data/projects.ts`: eight newsroom and client projects, Consilia IA, the product Kevin co-founded, and one of his own public repositories); any other path renders the project template's not-found view.
 
 Stack: React 19, TypeScript strict, Vite 6 with SWC, TailwindCSS v4 through the Vite plugin (configured in CSS `@theme`, no `tailwind.config.js`; the site is styled almost entirely by the plain classes in `src/index.css`), react-router-dom 7, Lenis smooth scroll, npm. No animation library and no 3D library: motion is CSS, the Web Animations API, view transitions and one shared animation-frame loop; the paint is raw WebGL. Translations are a small context in `src/i18n/index.tsx` over two JSON locale files. `framer-motion`, `gsap`, `three`, `@react-three/*`, `postprocessing`, `i18next` and `react-i18next` are still listed in `package.json`, but nothing in `src/` imports them.
 
@@ -32,6 +32,8 @@ How it works: `docs/architecture.md` and `GLOSSARY.md` describe the site before 
 
 **Release, 2026-11-15 (UTC).** PR #57 merged `staging` into `main` on Kevin's go-ahead of 2026-11-14, given for that release ("until this V4 final is merged into main and deployed into production"). Production has served version 4 since 02:21 UTC; `main` was at `62cd73c` before the merge, which is the tip to put back with step 1 above if he calls for a rollback. Kevin has not yet said whether the freeze on `main` ends with this release: until he does, the standing rule above holds for anything further.
 
+**Second release, 2026-11-15 (UTC).** PR #61 merged `staging` into `main` on Kevin's go-ahead of the same day, given for that release ("until everything is properly merged into main and pushed to prod"): the mobile fixes, the content brought in step with the CV, and two new case studies (PR #59). Production has served it since 16:08 UTC, about 90 s after the merge; `main` was at `caf34d2` before it, which is the tip to put back with step 1 above if he calls for a rollback. The standing rule above still holds for anything further.
+
 Nothing was lost in that incident because `staging` retained every commit. Keep it that way: **never roll back by deleting work from `staging` or `ai-staging`.**
 
 ## The site, version 4
@@ -51,6 +53,7 @@ Nothing was lost in that incident because `staging` retained every commit. Keep 
 | Contact and footer, on the paint | `src/components/layout/Closing.tsx` |
 | Header and language pair | `src/components/layout/Header.tsx` |
 | Page change: view transitions, and the arrival of a page's `data-enter` parts | `src/components/layout/PageChange.tsx` |
+| History: each entry of the tab's history keeps its own scroll position, so Back and Forward land where a page was left; a page reached by a link opens at its top | `src/utils/scrollMemory.ts`, `src/hooks/useScrollMemory.ts` |
 | All work | `src/pages/AllWork.tsx` |
 | Project page, in two forms chosen by `useWide` at 861 px. Wide: one numbered column of every capture (`.p-column`), the recording travelling down to head it, a sticky credits column (`.p-credits`), the live link in the title row (`.p-live`), the diagram last. Narrow: the facts under the title (`.p-facts`), then labelled groups (`.p-group`) | `src/pages/ProjectDetail.tsx`, `src/hooks/useWide.ts`, `src/data/media.ts`, `src/data/galleries.ts`, `src/components/ui/Travel.tsx` |
 | Shared parts: frame, work row, label, arrow, rolling link, the name that answers the pointer, the diagram | `src/components/ui/` |
@@ -64,6 +67,7 @@ Nothing was lost in that incident because `staging` retained every commit. Keep 
 - **Typecheck with `npx tsc -b`** (or `npm run build`, which runs `tsc -b && vite build`). A bare `npx tsc --noEmit` is a no-op in this repo: the root `tsconfig.json` is `"files": []` plus project references, so it exits 0 on code that does not compile. `tsc -b` covers `src/` and `vite.config.ts` only; the tests are transpiled by Vitest and Playwright without a typecheck.
 - **Kill port 4173 before a direct `npx playwright test` run:** `lsof -ti:4173 | xargs -r kill -9` (bare `xargs kill -9` runs with no argument and exits non-zero when the port is free, breaking an `&&` chain). `playwright.config.ts` sets `reuseExistingServer: !process.env.CI`, so a stale preview server survives and the suite tests the previous build.
 - **A runtime error inside a canvas is invisible to DOM assertions.** The canvas keeps its element and its attributes while the frame loop throws. Every browser spec fails on any console error or page error (`collectErrors` in `tests/e2e/helpers/site.ts`), and that is what catches it.
+- **The suite runs Chromium only, and three behaviours exist only in WebKit** (Safari and every iOS browser): the loader's exit frame rate, the app starting on the loader's first frames (WebKit reports no paint-timing entry for the loader, `vite.config.ts`), and compositor animations restarting when a view transition ends (`holdClocks` in `PageChange.tsx`). A change to the loader or to the page change is checked on Playwright's WebKit with an iPhone profile (`npx playwright install webkit`): frame times across the exit, and a recorded page change read frame by frame. A DOM assertion cannot see the last one: the animation's clock in script runs straight through while the compositor replays it.
 - **A rendered surface also needs a headless browser smoke:** it loads, the root renders, zero console errors. Typecheck and lint alone do not cover a surface.
 - **Browser tests import `src/` modules that Node cannot load** (`src/data/media.ts` imports JSON, `src/data/archive.ts` a `?raw` CSV) through `loadSrc` in `tests/e2e/helpers/site.ts`, which runs them through Vite.
 - **The set:** `npx tsc -b`, `npm run lint`, `npx vitest run`, then e2e in two suites (ADR 0013): `npm run test:e2e:quick` in a PR's fix loop, and `npm run test:e2e` (the full suite) once on the final head before the `ai-staging` merge. Both run through `scripts/e2e.sh`, which frees 4173, builds once and owns the server. A surface change adds the smoke.
@@ -73,6 +77,7 @@ Nothing was lost in that incident because `staging` retained every commit. Keep 
 - **Bilingual from the first commit.** Every reader-facing string exists in both `en` and `pt`: UI strings in `src/i18n/locales/` (a unit test holds the two files to the same keys), content as `{ en, pt }` pairs. Two documented exceptions: embed titles are Portuguese only, because the source is editorial, and the loader's two corner labels in `index.html` are English only, because they paint before React and i18n load. Decision: ADR 0001.
 - **Every animation honours `prefers-reduced-motion`.**
 - **A palette or token change ships with a recomputed AA audit** across every affected text/background pair, verified, not hoped. The tables are in `docs/contrast.md`, recomputed as a unit.
+- **A project's name is set as written** (Kevin, 2026-11-15): wherever a case study's title renders, the element carries `.as-written`, which lifts the display type's lowercase. `WorkRow` takes it as the `asWritten` prop. Everything else in the display sizes stays lowercase.
 - **`·` in reader-facing prose,** never a spaced em-dash. Reader-facing means site copy and i18n strings; date ranges, code comments and quoted wordmarks are exempt.
 - **TypeScript:** strict, no `any`, explicit return types on hooks and utilities.
 - **Components:** functional, with the props interface above the component.
@@ -110,6 +115,7 @@ Checkboxes in `docs/superpowers/specs/` and `docs/superpowers/plans/` are the so
 | The resume note (ignored, never tracked) | `HANDOFF.md` |
 | Tests | `tests/e2e/`, `tests/unit/` |
 | Content types | `src/types/content.ts` |
+| The studio shoot: the scripts that film a project's captures and recordings, and the pass that builds `public/media/<slug>/` from them (outside this repository) | `~/hillclimbs/portfolio/tools/studio/` (`kit.mjs`, one script per project), `~/hillclimbs/portfolio/bench/` (`v3-media.mjs`, `consilia-media.mjs`) |
 | Content data | `src/data/`: `projects.ts`, `embeds.csv`, `media.json` (captures and recordings, served from `public/media/<slug>/`), `galleries.ts`, `architecture.ts`, `workExperience.ts`, `social.ts` |
 | UI strings, both languages | `src/i18n/locales/` |
 | Stack, getting started, tree | `README.md` |

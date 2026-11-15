@@ -22,6 +22,41 @@ export interface Architecture {
 }
 
 export const architectures: Record<string, Architecture> = {
+  'consilia-ia': {
+    lanes: [
+      {
+        label: { en: 'collect and ingest', pt: 'coleta e ingestão' },
+        nodes: [
+          { label: { en: 'legislative houses', pt: 'casas legislativas' }, sub: { en: 'agendas and laws', pt: 'pautas e leis' }, kind: 'outside' },
+          { label: { en: 'office documents', pt: 'docs do gabinete' }, sub: 'PDF, DOCX, TXT', kind: 'outside' },
+          { label: { en: 'ingestion', pt: 'ingestão' }, sub: { en: 'pages to passages', pt: 'páginas a trechos' } },
+          { label: 'Postgres 17', sub: 'pgvector, RLS', kind: 'store' },
+        ],
+      },
+      {
+        label: { en: 'prepare', pt: 'preparo' },
+        nodes: [
+          { label: { en: 'a commitment', pt: 'um compromisso' }, sub: { en: 'on the agenda', pt: 'na agenda' }, kind: 'store' },
+          { label: { en: 'jobs as rows', pt: 'jobs em linhas' }, sub: { en: 'one per pass', pt: 'um por passada' } },
+          { label: { en: 'model module', pt: 'módulo de IA' }, sub: { en: 'a single door', pt: 'uma única porta' } },
+          { label: 'briefing', sub: { en: 'in two halves', pt: 'em duas metades' }, kind: 'store' },
+        ],
+      },
+      {
+        label: { en: 'ask', pt: 'pergunta' },
+        nodes: [
+          { label: { en: 'a question', pt: 'uma pergunta' }, sub: { en: 'in the chat', pt: 'no chat' } },
+          { label: { en: 'retrieval', pt: 'busca' }, sub: { en: 'three arms, fused', pt: 'três braços, fusão' } },
+          { label: { en: 'the answer', pt: 'a resposta' }, sub: { en: 'NDJSON stream', pt: 'stream NDJSON' } },
+          { label: { en: 'citation check', pt: 'citação conferida' }, sub: { en: 'against the text', pt: 'contra o trecho' } },
+        ],
+      },
+    ],
+    caption: {
+      en: 'One app, one database, no worker: jobs are rows the app drains by posting to itself, and every model call goes through one module that writes it to a ledger. The database, not the application, keeps one office from reading another’s documents.',
+      pt: 'Um app, um banco, nenhum worker: os jobs são linhas que o app drena postando para si mesmo, e toda chamada de modelo passa por um único módulo, que a registra num ledger. É o banco, não a aplicação, que impede um gabinete de ler os documentos de outro.',
+    },
+  },
   'radar-legislativo': {
     lanes: [
       {
@@ -197,58 +232,14 @@ export const architectures: Record<string, Architecture> = {
       pt: 'Uma só simulação determinística, só com aritmética inteira, roda no plugin e no host, então o host refaz cada lote que um cliente envia e sorteia ele mesmo cada drop. Offline, o plugin joga contra um ledger próprio.',
     },
   },
-  // Transcribed from the mermaid chart under "How it's built" in the repository's README.
-  'barber-app': {
-    lanes: [
-      {
-        label: { en: 'a visit', pt: 'uma visita' },
-        nodes: [
-          { label: 'Supabase Auth', sub: { en: 'sign in', pt: 'login' }, kind: 'outside' },
-          { label: { en: 'mobile app', pt: 'app' }, sub: 'Expo, NativeWind' },
-          { label: 'Postgres', sub: { en: 'RLS per shop', pt: 'RLS por loja' }, kind: 'store' },
-          { label: { en: 'previews table', pt: 'tabela previews' }, sub: { en: '17 rows queued', pt: '17 linhas na fila' }, kind: 'store' },
-        ],
-      },
-      {
-        label: { en: 'render', pt: 'gerar' },
-        nodes: [
-          { label: { en: 'previews table', pt: 'tabela previews' }, sub: { en: 'the queue', pt: 'a fila' }, kind: 'store' },
-          { label: 'worker', sub: 'NestJS' },
-          { label: { en: 'image provider', pt: 'provedor' }, sub: 'Gemini, fal, fake', kind: 'outside' },
-          { label: 'Storage', sub: { en: 'preview JPEGs', pt: 'JPEGs das prévias' }, kind: 'store' },
-        ],
-      },
-      {
-        label: { en: 'back in the chair', pt: 'de volta à cadeira' },
-        nodes: [
-          { label: { en: 'previews table', pt: 'tabela previews' }, sub: { en: 'row done', pt: 'linha pronta' }, kind: 'store' },
-          { label: { en: 'mobile app', pt: 'app' }, sub: 'Realtime' },
-        ],
-      },
-      {
-        label: { en: 'the client', pt: 'o cliente' },
-        nodes: [
-          { label: { en: 'a browser', pt: 'um navegador' }, sub: '/v/token', kind: 'outside' },
-          { label: 'worker', sub: { en: 'client page', pt: 'página do cliente' } },
-        ],
-      },
-      {
-        label: { en: 'every night', pt: 'toda noite' },
-        nodes: [
-          { label: { en: 'cleanup', pt: 'limpeza' }, sub: { en: '03:00 São Paulo', pt: '03:00 São Paulo' } },
-          { label: 'Storage', sub: { en: 'unchosen gone', pt: 'sobras apagadas' }, kind: 'store' },
-        ],
-      },
-    ],
-    caption: {
-      en: 'The previews table is the queue. Uploading the front photo queues 17 rows, the worker claims them and calls the image provider, and Realtime tells the app as each row is done, so the picker fills in tile by tile.',
-      pt: 'A tabela de prévias é a fila. A foto frontal enfileira 17 linhas, o worker as reivindica e chama o provedor de imagem, e o Realtime avisa o app a cada linha pronta, então as opções aparecem uma a uma.',
-    },
-  },
 }
 
 /** What a reader should know about the pictures of a project before trusting them. */
 export const mediaNotes: Record<string, Bilingual> = {
+  'consilia-ia': {
+    en: 'The app’s screens show its demonstration office: the legislator, her agenda and her documents are fictional.',
+    pt: 'As telas do app mostram o gabinete de demonstração: a parlamentar, a agenda e os documentos são fictícios.',
+  },
   'chat-da-hora': {
     en: 'The answer on screen is illustrative: the live pipeline runs only inside the RBS network.',
     pt: 'A resposta na tela é ilustrativa: o pipeline real só roda dentro da rede da RBS.',
