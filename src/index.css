@@ -1524,6 +1524,10 @@ html[data-leaving] .nav * { pointer-events: none; }
   .about-portrait,
   .about-fact,
   .about-meta { grid-column: 1 / -1; grid-row: auto; }
+  /* Balance stops at six lines and the statement runs longer here: keep its
+     last line from holding one word instead. */
+  .about-statement,
+  .about-meta p { text-wrap: pretty; }
   .about-portrait {
     margin-top: 40px;
     aspect-ratio: 1;
