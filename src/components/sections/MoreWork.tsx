@@ -14,8 +14,8 @@ import { Arrow } from '../ui/Arrow'
 import { PaintWindow } from '../canvas/PaintWindow'
 
 const OTHERS = rankedProjects.slice(3)
-/** The three most recent jobs; the full history is in the curriculum. */
-const JOBS = workExperiences.slice(0, 3)
+/** Every job, most recent first. */
+const JOBS = workExperiences
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 
@@ -26,7 +26,7 @@ function monthsOf(period: string, now: number): [number, number] {
   return [start, marks[1] ?? now]
 }
 
-/** Each job's span as a share of the time the three cover together: where its bar starts and how long it is. */
+/** Each job's span as a share of the time the jobs cover together: where its bar starts and how long it is. */
 function spansOf(): { left: number; width: number }[] {
   const today = new Date()
   const now = today.getFullYear() * 12 + today.getMonth()
@@ -135,7 +135,7 @@ function AllWorkLink(): ReactElement {
 
 /**
  * The home page's black section: the other six case studies as rows, the
- * three most recent jobs as rows of the same anatomy, each with its span drawn
+ * jobs as rows of the same anatomy, each with its span drawn
  * as a bar of the paint on one shared time line, and the way to all work.
  */
 export function MoreWork(): ReactElement {
