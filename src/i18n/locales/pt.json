@@ -71,10 +71,12 @@
       "published": "publicado",
       "unlaunched": "concluído, nunca lançado",
       "internal": "interno",
-      "mvp": "mvp, fora de produção"
+      "mvp": "mvp, fora de produção",
+      "building": "em andamento"
     },
     "neverLaunched": "sem endereço público",
     "privateLink": "não é público",
+    "personal": "projeto pessoal",
     "more": "mais trabalhos",
     "screen": "{{title}}, tela {{n}}",
     "recording": "{{title}}, gravação {{n}}",

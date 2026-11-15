@@ -71,10 +71,12 @@
       "published": "published",
       "unlaunched": "finished, never launched",
       "internal": "internal",
-      "mvp": "mvp, not in production"
+      "mvp": "mvp, not in production",
+      "building": "in progress"
     },
     "neverLaunched": "no public address",
     "privateLink": "not public",
+    "personal": "personal project",
     "more": "more work",
     "screen": "{{title}}, screen {{n}}",
     "recording": "{{title}}, recording {{n}}",
