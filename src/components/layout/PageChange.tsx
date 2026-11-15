@@ -60,6 +60,23 @@ export function pageArrived(): void {
   onArrive = null
 }
 
+/**
+ * WebKit plays an animation the compositor runs (transform, translate, scale,
+ * opacity) again from its first frame at the moment a view transition ends:
+ * its clock in script runs straight through, but the layer that carried it is
+ * rebuilt when the old page's picture goes, and the copy on the new layer
+ * starts at zero. A part that was half way in jumps back and arrives twice,
+ * on every page change in Safari and on every iOS browser. Putting each
+ * running animation at the time it already has makes the engine send that
+ * time to the new layer. Elsewhere it changes nothing.
+ */
+function holdClocks(): void {
+  for (const animation of document.getAnimations()) {
+    const at = animation.currentTime
+    if (animation.playState === 'running' && at !== null) animation.currentTime = at
+  }
+}
+
 type Transition = { finished: Promise<void> }
 type StartTransition = (update: () => Promise<void>) => Transition
 
@@ -104,7 +121,10 @@ export function PageChangeProvider({ children }: { children: ReactNode }): React
             navigate(to, { state: options?.state })
             await arrived
           })
-          transition.finished.then(done, done)
+          transition.finished.then(() => {
+            holdClocks()
+            done()
+          }, done)
         } catch {
           done()
           navigate(to, { state: options?.state })
