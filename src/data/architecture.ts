@@ -27,9 +27,9 @@ export const architectures: Record<string, Architecture> = {
       {
         label: { en: 'collect and ingest', pt: 'coleta e ingestão' },
         nodes: [
-          { label: { en: 'legislative houses', pt: 'casas legislativas' }, sub: { en: 'agendas, gazettes, laws', pt: 'pautas, diários, leis' }, kind: 'outside' },
-          { label: { en: 'office documents', pt: 'documentos do gabinete' }, sub: 'PDF, DOCX, TXT', kind: 'outside' },
-          { label: { en: 'ingestion', pt: 'ingestão' }, sub: { en: 'pages, sections, passages', pt: 'páginas, seções, trechos' } },
+          { label: { en: 'legislative houses', pt: 'casas legislativas' }, sub: { en: 'agendas and laws', pt: 'pautas e leis' }, kind: 'outside' },
+          { label: { en: 'office documents', pt: 'docs do gabinete' }, sub: 'PDF, DOCX, TXT', kind: 'outside' },
+          { label: { en: 'ingestion', pt: 'ingestão' }, sub: { en: 'pages to passages', pt: 'páginas a trechos' } },
           { label: 'Postgres 17', sub: 'pgvector, RLS', kind: 'store' },
         ],
       },
@@ -37,24 +37,24 @@ export const architectures: Record<string, Architecture> = {
         label: { en: 'prepare', pt: 'preparo' },
         nodes: [
           { label: { en: 'a commitment', pt: 'um compromisso' }, sub: { en: 'on the agenda', pt: 'na agenda' }, kind: 'store' },
-          { label: { en: 'jobs as rows', pt: 'jobs em linhas' }, sub: { en: 'one per pass, under a lock', pt: 'um por passada, sob um lock' } },
-          { label: { en: 'model module', pt: 'módulo de modelos' }, sub: { en: 'one door, every call on a ledger', pt: 'uma porta, toda chamada no livro' } },
-          { label: 'briefing', sub: { en: 'what will happen, what to do', pt: 'o que vai acontecer, o que fazer' }, kind: 'store' },
+          { label: { en: 'jobs as rows', pt: 'jobs em linhas' }, sub: { en: 'one per pass', pt: 'um por passada' } },
+          { label: { en: 'model module', pt: 'módulo de IA' }, sub: { en: 'a single door', pt: 'uma única porta' } },
+          { label: 'briefing', sub: { en: 'in two halves', pt: 'em duas metades' }, kind: 'store' },
         ],
       },
       {
         label: { en: 'ask', pt: 'pergunta' },
         nodes: [
           { label: { en: 'a question', pt: 'uma pergunta' }, sub: { en: 'in the chat', pt: 'no chat' } },
-          { label: { en: 'retrieval', pt: 'busca' }, sub: { en: 'three arms, rank fusion', pt: 'três braços, fusão de ranks' } },
-          { label: { en: 'streamed answer', pt: 'resposta em stream' }, sub: 'NDJSON' },
-          { label: { en: 'citation check', pt: 'conferência da citação' }, sub: { en: 'the quote against the passage', pt: 'a citação contra o trecho' } },
+          { label: { en: 'retrieval', pt: 'busca' }, sub: { en: 'three arms, fused', pt: 'três braços, fusão' } },
+          { label: { en: 'the answer', pt: 'a resposta' }, sub: { en: 'NDJSON stream', pt: 'stream NDJSON' } },
+          { label: { en: 'citation check', pt: 'citação conferida' }, sub: { en: 'against the text', pt: 'contra o trecho' } },
         ],
       },
     ],
     caption: {
-      en: 'One app, one database, no worker: jobs are rows the app drains by posting to itself. The database, not the application, keeps one office from reading another’s documents.',
-      pt: 'Um app, um banco, nenhum worker: os jobs são linhas que o app drena postando para si mesmo. É o banco, não a aplicação, que impede um gabinete de ler os documentos de outro.',
+      en: 'One app, one database, no worker: jobs are rows the app drains by posting to itself, and every model call goes through one module that writes it to a ledger. The database, not the application, keeps one office from reading another’s documents.',
+      pt: 'Um app, um banco, nenhum worker: os jobs são linhas que o app drena postando para si mesmo, e toda chamada de modelo passa por um único módulo, que a registra num ledger. É o banco, não a aplicação, que impede um gabinete de ler os documentos de outro.',
     },
   },
   'radar-legislativo': {
@@ -232,11 +232,14 @@ export const architectures: Record<string, Architecture> = {
       pt: 'Uma só simulação determinística, só com aritmética inteira, roda no plugin e no host, então o host refaz cada lote que um cliente envia e sorteia ele mesmo cada drop. Offline, o plugin joga contra um ledger próprio.',
     },
   },
-  // Transcribed from the mermaid chart under "How it's built" in the repository's README.
 }
 
 /** What a reader should know about the pictures of a project before trusting them. */
 export const mediaNotes: Record<string, Bilingual> = {
+  'consilia-ia': {
+    en: 'The app’s screens show its demonstration office: the legislator, her agenda and her documents are fictional.',
+    pt: 'As telas do app mostram o gabinete de demonstração: a parlamentar, a agenda e os documentos são fictícios.',
+  },
   'chat-da-hora': {
     en: 'The answer on screen is illustrative: the live pipeline runs only inside the RBS network.',
     pt: 'A resposta na tela é ilustrativa: o pipeline real só roda dentro da rede da RBS.',

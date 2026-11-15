@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, it, expect } from 'vitest'
 import manifest from '../../../src/data/media.json'
 import { galleries } from '../../../src/data/galleries'
@@ -19,6 +21,16 @@ function twinIds(slug: string): Set<string> {
 describe('media manifest', () => {
   it('has media for every project and for nothing else', () => {
     expect(Object.keys(MEDIA).sort()).toEqual([...slugs].sort())
+  })
+
+  it('every file it names is in public/', () => {
+    const paths = (item: MediaItem): string[] =>
+      item.type === 'clip' ? [item.poster, item.webm, item.mp4] : [item.src, ...(item.srcset ?? '').split(', ').filter(Boolean).map((entry) => entry.split(' ')[0])]
+    for (const slug of slugs) {
+      for (const item of mediaOf(slug)) {
+        for (const path of paths(item)) expect(existsSync(join(process.cwd(), 'public', path)), `${slug} ${path}`).toBe(true)
+      }
+    }
   })
 
   it('ids are unique within a project', () => {

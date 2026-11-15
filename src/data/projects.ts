@@ -6,14 +6,14 @@ export const projects: Project[] = [
   // landing page states. No price, no model name and no person but Kevin appears here.
   {
     id: 'consilia-ia',
-    kind: { en: 'AI briefings for legislative offices', pt: 'briefings com IA para gabinetes' },
+    kind: { en: 'AI briefings for legislative offices', pt: 'briefings com IA para gabinetes parlamentares' },
     line: {
       en: 'Before each commitment on a legislator’s agenda, the office gets a briefing in which every line says where it came from.',
       pt: 'Antes de cada compromisso da agenda de um parlamentar, o gabinete recebe um briefing em que cada linha diz de onde veio.',
     },
     body: {
-      en: 'A product for the offices of Brazilian legislators, built as its co-founder and CTO. It reads what the legislative houses publish and what the office itself keeps, writes the briefing for each commitment on the agenda and answers questions in a chat. One Next.js app on one Postgres: the database keeps each office apart, and a citation loses its number when the quote is not in the source.',
-      pt: 'Um produto para gabinetes de parlamentares brasileiros, construído como cofundador e CTO. Ele lê o que as casas legislativas publicam e o que o próprio gabinete guarda, escreve o briefing de cada compromisso da agenda e responde perguntas em um chat. Um app Next.js sobre um Postgres: o banco separa um gabinete do outro, e uma citação perde o número quando o trecho citado não está na fonte.',
+      en: 'A product for the offices of Brazilian legislators, which Kevin built as its co-founder and CTO. It reads what the legislative houses publish and what the office itself keeps, writes the briefing for each commitment on the agenda and answers questions in a chat. One Next.js app on one Postgres: the database keeps each office apart, and a citation loses its number when the quote is not in the source.',
+      pt: 'Um produto para gabinetes de parlamentares brasileiros, que Kevin construiu como cofundador e CTO. Ele lê o que as casas legislativas publicam e o que o próprio gabinete guarda, escreve o briefing de cada compromisso da agenda e responde perguntas em um chat. Um app Next.js sobre um Postgres: o banco separa um gabinete do outro, e uma citação perde o número quando o trecho citado não está na fonte.',
     },
     slug: 'consilia-ia',
     title: { en: 'Consilia IA', pt: 'Consilia IA' },
@@ -35,7 +35,7 @@ export const projects: Project[] = [
         { en: 'Landing page: the wordmark over the documents', pt: 'Landing page: o nome sobre os documentos' },
         { en: 'The app’s Hoje screen: the day’s agenda and suggested questions', pt: 'A tela Hoje do app: a agenda do dia e as perguntas sugeridas' },
         { en: 'Landing page: the dive through the wordmark', pt: 'Landing page: o mergulho por dentro do nome' },
-        { en: 'Landing page: a question and its answer, typed in', pt: 'Landing page: uma pergunta e sua resposta, digitada' },
+        { en: 'Landing page: a question and its answer, typed in', pt: 'Landing page: uma pergunta e sua resposta, digitadas' },
         { en: 'Landing page: the sources carousel', pt: 'Landing page: o carrossel das fontes' },
         { en: 'Landing page: an answer, annotated line by line', pt: 'Landing page: uma resposta, anotada linha a linha' },
         { en: 'Landing page: the corridor, at the agenda', pt: 'Landing page: o corredor, na agenda' },
@@ -52,8 +52,8 @@ export const projects: Project[] = [
     },
     order: 1,
     description: {
-      en: 'Consilia IA, a preparation copilot for the offices of Brazilian legislators: before each commitment on the agenda it writes the office’s briefing, and every line says where it came from. Built as co-founder and CTO: one Next.js app on Postgres with isolation enforced by the database, and a landing page with a scroll-driven WebGL corridor.',
-      pt: 'Consilia IA, um copiloto de preparação para gabinetes de parlamentares brasileiros: antes de cada compromisso da agenda ele escreve o briefing do gabinete, e cada linha diz de onde veio. Construído como cofundador e CTO: um app Next.js sobre Postgres com isolamento garantido pelo banco, e uma landing page com um corredor em WebGL guiado pelo scroll.',
+      en: 'Consilia IA, a preparation copilot for the offices of Brazilian legislators: before each commitment on the agenda it writes the office’s briefing, and every line says where it came from. Kevin built it as co-founder and CTO: one Next.js app on Postgres with isolation enforced by the database, and a landing page with a scroll-driven WebGL corridor.',
+      pt: 'Consilia IA, um copiloto de preparação para gabinetes de parlamentares brasileiros: antes de cada compromisso da agenda ele escreve o briefing do gabinete, e cada linha diz de onde veio. Kevin o construiu como cofundador e CTO: um app Next.js sobre Postgres com isolamento garantido pelo banco, e uma landing page com um corredor em WebGL guiado pelo scroll.',
     },
     stats: [
       { value: '19', label: { en: 'tables under RLS', pt: 'tabelas sob RLS' } },
@@ -62,7 +62,7 @@ export const projects: Project[] = [
     ],
     pitch: {
       en: 'A *preparation copilot* for the offices of Brazilian legislators: before each commitment on the agenda it writes the briefing, split into what will happen and what to do, and *every line says where it came from*.',
-      pt: 'Um *copiloto de preparação* para gabinetes de parlamentares brasileiros: antes de cada compromisso da agenda ele escreve o briefing, dividido em o que vai acontecer e o que fazer, e *cada linha diz de onde veio*.',
+      pt: 'Um *copiloto de preparação* para gabinetes de parlamentares brasileiros: antes de cada compromisso da agenda ele escreve o briefing, dividido entre o que vai acontecer e o que fazer, e *cada linha diz de onde veio*.',
     },
     whatShipped: {
       en: 'The app is *one Next.js 16 application on one Postgres*, with a private storage bucket and one model module that every call passes through. There is no worker and no external queue: jobs are rows the app drains by posting to itself, one job per pass under an advisory lock, and every screen polls. Documents go in as pages, sections and passages, with OCR for scanned pages, and land in *pgvector*; paid ingestion output is stored by content hash, so the same file is never paid for twice. The *landing page* is a separate Vite package, prerendered in Portuguese and English: a scroll-driven dive through the wordmark, a raw WebGL shader field under the navy sections, and a three.js corridor the camera dollies through, which falls back to a stacked list under reduced motion or without WebGL2.',
@@ -70,7 +70,7 @@ export const projects: Project[] = [
     },
     trick: {
       en: 'Isolation between offices is *enforced by the database*, not by the application: a request runs as a login role that cannot bypass row-level security, inside a transaction that names the acting user, so a query that forgets the user returns nothing. Retrieval fuses up to *three ranked arms* (the question, the question with the one before it, and a keyword search on its rare words only) by reciprocal rank fusion, which puts a passage two arms agree on above one arm’s first hit. And a citation carries the exact words it rests on: the render checks them against the passage, and *a quote the source does not hold loses its number*.',
-      pt: 'O isolamento entre gabinetes é *garantido pelo banco*, não pela aplicação: uma requisição roda com um papel de login que não pode contornar a segurança por linha, dentro de uma transação que nomeia o usuário, então uma query que esquece o usuário não devolve nada. A busca funde até *três braços ranqueados* (a pergunta, a pergunta junto com a anterior e uma busca por palavra-chave só nas palavras raras) por reciprocal rank fusion, que põe um trecho em que dois braços concordam acima do primeiro resultado de um braço só. E uma citação carrega as palavras exatas em que se apoia: a renderização confere essas palavras com o trecho, e *uma citação que a fonte não contém perde o número*.',
+      pt: 'O isolamento entre gabinetes é *garantido pelo banco*, não pela aplicação: uma requisição roda com um role de login que não pode contornar a segurança por linha, dentro de uma transação que nomeia o usuário, então uma query que esquece o usuário não devolve nada. A busca funde até *três braços ranqueados* (a pergunta, a pergunta junto com a anterior e uma busca por palavra-chave só nas palavras raras) por reciprocal rank fusion, que põe um trecho em que dois braços concordam acima do primeiro resultado de um braço só. E uma citação carrega as palavras exatas em que se apoia: a renderização confere essas palavras com o trecho, e *uma citação que a fonte não contém perde o número*.',
     },
     techStack: [
       'Next.js 16', 'React 19', 'TypeScript', 'PostgreSQL', 'pgvector', 'Prisma', 'Supabase', 'AI SDK',

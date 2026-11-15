@@ -10,10 +10,15 @@ test('a more-work row opens its project, and its all-work row opens the index', 
   const row = page.locator(`.more a.wrow[href="/projects/${target.slug}"]`)
   await row.waitFor({ state: 'attached' })
   await row.scrollIntoViewIfNeeded()
+  // A project's name is set as written: in the row, then as the page's title and in its crumbs.
+  const written = (selector: string): Promise<string> => page.locator(selector).first().evaluate((el) => getComputedStyle(el).textTransform)
+  expect(await written(`.more a.wrow[href="/projects/${target.slug}"] .wrow-title`)).toBe('none')
   await row.click()
 
   await expect(page).toHaveURL(new RegExp(`/projects/${target.slug}$`))
   await expect(page.locator('h1.p-title')).toHaveText(target.title.en)
+  expect(await written('h1.p-title')).toBe('none')
+  expect(await written('.p-crumbs .chip')).toBe('none')
 
   const allWork = page.locator('.mw a.wrow[href="/all-work"]')
   await allWork.scrollIntoViewIfNeeded()
