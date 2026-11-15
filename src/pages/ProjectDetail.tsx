@@ -5,7 +5,7 @@ import { rankedProjects } from '../data/archive'
 import { architectures, mediaNotes } from '../data/architecture'
 import type { RowLayout } from '../data/galleries'
 import { columnOf, coverOf, frameAspect, galleryOf } from '../data/media'
-import { useLenis } from '../hooks/useLenis'
+import { useOpeningScroll } from '../hooks/useScrollMemory'
 import { useWide } from '../hooks/useWide'
 import { setPageMeta, resetPageMeta } from '../utils/pageMeta'
 import type { MediaItem, Project } from '../types/content'
@@ -79,16 +79,12 @@ const SIZES: Record<RowLayout, string> = {
  */
 function Page({ project }: { project: Project }): ReactElement {
   const { t, lang } = useI18n()
-  const { scrollTo } = useLenis()
   const rootRef = useRef<HTMLElement>(null)
   const slotRef = useRef<HTMLDivElement>(null)
   const { slug } = project
   const title = project.title[lang]
 
-  useLayoutEffect(() => {
-    window.scrollTo(0, 0)
-    scrollTo(0, { immediate: true, force: true })
-  }, [slug, scrollTo])
+  useOpeningScroll()
 
   useEffect(() => {
     setPageMeta(`${project.title[lang]} · kevin shibuya`, project.description[lang])
