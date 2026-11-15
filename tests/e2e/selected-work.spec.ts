@@ -21,6 +21,12 @@ test('the view label is set at the size of the project name beside it', async ({
     p1: getComputedStyle(item.querySelector('.stack-line') as Element).fontSize,
   }))
   expect(sizes.view).toBe(sizes.name)
+  // A project's name keeps its own capitals; the label beside it keeps the display type's lowercase.
+  const cases = await active.evaluate((item) => ({
+    name: getComputedStyle(item.querySelector('.stack-name') as Element).textTransform,
+    view: getComputedStyle(item.querySelector('.stack-view') as Element).textTransform,
+  }))
+  expect(cases).toEqual({ name: 'none', view: 'lowercase' })
   expect(Number.parseFloat(sizes.view)).toBeGreaterThan(Number.parseFloat(sizes.p1))
   expect(errors).toEqual([])
 })

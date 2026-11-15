@@ -91,6 +91,7 @@ export function AllWork(): ReactElement {
                 big
                 to={`/projects/${project.slug}`}
                 title={project.title[lang]}
+                asWritten
                 tags={[project.kind[lang], `${project.year}, ${t(`project.status.${project.status}`)}`]}
                 filmed={index === 0}
                 group={index < 3 ? index : undefined}

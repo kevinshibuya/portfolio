@@ -22,6 +22,25 @@ export interface EvidenceGroupPlan {
 const PHONE: Bilingual = { en: 'on a phone', pt: 'no celular' }
 
 export const galleries: Record<string, EvidenceGroupPlan[]> = {
+  'consilia-ia': [
+    {
+      label: { en: 'the landing page', pt: 'a landing page' },
+      rows: [
+        { layout: 'full', items: ['c02'] },
+        { layout: 'pair', items: ['d04', 'd06'] },
+        { layout: 'pair', items: ['c03', 'c04'] },
+      ],
+    },
+    {
+      label: { en: 'the app', pt: 'o app' },
+      rows: [
+        { layout: 'full', items: ['c05'] },
+        { layout: 'pair', items: ['d02', 'd11'] },
+      ],
+    },
+    { label: { en: 'where a line came from', pt: 'de onde veio uma linha' }, rows: [{ layout: 'duo', items: ['c06', 'm07'] }] },
+    { label: PHONE, rows: [{ layout: 'phones', items: ['c07', 'm05', 'm06'] }] },
+  ],
   'enquetes-gzh': [
     {
       label: { en: 'back office', pt: 'back-office' },
@@ -64,17 +83,6 @@ export const galleries: Record<string, EvidenceGroupPlan[]> = {
       ],
     },
     { label: PHONE, rows: [{ layout: 'phones', items: ['c02', 'm01', 'm03'] }] },
-  ],
-  'peleia-gre-nal': [
-    {
-      label: { en: 'a round', pt: 'uma rodada' },
-      rows: [
-        { layout: 'full', items: ['c02'] },
-        { layout: 'pair', items: ['d03', 'd05'] },
-      ],
-    },
-    { label: { en: 'the last round', pt: 'a última rodada' }, rows: [{ layout: 'duo', items: ['c03', 'm04'] }] },
-    { label: PHONE, rows: [{ layout: 'phones', items: ['c04', 'm01', 'm02'] }] },
   ],
   'fotos-do-ano-2025': [
     {
@@ -136,11 +144,5 @@ export const galleries: Record<string, EvidenceGroupPlan[]> = {
         { layout: 'duo', items: ['d02', 'm01'] },
       ],
     },
-  ],
-  'barber-app': [
-    { label: { en: 'the bake-off', pt: 'o teste de provedores' }, rows: [{ layout: 'full', items: ['d02'] }] },
-    { label: { en: 'in the chair', pt: 'na cadeira' }, rows: [{ layout: 'phones', items: ['m03', 'm04', 'm01'] }] },
-    { label: { en: 'the look', pt: 'o visual' }, rows: [{ layout: 'phones', items: ['m02', 'm05', 'm07'] }] },
-    { label: { en: 'the owner', pt: 'o dono' }, rows: [{ layout: 'phones', items: ['m06'] }] },
   ],
 }

@@ -237,6 +237,10 @@ body[data-loader-state='loading'] {
 }
 .muted { color: var(--muted); }
 .lower { text-transform: lowercase; }
+/* A project's name is set as its owner writes it, capitals and all, wherever it
+   stands: in a row, beside a frame, as a page's title, in the crumbs. It follows
+   the display sizes above so it wins over their lowercase. */
+.as-written { text-transform: none; }
 
 /* =========================================================================
    THE POP — how a word or small part arrives: there at once, sliding in from

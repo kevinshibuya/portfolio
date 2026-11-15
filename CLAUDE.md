@@ -1,6 +1,6 @@
 # Portfolio, Claude instructions
 
-Kevin Shibuya's personal developer portfolio, live at kevinshibuya.com: a bilingual EN/PT React single-page site. Version 4 of the site landed on 2026-11-14. Routes: `/` (home), `/all-work` (every case study and the newsroom interactives), `/projects/:slug` (the eleven case studies in `src/data/projects.ts`: nine newsroom and client projects, and two of Kevin's own public repositories); any other path renders the project template's not-found view.
+Kevin Shibuya's personal developer portfolio, live at kevinshibuya.com: a bilingual EN/PT React single-page site. Version 4 of the site landed on 2026-11-14. Routes: `/` (home), `/all-work` (every case study and the newsroom interactives), `/projects/:slug` (the ten case studies in `src/data/projects.ts`: eight newsroom and client projects, Consilia IA, the product Kevin co-founded, and one of his own public repositories); any other path renders the project template's not-found view.
 
 Stack: React 19, TypeScript strict, Vite 6 with SWC, TailwindCSS v4 through the Vite plugin (configured in CSS `@theme`, no `tailwind.config.js`; the site is styled almost entirely by the plain classes in `src/index.css`), react-router-dom 7, Lenis smooth scroll, npm. No animation library and no 3D library: motion is CSS, the Web Animations API, view transitions and one shared animation-frame loop; the paint is raw WebGL. Translations are a small context in `src/i18n/index.tsx` over two JSON locale files. `framer-motion`, `gsap`, `three`, `@react-three/*`, `postprocessing`, `i18next` and `react-i18next` are still listed in `package.json`, but nothing in `src/` imports them.
 
@@ -77,6 +77,7 @@ Nothing was lost in that incident because `staging` retained every commit. Keep 
 - **Bilingual from the first commit.** Every reader-facing string exists in both `en` and `pt`: UI strings in `src/i18n/locales/` (a unit test holds the two files to the same keys), content as `{ en, pt }` pairs. Two documented exceptions: embed titles are Portuguese only, because the source is editorial, and the loader's two corner labels in `index.html` are English only, because they paint before React and i18n load. Decision: ADR 0001.
 - **Every animation honours `prefers-reduced-motion`.**
 - **A palette or token change ships with a recomputed AA audit** across every affected text/background pair, verified, not hoped. The tables are in `docs/contrast.md`, recomputed as a unit.
+- **A project's name is set as written** (Kevin, 2026-11-15): wherever a case study's title renders, the element carries `.as-written`, which lifts the display type's lowercase. `WorkRow` takes it as the `asWritten` prop. Everything else in the display sizes stays lowercase.
 - **`·` in reader-facing prose,** never a spaced em-dash. Reader-facing means site copy and i18n strings; date ranges, code comments and quoted wordmarks are exempt.
 - **TypeScript:** strict, no `any`, explicit return types on hooks and utilities.
 - **Components:** functional, with the props interface above the component.
@@ -114,6 +115,7 @@ Checkboxes in `docs/superpowers/specs/` and `docs/superpowers/plans/` are the so
 | The resume note (ignored, never tracked) | `HANDOFF.md` |
 | Tests | `tests/e2e/`, `tests/unit/` |
 | Content types | `src/types/content.ts` |
+| The studio shoot: the scripts that film a project's captures and recordings, and the pass that builds `public/media/<slug>/` from them (outside this repository) | `~/hillclimbs/portfolio/tools/studio/` (`kit.mjs`, one script per project), `~/hillclimbs/portfolio/bench/` (`v3-media.mjs`, `consilia-media.mjs`) |
 | Content data | `src/data/`: `projects.ts`, `embeds.csv`, `media.json` (captures and recordings, served from `public/media/<slug>/`), `galleries.ts`, `architecture.ts`, `workExperience.ts`, `social.ts` |
 | UI strings, both languages | `src/i18n/locales/` |
 | Stack, getting started, tree | `README.md` |

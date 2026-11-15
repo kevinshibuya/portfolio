@@ -134,7 +134,7 @@ function AllWorkLink(): ReactElement {
 }
 
 /**
- * The home page's black section: the other six case studies as rows, the
+ * The home page's black section: the other seven case studies as rows, the
  * jobs as rows of the same anatomy, each with its span drawn
  * as a bar of the paint on one shared time line, and the way to all work.
  */
@@ -154,6 +154,7 @@ export function MoreWork(): ReactElement {
               <WorkRow
                 to={`/projects/${project.slug}`}
                 title={project.title[lang]}
+                asWritten
                 tags={[project.kind[lang], `${project.year}, ${t(`project.status.${project.status}`)}`]}
                 thumb={
                   <Frame
