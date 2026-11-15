@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Locator, type Page } from '@playwright/test'
 import { RANKED, collectErrors, open } from './helpers/site'
 
 test('a more-work row opens its project, and its all-work row opens the index', async ({ page }) => {
@@ -25,6 +25,25 @@ test('a more-work row opens its project, and its all-work row opens the index', 
   expect(errors).toEqual([])
 })
 
+/**
+ * Click a link and say where the page stood at that moment. The position is
+ * read inside the click: Playwright scrolls a link clear of the header before
+ * it clicks, so a position read beforehand is not where the page was left.
+ */
+async function leaveBy(page: Page, link: Locator): Promise<number> {
+  await page.evaluate(() => {
+    document.addEventListener(
+      'click',
+      () => {
+        ;(window as unknown as { __leftAt: number }).__leftAt = Math.round(window.scrollY)
+      },
+      { capture: true, once: true },
+    )
+  })
+  await link.click()
+  return page.evaluate(() => (window as unknown as { __leftAt: number }).__leftAt)
+}
+
 // A nav link used from another page hands Home a section to open on. That
 // target stays in the history entry's state, and Back used to replay it: the
 // reader came back to "about", not to the project they had scrolled to.
@@ -44,8 +63,8 @@ test('Back lands where the page was left, not on the nav target that opened it',
   await item.waitFor({ state: 'attached' })
   await item.evaluate((el) => el.scrollIntoView({ block: 'center' }))
   await expect.poll(scrollY).toBeGreaterThan(aboutY + 200)
-  const leftAt = await scrollY()
-  await item.click()
+  const leftAt = await leaveBy(page, item)
+  expect(leftAt).toBeGreaterThan(aboutY + 200)
   await expect(page).toHaveURL(/\/projects\//)
   await expect.poll(scrollY).toBe(0)
 
@@ -60,8 +79,8 @@ test('Back lands where the page was left, not on the nav target that opened it',
   const row = page.locator('.aw-list > li').nth(3)
   await row.evaluate((el) => el.scrollIntoView({ block: 'start' }))
   await expect.poll(scrollY).toBeGreaterThan(200)
-  const awLeftAt = await scrollY()
-  await row.locator('a').first().click()
+  const awLeftAt = await leaveBy(page, row.locator('a').first())
+  expect(awLeftAt).toBeGreaterThan(200)
   await expect(page).toHaveURL(/\/projects\//)
   await expect.poll(scrollY).toBe(0)
   await page.goBack()
