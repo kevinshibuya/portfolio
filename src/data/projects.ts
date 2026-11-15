@@ -138,8 +138,8 @@ export const projects: Project[] = [
     id: 'enquetes-gzh',
     kind: { en: 'live voting system', pt: 'sistema de votação ao vivo' },
     line: {
-      en: 'Live polls for the GZH newsroom: 71 of them ran during BBB 26 and took 760K+ votes.',
-      pt: 'Enquetes ao vivo para a redação da GZH: 71 rodaram no BBB 26 e somaram mais de 760 mil votos.',
+      en: 'Live polls for the GZH newsroom: 71 polls, 760K+ votes, and 144K on one BBB 26 eviction.',
+      pt: 'Enquetes ao vivo para a redação da GZH: 71 no total, 760 mil votos, 144 mil num paredão do BBB 26.',
     },
     body: {
       en: 'Two real-time apps over one Firestore. Editors create a poll in the back office and copy its embed; readers vote inside the article and watch the percentages move. Each vote is one atomic write, each duplicate check a single read. It replaced a paid service.',
@@ -158,8 +158,8 @@ export const projects: Project[] = [
       pt: 'Sistema de votação ao vivo da GZH: um back-office para a redação e um widget de enquete que os jornalistas embedam nas matérias.',
     },
     result: {
-      en: '71 live polls and 760K+ votes during BBB 26; replaced a paid service',
-      pt: '71 enquetes ao vivo e mais de 760 mil votos no BBB 26; substituiu um serviço pago',
+      en: '71 live polls and 760K+ votes, 144K of them on one BBB 26 eviction; replaced a paid service',
+      pt: '71 enquetes ao vivo e mais de 760 mil votos, 144 mil num só paredão do BBB 26; substituiu um serviço pago',
     },
     shots: {
       desktop: [
