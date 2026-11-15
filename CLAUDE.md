@@ -47,7 +47,7 @@ Nothing was lost in that incident because `staging` retained every commit. Keep 
 | The paint: one fragment shader, at most one WebGL context drawing at a time (hero, closing, and an off-document source); paint windows copy it into 2D canvases cut to a shape; a static stand-in where WebGL is missing | `src/components/canvas/paint.ts`, `FluidWaves.tsx`, `PaintWindow.tsx` |
 | About | `src/components/sections/About.tsx` |
 | Selected work: three projects stacked, a frame each, the name and "view" beside the one in play, a line pinned to the bottom corners | `src/components/sections/SelectedWork.tsx` |
-| Dark section: the other case studies as rows, three jobs as rows, the closing link to all work | `src/components/sections/MoreWork.tsx` |
+| Dark section: the other case studies as rows, every job as a row, the closing link to all work | `src/components/sections/MoreWork.tsx` |
 | Contact and footer, on the paint | `src/components/layout/Closing.tsx` |
 | Header and language pair | `src/components/layout/Header.tsx` |
 | Page change: view transitions, and the arrival of a page's `data-enter` parts | `src/components/layout/PageChange.tsx` |

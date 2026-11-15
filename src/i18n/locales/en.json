@@ -15,9 +15,9 @@
     "role": "software engineer · full-stack"
   },
   "about": {
-    "statement": "I build interfaces end to end, and design what I build.",
-    "fact": "years shipping for product teams in Brazil, Australia and the United States. Since 2023, interactive journalism at Grupo RBS.",
-    "stack": "React, TypeScript, Next.js, Node, NestJS, PostgreSQL",
+    "statement": "I design, architect and build products, systems, or whatever your heart desires, end to end.",
+    "fact": "years shipping for product teams in Brazil, Australia and the United States. From 2023 to 2026, interactive journalism at Grupo RBS.",
+    "stack": "React, TypeScript, Next.js, Node, NestJS, .NET, PostgreSQL",
     "place": "Porto Alegre, Brazil. English and Portuguese.",
     "portraitAlt": "Portrait of Kevin Shibuya"
   },
@@ -69,11 +69,11 @@
     "status": {
       "live": "live",
       "published": "published",
-      "prelaunch": "pre-launch",
+      "unlaunched": "finished, never launched",
       "internal": "internal",
       "mvp": "mvp, not in production"
     },
-    "noLink": "no public address yet",
+    "neverLaunched": "no public address",
     "privateLink": "not public",
     "more": "more work",
     "screen": "{{title}}, screen {{n}}",
@@ -86,7 +86,7 @@
   "allWork": {
     "title": "all work",
     "interactives": "newsroom interactives",
-    "note": "Published on GZH, in Portuguese. Each one opens the article it lives in.",
+    "note": "The catalogued share of the 250+ I shipped for GZH, in Portuguese. Each one opens the article it lives in.",
     "pieces_one": "{{count}} piece",
     "pieces_other": "{{count}} pieces",
     "types": {

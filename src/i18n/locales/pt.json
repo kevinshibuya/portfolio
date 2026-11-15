@@ -15,9 +15,9 @@
     "role": "engenheiro de software · full-stack"
   },
   "about": {
-    "statement": "Construo interfaces de ponta a ponta, e desenho o que construo.",
-    "fact": "anos entregando para times de produto no Brasil, na Austrália e nos Estados Unidos. Desde 2023, jornalismo interativo no Grupo RBS.",
-    "stack": "React, TypeScript, Next.js, Node, NestJS, PostgreSQL",
+    "statement": "Desenho, arquiteto e construo produtos, sistemas ou o que o seu coração desejar, de ponta a ponta.",
+    "fact": "anos entregando para times de produto no Brasil, na Austrália e nos Estados Unidos. De 2023 a 2026, jornalismo interativo no Grupo RBS.",
+    "stack": "React, TypeScript, Next.js, Node, NestJS, .NET, PostgreSQL",
     "place": "Porto Alegre, Brasil. Português e inglês.",
     "portraitAlt": "Retrato de Kevin Shibuya"
   },
@@ -69,11 +69,11 @@
     "status": {
       "live": "no ar",
       "published": "publicado",
-      "prelaunch": "pré-lançamento",
+      "unlaunched": "concluído, nunca lançado",
       "internal": "interno",
       "mvp": "mvp, fora de produção"
     },
-    "noLink": "ainda sem endereço público",
+    "neverLaunched": "sem endereço público",
     "privateLink": "não é público",
     "more": "mais trabalhos",
     "screen": "{{title}}, tela {{n}}",
@@ -86,7 +86,7 @@
   "allWork": {
     "title": "todos os trabalhos",
     "interactives": "interativos de redação",
-    "note": "Publicados na GZH, em português. Cada um abre a matéria em que está.",
+    "note": "A parte catalogada dos mais de 250 que publiquei na GZH, em português. Cada um abre a matéria em que está.",
     "pieces_one": "{{count}} peça",
     "pieces_other": "{{count}} peças",
     "types": {
