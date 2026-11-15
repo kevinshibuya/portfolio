@@ -1,132 +1,106 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
-import { useMotion } from '../../context/MotionContext'
-import { EASE_HOUSE } from '../../utils/animations'
-import { accentFor, accentDeepFor, accentDeepLargeFor } from '../../utils/palette'
+import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
+import { TLink } from '../layout/PageChange'
+import { Arrow, type ArrowKind } from './Arrow'
 
 /**
- * The open typographic row, in two places: Work Experience's expandable
- * entries, and the Stream's rows on All work.
- *
- * It carries no imagery of its own. The tracking preview float and the
- * trailing ornament went with the old Archive section.
+ * A work row: a title, two small tag lines on its baseline, and the arrow in
+ * its box at the right margin. On hover the right arrow swings away, a second
+ * arrow swings in at the third column and the title slides over to clear it
+ * (the ROWS rules in index.css). The same row carries a case study on the
+ * work index, on the home page's black list, and the address in the closing.
  */
-
 export interface WorkRowProps {
-  /** 0-based position in the list; renders as zero-padded index and picks the tint via accentFor(index). */
-  index: number
   title: string
-  /** Rendered as `·`-joined meta spans after the title block. */
-  meta?: string[]
-  /** Internal path ('/...') renders a <Link>, external an <a target="_blank" rel="noreferrer">. Omit for non-link rows. */
+  tags?: string[]
+  /** A page of this site (plays the page change) or an outside address. */
+  to?: string
   href?: string
-  /** Overrides the href-prefix heuristic (L2): when set, decides Link vs anchor
-   *  regardless of whether href starts with '/'. The stream passes item.internal. */
-  internal?: boolean
-  /** Expandable variant (work experience). Mutually exclusive with href. */
-  expandable?: boolean
-  expanded?: boolean
-  onToggle?: () => void
-  /** Expanded panel content. */
-  children?: React.ReactNode
+  /** `big` is the 90 px row of the work index. */
+  big?: boolean
+  mark?: ArrowKind
+  /** A picture between the tags and the arrow. */
+  thumb?: ReactNode
+  /** Marks the row the motion films look for. */
+  filmed?: boolean
+  /** The step of a page's arrival this row belongs to. */
+  group?: number
+  className?: string
 }
 
-export function WorkRow(props: WorkRowProps): React.ReactElement {
-  const { index, title, meta, href, internal, expandable, expanded, onToggle, children } = props
-  const { prefersReducedMotion } = useMotion()
+/** The two small lines beside a row's title; the last one shares the title's baseline. */
+export function Tags({ tags, enter }: { tags: string[]; enter?: string }): ReactElement {
+  return (
+    <span className="wrow-tags" data-enter={enter && 'pop'} data-enter-group={enter}>
+      {tags.map((tag) => (
+        <span key={tag}>{tag}</span>
+      ))}
+    </span>
+  )
+}
 
-  const paddedIndex = String(index + 1).padStart(2, '0')
-  // Three tint channels. --row-tint is the raw tricolor for the ink sections;
-  // the two deep channels are read only inside .chapter-light, where the token
-  // scope cannot reach an inline custom property (see index.css, LIGHT CHAPTER).
-  const rootStyle = {
-    '--row-tint': accentFor(index),
-    '--row-tint-deep': accentDeepFor(index),
-    '--row-tint-deep-large': accentDeepLargeFor(index),
-  } as React.CSSProperties &
-    Record<'--row-tint' | '--row-tint-deep' | '--row-tint-deep-large', string>
+export function WorkRow({
+  title,
+  tags = [],
+  to,
+  href,
+  big = false,
+  mark = 'in',
+  thumb,
+  filmed = false,
+  group,
+  className,
+}: WorkRowProps): ReactElement {
+  const ref = useRef<HTMLAnchorElement>(null)
+  // Where nothing hovers, the row nearest the middle of the screen nudges its arrow instead.
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => el.classList.toggle('is-near', entry.isIntersecting), {
+      rootMargin: '-42% 0px -42% 0px',
+    })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
-  // Link decision (L2): explicit `internal` wins, else the href-prefix heuristic.
-  const isInternal = internal ?? href?.startsWith('/') ?? false
-
-  const inner = (
+  const classes = `wrow${big ? ' wrow--big' : ''}${className ? ` ${className}` : ''}`
+  const enter = group === undefined ? undefined : String(group)
+  const body = (
     <>
-      <span className="workrow-index" aria-hidden="true">
-        {paddedIndex}
+      <span className="wrow-arrow wrow-arrow--l" aria-hidden="true">
+        <Arrow kind={mark} />
       </span>
-      <span className="workrow-title">{title}</span>
-      {meta && meta.length > 0 && (
-        <span className="workrow-meta">
-          {meta.map((m, i) => (
-            <span key={i} className="workrow-meta-item">
-              {m}
-            </span>
-          ))}
+      <span className="wrow-head">
+        <span className={`wrow-title ${big ? 'h1' : 'h2'}`} data-enter={enter && 'title'} data-enter-group={enter}>
+          {title}
         </span>
-      )}
-      {/* The glyph says where the link goes: `+` opens in place, `→` stays on
-          this site, `↗` leaves it. */}
-      <span className="workrow-arrow" aria-hidden="true">
-        {expandable ? '+' : isInternal ? '→' : '↗'}
+        {tags.length > 0 && <Tags tags={tags} enter={enter} />}
+      </span>
+      <span className="wrow-spacer" />
+      {thumb}
+      <span className="wrow-arrow wrow-arrow--r" data-enter={enter && 'pop'} data-enter-group={enter}>
+        <Arrow kind={mark} />
       </span>
     </>
   )
-
-  // Expandable variant (work experience) — real <button>, animated panel.
-  if (expandable) {
+  const motion = filmed ? 'row-hover' : undefined
+  if (to) {
     return (
-      <div className="workrow workrow--expandable" style={rootStyle}>
-        <button
-          type="button"
-          className="workrow-toggle"
-          aria-expanded={!!expanded}
-          onClick={onToggle}
-        >
-          {inner}
-        </button>
-        <AnimatePresence initial={false}>
-          {expanded && (
-            <motion.div
-              className="workrow-panel-wrap"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{
-                height: 0,
-                opacity: 0,
-                transition: { duration: prefersReducedMotion ? 0 : 0.22, ease: EASE_HOUSE },
-              }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.32, ease: EASE_HOUSE }}
-              style={{ overflow: 'hidden' }}
-            >
-              <div className="workrow-panel">{children}</div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      <TLink ref={ref} to={to} className={classes} data-motion={motion}>
+        {body}
+      </TLink>
     )
   }
-
-  // Link / anchor / static variants.
-  let interactive: React.ReactElement
-  if (href && isInternal) {
-    interactive = (
-      <Link to={href} className="workrow-link">
-        {inner}
-      </Link>
-    )
-  } else if (href) {
-    interactive = (
-      <a href={href} target="_blank" rel="noreferrer" className="workrow-link">
-        {inner}
-      </a>
-    )
-  } else {
-    interactive = <div className="workrow-link workrow-link--static">{inner}</div>
-  }
-
+  const outside = href?.startsWith('http')
   return (
-    <div className="workrow" style={rootStyle}>
-      {interactive}
-    </div>
+    <a
+      ref={ref}
+      href={href}
+      className={classes}
+      data-motion={motion}
+      target={outside ? '_blank' : undefined}
+      rel={outside ? 'noopener noreferrer' : undefined}
+    >
+      {body}
+    </a>
   )
 }

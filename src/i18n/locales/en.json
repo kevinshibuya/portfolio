@@ -1,99 +1,106 @@
 {
   "nav": {
+    "about": "about",
     "work": "work",
     "experience": "experience",
-    "skills": "stack",
-    "contact": "contact"
+    "contact": "contact",
+    "primary": "primary",
+    "home": "kevin shibuya, home",
+    "language": "language",
+    "name": "kevin shibuya · software engineer · full-stack"
   },
-  "lang": "EN",
   "hero": {
     "name1": "kevin",
     "name2": "shibuya.",
-    "roles": [
-      "senior front-end engineer · react/typescript",
-      "full-stack developer",
-      "system architect",
-      "tech lead",
-      "ai engineer"
-    ]
+    "role": "software engineer · full-stack"
   },
-  "sections": {
-    "projects": {
-      "heading": "selected work",
-      "overture": "a few things i've built",
-      "stack": {
-        "viewProject": "view"
-      },
-      "moreWork": {
-        "claim": "plus 250+ interactives for GZH since 2023",
-        "link": "see all work"
-      }
-    },
-    "archive": {
-      "title": "all work",
-      "pieces_one": "{{count}} piece",
-      "pieces_other": "{{count}} pieces",
-      "origin": {
-        "freelance": "freelance",
-        "personal": "personal"
-      }
-    },
-    "work": {
-      "title": "experience",
-      "description": "seven years shipping. seen by millions.",
-      "award": "★ award",
-      "modes": {
-        "in-person": "in person",
-        "remote": "remote"
-      }
-    },
-    "skills": {
-      "title": "stack",
-      "description": "my stack: fast, without cutting craft.",
-      "frontend": "frontend",
-      "design": "design",
-      "backend": "backend & cloud",
-      "devops": "devops & testing",
-      "ai": "ai engineering",
-      "leadership": "leadership"
-    },
-    "contact": {
-      "title": "contact",
-      "subtitle": "got a project or rough idea? let's talk.",
-      "links": {
-        "email": "send mail",
-        "linkedin": "linkedin",
-        "github": "github",
-        "resume": "download cv"
-      }
+  "about": {
+    "statement": "I build interfaces end to end, and design what I build.",
+    "fact": "years shipping for product teams in Brazil, Australia and the United States. Since 2023, interactive journalism at Grupo RBS.",
+    "stack": "React, TypeScript, Next.js, Node, NestJS, PostgreSQL",
+    "place": "Porto Alegre, Brazil. English and Portuguese.",
+    "portraitAlt": "Portrait of Kevin Shibuya"
+  },
+  "work": {
+    "selected": "selected work",
+    "more": "more work",
+    "view": "view",
+    "open": "Open {{title}}"
+  },
+  "experience": {
+    "title": "experience",
+    "modes": {
+      "in-person": "in person",
+      "remote": "remote"
     }
   },
-  "footer": {
-    "copyright": "© {{year}} kevin shibuya · all rights reserved",
-    "builtWith": "built with react, typescript & care",
-    "bigText": "kevin shibuya",
-    "location": "porto alegre, brazil",
-    "langSwitch": "switch language"
+  "allLink": {
+    "l1": "see all",
+    "l3": "pieces of",
+    "l4": "work",
+    "note1": "{{count}} case studies",
+    "note2": "{{count}} newsroom interactives",
+    "label": "See all {{count}} pieces of work"
   },
-  "projectDetail": {
-    "back": "back to projects",
+  "contact": {
+    "title": "contact",
+    "linkedin": "linkedin",
+    "github": "github",
+    "resume": "curriculum",
+    "resumeValue": "cv, pdf"
+  },
+  "footer": {
+    "copyright": "© {{year}}",
+    "by": "designed and built by",
+    "name": "kevin shibuya",
+    "place": "porto alegre, brazil",
+    "top": "back to top"
+  },
+  "project": {
+    "crumbWork": "all work",
+    "live": "view live",
+    "credits": "credits",
+    "stack": "stack",
+    "client": "for",
     "year": "year",
-    "stack": "tech stack",
-    "whatShipped": "what shipped",
-    "trick": "the trick",
-    "liveDemo": "live demo",
-    "sourceCode": "source code",
-    "routesCount_one": "{{count}} route",
-    "routesCount_other": "{{count}} routes",
-    "notes": "notes",
+    "state": "status",
+    "role": "role",
+    "team": "team",
+    "status": {
+      "live": "live",
+      "published": "published",
+      "prelaunch": "pre-launch",
+      "internal": "internal",
+      "mvp": "mvp, not in production"
+    },
+    "noLink": "no public address yet",
+    "privateLink": "not public",
+    "more": "more work",
+    "screen": "{{title}}, screen {{n}}",
+    "recording": "{{title}}, recording {{n}}",
+    "diagram": "How {{title}} is put together",
     "notFound": "project not found",
-    "notFoundDescription": "the project you're looking for doesn't exist.",
-    "scroll": "scroll"
+    "notFoundDescription": "The project you are looking for does not exist.",
+    "backHome": "back home"
   },
   "allWork": {
+    "title": "all work",
+    "interactives": "newsroom interactives",
+    "note": "Published on GZH, in Portuguese. Each one opens the article it lives in.",
+    "pieces_one": "{{count}} piece",
+    "pieces_other": "{{count}} pieces",
+    "types": {
+      "SIMULADOR": "simulators",
+      "MAPA INTERATIVO": "interactive maps",
+      "QUIZ": "quizzes",
+      "CALCULADORA": "calculators",
+      "INFOGRAFICO": "infographics",
+      "BUSCADOR": "finders",
+      "GALERIA": "galleries"
+    },
     "meta": {
       "title": "all work · kevin shibuya",
-      "description": "every piece kevin shibuya has shipped, year by year: case studies and the interactives published on GZH."
+      "description": "Every piece Kevin Shibuya has shipped: nine case studies and the interactives published on GZH."
     }
   }
 }

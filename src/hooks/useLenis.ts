@@ -6,8 +6,7 @@ interface ScrollOpts {
   duration?: number
   /** Pixel offset from the target's top (e.g. -80 to leave header room). */
   offset?: number
-  /** Snap instantly without lerping. Use for scroll restoration / page
-   *  resets where any visible animation reads as a glitch. */
+  /** Jump without easing: for scroll restoration and page resets. */
   immediate?: boolean
   /** Override Lenis lock/stop state (used when restoring scroll while
    *  the entrance lock is in the process of releasing). */
@@ -24,10 +23,9 @@ export function useLenis(): {
       const { duration = 1.2, offset = 0, immediate = false, force = false } = opts
 
       if (lenis) {
-        // Lenis caches its scroll limit and refreshes it on a debounce. A
-        // programmatic scroll fired as lazy sections mount would clamp to the
-        // page as it was before they grew: an off-route nav to a lower section
-        // stopped at the old document's bottom, thousands of px short.
+        // Lenis caches its scroll limit and refreshes it on a debounce, so the
+        // limit is re-read here: a scroll asked for while lazy sections are
+        // still mounting must reach a target the document has only just grown to.
         lenis.resize()
         lenis.scrollTo(target, { duration, offset, immediate, force })
         return
