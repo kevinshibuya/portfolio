@@ -71,10 +71,12 @@
       "published": "publicado",
       "unlaunched": "concluído, nunca lançado",
       "internal": "interno",
-      "mvp": "mvp, fora de produção"
+      "mvp": "mvp, fora de produção",
+      "building": "em andamento"
     },
     "neverLaunched": "sem endereço público",
     "privateLink": "não é público",
+    "personal": "projeto pessoal",
     "more": "mais trabalhos",
     "screen": "{{title}}, tela {{n}}",
     "recording": "{{title}}, gravação {{n}}",
@@ -100,7 +102,7 @@
     },
     "meta": {
       "title": "todos os trabalhos · kevin shibuya",
-      "description": "Tudo o que Kevin Shibuya já publicou: nove estudos de caso e os interativos publicados na GZH."
+      "description": "Tudo o que Kevin Shibuya já publicou: onze estudos de caso e os interativos publicados na GZH."
     }
   }
 }

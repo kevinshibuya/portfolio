@@ -101,6 +101,8 @@ function Page({ project }: { project: Project }): ReactElement {
     t(item.type === 'clip' ? 'project.recording' : 'project.screen', { title, n })
   const status = t(`project.status.${project.status}`)
   const quiet = t(project.status === 'unlaunched' ? 'project.neverLaunched' : 'project.privateLink')
+  // A personal project was made for no client: the page says so in the reader's language.
+  const client = project.origin === 'personal' ? t('project.personal') : project.client
   // Frames are numbered down the page; the lead is 01.
   const numbers = new Map(groups.flatMap((group) => group.rows.flatMap((row) => row.items)).map((item, index) => [item.id, index + 2]))
 
@@ -137,7 +139,7 @@ function Page({ project }: { project: Project }): ReactElement {
             <div className="p-facts" data-enter="pop">
               <dl className="facts p2">
                 <dt>{t('project.client')}</dt>
-                <dd>{project.client}</dd>
+                <dd>{client}</dd>
                 <dt>{t('project.year')}</dt>
                 <dd>{project.year}</dd>
                 <dt>{t('project.state')}</dt>
@@ -215,7 +217,7 @@ function Page({ project }: { project: Project }): ReactElement {
               <h2 className="tag">{t('project.credits')}</h2>
               <dl className="credit-rows">
                 <dt>{t('project.client')}</dt>
-                <dd>{project.client}</dd>
+                <dd>{client}</dd>
                 <dt>{t('project.year')}</dt>
                 <dd>{project.year}</dd>
                 <dt>{t('project.state')}</dt>
