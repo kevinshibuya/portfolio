@@ -269,8 +269,8 @@ export const projects: Project[] = [
       pt: 'Jornalistas do Grupo RBS mostram como usam IA: depoimentos em vídeo, artigos e diretrizes editoriais.',
     },
     body: {
-      en: 'A static single-page app on a private RBS host. One shell, with a list, a main panel and a progress bar, serves both the video player and the article reader, and everything is published from a single JSON file, so the newsroom can change the format while the pilot runs.',
-      pt: 'Uma SPA estática em um host privado da RBS. Um único shell, com lista, painel principal e barra de progresso, serve o player de vídeo e o leitor de artigos, e tudo é publicado a partir de um único arquivo JSON, então a redação pode mudar o formato enquanto o piloto roda.',
+      en: 'A static single-page app on a private RBS host. One shell, with a list, a main panel and a progress bar, serves both the video player and the article reader, and everything is published from a single JSON file, so the newsroom could change the format while the pilot ran.',
+      pt: 'Uma SPA estática em um host privado da RBS. Um único shell, com lista, painel principal e barra de progresso, serve o player de vídeo e o leitor de artigos, e tudo é publicado a partir de um único arquivo JSON, então a redação podia mudar o formato enquanto o piloto rodava.',
     },
     slug: 'ia-na-redacao',
     title: { en: 'IA na Redação', pt: 'IA na Redação' },
@@ -307,8 +307,8 @@ export const projects: Project[] = [
       pt: 'Um *hub interno do Grupo RBS* onde os próprios jornalistas contam como usam IA no dia a dia, construído como um MVP para medir a adoção da redação antes de evoluir para uma plataforma editorial completa.',
     },
     whatShipped: {
-      en: 'A React + Vite SPA deployed as a static build on a private RBS host, supporting both video testimonials and long-form articles inside the same editorial shell. Content is published from a single JSON file so the newsroom can keep iterating on the format while the MVP proves its value. Tailwind v4 with a touch of Emotion.',
-      pt: 'SPA React + Vite com build estático servida num host privado da RBS, com suporte tanto a depoimentos em vídeo quanto a artigos longos dentro do mesmo shell editorial. O conteúdo é publicado a partir de um único arquivo JSON, então a redação consegue continuar iterando no formato enquanto o MVP prova seu valor. Tailwind v4 com um toque de Emotion.',
+      en: 'A React + Vite SPA deployed as a static build on a private RBS host, supporting both video testimonials and long-form articles inside the same editorial shell. Content is published from a single JSON file so the newsroom could keep iterating on the format while the MVP proved its value. Tailwind v4 with a touch of Emotion.',
+      pt: 'SPA React + Vite com build estático servida num host privado da RBS, com suporte tanto a depoimentos em vídeo quanto a artigos longos dentro do mesmo shell editorial. O conteúdo é publicado a partir de um único arquivo JSON, então a redação conseguia continuar iterando no formato enquanto o MVP provava seu valor. Tailwind v4 com um toque de Emotion.',
     },
     trick: {
       en: '*One shared course shell* (sidebar list, main panel, progress tracker) backs both the video player and the article reader, so adding a new editorial format becomes a new block type rather than a new screen. Articles ship as ordered arrays of typed blocks (paragraphs, pull-quotes) rather than HTML strings, so styling is applied *structurally* by the renderer instead of leaking into the copy.',
