@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" role="img" aria-label="Portrait placeholder">
+  <defs>
+    <radialGradient id="a" cx="72%" cy="18%" r="75%">
+      <stop offset="0" stop-color="#2F6BFF" stop-opacity=".85"/>
+      <stop offset=".55" stop-color="#16223F" stop-opacity=".6"/>
+      <stop offset="1" stop-color="#16223F" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="b" cx="12%" cy="88%" r="60%">
+      <stop offset="0" stop-color="#2F6BFF" stop-opacity=".4"/>
+      <stop offset="1" stop-color="#0B0E14" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="c" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0B0E14" stop-opacity=".92"/>
+      <stop offset="1" stop-color="#0B0E14" stop-opacity=".78"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="750" fill="#16223F"/>
+  <rect width="600" height="750" fill="url(#a)"/>
+  <rect width="600" height="750" fill="url(#b)"/>
+  <g fill="url(#c)">
+    <circle cx="300" cy="296" r="112"/>
+    <path d="M74 750c0-138 98-246 226-246s226 108 226 246z"/>
+  </g>
+</svg>

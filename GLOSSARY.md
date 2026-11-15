@@ -1,3 +1,5 @@
+> This file describes the site before version 4, which landed on 2026-11-14 and replaced it; it is due a rewrite. Until then, `CLAUDE.md`, the section comments in `src/index.css` and the components themselves describe the current site.
+
 # Portfolio
 
 Kevin Shibuya's personal developer portfolio, live at kevinshibuya.com. A bilingual EN/PT React single-page site with per-project detail routes, whose centerpiece is a pinned 3D Selected Work scene between two raw-WebGL shader canvases.

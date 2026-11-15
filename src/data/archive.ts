@@ -1,12 +1,19 @@
 import { projects } from './projects'
 import { embeds } from './embeds'
-import type { ArchiveItem, Embed, Project } from '../types/content'
+import type { Embed, EmbedType, Project } from '../types/content'
 
-type UnsortedArchiveItem = Omit<ArchiveItem, 'year' | 'serial'>
+/** Case studies in the site's own ranking, first to last. */
+export const rankedProjects: Project[] = [...projects].sort((a, b) => a.order - b.order)
 
-function parseEditorialDate(ddmmyyyy: string): number {
-  // Expect 'dd/mm/yyyy'. Returns epoch ms; falls back to 0 on malformed input
-  // (bad shape, or semantically invalid like month=13 / day=32 → NaN).
+export interface ArchiveEntry extends Embed {
+  /** Epoch ms of the publication date, 0 when the date is malformed. */
+  sortDate: number
+  year: number
+  /** dd.mm */
+  day: string
+}
+
+function parseDate(ddmmyyyy: string): number {
   const m = ddmmyyyy.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
   if (!m) return 0
   const [, dd, mm, yyyy] = m
@@ -14,64 +21,47 @@ function parseEditorialDate(ddmmyyyy: string): number {
   return Number.isFinite(t) ? t : 0
 }
 
-function fromProjects(source: readonly Project[]): UnsortedArchiveItem[] {
-  return source.map((p) => ({
-    id: `featured-${p.id}`,
-    title: p.title,
-    origin: p.origin ?? 'professional',
-    caseStudy: { slug: p.slug },
-    date: String(p.year),
-    sortDate: new Date(`${p.year}-12-31T00:00:00Z`).getTime(),
-    href: `/projects/${p.slug}`,
-    internal: true,
-  }))
+/** Every newsroom interactive, newest first. */
+export const interactives: ArchiveEntry[] = embeds
+  .map((embed) => {
+    const sortDate = parseDate(embed.publicationDate)
+    const [dd, mm] = embed.publicationDate.split('/')
+    return {
+      ...embed,
+      sortDate,
+      year: new Date(sortDate).getUTCFullYear(),
+      day: dd && mm ? `${dd}.${mm}` : embed.publicationDate,
+    }
+  })
+  .sort((a, b) => b.sortDate - a.sortDate)
+
+export interface YearBlock {
+  year: number
+  items: ArchiveEntry[]
 }
 
-function fromEmbeds(source: readonly Embed[]): UnsortedArchiveItem[] {
-  return source.map((e, i) => ({
-    id: `editorial-${i}`,
-    title: e.title,
-    origin: 'professional',
-    type: e.type,
-    editorial: e.editorial,
-    date: e.publicationDate,
-    sortDate: parseEditorialDate(e.publicationDate),
-    href: e.link,
-    internal: false,
-  }))
-}
-
-export function deriveArchive(
-  sourceProjects: readonly Project[],
-  sourceEmbeds: readonly Embed[],
-): ArchiveItem[] {
-  const items = [...fromProjects(sourceProjects), ...fromEmbeds(sourceEmbeds)]
-  return items
-    .map((item, sourceIndex) => ({ item, sourceIndex }))
-    .sort((a, b) =>
-      b.item.sortDate - a.item.sortDate ||
-      Number(b.item.caseStudy !== undefined) - Number(a.item.caseStudy !== undefined) ||
-      a.sourceIndex - b.sourceIndex
-    )
-    .map(({ item }, index) => ({
-      ...item,
-      year: new Date(item.sortDate).getUTCFullYear(),
-      serial: items.length - index,
-    }))
-}
-
-export const archive: ArchiveItem[] = deriveArchive(projects, embeds)
-
-export function yearBlocks(
-  items: readonly ArchiveItem[],
-): { year: number; count: number; items: ArchiveItem[] }[] {
-  const byYear = new Map<number, ArchiveItem[]>()
+export function yearBlocks(items: readonly ArchiveEntry[]): YearBlock[] {
+  const byYear = new Map<number, ArchiveEntry[]>()
   for (const item of items) {
     const block = byYear.get(item.year)
     if (block) block.push(item)
     else byYear.set(item.year, [item])
   }
-  return [...byYear.entries()]
-    .sort(([a], [b]) => b - a)
-    .map(([year, pieces]) => ({ year, count: pieces.length, items: pieces }))
+  return [...byYear.entries()].sort(([a], [b]) => b - a).map(([year, pieces]) => ({ year, items: pieces }))
 }
+
+/** Interactive types present in the archive, most frequent first, with their counts. */
+export const typeCounts: { type: EmbedType; count: number }[] = (() => {
+  const counts = new Map<EmbedType, number>()
+  for (const item of interactives) counts.set(item.type, (counts.get(item.type) ?? 0) + 1)
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([type, count]) => ({ type, count }))
+})()
+
+/** The one count the whole site quotes. */
+export const ARCHIVE_TOTALS = {
+  caseStudies: projects.length,
+  interactives: interactives.length,
+  pieces: projects.length + interactives.length,
+  firstYear: Math.min(...projects.map((p) => p.year), ...interactives.map((i) => i.year)),
+  lastYear: Math.max(...projects.map((p) => p.year), ...interactives.map((i) => i.year)),
+} as const

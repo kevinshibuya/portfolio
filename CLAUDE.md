@@ -1,10 +1,10 @@
 # Portfolio, Claude instructions
 
-Kevin Shibuya's personal developer portfolio, live at kevinshibuya.com: a bilingual EN/PT React single-page site with per-project detail routes, whose centerpiece is a pinned 3D Selected Work scene between two raw-WebGL shader canvases.
+Kevin Shibuya's personal developer portfolio, live at kevinshibuya.com: a bilingual EN/PT React single-page site. Version 4 of the site landed on 2026-11-14. Routes: `/` (home), `/all-work` (every case study and the newsroom interactives), `/projects/:slug` (the nine case studies in `src/data/projects.ts`); any other path renders the project template's not-found view.
 
-Stack: React 19, TypeScript strict, Vite 6 with SWC, TailwindCSS v4 through the Vite plugin (configured in CSS `@theme`, no `tailwind.config.js`), Framer Motion v12, GSAP, Lenis smooth scroll, React Three Fiber with `@react-three/postprocessing` for the Selected Work scene only, react-i18next, npm.
+Stack: React 19, TypeScript strict, Vite 6 with SWC, TailwindCSS v4 through the Vite plugin (configured in CSS `@theme`, no `tailwind.config.js`; the site is styled almost entirely by the plain classes in `src/index.css`), react-router-dom 7, Lenis smooth scroll, npm. No animation library and no 3D library: motion is CSS, the Web Animations API, view transitions and one shared animation-frame loop; the paint is raw WebGL. Translations are a small context in `src/i18n/index.tsx` over two JSON locale files. `framer-motion`, `gsap`, `three`, `@react-three/*`, `postprocessing`, `i18next` and `react-i18next` are still listed in `package.json`, but nothing in `src/` imports them.
 
-How it works: `docs/architecture.md`. Before editing a surface, read its section; the index at the top of that file maps files to sections.
+How it works: `docs/architecture.md` and `GLOSSARY.md` describe the site before version 4 and are due a rewrite. Until then, the section comments in `src/index.css` and the doc comment at the top of each component are the reference; the summary below maps them.
 
 ## Branches and deploy (read before any merge)
 
@@ -32,24 +32,48 @@ How it works: `docs/architecture.md`. Before editing a surface, read its section
 
 Nothing was lost in that incident because `staging` retained every commit. Keep it that way: **never roll back by deleting work from `staging` or `ai-staging`.**
 
+## The site, version 4
+
+**Design.** Two solid grounds, cream `#F9F4EC` and black, and the paint of the first screen. Orange `#D94300`, the paint's body colour, is the one accent: arrows, marks and the paint, never a surface and never text at rest. A dark section (`data-theme="dark"`) is the same tokens swapped. One family, Plus Jakarta Sans, roman only; six type sizes, each with one job (`mega`, `h1`, `h2`, `h4`, `p1`, `p2`); one 12-column grid; two curves, E1 for transitions and page-level moves, E2 for the pop of words and small parts. The frame, a hard black rectangle with the capture inset on a 4 % mat, is the shape the site is built from. The tokens and the reasoning are the TOKENS block at the top of `src/index.css`; the shader's colours are `src/utils/palette.ts`.
+
+**Surfaces.**
+
+| Surface | Files |
+| --- | --- |
+| Loader: an ink sheet with "ks." windows, painted by `index.html` at first byte; its exit (contraction, then a zoom through the cutout) and the entrance gate | `index.html`, `src/main.tsx`, `src/context/MotionContext.tsx` |
+| Hero: the name and role line rising over the paint, which dissolves into the cream page below the first screen | `src/components/sections/Hero.tsx`, `src/hooks/useEntered.ts` |
+| The paint: one fragment shader, at most one WebGL context drawing at a time (hero, closing, and an off-document source); paint windows copy it into 2D canvases cut to a shape; a static stand-in where WebGL is missing | `src/components/canvas/paint.ts`, `FluidWaves.tsx`, `PaintWindow.tsx` |
+| About | `src/components/sections/About.tsx` |
+| Selected work: three projects stacked, a frame each, the name and "view" beside the one in play, a line pinned to the bottom corners | `src/components/sections/SelectedWork.tsx` |
+| Dark section: the other case studies as rows, three jobs as rows, the closing link to all work | `src/components/sections/MoreWork.tsx` |
+| Contact and footer, on the paint | `src/components/layout/Closing.tsx` |
+| Header and language pair | `src/components/layout/Header.tsx` |
+| Page change: view transitions, and the arrival of a page's `data-enter` parts | `src/components/layout/PageChange.tsx` |
+| All work | `src/pages/AllWork.tsx` |
+| Project page, in two forms chosen by `useWide` at 861 px. Wide: one numbered column of every capture (`.p-column`), the recording travelling down to head it, a sticky credits column (`.p-credits`), the live link in the title row (`.p-live`), the diagram last. Narrow: the facts under the title (`.p-facts`), then labelled groups (`.p-group`) | `src/pages/ProjectDetail.tsx`, `src/hooks/useWide.ts`, `src/data/media.ts`, `src/data/galleries.ts`, `src/components/ui/Travel.tsx` |
+| Shared parts: frame, work row, label, arrow, rolling link, the name that answers the pointer, the diagram | `src/components/ui/` |
+
+**Motion.** The entrance holds a direct load for about two seconds: `MotionContext`'s `entranceDone` resolves when the loader hands over, and the hero's rise, the header, Lenis and the home sections below the first screen all wait on it. Scroll-following motion subscribes to the one loop in `src/utils/frame.ts`. Under `prefers-reduced-motion` the entrance is instant, the paint draws one still frame, and the REDUCED MOTION block in `src/index.css` puts everything where it ends.
+
+**Hooks the tests read.** `body[data-loader-state="done"]` once the loader has gone; `section.hero[data-entrance="settled"]` once the rise has landed; on a paint canvas, `data-canvas` (`fluid-waves`, `fluid-waves-closing`), `data-paused`, `data-painted` and `data-static`. The paint's measurement hooks are URL params, dormant otherwise: `?perf-seed=`, `?perf-freeze=`, `?perf-counters` (`paint.ts`).
+
 ## Verification
 
-- **Typecheck with `npx tsc -b`** (or `npm run build`, which runs `tsc -b && vite build`). A bare `npx tsc --noEmit` is a no-op in this repo: the root `tsconfig.json` is `"files": []` plus project references, so it exits 0 on code that does not compile.
+- **Typecheck with `npx tsc -b`** (or `npm run build`, which runs `tsc -b && vite build`). A bare `npx tsc --noEmit` is a no-op in this repo: the root `tsconfig.json` is `"files": []` plus project references, so it exits 0 on code that does not compile. `tsc -b` covers `src/` and `vite.config.ts` only; the tests are transpiled by Vitest and Playwright without a typecheck.
 - **Kill port 4173 before a direct `npx playwright test` run:** `lsof -ti:4173 | xargs -r kill -9` (bare `xargs kill -9` runs with no argument and exits non-zero when the port is free, breaking an `&&` chain). `playwright.config.ts` sets `reuseExistingServer: !process.env.CI`, so a stale preview server survives and the suite tests the previous build.
-- **A runtime error inside a canvas is invisible to DOM assertions.** The canvas keeps its element and its attributes while the frame loop throws. `tests/e2e/scene-scrub.spec.ts` is the only guard that catches it.
+- **A runtime error inside a canvas is invisible to DOM assertions.** The canvas keeps its element and its attributes while the frame loop throws. Every browser spec fails on any console error or page error (`collectErrors` in `tests/e2e/helpers/site.ts`), and that is what catches it.
 - **A rendered surface also needs a headless browser smoke:** it loads, the root renders, zero console errors. Typecheck and lint alone do not cover a surface.
+- **Browser tests import `src/` modules that Node cannot load** (`src/data/media.ts` imports JSON, `src/data/archive.ts` a `?raw` CSV) through `loadSrc` in `tests/e2e/helpers/site.ts`, which runs them through Vite.
 - **The set:** `npx tsc -b`, `npm run lint`, `npx vitest run`, then e2e in two suites (ADR 0013): `npm run test:e2e:quick` in a PR's fix loop, and `npm run test:e2e` (the full suite) once on the final head before the `ai-staging` merge. Both run through `scripts/e2e.sh`, which frees 4173, builds once and owns the server. A surface change adds the smoke.
 
 ## Standing rules
 
-- **Bilingual from the first commit.** Every reader-facing string exists in both `en` and `pt` as a `{ en, pt }` pair. Two documented exceptions: embed titles are Portuguese only, because the source is editorial, and the loader's two corner labels in `index.html` are English only, because they paint before React and i18n load. Decision: ADR 0001.
+- **Bilingual from the first commit.** Every reader-facing string exists in both `en` and `pt`: UI strings in `src/i18n/locales/` (a unit test holds the two files to the same keys), content as `{ en, pt }` pairs. Two documented exceptions: embed titles are Portuguese only, because the source is editorial, and the loader's two corner labels in `index.html` are English only, because they paint before React and i18n load. Decision: ADR 0001.
 - **Every animation honours `prefers-reduced-motion`.**
-- **One library per animation** (`docs/architecture.md#animation-lanes`). GSAP is one-shot entrance orchestration only. Framer Motion owns state-driven and scroll-scrubbed motion. The R3F frame loop reads Framer MotionValues and writes three objects itself. Never two lanes on one animation.
 - **A palette or token change ships with a recomputed AA audit** across every affected text/background pair, verified, not hoped. The tables are in `docs/contrast.md`, recomputed as a unit.
 - **`·` in reader-facing prose,** never a spaced em-dash. Reader-facing means site copy and i18n strings; date ranges, code comments and quoted wordmarks are exempt.
 - **TypeScript:** strict, no `any`, explicit return types on hooks and utilities.
 - **Components:** functional, with the props interface above the component.
-- **GSAP inside a component:** scope with `gsap.context()` and a ref, and return cleanup from `useEffect`. The loader exit (`src/main.tsx`) is the sanctioned exception: a module-level timeline outside React, and the only GSAP on the site.
 - **Performance:** `will-change` only while an element animates; lazy-load canvas sections behind `Suspense` with a fallback.
 - **Tailwind:** semantic class groupings, and repeated patterns become components.
 
@@ -65,30 +89,18 @@ Checkboxes in `docs/superpowers/specs/` and `docs/superpowers/plans/` are the so
 
 ## NO
 
-- **A light theme outside the sanctioned chapter.** The hero, Contact and Footer stay ink; the only light nav is `.nav--on-light`.
-- **Cards or bento.** Open typographic rows, except the scene's framed cards. Rounded-full pills, chips and buttons survive where already used, on filters and tags.
-- **A scrim, halo or shader darkening under the hero text.** Adding one looks like an accessibility fix; the missing contrast IS the ratified exemption. The only sanctioned path is the opt-in `@media (prefers-contrast: more)` layer already in `src/index.css`. Decision: ADR 0004.
-- **A fourth canvas** anywhere on the page.
-- **`@react-three/drei`.** Not installed; blob shadows and R3F's default camera replace it.
-- **Anton anywhere but the Selected Work title.** Jakarta is the site voice.
-- **A halo or glow around a card.**
-- **A DOM element that tracks the settled card.** The card carries its own caption. Decision: ADR 0011.
-- **Router access anywhere in `src/components/canvas/`, and any DOM beyond the canvas element inside `src/components/canvas/scene/`.** `FluidWaves.tsx` reads `.hero-zone` layout on purpose, so the dissolve band is never a hardcoded svh ratio.
-- **A section eyebrow or number anywhere.**
-- **A CSS entry veil on the hero.** The shader's cream dissolve owns that ramp.
-- **The exit veil inside `#chapter-light`.** It is a sibling; nested, its `var(--bg)` resolves to cream and the fade disappears.
-- **A legacy alias (`--cream`, `--ink`, and the rest) read inside `#chapter-light`.** The scope re-declares canonical tokens only, so an alias renders cream on cream.
-- **`overflow` or `position` on `#chapter-light`.** Either one silently breaks the scene's sticky pin.
-- **`--color-ink-on-light-faded` (2.62:1) on always-visible text.** It is for `aria-hidden` decoration; always-visible small text takes the muted step.
+- **Cards or bento.** Open typographic rows and frames. Rounded-full pills, chips and buttons survive where already used, on filters and tags.
+- **Router access anywhere in `src/components/canvas/`.** `FluidWaves.tsx` reads `.hero-zone` layout on purpose, so the dissolve band is never a hardcoded svh ratio.
 
 ## Where things live
 
 | What | Where |
 | --- | --- |
 | Rules an agent obeys every turn | `CLAUDE.md` |
-| How each surface works | `docs/architecture.md` |
+| The design system, section by section | the block comments in `src/index.css` |
+| How each surface worked before version 4 (due a rewrite) | `docs/architecture.md` |
 | AA contrast tables | `docs/contrast.md` |
-| Glossary and invariants | `GLOSSARY.md` |
+| Glossary and invariants, before version 4 (due a rewrite) | `GLOSSARY.md` |
 | Decisions with their reasoning | `docs/adr/` |
 | Records of live systems | `docs/superpowers/specs/`, `docs/superpowers/plans/` |
 | Records of retired systems | `docs/superpowers/archive/` |
@@ -96,6 +108,6 @@ Checkboxes in `docs/superpowers/specs/` and `docs/superpowers/plans/` are the so
 | The resume note (ignored, never tracked) | `HANDOFF.md` |
 | Tests | `tests/e2e/`, `tests/unit/` |
 | Content types | `src/types/content.ts` |
-| Content data | `src/data/`, including `src/data/embeds.csv` |
+| Content data | `src/data/`: `projects.ts`, `embeds.csv`, `media.json` (captures and recordings, served from `public/media/<slug>/`), `galleries.ts`, `architecture.ts`, `workExperience.ts`, `social.ts` |
 | UI strings, both languages | `src/i18n/locales/` |
 | Stack, getting started, tree | `README.md` |

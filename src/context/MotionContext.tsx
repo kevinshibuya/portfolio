@@ -1,5 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react'
-import { useReducedMotion } from 'framer-motion'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 type Resolver = () => void
 
@@ -40,8 +39,24 @@ let _entranceBypassed = false
 
 const Ctx = createContext<MotionContextValue | null>(null)
 
+const REDUCED_QUERY = '(prefers-reduced-motion: reduce)'
+
+/** The OS reduced-motion preference, live. */
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(REDUCED_QUERY).matches,
+  )
+  useEffect(() => {
+    const query = window.matchMedia(REDUCED_QUERY)
+    const onChange = (): void => setReduced(query.matches)
+    query.addEventListener('change', onChange)
+    return () => query.removeEventListener('change', onChange)
+  }, [])
+  return reduced
+}
+
 export function MotionProvider({ children }: { children: React.ReactNode }) {
-  const reduced = useReducedMotion() ?? false
+  const reduced = useReducedMotion()
 
   // Initialise from the module flag so a remounted provider picks up an
   // already-bypassed state instead of resetting to false.

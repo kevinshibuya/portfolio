@@ -1,88 +1,85 @@
-import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ReactElement } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Hero } from '../components/sections/Hero'
 import { useLenis } from '../hooks/useLenis'
 import { useMotion } from '../context/MotionContext'
 import { resetPageMeta } from '../utils/pageMeta'
+import { pageArrived } from '../components/layout/PageChange'
 
-// Below-the-fold sections lazy-load so the main JS chunk only carries Hero
-// (the LCP target). After Hero mounts, an idle callback warms the chunks so
-// they're ready by the time the user scrolls. The Suspense fallback reserves
-// 100vh so a hyper-fast scroll doesn't snap through to the footer.
-const Projects = lazy(() =>
-  import('../components/sections/Projects').then((m) => ({ default: m.Projects }))
-)
-const WorkExperience = lazy(() =>
-  import('../components/sections/WorkExperience').then((m) => ({ default: m.WorkExperience }))
-)
-const Skills = lazy(() =>
-  import('../components/sections/Skills').then((m) => ({ default: m.Skills }))
-)
-const Contact = lazy(() =>
-  import('../components/sections/Contact').then((m) => ({ default: m.Contact }))
-)
-const Footer = lazy(() =>
-  import('../components/layout/Footer').then((m) => ({ default: m.Footer }))
-)
-// Canvas #2. Named export → unwrap. Deliberately NOT idle-warmed: the WebGL
-// backdrop must not mount until the user scrolls near the stage.
-const FluidWavesBackdrop = lazy(() =>
-  import('../components/canvas/FluidWaves').then((m) => ({ default: m.FluidWaves }))
-)
+// Everything under the first screen is one chunk, fetched once the entrance
+// has played: until then the page is scroll-locked, so the first paint carries
+// only the hero.
+const About = lazy(() => import('./HomeSections').then((m) => ({ default: m.About })))
+const HomeSections = lazy(() => import('./HomeSections').then((m) => ({ default: m.HomeSections })))
 
 const STORAGE_KEY = 'portfolio:home:scrollY'
 
-export function Home() {
-  const { scrollTo } = useLenis()
-  const { bypassEntrance } = useMotion()
-  const location = useLocation()
-  // Capture location.state once at mount via a ref so it doesn't appear in the
-  // effect's dep array. Calling navigate(replace) to clear the state instead
-  // would mutate location.state, re-fire the effect, and cancel the in-flight
-  // ResizeObserver before the target section mounts.
-  const navTargetRef = useRef<string | undefined>(
-    (location.state as { scrollToId?: string } | null)?.scrollToId,
-  )
+// A beat after the opening type starts to rise, so the sections' requests do
+// not compete with the first screen.
+const SECTIONS_DELAY_MS = 300
 
-  // The contact/footer WebGL backdrop (canvas #2) is the heaviest below-the-fold
-  // asset, so it mounts only once the user scrolls within 120% of the stage —
-  // an IntersectionObserver on the stage wrapper flips this once, then
-  // disconnects. Until then the backdrop canvas never mounts. A React 19
-  // cleanup-returning callback ref arms the observer the moment the stage node
-  // commits (it sits behind the outer Suspense, so a plain mount effect could
-  // fire before the node exists).
-  const [stageApproached, setStageApproached] = useState(false)
-  const stageRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (!node || stageApproached) return
-      const io = new IntersectionObserver(
-        (entries) => {
-          if (entries.some((e) => e.isIntersecting)) {
-            setStageApproached(true)
-            io.disconnect()
-          }
-        },
-        { rootMargin: '120%' },
-      )
-      io.observe(node)
-      return () => io.disconnect()
-    },
-    [stageApproached],
-  )
+interface HomeState {
+  scrollToId?: string
+  top?: boolean
+}
+
+/** The position to return to, read once: a later write must never be replayed. */
+function readStored(state: HomeState | null): number | null {
+  try {
+    if (state?.top || state?.scrollToId) {
+      sessionStorage.removeItem(STORAGE_KEY)
+      return null
+    }
+    const y = Number.parseInt(sessionStorage.getItem(STORAGE_KEY) ?? '', 10)
+    return Number.isFinite(y) && y > 0 ? y : null
+  } catch {
+    return null
+  }
+}
+
+export function Home(): ReactElement {
+  const { scrollTo } = useLenis()
+  const { bypassEntrance, entranceDone, entranceBypassed } = useMotion()
+  const location = useLocation()
+  // Both targets are captured once at mount. The effect below runs again when
+  // the scroll helper changes identity (the smooth scroller arrives after the
+  // entrance), and that second run must find only what is still pending.
+  const state = location.state as HomeState | null
+  const navTargetRef = useRef<string | undefined>(state?.scrollToId)
+  const topRef = useRef<boolean>(state?.top === true)
+  const restoreRef = useRef<number | null | undefined>(undefined)
+  if (restoreRef.current === undefined) restoreRef.current = readStored(state)
+
+  const [sectionsDue, setSectionsDue] = useState(entranceBypassed)
+  useEffect(() => {
+    if (sectionsDue) return
+    let cancelled = false
+    let timer = 0
+    const askedAt = performance.now()
+    entranceDone
+      .then(() => {
+        // An entrance that has already played leaves nothing to wait for.
+        const played = performance.now() - askedAt < 50
+        timer = window.setTimeout(
+          () => {
+            if (!cancelled) setSectionsDue(true)
+          },
+          played ? 0 : SECTIONS_DELAY_MS,
+        )
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [entranceDone, sectionsDue])
 
   useLayoutEffect(() => {
-    // Header off-route nav hands us a target section via location.state.
-    // Section is lazy-loaded, so poll the document for the element to mount
-    // (ResizeObserver as document height grows) before scrolling. Clear the
-    // saved scrollY so it doesn't fight us.
+    // The header's off-route nav hands over a target section through
+    // location.state. The section is lazy, so wait for it to mount (the
+    // document grows) before scrolling.
     const targetId = navTargetRef.current
     if (targetId) {
-      // The ref is cleared only once the target is applied or the wait gives
-      // up, never on entry: this effect re-runs when `scrollTo` or
-      // `bypassEntrance` changes identity, and that re-run's cleanup cancels
-      // the observer. Cleared on entry, the re-run found no target and the
-      // nav landed nowhere whenever its section had not mounted yet.
-      sessionStorage.removeItem(STORAGE_KEY)
       bypassEntrance()
 
       let cancelled = false
@@ -98,12 +95,10 @@ export function Home() {
         navTargetRef.current = undefined
         cleanup()
       }
-
       const apply = (): boolean => {
         if (cancelled) return false
-        const el = document.getElementById(targetId)
-        if (!el) return false
-        scrollTo(`#${targetId}`, { duration: 0.8 })
+        if (!document.getElementById(targetId)) return false
+        scrollTo(`#${targetId}`, { immediate: true, force: true })
         return true
       }
 
@@ -111,39 +106,31 @@ export function Home() {
         finish()
         return
       }
-
       if (typeof ResizeObserver !== 'undefined') {
         observer = new ResizeObserver(() => {
-          if (cancelled) return
-          if (apply()) finish()
+          if (!cancelled && apply()) finish()
         })
         observer.observe(document.documentElement)
       }
-      timeoutId = window.setTimeout(finish, 1500)
+      timeoutId = window.setTimeout(finish, 2500)
       return cleanup
     }
 
-    const raw = sessionStorage.getItem(STORAGE_KEY)
-    if (!raw) return
-    const y = parseInt(raw, 10)
-    if (!Number.isFinite(y) || y <= 0) {
-      sessionStorage.removeItem(STORAGE_KEY)
+    const y = restoreRef.current
+    if (y === null || y === undefined) {
+      // A jump to the top is asked for once; a later run must not pull the reader back up.
+      if (topRef.current) {
+        topRef.current = false
+        window.scrollTo(0, 0)
+        scrollTo(0, { immediate: true, force: true })
+      }
       return
     }
-    // Bypass the hero entrance BEFORE scroll restoration so the lock
-    // doesn't latch and the user doesn't see the trace replay.
+    // Returning to Home: skip the entrance and put the reader back where they
+    // were. The sections arrive as a lazy chunk, so the position is applied
+    // again each time the document grows until it is reachable.
     bypassEntrance()
 
-    // Below-the-fold sections are Suspense-wrapped lazy chunks. On Home
-    // re-mount the document may be only ~200vh tall while chunks resolve,
-    // so a single window.scrollTo(0, y) past the placeholder clamps to
-    // max-scroll. Apply once, then re-apply each time the document grows
-    // (ResizeObserver) until y is reachable, capped by a short timeout.
-    //
-    // No user-input cancel: macOS swipe-back gestures fire wheel events
-    // that would trip the cancel and abort restore before chunks load.
-    // The retry window is short enough (≤500ms) that if a user scrolls
-    // immediately they'll see at most one or two corrective scrolls.
     let cancelled = false
     let observer: ResizeObserver | null = null
     let timeoutId: number | null = null
@@ -152,111 +139,73 @@ export function Home() {
       cancelled = true
       observer?.disconnect()
       if (timeoutId !== null) window.clearTimeout(timeoutId)
-      sessionStorage.removeItem(STORAGE_KEY)
     }
-
+    // Applied, or given up on: either way the position is spent.
+    const finish = (): void => {
+      restoreRef.current = null
+      cleanup()
+    }
     const apply = (): boolean => {
       if (cancelled) return false
       window.scrollTo(0, y)
       scrollTo(y, { immediate: true, force: true })
-      return window.scrollY >= y
+      return window.scrollY >= y - 1
     }
 
     if (apply()) {
-      cleanup()
+      finish()
       return
     }
-
     if (typeof ResizeObserver !== 'undefined') {
       observer = new ResizeObserver(() => {
-        if (cancelled) return
-        if (apply()) cleanup()
+        if (!cancelled && apply()) finish()
       })
       observer.observe(document.documentElement)
     }
-    // After ~500ms the chunks should have settled; let the user own scroll
-    // beyond that even if the target was never reached.
-    timeoutId = window.setTimeout(cleanup, 500)
-
+    timeoutId = window.setTimeout(finish, 1200)
     return cleanup
+    // Everything read from `location.state` comes through refs captured at mount.
   }, [bypassEntrance, scrollTo])
 
-  // Continuously mirror Home's scrollY into sessionStorage. This is more
-  // robust than saving in a useEffect cleanup: cleanup can run after
-  // ProjectDetail's window.scrollTo(0, 0), capturing the wrong value, and
-  // unmount timing under React 19 + concurrent nav is not guaranteed to
-  // run before the new route's effects.
+  // Home's scroll position is mirrored into sessionStorage as it changes, so a
+  // return from a project page can restore it.
   useEffect(() => {
-    let pending = false
+    let frame = 0
     const onScroll = (): void => {
-      if (pending) return
-      pending = true
-      requestAnimationFrame(() => {
-        const y = window.scrollY
-        if (y > 0) sessionStorage.setItem(STORAGE_KEY, String(y))
-        pending = false
+      if (frame) return
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        try {
+          sessionStorage.setItem(STORAGE_KEY, String(Math.round(window.scrollY)))
+        } catch {
+          /* storage is a convenience */
+        }
       })
     }
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      // A frame still owed would read the next page's position and save it as home's.
+      cancelAnimationFrame(frame)
+    }
   }, [])
 
-  // Restore the homepage title + meta description on mount, in case the
-  // user is coming back from a project detail page where they were swapped
-  // out. Captured-once-then-restored is enough; we don't translate the
-  // homepage title per language (the static one in index.html stands).
+  useLayoutEffect(() => {
+    pageArrived()
+  }, [])
   useEffect(() => {
     resetPageMeta()
-  }, [])
-
-  // Warm the lazy chunks at idle so the first scroll doesn't show a placeholder.
-  // requestIdleCallback isn't in Safari yet — fall back to a 0ms timer.
-  useEffect(() => {
-    const warm = () => {
-      void import('../components/sections/Projects')
-      void import('../components/sections/WorkExperience')
-      void import('../components/sections/Skills')
-      void import('../components/sections/Contact')
-      void import('../components/layout/Footer')
-    }
-    const ric = (window as Window & {
-      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
-    }).requestIdleCallback
-    if (typeof ric === 'function') {
-      ric(warm, { timeout: 2000 })
-    } else {
-      setTimeout(warm, 0)
-    }
   }, [])
 
   return (
     <main>
       <Hero />
-      <Suspense fallback={<div style={{ minHeight: '100vh' }} aria-hidden />}>
-        {/* The light chapter. One wrapper owns the cream sheet and carries the
-            scoped token inversion (.chapter-light in index.css), so every
-            descendant rule that already reads a canonical token flips to the
-            on-light system without being edited. Deliberately a plain block:
-            no overflow, no position. The sticky stage inside #projects needs
-            the viewport as its scroll container, and any overflow on an
-            ancestor would silently break the pin. */}
-        <div id="chapter-light" className="chapter-light">
-          <Projects />
-          <WorkExperience />
-          <Skills />
-        </div>
-        {/* The exit veil is the wrapper's SIBLING, never a child: its gradient
-            ends in var(--bg), which the scope above would resolve to cream and
-            the fade would vanish. */}
-        <div className="chapter-exit-veil" aria-hidden="true" />
-        <div className="contact-footer-stage" ref={stageRef}>
-          <Suspense fallback={null}>
-            {stageApproached && <FluidWavesBackdrop variant="backdrop" />}
-          </Suspense>
-          <Contact />
-          <Footer />
-        </div>
-      </Suspense>
+      {sectionsDue && (
+        <Suspense fallback={null}>
+          <About />
+          <HomeSections />
+        </Suspense>
+      )}
     </main>
   )
 }
