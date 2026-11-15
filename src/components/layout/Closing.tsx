@@ -17,7 +17,8 @@ interface Channel {
   value: string
   href: string
   mark: ArrowKind
-  download?: boolean
+  /** The file name a download is saved under; absent for a link that opens. */
+  download?: string
 }
 
 function socialUrl(platform: 'github' | 'linkedin'): string {
@@ -54,6 +55,7 @@ export function Closing(): ReactElement {
     [near],
   )
 
+  const cv = `kevin-shibuya-cv-${lang}.pdf`
   const channels: Channel[] = [
     {
       key: 'linkedin',
@@ -62,7 +64,7 @@ export function Closing(): ReactElement {
       mark: 'out',
     },
     { key: 'github', value: '@kevinshibuya', href: socialUrl('github'), mark: 'out' },
-    { key: 'resume', value: t('contact.resumeValue'), href: `/cv-${lang}.pdf`, mark: 'down', download: true },
+    { key: 'resume', value: t('contact.resumeValue'), href: `/${cv}`, mark: 'down', download: cv },
   ]
 
   return (
@@ -86,7 +88,7 @@ export function Closing(): ReactElement {
                   className="channel-link p1"
                   target={channel.href.startsWith('http') ? '_blank' : undefined}
                   rel={channel.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  download={channel.download ? '' : undefined}
+                  download={channel.download}
                 >
                   <Roll>{channel.value}</Roll>
                   <Arrow kind={channel.mark} />

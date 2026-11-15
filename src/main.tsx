@@ -6,21 +6,20 @@ import App from './App.tsx'
 import { I18nProvider } from './i18n'
 import { MotionProvider, resolveEntrance } from './context/MotionContext'
 import { house } from './utils/ease'
+import { forgetScroll } from './utils/scrollMemory'
 
 // Scroll restoration is owned here so the browser does not fight the
-// per-route handling: a full reload starts at the top and plays the entrance;
-// an in-tab return to Home restores its scroll position (Home.tsx).
+// per-route handling: a page reached by going back or forward opens where it
+// was left (useScrollMemory), every other page at its top.
 if (typeof history !== 'undefined' && 'scrollRestoration' in history) {
   history.scrollRestoration = 'manual'
 }
 
 // sessionStorage persists across reloads in the same tab. A hard load wants a
-// fresh entrance from the top, so the saved Home scroll position is dropped.
+// fresh entrance from the top, so the record of scroll positions is dropped.
 try {
   const nav = performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming | undefined
-  if (nav?.type === 'reload' || nav?.type === 'navigate') {
-    sessionStorage.removeItem('portfolio:home:scrollY')
-  }
+  if (nav?.type === 'reload' || nav?.type === 'navigate') forgetScroll()
 } catch {
   // Navigation timing is not critical: fall through silently.
 }
@@ -61,7 +60,7 @@ const mount = (): void => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       loaderEl?.classList.add('loader--mounted')
-      window.setTimeout(liftCurtain, Math.max(0, MIN_HOLD_MS - performance.now()))
+      afterFirstPaint(() => window.setTimeout(liftCurtain, Math.max(0, MIN_HOLD_MS - performance.now())))
     })
   })
 }
@@ -104,8 +103,28 @@ const META_EXIT_S = 0.22
 // The stand-in tint thins out while the cutout is still small.
 const STANDIN_FADE_S = 0.5
 
+// The lift waits this long, at most, for the hero's paint to draw its first
+// frame: building the shader is the heaviest moment of the load on a phone,
+// and it must not land inside the explosion.
+const PAINT_WAIT_MS = 500
+
 const loaderEl = document.getElementById('loader')
 let lifted = false
+
+/** Runs `then` once the hero's paint has drawn a frame, has given way to its stand-in, or is not on this page. */
+const afterFirstPaint = (then: () => void): void => {
+  const canvas = document.querySelector<HTMLCanvasElement>('canvas[data-canvas="fluid-waves"]')
+  if (!canvas) {
+    then()
+    return
+  }
+  const since = performance.now()
+  const poll = (): void => {
+    if (canvas.dataset.painted || !canvas.isConnected || performance.now() - since >= PAINT_WAIT_MS) then()
+    else requestAnimationFrame(poll)
+  }
+  poll()
+}
 
 // The scroll lock in index.css keys off this attribute, and so does
 // useScrollLockDuringEntrance; both writers converge on 'done'.

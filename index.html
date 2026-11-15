@@ -133,7 +133,7 @@
       }
     </script>
 
-    <!-- STRUCTURED DATA: the nine case studies, in step with src/data/projects.ts. -->
+    <!-- STRUCTURED DATA: the eleven case studies, in step with src/data/projects.ts. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -141,7 +141,7 @@
         "@id": "https://kevinshibuya.com/#featured-projects",
         "name": "Featured projects",
         "itemListOrder": "https://schema.org/ItemListOrderAscending",
-        "numberOfItems": 9,
+        "numberOfItems": 11,
         "itemListElement": [
           {
             "@type": "ListItem",
@@ -169,7 +169,7 @@
               "@id": "https://kevinshibuya.com/projects/radar-legislativo#creativework",
               "url": "https://kevinshibuya.com/projects/radar-legislativo",
               "name": "Radar Legislativo",
-              "description": "Legislative-data platform for Grupo RBS (pre-launch): a NestJS/PostgreSQL backend that ingests the Chamber of Deputies open data daily, an AI pipeline drafting voting summaries for editorial approval, and a public React site with voting and expense visualizations.",
+              "description": "Legislative-data platform built for Grupo RBS, finished but never launched: a NestJS/PostgreSQL backend that ingested the Chamber of Deputies open data daily, an AI pipeline that drafted voting summaries for editorial approval, and a public React site with voting and expense visualizations.",
               "dateCreated": "2026",
               "inLanguage": "pt-BR",
               "keywords": "NestJS, PostgreSQL, TypeORM, Redis, Next.js, React, Vite, OpenAI API, Docker, Kubernetes, GitLab CI",
@@ -187,7 +187,7 @@
               "url": "https://kevinshibuya.com/projects/enquetes-gzh",
               "name": "Enquetes GZH",
               "description": "Poll/survey system for GZH: a backoffice for the newsroom and an embed widget journalists drop into articles, sharing one Firestore backend.",
-              "dateCreated": "2026",
+              "dateCreated": "2025",
               "inLanguage": "pt-BR",
               "keywords": "React, TypeScript, Firestore, Firebase",
               "sameAs": "https://gauchazh.clicrbs.com.br/especiais/enquetes-gzh-backoffice",
@@ -298,6 +298,40 @@
                 "@id": "https://kevinshibuya.com/#person"
               }
             }
+          },
+          {
+            "@type": "ListItem",
+            "position": 10,
+            "item": {
+              "@type": "CreativeWork",
+              "@id": "https://kevinshibuya.com/projects/promptfall#creativework",
+              "url": "https://kevinshibuya.com/projects/promptfall",
+              "name": "Promptfall",
+              "description": "Promptfall, an idle fantasy RPG that runs inside Claude Code as a plugin: each tool call spawns an enemy, each prompt rests the party, and a pane holds a market, chat, leaderboards and a world boss. A work in progress: the public server is offline, so the game runs on an in-process server or one you host.",
+              "dateCreated": "2026",
+              "inLanguage": "en",
+              "keywords": "TypeScript, Node.js, Claude Code plugins, SQLite, Zod, Vitest, Docker, Caddy, Cloudflare R2",
+              "creator": {
+                "@id": "https://kevinshibuya.com/#person"
+              }
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 11,
+            "item": {
+              "@type": "CreativeWork",
+              "@id": "https://kevinshibuya.com/projects/barber-app#creativework",
+              "url": "https://kevinshibuya.com/projects/barber-app",
+              "name": "Barber app",
+              "description": "A phone app for barbers in Brazil: photograph the client in the chair and show them AI previews of 12 hair styles and 5 beard styles on their own face before cutting. A work in progress: milestone 1 runs as a demo Android APK, and the CRM, an iOS build, a store listing and a name do not exist yet.",
+              "dateCreated": "2026",
+              "inLanguage": "pt-BR",
+              "keywords": "Expo, React Native, NativeWind, NestJS, Supabase, PostgreSQL, Jest, Docker, Caddy",
+              "creator": {
+                "@id": "https://kevinshibuya.com/#person"
+              }
+            }
           }
         ]
       }
@@ -315,9 +349,9 @@
          frame of HTML, before the bundled stylesheet arrives. It mirrors the
          LOADER block of src/index.css.
 
-         Structure: a full-viewport ink SVG <rect> masked by static "ks."
-         glyph windows (paths taken from Plus Jakarta Sans 700, so there is no
-         font dependency) over a stand-in in the paint's colours that reads as
+         Structure: a full-viewport ink SVG path with static "ks." glyph
+         windows cut out of it (paths taken from Plus Jakarta Sans 700, so
+         there is no font dependency) over a stand-in in the paint's colours that reads as
          paint before React mounts. On mount main.tsx thins the stand-in, so the live hero
          paint moves behind it, then contracts the ks. cutout slightly and
          explodes it outward until the viewport sits inside a letterform
@@ -418,22 +452,23 @@
     <div id="loader" aria-hidden="true">
       <div class="loader-standin"></div>
       <svg class="loader-ink" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <mask id="loader-mask">
-            <rect x="-20" y="-20" width="140" height="140" fill="#fff" />
-            <g class="loader-ks">
-              <!-- translate-x centers the "ks" letters optically (60.5–1021.5
-                   glyph → mark center at viewBox 50); the trailing "." hangs
-                   right of center by design and is excluded from centering. -->
-              <g transform="translate(34.52 39.34) scale(0.02861)" fill="#000">
-                <path d="M60.5 745.0V-12.0H191.75V484.25L141.75 469.5L397.75 201.5H560.75L359.75 420.25L564.75 745.0H414.75L237.25 463.0L314.5 447.5L151.0 623.5L191.75 542.75V745.0Z" />
-                <path d="M814.5 757.0Q727.75 757.0 663.375 715.375Q599.0 673.75 574.5 603.0L672.75 556.5Q694.25 601.75 731.625 627.75Q769.0 653.75 814.5 653.75Q850.5 653.75 871.5 638.125Q892.5 622.5 892.5 595.75Q892.5 579.75 884.0 569.25Q875.5 558.75 861.25 551.25Q847.0 543.75 829.5 539.0L740.5 514.0Q671.75 494.5 636.5 453.125Q601.25 411.75 601.25 355.75Q601.25 305.75 626.75 268.5Q652.25 231.25 697.75 210.375Q743.25 189.5 801.5 189.5Q878.5 189.5 937.75 226.5Q997.0 263.5 1021.5 330.25L922.25 376.75Q908.25 340.0 875.25 318.25Q842.25 296.5 800.75 296.5Q767.75 296.5 748.625 311.25Q729.5 326.0 729.5 350.5Q729.5 365.5 737.5 376.25Q745.5 387.0 760.25 394.25Q775.0 401.5 793.5 407.0L881.0 433.0Q948.25 452.75 984.375 493.125Q1020.5 533.5 1020.5 591.25Q1020.5 640.5 994.5 677.75Q968.5 715.0 922.5 736.0Q876.5 757.0 814.5 757.0Z" />
-                <path d="M1153.5 745.0V605.0H1286.0V745.0Z" />
-              </g>
-            </g>
-          </mask>
-        </defs>
-        <rect x="-20" y="-20" width="140" height="140" fill="#0B0E14" mask="url(#loader-mask)" />
+        <!-- One path, filled even-odd: a sheet wider than any screen (the reach the mask's rect had) with
+             the three glyphs as holes in it. It is not a <mask>: a mask is
+             redrawn on the processor for every frame of the exit, the whole
+             screen at the device's pixel ratio, and a phone cannot keep up
+             (16 frames a second in WebKit at a ratio of 3; this holds 60).
+             main.tsx scales the group, sheet and holes together. -->
+        <g class="loader-ks">
+          <!-- translate-x centers the "ks" letters optically (60.5–1021.5
+               glyph → mark center at viewBox 50); the trailing "." hangs
+               right of center by design and is excluded from centering. -->
+          <path
+            transform="translate(34.52 39.34) scale(0.02861)"
+            fill="#0B0E14"
+            fill-rule="evenodd"
+            d="M-2100 -2100H3000V3000H-2100Z M60.5 -12L60.5 745L191.75 745L191.75 579.63L262.64 503.33L414.75 745L564.75 745L359.75 420.25L560.75 201.5L397.75 201.5L191.75 417.16L191.75 -12Z M814.5 757.0Q727.75 757.0 663.375 715.375Q599.0 673.75 574.5 603.0L672.75 556.5Q694.25 601.75 731.625 627.75Q769.0 653.75 814.5 653.75Q850.5 653.75 871.5 638.125Q892.5 622.5 892.5 595.75Q892.5 579.75 884.0 569.25Q875.5 558.75 861.25 551.25Q847.0 543.75 829.5 539.0L740.5 514.0Q671.75 494.5 636.5 453.125Q601.25 411.75 601.25 355.75Q601.25 305.75 626.75 268.5Q652.25 231.25 697.75 210.375Q743.25 189.5 801.5 189.5Q878.5 189.5 937.75 226.5Q997.0 263.5 1021.5 330.25L922.25 376.75Q908.25 340.0 875.25 318.25Q842.25 296.5 800.75 296.5Q767.75 296.5 748.625 311.25Q729.5 326.0 729.5 350.5Q729.5 365.5 737.5 376.25Q745.5 387.0 760.25 394.25Q775.0 401.5 793.5 407.0L881.0 433.0Q948.25 452.75 984.375 493.125Q1020.5 533.5 1020.5 591.25Q1020.5 640.5 994.5 677.75Q968.5 715.0 922.5 736.0Q876.5 757.0 814.5 757.0Z M1153.5 745.0V605.0H1286.0V745.0Z"
+          />
+        </g>
       </svg>
       <div class="loader-meta loader-meta--bl"><span>portfolio · 2026</span></div>
       <div class="loader-meta loader-meta--br"><span>react · typescript · webgl</span></div>
